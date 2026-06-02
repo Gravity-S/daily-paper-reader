@@ -25,3 +25,138 @@ subscriptions:
     stage: A
     diff_threshold_pct: 15
   keyword_recall_mode: or
+  intent_profiles:
+    - tag: agent-safety
+      description: 请帮我查找和AI Agent安全，隐私，Safety，Security相关的论文
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: AI agent safety
+          keyword_cn: AI代理安全
+          query: safety concerns in AI agents
+        - keyword: AI agent privacy
+          keyword_cn: AI代理隐私
+          query: privacy issues in AI agents
+        - keyword: AI agent robustness
+          keyword_cn: AI代理鲁棒性
+          query: robustness of AI agent systems
+        - keyword: AI agent trust
+          keyword_cn: AI代理可信度
+          query: trustworthiness of AI agents
+        - keyword: autonomous agent safety
+          keyword_cn: 自主代理安全
+          query: safety of autonomous intelligent agents
+        - keyword: multi-agent security
+          keyword_cn: 多代理系统安全
+          query: security in multi-agent systems
+      intent_queries:
+        - query: safety privacy security of AI agents
+          query_cn: AI代理的安全、隐私和安全
+          enabled: true
+          source: manual
+          note: ''
+        - query: robustness and trust in autonomous agent systems
+          query_cn: 自主代理系统的鲁棒性和信任
+          enabled: true
+          source: manual
+          note: ''
+        - query: adversarial robustness and alignment of AI agents
+          query_cn: AI代理的对抗鲁棒性和对齐
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-06-02T02:58:29.579Z'
+    - tag: agent-evolve
+      description: 请帮我查找和AI Agent 自进化，self-evolution，self-improvement 相关的论文
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: AI agent self-evolution
+          keyword_cn: AI智能体自进化
+          query: self-evolving AI agent
+        - keyword: self-improvement reinforcement learning
+          keyword_cn: 自我改进强化学习
+          query: self-improving reinforcement learning agent
+        - keyword: autonomous agent learning
+          keyword_cn: 自主智能体学习
+          query: autonomous learning in AI agents
+        - keyword: agent self-adaptation
+          keyword_cn: 智能体自适应
+          query: self-adaptive agent
+        - keyword: self-modifying agent
+          keyword_cn: 自修改智能体
+          query: self-modifying AI agent
+        - keyword: self-play agent
+          keyword_cn: 自对弈智能体
+          query: self-play for agent self-improvement
+      intent_queries:
+        - query: self evolving AI agent research paper
+          query_cn: 自进化AI智能体研究论文
+          enabled: true
+          source: manual
+          note: ''
+        - query: autonomous self improvement in AI agents
+          query_cn: AI智能体自主自我改进
+          enabled: true
+          source: manual
+          note: ''
+        - query: reinforcement learning for agent self evolution
+          query_cn: 用于智能体自进化的强化学习
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-06-02T02:59:28.166Z'
+    - tag: mas-security
+      description: 请帮我查找Multi Agent System的安全，隐私，Safety，Security相关的论文
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: multi-agent security
+          keyword_cn: 多智能体系统安全
+          query: security of multi-agent systems
+        - keyword: multi-agent privacy
+          keyword_cn: 多智能体系统隐私
+          query: privacy in multi-agent systems
+        - keyword: multi-agent safety
+          keyword_cn: 多智能体系统安全性
+          query: safety of multi-agent systems
+      intent_queries:
+        - query: papers on security and privacy in multi agent systems
+          query_cn: 多智能体系统安全与隐私相关论文
+          enabled: true
+          source: manual
+          note: ''
+        - query: research on safety and security of multi agent systems
+          query_cn: 多智能体系统安全性和安全性研究
+          enabled: true
+          source: manual
+          note: ''
+        - query: multi agent system privacy preserving techniques
+          query_cn: 多智能体系统隐私保护技术
+          enabled: true
+          source: manual
+          note: ''
+        - query: adversarial robustness in multi agent systems
+          query_cn: 多智能体系统的对抗鲁棒性
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-06-02T03:00:19.185Z'
+source_backends:
+  arxiv:
+    papers_table: arxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_arxiv_papers
+    vector_rpc_exact: match_arxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_arxiv_papers_bm25
+    sync_table: arxiv_sync_status
+    sync_success_value: success
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
