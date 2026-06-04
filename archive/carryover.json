@@ -1,28 +1,26 @@
 {
-  "generated_at": "2026-06-03T23:02:31.264551+00:00",
-  "updated_date": "20260603",
+  "generated_at": "2026-06-04T22:10:23.952283+00:00",
+  "updated_date": "20260604",
   "carryover_days": 9,
   "tag_states": {
     "agent-safety": {
-      "updated_date": "20260603",
+      "updated_date": "20260604",
       "carryover_days": 9,
       "items": [
         {
-          "id": "2605.27659v1",
+          "id": "2606.04296v1",
           "source": "arxiv",
-          "title": "Transferable Reinforcement Learning via Probabilistic Latent Embeddings and Dynamic Policy Adaptation for Sim-to-Real Deployment",
-          "abstract": "Due to limited resources and public safety concerns, deep reinforcement learning (RL) agents for many cyber-physical systems (e.g., autonomous vehicles) are first trained in simulators. However, when deployed in real world environments, they often suffer from performance degradation or safety violations because of the inevitable Sim2Real gap. Existing zero-shot approaches, such as robust safe RL and domain randomization, mitigate this issue but typically at the cost of degraded performance or residual safety risks when experiencing unmodeled system dynamics. To address these limitations, we propose a novel reinforcement learning framework that enables safe and efficient policy transfer via probabilistic latent embeddings and dynamic policy adaptation. We consider a family of Constrained Markov Decision Processes (CMDPs) under different environment contexts. By leveraging latent context variable in meta-RL, the proposed framework infers the latent representation of the environment from simulated experiences. Furthermore, it incorporates a distributional RL formulation, which allows risk levels of the deployed policy to be adjusted dynamically, based on the estimation accuracy of the latent context variable. This strategy promotes safety at the early deployment stage and improves efficiency through fast policy adaptation under the Sim2Real gap.",
+          "title": "The Saturation Trap and the Subjectivity of Intervention Timing: Why Affect-Based Triggers and LLM Judges Fail to Time Interventions on Autonomous Agents",
+          "abstract": "As autonomous AI agents move from conversational systems to long-horizon software execution, runtime safety layers that decide when to interrupt an agent have become essential. We study this timing problem using a continuous 18-dimensional affective-dynamics engine (HEART) as a diagnostic probe, evaluating four intervention trigger families - absolute state thresholds, composite state-action patterns, regex reasoning-feature extraction, and zero-shot LLM-as-judge - against human-annotated intervention points on SWE-bench-Verified debugging traces. We report three findings. First, a State Saturation Trap: agents show no recovery signal under sustained difficulty, so modeled frustration quickly crosses the threshold and stays at its maximum, converting threshold-on-state triggers from moment detectors into near-constant indicators that fire on 39-83% of actions across five trajectories. Second, a capability-and-context floor for LLM judges: a small model (gpt-5.4-mini) never fires, while frontier and cross-vendor models escape the zero-firing floor only with full-trajectory context, and even then reach only F1 0.17-0.40 at up to 90x the cost. Third, and most importantly, the supervised target is not reproducible among humans: three trained annotators using one rubric on a 56-action trajectory agree on where to intervene only slightly above chance (location Krippendorff's alpha = +0.047; best pairwise Cohen's kappa = +0.349) and not at all on intervention type (pause degenerate; clarify below chance; reflect only alpha = +0.226). We conclude that intervention timing is a low-reliability construct, making single-annotator F1 an unsuitable optimization target. Our contribution is the joint mapping of this problem across human inter-rater reliability, four detector architectures, a cross-model LLM-judge sweep, and a reproduced saturation effect, rather than any single detector's accuracy.",
           "authors": [
-            "Gengyue Han",
-            "Yiheng Feng"
+            "Manvendra Modgil"
           ],
-          "primary_category": "cs.LG",
+          "primary_category": "cs.AI",
           "categories": [
-            "cs.LG",
             "cs.AI"
           ],
-          "published": "2026-05-26T20:22:44+00:00",
-          "link": "https://arxiv.org/pdf/2605.27659v1",
+          "published": "2026-06-02T23:54:27+00:00",
+          "link": "https://arxiv.org/pdf/2606.04296v1",
           "tags": [
             "keyword:agent-evolve",
             "keyword:agent-safety",
@@ -32,13 +30,59 @@
             "query:mas-security"
           ],
           "llm_score": 8.0,
-          "llm_evidence_en": "addresses robustness of RL agents via safe policy transfer",
-          "llm_evidence_cn": "通过安全策略迁移提升强化学习代理的鲁棒性",
-          "llm_evidence": "通过安全策略迁移提升强化学习代理的鲁棒性",
-          "canonical_evidence": "通过安全策略迁移提升强化学习代理的鲁棒性",
-          "llm_tldr_en": "Proposes a transferable RL framework with probabilistic latent embeddings and dynamic policy adaptation to improve robustness and safety in Sim-to-Real deployment.",
-          "llm_tldr_cn": "针对深度强化学习代理在仿真环境训练后在真实世界性能下降和安全违规的问题，该论文提出了一种基于概率潜在嵌入和动态策略适应的迁移强化学习框架。该方法通过捕获环境差异的隐变量和实时调整策略，在保证安全的同时实现了高效的策略迁移。实验表明，该方法在多个连续控制任务上优于现有的鲁棒安全RL和域随机化方法，显著减少了部署中的安全违规次数。",
-          "llm_tldr": "针对深度强化学习代理在仿真环境训练后在真实世界性能下降和安全违规的问题，该论文提出了一种基于概率潜在嵌入和动态策略适应的迁移强化学习框架。该方法通过捕获环境差异的隐变量和实时调整策略，在保证安全的同时实现了高效的策略迁移。实验表明，该方法在多个连续控制任务上优于现有的鲁棒安全RL和域随机化方法，显著减少了部署中的安全违规次数。",
+          "llm_evidence_en": "studies runtime safety layers and intervention timing for autonomous agents",
+          "llm_evidence_cn": "研究自主智能体的运行时安全层和干预时机",
+          "llm_evidence": "研究自主智能体的运行时安全层和干预时机",
+          "canonical_evidence": "研究自主智能体的运行时安全层和干预时机",
+          "llm_tldr_en": "Analyzes failure modes of intervention triggers for autonomous agents using an affective-dynamics engine. Identifies the State Saturation Trap where agents show no recovery under sustained difficulty.",
+          "llm_tldr_cn": "该论文研究了自主智能体运行时安全层的干预时机问题，提出使用连续情感动力学引擎HEART作为诊断工具，评估四类干预触发器的效果。发现状态饱和陷阱，即智能体在持续困难下无恢复信号，导致现有触发器（包括LLM评判器）难以准确判断干预时机，对安全智能体设计有重要指导意义。",
+          "llm_tldr": "该论文研究了自主智能体运行时安全层的干预时机问题，提出使用连续情感动力学引擎HEART作为诊断工具，评估四类干预触发器的效果。发现状态饱和陷阱，即智能体在持续困难下无恢复信号，导致现有触发器（包括LLM评判器）难以准确判断干预时机，对安全智能体设计有重要指导意义。",
+          "llm_tags": [
+            "query:agent-safety"
+          ],
+          "matched_query_tag": "query:agent-safety",
+          "matched_query_text": "safety of autonomous intelligent agents",
+          "matched_requirement_id": "req-5",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.04296v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.02132v2",
+          "source": "arxiv",
+          "title": "Learning When Not to Act: Mitigating Tool Abuse in Agentic Reinforcement Learning",
+          "abstract": "Agentic reinforcement learning can induce tool abuse, where models overuse external tools even for queries solvable by internal reasoning. Existing approaches mitigate this issue with uniform tool-use penalties or hard limits, which reduce tool frequency but may also suppress useful tool-assisted exploration. We propose EAPO, an Efficient Agentic Policy Optimization framework that learns selective tool use. EAPO introduces tool-free trajectories into each rollout group, applies difficulty-aware reward shaping to penalize redundant tool calls mainly on easier queries, and uses confidence-aware token reweighting to improve policy learning. Across nine mathematical and knowledge-intensive reasoning benchmarks, EAPO consistently improves the accuracy efficiency trade-off on Qwen2.5-3B, Qwen2.5-7B, and Llama3.1-8B. Compared with GRPO, EAPO improves average performance by 10.45%, 7.27%, and 9.69%, while reducing average tool calls by 18.33%, 18.33%, and 24.59%, respectively. These results show that agents can learn when not to use tools without compromising tool-integrated reasoning.",
+          "authors": [
+            "Liuji Chen",
+            "Dianxing Tang",
+            "Xing Shi",
+            "Dingshuo Chen",
+            "Qiang Liu",
+            "Shu Wu",
+            "Liang Wang"
+          ],
+          "primary_category": "cs.AI",
+          "categories": [
+            "cs.AI"
+          ],
+          "published": "2026-06-01T11:58:55+00:00",
+          "link": "https://arxiv.org/pdf/2606.02132v2",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "mitigating tool abuse in agentic RL for robustness",
+          "llm_evidence_cn": "缓解代理强化学习中的工具滥用，增强鲁棒性",
+          "llm_evidence": "缓解代理强化学习中的工具滥用，增强鲁棒性",
+          "canonical_evidence": "缓解代理强化学习中的工具滥用，增强鲁棒性",
+          "llm_tldr_en": "Proposes EAPO framework to mitigate tool abuse in agentic RL, improving robustness by learning selective tool use.",
+          "llm_tldr_cn": "代理强化学习易导致工具滥用，模型过度使用外部工具。本文提出EAPO框架，通过引入无工具轨迹、难度感知奖励整形和置信度感知词权重，让代理学会选择性使用工具。在多个推理基准上提升了准确性和鲁棒性。",
+          "llm_tldr": "代理强化学习易导致工具滥用，模型过度使用外部工具。本文提出EAPO框架，通过引入无工具轨迹、难度感知奖励整形和置信度感知词权重，让代理学会选择性使用工具。在多个推理基准上提升了准确性和鲁棒性。",
           "llm_tags": [
             "query:agent-safety"
           ],
@@ -46,55 +90,144 @@
           "matched_query_text": "robustness of AI agent systems",
           "matched_requirement_id": "req-3",
           "selection_source": "carryover_cache",
-          "paper_id": "2605.27659v1",
+          "paper_id": "2606.02132v2",
           "carry_days": 1
         },
         {
-          "id": "2605.30667v1",
+          "id": "2606.04202v1",
           "source": "arxiv",
-          "title": "Automatically Attacking Software Reverse Engineering AI Agents",
-          "abstract": "Software tools for reverse engineering executable binary files, such as Ghidra, enable malware analysts to safely conduct robust static analysis without having access to original source code. Coupled with the analytic power of large language models (LLM), agentic systems enabled with tools, such as GhidraMCP, can allow analysts to automate a previously human driven process. Although this automation can increase the productivity of a single malware analyst, it also introduces a new area of vulnerability for malware obfuscation. This paper presents an adversarial technique using genetic algorithm-based prompt generation, a modification of an adversarial attack known as AutoDAN, to demonstrate the ability to deceive LLM-powered disassembly and decompilation systems into misinterpreting binary executables, effectively corrupting their analytical output. This proof-of-concept methodology exploits inherent vulnerabilities in how LLMs process and interpret decompiled machine code via prompt injection by using extraneous string variable assignments to pass surreptitious instructions to the LLM while not impacting the functionality of the executable file. We demonstrate this capability through several concise examples. This approach could enable attackers to bypass automated detection systems that rely on LLM-driven analysis pipelines. By studying and understanding this attack, insights can be gained regarding the security implication of integrating LLMs into cybersecurity toolchains and building more robust agentic code analysis systems.",
+          "title": "SMAC-Talk: A Natural Language Extension of the StarCraft Multi-Agent Challenge for Large Language Models",
+          "abstract": "As LLMs become more widely deployed, they are increasingly expected to work alongside other AI agents rather than operating in isolation. Effective coordination in these settings requires agents to communicate, share information and make decisions under uncertainty. We introduce SMAC-Talk, a natural language extension of the StarCraft Multi-Agent Challenge for evaluating LLM-based agents in cooperative multi-agent environments. The environment has several key features such as decentralized control, partial observability and long-horizon decision making. SMAC-Talk includes a natural language communication channel which is used to probe agent coordination and trust. We use this communication channel to construct different evaluation scenarios, including settings with an embedded deceptive communicator that tries to disrupt and deceive allies through communication alone. We provide three agents for benchmarking using 4 models from the Qwen3.5 family and study how reasoning structure, memory and model scale affect coordination between agents. We release SMAC-Talk as an open benchmark to support the research community in developing and evaluating LLM agents in cooperative multi-agent settings.",
           "authors": [
-            "Brian Crawford",
-            "Justin Phillips",
-            "Patrick McClure"
+            "Joel Sol",
+            "Homayoun Najjaran"
           ],
-          "primary_category": "cs.CR",
+          "primary_category": "cs.AI",
           "categories": [
-            "cs.CR",
             "cs.AI"
           ],
-          "published": "2026-05-28T23:58:25+00:00",
-          "link": "https://arxiv.org/pdf/2605.30667v1",
+          "published": "2026-06-02T20:40:04+00:00",
+          "link": "https://arxiv.org/pdf/2606.04202v1",
           "tags": [
             "keyword:agent-evolve",
             "keyword:agent-safety",
             "keyword:mas-security",
+            "query:agent-evolve",
             "query:agent-safety",
             "query:mas-security"
           ],
           "llm_score": 8.0,
-          "llm_evidence_en": "adversarial attack on LLM-powered reverse engineering agents",
-          "llm_evidence_cn": "对LLM逆向工程代理的对抗攻击",
-          "llm_evidence": "对LLM逆向工程代理的对抗攻击",
-          "canonical_evidence": "对LLM逆向工程代理的对抗攻击",
-          "llm_tldr_en": "Proposes a genetic algorithm-based adversarial prompt attack to deceive LLM-powered disassembly and decompilation agents, demonstrating a new vulnerability in agent security.",
-          "llm_tldr_cn": "该论文针对LLM驱动的逆向工程代理系统，提出了一种基于遗传算法的对抗性提示生成攻击，能够欺骗反汇编和解编译过程。实验表明，这种攻击有效地暴露了代理系统在面对恶意混淆时的安全漏洞，强调了在自动化分析工具中考虑对抗鲁棒性的重要性。",
-          "llm_tldr": "该论文针对LLM驱动的逆向工程代理系统，提出了一种基于遗传算法的对抗性提示生成攻击，能够欺骗反汇编和解编译过程。实验表明，这种攻击有效地暴露了代理系统在面对恶意混淆时的安全漏洞，强调了在自动化分析工具中考虑对抗鲁棒性的重要性。",
+          "llm_evidence_en": "probes agent coordination and trust via natural language communication channel",
+          "llm_evidence_cn": "通过自然语言通信通道探测代理人协调与信任",
+          "llm_evidence": "通过自然语言通信通道探测代理人协调与信任",
+          "canonical_evidence": "通过自然语言通信通道探测代理人协调与信任",
+          "llm_tldr_en": "SMAC-Talk extends StarCraft multi-agent benchmark with natural language communication to evaluate LLM agent trust and coordination in cooperative environments.",
+          "llm_tldr_cn": "当前LLM智能体在多智能体协作环境中的信任与协调能力评估不足。SMAC-Talk通过扩展星际争霸多智能体挑战，引入自然语言通信通道，用于探测智能体的信任和协调能力。该环境支持去中心化控制、部分可观测和长周期决策，为评估LLM智能体在合作场景下的信任行为提供了规范化基准。实验表明该通信通道能够有效揭示智能体间的信任模式，为后续研究提供基础。",
+          "llm_tldr": "当前LLM智能体在多智能体协作环境中的信任与协调能力评估不足。SMAC-Talk通过扩展星际争霸多智能体挑战，引入自然语言通信通道，用于探测智能体的信任和协调能力。该环境支持去中心化控制、部分可观测和长周期决策，为评估LLM智能体在合作场景下的信任行为提供了规范化基准。实验表明该通信通道能够有效揭示智能体间的信任模式，为后续研究提供基础。",
           "llm_tags": [
             "query:agent-safety"
           ],
           "matched_query_tag": "query:agent-safety",
-          "matched_query_text": "adversarial robustness and alignment of AI agents",
-          "matched_requirement_id": "req-9",
+          "matched_query_text": "trustworthiness of AI agents",
+          "matched_requirement_id": "req-4",
           "selection_source": "carryover_cache",
-          "paper_id": "2605.30667v1",
+          "paper_id": "2606.04202v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.04306v1",
+          "source": "arxiv",
+          "title": "Organizational Control Layer: Governance Infrastructure at the Execution Boundary of LLM Agent Systems",
+          "abstract": "LLM-based agents are increasingly deployed in workflows where generated outputs may directly trigger state-changing actions. This creates an execution-boundary problem: proposed actions must be governed before they are executed. We study this problem through economically consequential multi-agent interactions and argue that deployment-grade agent systems should separate proposal generation from environment-facing execution. To operationalize this principle, we introduce the Organizational Control Layer (OCL), a model-agnostic governance infrastructure that intercepts generated actions before execution through policy enforcement and escalation, without modifying the underlying LLM generator. We evaluate OCL on adversarial buyer--seller negotiation environments adapted from AgenticPay. Across multiple frontier LLM backends, OCL reduces unsafe executions from 88% to near-zero while increasing valid success from 12% to 96%. Results further reveal a safety--utility tradeoff: strict governance improves compliance and reliability against policy and constraint violations, but can reduce flexibility in tightly constrained markets. These findings suggest that deployment-grade LLM agent systems require explicit governance at the boundary between language generation and executable actions. The source code is available at: https://github.com/SHITIANYU-hue/amai_ocl",
+          "authors": [
+            "Tianyu Shi",
+            "Yang Mo",
+            "Yiou Liu",
+            "Zhuonan Hao",
+            "Yin Wang",
+            "Wenzhuo Hu",
+            "Nan Yu",
+            "Meng Zhou",
+            "Jiangbo Yu"
+          ],
+          "primary_category": "cs.MA",
+          "categories": [
+            "cs.MA"
+          ],
+          "published": "2026-06-03T00:25:56+00:00",
+          "link": "https://arxiv.org/pdf/2606.04306v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "governance at execution boundary for multi-agent security",
+          "llm_evidence_cn": "在执行边界进行治理以保障多智能体安全",
+          "llm_evidence": "在执行边界进行治理以保障多智能体安全",
+          "canonical_evidence": "在执行边界进行治理以保障多智能体安全",
+          "llm_tldr_en": "OCL is a model-agnostic governance infrastructure that intercepts generated actions before execution, enforcing policies to secure multi-agent interactions.",
+          "llm_tldr_cn": "LLM智能体在产生动作后可能触发状态改变，带来执行边界安全问题。本文提出组织控制层（OCL），一种与模型无关的治理基础设施，在动作执行前拦截并通过策略执行和升级处理，无需修改底层LLM生成器。在对抗性多智能体交互评估中，OCL展示了有效的安全控制能力，为部署级智能体系统提供了分离提案生成与执行的治理方案。该层可插拔的设计避免了对生成器的侵入，适用于各类LLM智能体架构。",
+          "llm_tldr": "LLM智能体在产生动作后可能触发状态改变，带来执行边界安全问题。本文提出组织控制层（OCL），一种与模型无关的治理基础设施，在动作执行前拦截并通过策略执行和升级处理，无需修改底层LLM生成器。在对抗性多智能体交互评估中，OCL展示了有效的安全控制能力，为部署级智能体系统提供了分离提案生成与执行的治理方案。该层可插拔的设计避免了对生成器的侵入，适用于各类LLM智能体架构。",
+          "llm_tags": [
+            "query:agent-safety"
+          ],
+          "matched_query_tag": "query:agent-safety",
+          "matched_query_text": "security in multi-agent systems",
+          "matched_requirement_id": "req-6",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.04306v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.03518v1",
+          "source": "arxiv",
+          "title": "Overlaying Governance: A Compositional Authorization Framework for Delegation and Scope in Agentic AI",
+          "abstract": "As AI systems evolve from passive models into autonomous active agents capable of initiating actions, collaborating, and delegating tasks, the traditional boundaries of software systems blur. Traditional authorization and delegation frameworks, built around fixed principals, explicit requests, and static scopes, are insufficient to govern agentic systems. Agentic AI demands richer authorization semantics: agents must inherit and delegate permissions, act under time-limited authority, and coordinate through shared protocols. Existing Identity and Access Management (IAM) systems fail to fully capture this notion of agency, lacking mechanisms for recursive delegation, contextual boundaries, and dynamic scoping as executable governance primitives. Unlike access delegation standards such as OAuth 2.0, we treat delegation as a contractual term rather than merely a static token-based consent credential. This paper proposes a compositional governance framework that introduces primitives indispensable for agentic AI. We define types of delegation and their permissions and accountability implications, and we introduce a notion of resource scope attenuation to bound agentic access envelopes. These concepts are expressed as general relational definitions that can be composed into existing authorization domains (e.g., financial systems). To operationalize this composition, we define a compositional operator that overlays new agentic semantics, such as recursive delegation chains, onto existing relational policies without rewriting them. We substantiate this framework through formal proofs and empirical evaluation, showing that it provides a formal yet practical foundation for accountable authorization in agentic AI systems.",
+          "authors": [
+            "Amjad Ibrahim",
+            "Yong Li"
+          ],
+          "primary_category": "cs.AI",
+          "categories": [
+            "cs.AI",
+            "cs.CR"
+          ],
+          "published": "2026-06-02T11:39:39+00:00",
+          "link": "https://arxiv.org/pdf/2606.03518v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "authorization framework for delegation and scope in agentic AI enhances trustworthiness",
+          "llm_evidence_cn": "代理AI中委托与范围的授权框架增强可信度",
+          "llm_evidence": "代理AI中委托与范围的授权框架增强可信度",
+          "canonical_evidence": "代理AI中委托与范围的授权框架增强可信度",
+          "llm_tldr_en": "Presents a compositional authorization framework for agentic AI, enabling dynamic delegation and scoping to improve trustworthiness and governance.",
+          "llm_tldr_cn": "该论文指出传统授权和委托框架无法满足代理AI的自主性需求，提出一个组合授权框架。该框架支持代理继承和委托权限、时间受限权限以及通过共享协议协调，解决了递归委托、上下文边界和动态作用域等缺失功能。这提升了AI代理的可信度和治理能力，属于代理安全与信任主题。",
+          "llm_tldr": "该论文指出传统授权和委托框架无法满足代理AI的自主性需求，提出一个组合授权框架。该框架支持代理继承和委托权限、时间受限权限以及通过共享协议协调，解决了递归委托、上下文边界和动态作用域等缺失功能。这提升了AI代理的可信度和治理能力，属于代理安全与信任主题。",
+          "llm_tags": [
+            "query:agent-safety"
+          ],
+          "matched_query_tag": "query:agent-safety",
+          "matched_query_text": "trustworthiness of AI agents",
+          "matched_requirement_id": "req-4",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.03518v1",
           "carry_days": 1
         }
       ]
     },
     "agent-evolve": {
-      "updated_date": "20260603",
+      "updated_date": "20260604",
       "carryover_days": 9,
       "items": [
         {
@@ -131,57 +264,12 @@
           "matched_requirement_id": "req-15",
           "selection_source": "carryover_cache",
           "paper_id": "2606.01861v1",
-          "carry_days": 1
-        },
-        {
-          "id": "2605.30723v1",
-          "source": "arxiv",
-          "title": "Skill is Not One-Size-Fits-All: Model-Aware Skill Alignment for LLM Agents",
-          "abstract": "LLM agents increasingly retrieve externally curated skills-procedural instructions retrieved at decision time-to improve performance on long-horizon interactive tasks. Existing skill libraries are typically treated as model-agnostic, reusing the same skill formulations across backbones with substantially different capacities and behaviors. However, our controlled experiments across multiple model scales show that skill effectiveness is strongly model-dependent: a skill that benefits one backbone can harm another. Motivated by this observation, we propose MASA Model-Aware Skill Alignment, a framework that adapts skills to each target backbone without modifying agent weights. MASA operates in two stages: (1) a hierarchical skill evolution pipeline that iteratively rewrites general and task-specific skills using hill climbing and UCB-driven tree search, guided by environment feedback and model capability profiles; and (2) a lightweight model-conditioned skill rewriter trained on evolution trajectories to reproduce the adaptation in a single forward pass. Experiments across three interactive environments and four backbones show that MASA consistently achieves the best overall performance, with gains of up to 25.8 points over the strongest baseline. The learned rewriter further generalizes to unseen tasks and environments without additional search, consistently outperforming a much larger teacher LLM at a fraction of the inference cost.",
-          "authors": [
-            "Jianxiang Yu",
-            "Jiapeng Zhu",
-            "Bochen Lin",
-            "Qier Cui",
-            "Zichen Ding",
-            "Xiang Li"
-          ],
-          "primary_category": "cs.CL",
-          "categories": [
-            "cs.CL"
-          ],
-          "published": "2026-05-29T01:34:42+00:00",
-          "link": "https://arxiv.org/pdf/2605.30723v1",
-          "tags": [
-            "keyword:agent-evolve",
-            "keyword:agent-safety",
-            "keyword:mas-security",
-            "query:agent-evolve",
-            "query:agent-safety",
-            "query:mas-security"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "model-aware skill alignment with hierarchical skill evolution pipeline",
-          "llm_evidence_cn": "具有层次化技能进化流程的模型感知技能对齐",
-          "llm_evidence": "具有层次化技能进化流程的模型感知技能对齐",
-          "canonical_evidence": "具有层次化技能进化流程的模型感知技能对齐",
-          "llm_tldr_en": "MASA adapts skills to each LLM backbone via a hierarchical skill evolution pipeline, showing that skill effectiveness is model-dependent.",
-          "llm_tldr_cn": "该论文提出MASA框架，通过层次化技能进化流程为不同LLM骨干适配技能，发现同一技能对不同模型效果差异大。MASA无需修改模型权重，通过两阶段（聚类评估、进化适配）自动生成适合目标模型的技能库，显著提升任务性能。",
-          "llm_tldr": "该论文提出MASA框架，通过层次化技能进化流程为不同LLM骨干适配技能，发现同一技能对不同模型效果差异大。MASA无需修改模型权重，通过两阶段（聚类评估、进化适配）自动生成适合目标模型的技能库，显著提升任务性能。",
-          "llm_tags": [
-            "query:agent-evolve"
-          ],
-          "matched_query_tag": "query:agent-evolve",
-          "matched_query_text": "self-evolving AI agent",
-          "matched_requirement_id": "req-10",
-          "selection_source": "carryover_cache",
-          "paper_id": "2605.30723v1",
-          "carry_days": 1
+          "carry_days": 2
         }
       ]
     },
     "mas-security": {
-      "updated_date": "20260603",
+      "updated_date": "20260604",
       "carryover_days": 9,
       "items": [
         {
@@ -214,13 +302,13 @@
             "query:mas-security"
           ],
           "llm_score": 8.0,
-          "llm_evidence_en": "failure detection for safety in multi-agent systems",
-          "llm_evidence_cn": "多智能体系统安全中的故障检测",
-          "llm_evidence": "多智能体系统安全中的故障检测",
-          "canonical_evidence": "多智能体系统安全中的故障检测",
-          "llm_tldr_en": "POIROT uses agents as diagnostic layers for failure detection in LLM multi-agent systems, improving safety for critical deployments.",
-          "llm_tldr_cn": "该论文提出POIROT协议，通过复用系统自身智能体作为诊断层来检测多智能体系统中的故障和幻觉，解决了集中式评估的单点故障问题。实验表明POIROT在多种设置下优于单一LLM评估基线，且性能随问题复杂度增长（OR=1.60, p=0.008），为安全关键领域的LLM-MAS部署提供了保障。",
-          "llm_tldr": "该论文提出POIROT协议，通过复用系统自身智能体作为诊断层来检测多智能体系统中的故障和幻觉，解决了集中式评估的单点故障问题。实验表明POIROT在多种设置下优于单一LLM评估基线，且性能随问题复杂度增长（OR=1.60, p=0.008），为安全关键领域的LLM-MAS部署提供了保障。",
+          "llm_evidence_en": "failure detection for safety-critical multi-agent systems",
+          "llm_evidence_cn": "针对安全关键多智能体系统的故障检测",
+          "llm_evidence": "针对安全关键多智能体系统的故障检测",
+          "canonical_evidence": "针对安全关键多智能体系统的故障检测",
+          "llm_tldr_en": "POIROT protocol repurposes agents as diagnostic layer for failure detection in multi-agent systems, outperforming single-LLM evaluators with gains scaling with complexity.",
+          "llm_tldr_cn": "现有评估方法在多智能体系统安全关键部署中存在单点故障和领域知识需求问题。POIROT协议利用系统自身智能体作为诊断层，通过其认知多样性进行故障检测。实验表明，POIROT优于单一LLM评估器基线，且增益随问题复杂度增加而提升（OR=1.60，p=0.008），为保障多智能体系统安全性提供了可扩展的故障检测方法。该协议复用现有智能体，避免额外监控成本，具有良好的部署可行性。",
+          "llm_tldr": "现有评估方法在多智能体系统安全关键部署中存在单点故障和领域知识需求问题。POIROT协议利用系统自身智能体作为诊断层，通过其认知多样性进行故障检测。实验表明，POIROT优于单一LLM评估器基线，且增益随问题复杂度增加而提升（OR=1.60，p=0.008），为保障多智能体系统安全性提供了可扩展的故障检测方法。该协议复用现有智能体，避免额外监控成本，具有良好的部署可行性。",
           "llm_tags": [
             "query:mas-security"
           ],
@@ -232,22 +320,19 @@
           "carry_days": 1
         },
         {
-          "id": "2605.23027v1",
+          "id": "2606.04896v1",
           "source": "arxiv",
-          "title": "PIMbot: A Self-Adaptive Attack Framework for Adversarial Manipulation of Multi-Robot Reinforcement Learning",
-          "abstract": "Recent research has demonstrated the potential of reinforcement learning in effective multi-robot collaboration, particularly in social dilemmas where robots face a trade-off between self-interest and collective benefits. However, environmental factors such as miscommunication and adversarial robots can impact cooperation, making it crucial to explore how multi-robot communication can be manipulated to achieve different outcomes. This paper presents PIMbot, a framework that manipulates outcomes via two complementary levers: (i) incentive manipulation of the reward channel and (ii) policy manipulation of an agent's own actions. An adaptive multi-objective controller balances these levers in an online manner. Our work introduces a novel approach to manipulation in recent multi-agent RL social dilemmas that utilize a unique reward function for incentivization. By utilizing our proposed PIMbot mechanisms, a robot is able to manipulate the social dilemma environment effectively. Comprehensive experimental results demonstrate the effectiveness of our proposed methods in the Gazebo-simulated multi-robot environment. Moreover, a real embedded device case study on NVIDIA Jetson Orin Nano quantifies system cost and validates PIMbot's effectiveness on realistic autonomous embedded systems scenarios beyond simulation. Together, these results position PIMbot as a rigorous stress-test tool exposing critical vulnerabilities in multi-robot cooperative tasks.",
+          "title": "Channel Fracture: Architectural Blind Spots in Scheduled Cross-Agent Memory Injection for Multi-Agent Orchestration Systems",
+          "abstract": "Multi-agent AI orchestration systems increasingly rely on persistent memory to maintain context across sessions, agents, and tasks. When one agent must inject knowledge into another agent's memory -- a common requirement in hierarchical team architectures -- the delivery mechanism must be architecturally sound. We report the discovery of a systematic failure mode we term channel fracture: a condition where scheduled (cron) agents in orchestration frameworks are silently unable to write to the target agent's persistent memory due to hardcoded memory isolation guards. Through experiments on a production Hermes Agent deployment with five specialized profiles, we tested three injection channels: (A) direct SQLite database writes, (B) target-agent self-writes via memory tools, and (C) cron-delegated writes. Channel C failed completely due to two architectural constraints: skip_memory=True hardcoded at the scheduler layer and dynamic registration of memory tools contingent on _memory_manager initialization, which is bypassed in cron execution contexts. We propose CADVP (Cross-Agent Delivery Verification Protocol) v1.1, a 13-dimension verification framework with a veto-level channel confirmation check (CC-0) that prevents false-positive delivery assurance. We articulate two design principles: the inverse verification principle and the channel matching principle.",
           "authors": [
-            "Zexin Li",
-            "Ziliang Zhang",
-            "Hyoseung Kim",
-            "Cong Liu"
+            "Levent Liu"
           ],
-          "primary_category": "cs.RO",
+          "primary_category": "cs.MA",
           "categories": [
-            "cs.RO"
+            "cs.MA"
           ],
-          "published": "2026-05-21T20:50:47+00:00",
-          "link": "https://arxiv.org/pdf/2605.23027v1",
+          "published": "2026-06-03T13:55:29+00:00",
+          "link": "https://arxiv.org/pdf/2606.04896v1",
           "tags": [
             "keyword:agent-evolve",
             "keyword:agent-safety",
@@ -257,13 +342,13 @@
             "query:mas-security"
           ],
           "llm_score": 8.0,
-          "llm_evidence_en": "adversarial manipulation of multi-robot RL for security",
-          "llm_evidence_cn": "多机器人强化学习的对抗操纵以研究安全性",
-          "llm_evidence": "多机器人强化学习的对抗操纵以研究安全性",
-          "canonical_evidence": "多机器人强化学习的对抗操纵以研究安全性",
-          "llm_tldr_en": "PIMbot is a self-adaptive attack framework for adversarial manipulation of multi-robot reinforcement learning, exposing security vulnerabilities.",
-          "llm_tldr_cn": "多机器人协作中，对抗性机器人可能通过操纵通信和奖励来破坏合作。本文提出PIMbot框架，通过奖励信道操纵和策略操纵两种杠杆，并采用自适应多目标控制器在线平衡。在多机器人社会困境场景中，PIMbot成功操纵了协作行为，暴露了多智能体系统的安全脆弱性，为防御提供了参考。",
-          "llm_tldr": "多机器人协作中，对抗性机器人可能通过操纵通信和奖励来破坏合作。本文提出PIMbot框架，通过奖励信道操纵和策略操纵两种杠杆，并采用自适应多目标控制器在线平衡。在多机器人社会困境场景中，PIMbot成功操纵了协作行为，暴露了多智能体系统的安全脆弱性，为防御提供了参考。",
+          "llm_evidence_en": "Security vulnerability in multi-agent memory injection",
+          "llm_evidence_cn": "多智能体记忆注入中的安全漏洞",
+          "llm_evidence": "多智能体记忆注入中的安全漏洞",
+          "canonical_evidence": "多智能体记忆注入中的安全漏洞",
+          "llm_tldr_en": "Channel fracture is a systematic failure mode in multi-agent orchestration where cron agents silently fail to write to target agent memory due to isolation guards.",
+          "llm_tldr_cn": "多智能体编排系统依赖持久记忆维持上下文。本文发现名为'信道断裂'的系统性故障：定时调度智能体因硬编码隔离保护而无法写入目标智能体记忆。在生产部署中测试了三种注入通道，确认该漏洞影响跨智能体知识传递。",
+          "llm_tldr": "多智能体编排系统依赖持久记忆维持上下文。本文发现名为'信道断裂'的系统性故障：定时调度智能体因硬编码隔离保护而无法写入目标智能体记忆。在生产部署中测试了三种注入通道，确认该漏洞影响跨智能体知识传递。",
           "llm_tags": [
             "query:mas-security"
           ],
@@ -271,55 +356,8 @@
           "matched_query_text": "security of multi-agent systems",
           "matched_requirement_id": "req-19",
           "selection_source": "carryover_cache",
-          "paper_id": "2605.23027v1",
-          "carry_days": 2
-        },
-        {
-          "id": "2605.22786v1",
-          "source": "arxiv",
-          "title": "LCGuard: Latent Communication Guard for Safe KV Sharing in Multi-Agent Systems",
-          "abstract": "Large language model (LLM)-based multi-agent systems increasingly rely on intermediate communication to coordinate complex tasks. While most existing systems communicate through natural language, recent work shows that latent communication, particularly through transformer key-value (KV) caches, can improve efficiency and preserve richer task-relevant information. However, KV caches also encode contextual inputs, intermediate reasoning states, and agent-specific information, creating an opaque channel through which sensitive content may propagate across agents without explicit textual disclosure. To address this, we introduce \\textbf{LCGuard} (Latent Communication Guard), a framework for safe KV-based latent communication in multi-agent LLM systems. LCGuard treats shared KV caches as latent working memory and learns representation-level transformations before cache artifacts are transmitted across agents. We formalize representation-level sensitive information leakage operationally through reconstruction: a shared cache artifact is unsafe if an adversarial decoder can recover agent-specific sensitive inputs from it. This leads to an adversarial training formulation in which the adversary learns to reconstruct sensitive inputs, while LCGuard learns transformations that preserve task-relevant semantics and reduce reconstructable information. Empirical evaluations across multiple model families and multi-agent benchmarks show that LCGuard consistently reduces reconstruction-based leakage and attack success rates while maintaining competitive task performance compared to standard KV-sharing baselines.",
-          "authors": [
-            "Sadia Asif",
-            "Mohammad Mohammadi Amiri",
-            "Momin Abbas",
-            "Prasanna Sattigeri",
-            "Karthikeyan Natesan Ramamurthy"
-          ],
-          "primary_category": "cs.AI",
-          "categories": [
-            "cs.AI",
-            "cs.ET",
-            "cs.LG",
-            "cs.MA"
-          ],
-          "published": "2026-05-21T17:42:12+00:00",
-          "link": "https://arxiv.org/pdf/2605.22786v1",
-          "tags": [
-            "keyword:agent-evolve",
-            "keyword:agent-safety",
-            "keyword:mas-security",
-            "query:agent-evolve",
-            "query:agent-safety",
-            "query:mas-security"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "privacy in multi-agent systems",
-          "llm_evidence_cn": "多智能体系统中的隐私",
-          "llm_evidence": "多智能体系统中的隐私",
-          "canonical_evidence": "多智能体系统中的隐私",
-          "llm_tldr_en": "LCGuard enables safe KV-based latent communication in LLM multi-agent systems, preventing leakage of sensitive content through transformer caches.",
-          "llm_tldr_cn": "多智能体LLM系统通过KV缓存进行潜在通信虽高效，但可能泄露敏感信息。本文提出LCGuard框架，为KV共享提供安全机制，防止上下文输入、推理状态等隐私内容在代理间无意识传播。该方法在不牺牲通信效率的前提下保障了隐私安全，填补了潜在通信中的隐私保护空白。",
-          "llm_tldr": "多智能体LLM系统通过KV缓存进行潜在通信虽高效，但可能泄露敏感信息。本文提出LCGuard框架，为KV共享提供安全机制，防止上下文输入、推理状态等隐私内容在代理间无意识传播。该方法在不牺牲通信效率的前提下保障了隐私安全，填补了潜在通信中的隐私保护空白。",
-          "llm_tags": [
-            "query:mas-security"
-          ],
-          "matched_query_tag": "query:mas-security",
-          "matched_query_text": "privacy in multi-agent systems",
-          "matched_requirement_id": "req-20",
-          "selection_source": "carryover_cache",
-          "paper_id": "2605.22786v1",
-          "carry_days": 2
+          "paper_id": "2606.04896v1",
+          "carry_days": 1
         }
       ]
     }
