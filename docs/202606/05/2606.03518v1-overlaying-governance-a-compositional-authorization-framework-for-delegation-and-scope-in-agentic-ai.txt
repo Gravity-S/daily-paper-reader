@@ -1,0 +1,898 @@
+Title: Overlaying Governance: A Compositional Authorization Framework for Delegation and Scope in Agentic AI
+
+URL Source: https://arxiv.org/pdf/2606.03518v1
+
+Published Time: Wed, 03 Jun 2026 01:03:35 GMT
+
+Number of Pages: 16
+
+Markdown Content:
+# Overlaying Governance: A Compositional Authorization Framework for Delegation and Scope in Agentic AI 
+
+# Amjad Ibrahim 
+
+Huawei Heisenberg Research Center Germany amjad.ibrahim@huawei.com 
+
+# Yong Li 
+
+Huawei Heisenberg Research Center Germany yong.li1@huawei.com 
+
+## Abstract 
+
+As AI systems evolve from passive models into autonomous active agents capable of initiating actions, collaborating, and delegating tasks, the traditional boundaries of software systems blur. Tradi-tional authorization and delegation frameworks—built around fixed principals, explicit requests, and static scopes—are insufficient to govern agentic systems. Agentic AI demands richer authorization semantics: agents must inherit and delegate permissions, act under time-limited authority, and coordinate through shared protocols. Existing Identity and Access Management (IAM) systems fail to fully capture this notion of agency, lacking mechanisms for recur-sive delegation, contextual boundaries, and dynamic scoping as executable governance primitives. Unlike access delegation stan-dards such as OAuth 2.0, we treat delegation as a contractual term rather than merely a static token-based consent credential. This paper proposes a compositional governance framework that intro-duces primitives indispensable for agentic AI. We define types of delegation and their permissions and accountability implications, and we introduce a notion of resource scope attenuation to bound agentic access envelopes. These concepts are expressed as general relational definitions that can be composed into existing autho-rization domains (e.g., financial systems). To operationalize this composition, we define a compositional operator that overlays new agentic semantics, such as recursive delegation chains, onto exist-ing relational policies without rewriting them. We substantiate this framework through formal proofs and empirical evaluation, show-ing that it provides a formal yet practical foundation for accountable authorization in agentic AI systems. 
+
+## Keywords 
+
+authorization, access control, ReBAC, agentic AI 
+
+## 1 Introduction 
+
+The introduction of large language model (LLM)-based chat tools such as ChatGPT is already reshaping how we work [ 5], study, or conduct research [ 17 ]. Each week, users exchange over 18 billion messages with ChatGPT, with a user-base accounting for nearly 10% of the global adult population [ 6 ]. While information retrieval remains the dominant use case, a new generation of AI systems is emerging that help users act rather than merely ask —so-called 
+
+Agentic AI . Agentic AI systems are software components that incor-porate language models and can autonomously plan and execute actions based on user input and contextual awareness [32–34]. 1    
+
+> 1We use the terms Agentic AI and AI agents interchangeably.
+
+Agentic AI is finding applications across domains such as finance (e.g., identity verification) and healthcare (e.g., patient monitor-ing [ 19 ]). Since these agents tackle a wide range of tasks, collabora-tion and interoperability become essential. To support this, industry initiatives such as the Model Context Protocol (MCP) define how agents integrate with tools, systems, and data sources, while the Agent2Agent (A2A) protocol specifies how agents from different vendors can search, and communicate with each other [ 10 ]. As a result, the traditional boundaries of software systems, once used to define trust domains and access control assumptions, no longer hold. Governance of such autonomous, interconnected agents using traditional methods has become impractical [18]. From an authorization perspective—the process of determining whether a principal may perform an action on a resource—Agentic AI introduces new challenges [ 18 , 34 , 36 ]. Agents act on behalf of users to achieve tasks, in the process they coordinate with other agents, and recursively delegate sub-tasks. Consequently, the ac-tive principal in an action may be a human, an agent delegated from a user, or an agent spawned by another agent. Even if we can distinguish between these actors, we must still determine their permissions: should agents inherit all user permissions, or should there be distinct types of delegation? How can we govern and ac-count for recursive delegations and contextual constraints without redesigning every existing authorization model individually? Access delegation standards such as OAuth 2.0 provide limited delegation through access tokens, allowing applications to act on behalf of users within pre-defined scopes without sharing creden-tials [ 16 ]. Scopes are typically a subset of user capabilities. While effective for static service workflows, OAuth is ill-suited to dynamic, recursive delegation chains [ 18 , 34 ]. To support recursion, we can issue multiple nested tokens. Regardless of their operational over-head, the content of these tokens is fixed. Agents can generate novel actions that were not pre-enumerated in a scope [ 35 ]. Thus, tradi-tional token consent mechanisms cannot express the dynamic, and recursive authorization relations required in agentic ecosystems. We treat delegation as a first-class governance primitive in Agen-tic AI authorization. Inspired by the human (legal) notion of dele-gation as a contractual transfer of duties [ 21 ], we define an agentic delegation as a runtime predicate (term) that carries constraints, e.g., “expires in 10 seconds” or “valid only on secure hardware.” These predicates form a chain that represents the delegation state and enables dynamic contextual evaluation of authority. Similarly, we view scope as a set of contextual boundaries or en-velopes that constrain what delegation covers. Delegations along a chain must progressively narrow in scope, a property often referred to as attenuation [ 34 ]. Scopes determine the permissible range of resources, e.g., “allow agent to edit proposals but not budgets.” With 
+
+> 1
+> arXiv:2606.03518v1 [cs.AI] 2 Jun 2026 First Author et al.
+
+the dynamic nature of these agents, specifying the allowed (or de-nied) range of resources is more practical [ 35 ]. Together, delegation and scoping form contractual primitives for governing how humans and agents interact, turning authorization from a static credential into an executable governance term evaluated continuously. This paper introduces a framework that enables agents to inherit or delegate permissions, act under conditional authority, and allow users to trace the authorization of their agents. We present a com-positional governance model that integrates delegation and resource scoping into agents’ runtime semantics. The framework generalizes contractual delegation into a relational form that can be composed into existing authorization models, providing a foundation for ac-countable, contextual, and dynamic agentic authorization. Operationally, agentic AI ecosystems are inherently relational: users delegate to agents, which may in turn delegate to other agents, all operating under the user’s umbrella of authority [ 34 ]. We for-malize these governance primitives as relations and define a com-positional operator that fuses existing domain-specific access con-trol policies with our agentic semantics. Our formulation builds on Relation-Based Access Control (ReBAC)[ 7, 15 ] and Google’s Zanzibar authorization model [ 28 ], using OpenFGA [ 26 ] as the open-source reference implementation. To the best of our knowledge, no prior work defines a contractual notion of delegation together with a compositional operator to operationalize AI governance primitives. This paper contributes: (1) A conceptualization of delegation types and resource scop-ing as key drivers of agentic access. (2) A formalization of delegation as an agentic governance overlay and a compositional operator to fuse it into au-thorization domains, drawing from graph transformation theory [9]. (3) A security architecture that illustrates the usage of the resulting graph to govern users, agents, scopes, and delega-tions sessions. (4) Preservation and agent-authorization soundness proofs, together with empirical benchmarks showing the runtime overhead of the overlay on large synthetic ReBAC models. 
+
+> 2
+
+Our approach results in a runtime authorization graph that repre-sents the state of delegation, scoping, and interactions among users and agents. From a zero-trust perspective, this enables continuous verification, granting, and revocation of agentic interactions. The remainder of this paper is organized as follows: Section 2 provides the necessary background; Section 3 defines our governance primi-tives and base model; Section 4 presents the compositional operator and implementation architecture; Section 5 validates the approach via proofs and empirical evaluation; Section 6 discusses related work; and Section 7 concludes. 
+
+## 2 Background 
+
+Agentic AI systems utilize reasoning to autonomously achieve tasks on behalf of users with limited supervision. Each agent combines reasoning (“brain”), environmental awareness (“perception”), and the ability to interact (“action”) [ 40 ], forming a persona that encodes 
+
+> 2All models, code, and experiments related to this paper are available at: https://github. com/Amjad-Ibrahim-Huawei/compositional-paper.
+
+its role, accessible tools, and peer interactions [24]. Emerging pro-tocols such as MCP and A2A standardize how agents communicate with tools, data sources, or each other [10, 25]. Examples of Agentic AI span from chat interfaces that trigger tools via MCP (e.g., bots creating tickets), to automation agents that implement end-to-end tasks such as insurance claims processing, to networks of agents that reason and communicate with each other (e.g., market negotiation agents [ 42 ]) [ 34 ]. Regardless of whether these agents are enterprise, coding, or client-facing systems, they introduce new security and governance challenges. A key source of these challenges is that agent behavior is not fully specified in advance [ 32 ]. Agents reason over retrieved content, tool outputs, and evolving context, and then translate that into actions. In particular, prompt injection attacks can hide malicious instructions inside external content such as documents, causing an agent to e.g., exfiltrate data [31]. According to the OWASP threat model for Agentic AI, attacks arise across six dimensions: agency and reasoning, memory and context, tools and execution, identity and authentication, human management, and multi-agency coordination [ 33 ]. We focus on unauthorized access and unauthorized action execution as they arise from overly permissive agent authority. This includes classi-cal privilege compromise, but also prompt injection and harmful misoperation scenarios. Across these scenarios, the common failure mode is insufficiently constrained runtime privilege. For practicality, researchers and protocol designers often ref-erence standards such as (Open Authorization) OAuth for secure access delegation of AI agents [ 16 , 25 , 34 , 35 ]. 3 OAuth allows users to grant third-party applications access to protected resources with-out sharing credentials [ 16 ]. Despite its name, OAuth focuses on access delegation rather than authorization per se: an authenticated 
+
+resource owner issues a token—expressing consent, scope, and du-ration—via an authorization server , allowing a client to access a 
+
+resource server . This model has been extended to represent human-to-agent delegation via delegation tokens [ 35 ], enabling enterprises to reuse existing identity infrastructures for agentic AI. However, once issued, token contents remain static and can-not adapt to environmental or contextual changes [ 18 ]. Moreover, agentic systems often require recursive delegation, i.e., agents del-egating to other agents; something OAuth was never designed to handle efficiently. For instance, if a coding agent 𝐶 delegates a task to a ticketing agent 𝑇 on behalf of a developer, multiple nested to-kens would be needed. OAuth scopes constrain what an application may do on a user’s behalf but do not define the user’s own autho-rization model. Thus, scopes capture approval for static actions, while actual authorization decisions remain at the resource server. Agents, however, require delegation and scoping mechanisms that support recursion, transitive permissions, and contextual runtime evaluation [18, 33, 34, 36, 39]. Agents therefore demand fine-grained, contextual authorization that extend beyond static roles and tokens. Traditional Role-Based Access Control (RBAC) cannot capture dynamic conditions such as time, device type, or hierarchical relationships. Nor can prompt-only guardrails reliably prevent prompt injection once an agent is 
+
+> 3For example, MCP requires OAuth 2.1, which enhances token exchange protection and dynamic client onboarding, but remains identical in delegation and scoping semantics. 2Overlaying Governance: A Compositional Authorization Framework for Delegation and Scope in Agentic AI
+
+connected to powerful tools. Instead, we argue for deterministic pol-icy architectures and reusable governance primitives that build least privilege into the system itself rather than relying on model behav-ior [ 27 ]. Least privilege means that authority granted to an agent should be explicitly delegated, limited, contextual, recursively con-trollable, and auditable. We therefore argue for general governance primitives that can be standardized rather than re-implemented in every system. We look into this in detail in Section 3. 
+
+## 2.1 Relation-Based Access Control (ReBAC) 
+
+Our work builds upon ReBAC [ 7, 15 ] as the underlying autho-rization model. ReBAC defines permissions through relationships among users and resources (e.g., a user can access a document if they are its owner). By supporting dynamic and hierarchical relations, ReBAC is well-suited to collaborative and multi-agent environments. Although we frame our approach in a ReBAC setting, it is not restricted to purely relationship-based systems. ReBAC can encode RBAC roles as groups and can model many ABAC-style conditions through guarded relations, making it a convenient uni-fying substrate. Since our approach will be applied conjunctively with the domain’s existing decisions, it can sit on top of RBAC-, ABAC-, or hybrid policies without altering their semantics. A recent paper presented, Google Zanzibar, a highly efficient im-plementation of ReBAC [ 28 ]. Because traditional ReBAC (and Zanz-ibar) lacks support for contextual conditions, we adopt OpenFGA: an open-source Zanzibar system that extends ReBAC with rules evaluation on edges. OpenFGA provides fine-grained, relational au-thorization semantics suitable for expressing agentic delegation and scoping [ 26 ]. The following formalizes the core semantics of ReBAC and its userset algebra [ 28 ], which serve as the formal substrate for our later extensions to agentic governance. Let U be the set of principals (subjects), O the set of protected objects, and L the set of relation labels (e.g., owner , viewer ). A relation tuple is (𝑜, ℓ, 𝑥 ) with 𝑜 ∈ O , ℓ ∈ L , and 𝑥 ∈ (U ∪ O) .The authorization graph is a labeled multigraph 𝐺 = (𝑉 , 𝐸 ) where 
+
+𝑉 = U ∪ O and 𝐸 ⊆ O × L × (U ∪ O) .A ReBAC policy specifies, for each object 𝑜 and relation ℓ, a userset Users (𝑜, ℓ ) ⊆ U , typically defined by graph reachability or set–algebraic expressions over tuples and other usersets. Autho-rization is a membership query: 
+
+Check (𝑢, ℓ, 𝑜 ) ≜ (𝑢 ∈ Users (𝑜, ℓ )) .
+
+ReBAC naturally expresses nested groups and resource hierarchies via transitive relations, and it has been formalized as graph reacha-bility and as logical encodings [4, 12]. 
+
+Typed schema 𝐶 and userset algebra Let T be a finite set of object types. For each 𝑡 ∈ T : (i) 𝑂 𝑡 ⊆ O are the objects of type 𝑡 ;(ii) R𝑡 ⊆ L are the relations of 𝑡 ; (iii) each ℓ ∈ R 𝑡 has a subject domain 𝐷 𝑡,ℓ ⊆ (U ∪ O) . Each (𝑡, ℓ ) has a userset rewrite 𝑒 𝑡,ℓ built from the minimal Zanzibar algebra: direct (this ), computed user-set (computed (ℓ′)), tuple-to-userset (from (𝜌, ℓ ′)), and set operators 
+
+∪, ∩, \. Here from (𝜌, ℓ ′) follows an object-to-object relation 𝜌 (e.g., 
+
+parent ) and reads ℓ′ on the reached object. (OpenFGA renders these as X from Y , or , and , but not .) 
+
+Conditions. Let Γ be a set of conditions; a condition 𝛾 ∈ Γ is a predicate with a context schema. They may be attached to direct 
+
+edges and are evaluated at check time; they do not extend the algebra —they simply toggle whether an edge is “present” for a given check context [26]. 
+
+Data plane (E). The set of labeled edges (tuples) is 
+
+𝐸 ⊆
+
+Ø 
+
+> 𝑡 ∈ T
+
+
+
+𝑂 𝑡 × R 𝑡 × 𝐷 𝑡,ℓ 
+
+
+
+× Params Γ,
+
+i.e., each element is an instantiated (𝑜, ℓ, 𝑥 ) consistent with the typed schema, optionally with conditions. 
+
+Check. Given schema 𝐶 and tuples 𝐸 , the denotation of a userset is defined by structural recursion on the rewrite: 
+
+JℓK𝐸 𝐶 (𝑜, ctx ) ⊆ U ,
+
+reading direct edges from 𝐸 whose guards hold under ctx and eval-uating usersets according to 𝑒 𝑡,ℓ . The decision is 
+
+Check (𝑢, ℓ, 𝑜 ; 𝐶, 𝐸, ctx ) ⇐⇒ 𝑢 ∈ JℓK𝐸 𝐶 (𝑜, ctx ).
+
+ReBAC schemas require the graph to be acyclic, ensuring well-founded and deterministic evaluation. We rely on these standard well-foundedness assumptions of typed ReBAC engines. Our over-lay does not introduce a separate execution semantics for autho-rization checks; rather, it adds well-typed relations evaluated by the same userset machinery. Accordingly, liveness of authorization evaluation is inherited from the underlying engine’s guarantees for recursive usersets and schema-valid relation graphs. 
+
+## 3 A Relational Perspective on Agentic AI 
+
+In this section, we formalize the authorization relations that arise in Agentic AI. We elicit the core requirements, then develop their implications for delegation, and finally present the captured model. 
+
+## 3.1 Authorization Requirements for AI Agents 
+
+At a first glance, AI agents appear as an extension to traditional software with intelligent components. However, especially when considering access control requirements, agents possess unique characteristics [ 18 , 33 ]. One of their main features is autonomy. They do not maintain fixed boundaries like traditional software. Rather, an AI agent can execute tools and further, discover other agents and interact with them at runtime [ 10 , 34 ]. This dynamic composition, in turn, means that the system boundary cannot be specified at design time. Thus, governing the authorization of agents via methods that assume predefined set of states is impractical. The same openness also creates new risks: because agents interpret un-trusted content and synthesize actions at runtime, prompt injection can be realized. From our perspective, this makes least-privilege enforcement a first-class requirement for agentic systems. AI agents complete tasks on behalf of a user, e.g., write tests for a developed feature . In the process, the agent decides to access a resource, e.g., a design document in the documents drive, then read the document using a PDF reader. At a later stage, the agent would decide to push code to a repository and commissions this to an agent that handles pull requests. Even for such simple tasks, agents interact with several components that inherently require different permissions systems (documents access, repository privileges). An-other remark is that the actor differs along the steps of this process. We need a mechanism to control this evolving nature of agent’s 
+
+> 3First Author et al.
+
+behavior. This mechanism enables reasoning about the interaction among users, and agents allowing them to assert whether the inter-acting entity is an agent or a user, the chain of delegations that the user is acting upon, and the permission scope for this entity. We present the following set of requirements we aim to achieve. RQ1 Agents are first-class actors : from an identity perspec-tive, agents should not impersonate users or deterministic services, rather, they should have a distinct notion of iden-tity [34]. They must function only with a user delegation. RQ2 Delegation as the core mechanism for human–agent and agent–agent interaction : agents must act according to the permissions they receive through delegation. AI del-egation must be treated as a contractual relationship—one that defines not only who may act on behalf of whom, but under what constraints and for what purposes. Existing standards provide only limited semantics for such forms of delegation and do not capture the richer behaviors re-quired for agents. In Section 3.2, we discuss this notion and introduce the types of delegation necessary for agents. RQ3 Delegation and scoping as authorization primitives :given a means to identify an agent and to establish a del-egation to it, the authorization system must incorporate these relations directly into its access rules. Every action performed by an agent must therefore be validated against (i) the agent’s own identity and (ii) the authority it inherits through delegation and scoping at the time of the request. This is the point at which least-privilege constraints become operational: runtime actions should be permitted only when explicitly justified by bounded delegation and valid scope. RQ4 Observable, traceable, and accountable authorization state : because the boundaries of agentic systems change, preventing all misuse is impractical. Robust detection and 
+
+accountability mechanisms are therefore essential—both for improving authorization policies over time and for con-ducting reliable forensic analysis. To support these goals, the system must expose a faithful record of authorization-relevant events both at runtime and retrospectively for audit. RQ5 Contextual authorization : Agentic AI introduces dy-namic interaction patterns; authorization decisions must adapt accordingly. Both access checks and delegation evalu-ations should incorporate contextual factors, e.g., network location, or request time, when determining if an action is permitted. RQ6 Fine-grained reuse of existing access rules : because agents can trigger a wide range of actions, enumerating all allowed operations is infeasible. A more realistic approach is to limit resource access based on existing enterprise or personal authorization policies rather than recreating them for agents [ 35 ]. Agentic systems should therefore be able to express fine-grained access rules and reuse existing permis-sion structures—for example, allowing an employee’s AI assistant to inherit the employee’s document-access rights without re-implementing the organization’s policy logic. 
+
+## 3.2 Agent Delegation 
+
+Although our goal is an operational definition that can be encoded and evaluated by access-control engines, we present a delegation notion grounded in the human, legal understanding of delegation. In contract law, delegation refers to the transfer of contractual duties from one party to another. According to Cornell’s Legal Information Institute, three parties are involved: the delegator , who assigns the duty; the delegate , who is responsible for performing the duty; and the obligee , who is entitled to receive the performance [21]. We adopt this structure for agents. Delegation becomes a contrac-tual relation between a human (delegator) and an agent (delegate); the agent may subdivide portions of that delegated authority to another agent. Such contracts are dynamic : they vary according to the conditions under which the delegation is valid. For example, an employee might authorize agent:email to read her mailbox only when operating inside the corporate network. This is not an abso-lute delegation, but a contextualized one governed by constraints. Allowing a delegate to act as a further delegator complicates track-ing the delegation chains and their conditions. Unlike legal con-tracts, these chains are runtime artifacts , continuously evaluated to determine if an agent is authorized to perform an action. Another crucial aspect of delegation is the ability to attenuate its scope [ 34 ]. The notion of scope is inherently abstract: it may refer to an action (e.g., deleting a document), to a resource (e.g., medical data), or to a combination of both (e.g., editing a budget report). Constraining the full action space of agents is difficult, whereas constraining resource access is more tractable [ 35 , 38 ]. Regardless of its form, supporting attenuation requires a semantic ordering 
+
+over the scopes. Such orderings are domain-specific. Our model enforces scope compatibility through envelopes; a general semantic ordering for attenuation remains domain-specific. While our approach inherits the same domain-specificity, we argue that representing delegation chains as contractual relations 
+
+within a relational model enables more precise scope attenuation. By expressing delegation, scoping, and resource structure as rela-tions in a graph, the system maintains a runtime–mutable view of authorization state. This allows scope restriction to follow struc-tural properties (e.g., parent–child relationships) rather than relying on static tokens. Authorization decisions are thus made by evaluat-ing the current graph state, which can evolve as delegations and scopes change. We now define the delegation types relevant for agents. These types build on decentralized authorization and trust-management logics [2, 23], but are adapted to our requirements. (1) Full delegation (unconditional “speaks-for”): The agent acts on behalf of the delegator without constraints. This corresponds to classical impersonation. (2) Scoped delegation with attenuation: The delegate may act only on a subset of actions and/or resources permit-ted to the delegator. This is analogous to OAuth scopes. The delegation applies to certain facts in the authorization system. (3) Conditional (contextual) delegation: The delegate may exercise the delegated authority only when specific con-ditions are met (e.g., region = EU ). Conditions capture contextual requirements and may be combined with scoped 
+
+> 4Overlaying Governance: A Compositional Authorization Framework for Delegation and Scope in Agentic AI
+
+delegation, yielding scoped conditional delegation. A com-bination with full delegation reduces to a conditional dele-gation. (4) Depth-bounded delegation: Delegation may propagate up to a fixed length 𝐾 . 𝐾 = 0 forbids onward delegation; 
+
+𝐾 = 1 permits a single hop; and larger values encode con-trolled transitivity. Depth bounds are an optional constraint for limiting onward delegation, it is not the sole source of termination of authorization evaluation, which remains governed by the semantics of the underlying ReBAC en-gine. (5) Temporal delegation: A special case of conditional del-egation in which the validity is restricted by time-based predicates (e.g., expiry timestamps, or “not before” con-straints). (6) Group delegation: A delegation is valid only if authorized by multiple principals (e.g., 𝑛 -of-𝑚 approval). This captures collaborative authorization patterns. 
+
+## 3.3 Relational Agentic Authorization 
+
+Practitioners and researchers increasingly look to OAuth as the basis for delegation in agentic systems. For example, MCP recom-mends OAuth 2.1, and South et al. propose an OAuth extension that incorporates an explicit agent-delegation token [ 35 ]. Other work explores decentralized approaches that rely on DIDs and VCs [ 18 ]. These efforts contribute important compatibility mech-anisms. However, they treat delegation primarily as a credential 
+
+workflow—issuing, exchanging, and verifying tokens that encode a consent. This view captures secure transfer of authority but does not address the recursive structure of delegation chains, or account-ability requirements central to Agentic AI. To that end, we introduce a relational schema that captures the relevant entities and supports runtime evaluation of agents autho-rization. The core principle of our approach is that an authorized agent must be connected to a resource through a delegation chain that originates in a user who is permitted to access that resource. Context, scope, and conditions enrich this chain, supporting scoped and contextual delegation, while leaving domain-specific attenua-tion orderings to the policy designer. We capture these relationships using a graph-based model in-spired by ReBAC [ 7]. The authorization state is represented as a directed graph 𝐸 whose edges encode relationships between prin-cipals and resources (e.g., “User 𝑢 delegates to Agent 𝑎 ”). Autho-rization checks are formulated as graph queries of the form: “Does subject 𝑥 hold relation 𝑟 to object 𝑦 ?” [28]. To support this, we introduce a general-purpose, domain-agnostic scheme 𝐶 (illustrated in Fig. 1) that specifies the rules for construct-ing these graphs. At runtime, 𝐶 is instantiated into a dynamic autho-rization graph 𝐸 that evolves with delegation, context changes, and access requests. A central concept in our design is the agent’s autho-rization envelope : the dynamic set of resources the agent may access together with the contractual (conditional) terms under which ac-cess is valid. The envelope is computed as the intersection of three factors: (1) the agent must receive delegated authority from a user who is authorized for the resource; (2) the agent must be operating user agent  
+
+> session scope
+> container
+> resource delegates delegates
+> has access
+> acts
+> hierarchal
+> scoping
+> contains
+> envelope
+
+Figure 1: Schema of types (nodes) and key relations (edges) needed for Agentic AI authorization. Red nodes refer to types that already exist in ReBAC policies. 
+
+within an active scope in which access is permissible; and (3) the requested resource must lie within the scope of the delegation itself. 
+
+3.3.1 Model Construction. Our model construction is guided by a single question: “Why is agent 𝐴 allowed to perform action 𝑋 on resource 𝑂 on behalf of user 𝑈 ?” To encode this reasoning, we in-troduce three families of relations: (i) delegation : who may act for whom; (ii) scope : under which contextual constraints a delega-tion is valid; and (iii) resource linkage : how human permissions lift to agents. We use OpenFGA syntax to present types and rela-tions, focusing on the key relations for view /viewer ; additional permissions (e.g., editor ) follow analogously. 
+
+Principals & Delegation. We first model the principal entities: users and agents (agent’s syntax omitted for readability). A user may delegate authority to one or more agents, and agents may onward-delegate to sub-agents. The recursive userset can_execute.... 
+
+captures this transitive delegation chain; conditions such as tempo-ral or attribute guards can be attached to delegatee edges. 
+
+> type user # same for agents relations define delegatee: [agent, agent with temporal_delegation, agent with conditional_delegation] define can_execute_on_my_behalf: delegatee or can_execute_on_my_behalf from delegatee
+
+A delegatee edge from a user to an agent represents a contractual delegation: the agent may act on user’s behalf, possibly under condi-tions (e.g., time-limited). The relation can_execute_on_my_behalf 
+
+is the transitive closure of these delegations. Evaluating this userset for 𝑈 yields the complete set of agents reachable via delegation paths rooted at 𝑈 . Defining same relations on the agent type enables recursive delegation: an agent can delegate to another. A key invariant is that this closure is typed: the relation delegatee 
+
+ranges only over subjects of type agent , and never traverses back into the user namespace. This is an important disjointness that is enforced at the schema layer rather than the identity-provider layer. So even if humans and agents share the same object type in the identity provider, they are represented as distinct typed princi-pals inside the overlay. This restriction prunes the recursive search space, and avoids loops in the delegation closure. 
+
+> 5First Author et al.
+
+Execution Context & Scopes (the “envelope”). A session rep-resents a live instance of an agent acting under a specific delegation. Each session is associated with a scope , which captures the organi-zational context within which the agent may operate (e.g., a tenant, project, or resource collection). Scopes are hierarchical, reflect-ing nesting among resource categories (e.g., document ⊂ folder ⊂
+
+workspace ⊂ organization). Together, the active delegation and the session’s scope determine the agent’s authorization envelope .
+
+> type session relations define actor: [agent] define as_agent: actor type scope relations define parent: [scope] define holder: [session, session with ...] define sessions: holder define ags_direct: as_agent from holder define agents: ags_direct or agents from parent
+
+An agent is in scope if it appears in scope#agents , i.e., one of the agents that hold valid sessions in that scope (or of its ancestors). Authorization checks bind the acting principal via session#actor .Scopes form a tree through scope#parent , and a scope receives sessions via scope#holder , which may include guards. The derived relations scope.sessions and scope.agents aggregate local and inherited memberships. Thus, a scope defines the agent’s effective authorization envelope: an agent may access a resource only if its active session lies within the resource’s scope or its ancestors. 
+
+Resources & Derived Agent View. We now model the resources themselves and connect all components of the system to enforce the two core authorization requirements: (A) an agent must be in scope 
+
+for the resource, and (B) the agent must be delegated by a user who has permission to access that resource. We distinguish between 
+
+container types (folders) and individual resources (documents). Containers form a hierarchy via parent , and store the base rule for human users ( viewer , owner ). Each container is attached to a 
+
+scope , enabling scope-based evaluation of agent sessions. We omit resources in the following for brevity. 
+
+> type container relations define parent: [container] define in_scope: [scope] define viewer: [user] # Human viewers (with inheritance) define hu_can_view: viewer or .. from parent # (A) valid Agents in this container 's scope define ags_in_scope: agents from in_scope # (B) delegated by human viewers define chain_agents_for_view: can_execute_on_my_behalf from viewer or chain_agents_for_view from parent # envelope (A) Intersection delegation (B) define delegated_agent_viewer: ags_in_scope and chain_agents_for_view # Final view: human OR authorized agent define can_view: hu_can_view or delegated_agent_viewer
+
+Each container is tied to a contextual scope via in_scope ;thus, all resources under that container inherit the scope’s autho-rization envelope . For agents, we derive two sets: (A) ags_in_scope ,the agents with active sessions in the container’s scope (or inher-ited from ancestor scopes), and (B) chain_agents_for_view , the agents reachable through delegation from the human viewer s of that container (including inherited viewers). An agent may view a resource if it appears in the intersection of these two sets—i.e., it is in the correct scope and properly delegated. 
+
+Conditions (for delegation types). We express different types of delegation by attaching predicates directly to the delegatee 
+
+relation. While we show temporal delegation, the same condition interface can host other trusted predicates. Depth-bounded delega-tion can be encoded with additional schema patterns. For a fixed small bound 𝐾 , bounded delegation can be encoded by stratify-ing the closure into relations can _execute (0) , . . . , can _execute (𝐾 ) ,where each level follows one additional delegatee edge. This is a finite schema expansion and is therefore compatible with the over-lay, but it is omitted from the core presentation. Similarly, 𝑛 -of-𝑚 
+
+approval can be represented by a trusted predicate whose relation is checked before the delegation tuple is admitted. We do not claim a general counting operator in the base ReBAC algebra. 
+
+> condition temporal_delegation(expires_at: timestamp, current_time: timestamp) { current_time < expires_at}
+
+Illustrative Example. Consider a user bob who delegates author-ity to agent1 through the relation 〈bob delegatee agent1 〉
+
+with a validity for 1 hour. A session s1 is created for agent1 
+
+〈s1 actor agent1 〉 and is placed in scope via 〈org/eng holder s1 〉.This means that agent1 is active within the contextual envelope de-fined by the org/eng . Assume a folder is associated with that scope 
+
+〈folder1 in_scope org/eng 〉 and contains design-document .User bob is a declared viewer of this folder 〈folder1 viewer bob 〉.Because agent1 (A) appears in the delegation chain of bob , and (B) has an active session in the container’s scope, the intersection that defines delegated..._viewer is non-empty. Thus the autho-rization relation 〈agent1 can_view eng-folder 〉 holds. If the condition expires, or if the session is removed from the scope, the intersection becomes empty, and the agent loses access. 
+
+## 4 Operational Governance for Agentic AI 
+
+With the base model in place, we have a principled foundation for enforcing governance in agentic AI. However, designing a bespoke authorization model for every domain in which agents operate (e.g., documents, code generation) is impractical. To address this, we examine how to operationalize enforcement through three compo-nents: a compositional operator that injects agentic primitives into existing domain models (Section 4.1), an architecture for runtime evaluation (Section 4.2), and an illustrative use case (Section 4.3). 
+
+## 4.1 Overlay as a Typed Graph Rewrite 
+
+We aim to extend a domain authorization model expressible as typed ReBAC with agentic governance primitives. While similar goals could be pursued in other policy languages, the relational structure of agents naturally suggests a graph-based construction. Our operator overlays delegation, scope, and contextual constraints onto an existing domain schema without rewriting its human-facing logic. Human access remains authoritative; agent access is derived as the intersection of delegated authority and contextual scope. The 
+
+> 6Overlaying Governance: A Compositional Authorization Framework for Delegation and Scope in Agentic AI
+
+construction is related to policy-combination frameworks [ 3] and to double-pushout (DPO) graph rewriting [ 9 ], but here the purpose is to inject reusable agentic primitives into ReBAC schemas. We now make precise the class of domain schemas to which the overlay operator applies. A typed ReBAC schema is represented as a tuple 
+
+𝐶 = (T , R, subj , 𝑒 ),
+
+where T is a finite set of object types, R𝑇 is the finite set of relation symbols available on type 𝑇 , subj (𝑇 , 𝑟 ) is the subject-domain decla-ration of relation 𝑟 ∈ R 𝑇 , and 𝑒 𝑇 ,𝑟 is the userset expression defining 
+
+𝑟 . Userset expressions are built from this , computed usersets, tuple-to-userset, union, intersection, and difference, as in Section 2. For rewriting, we view 𝐶 as a finite typed graph 𝐺 𝐶 . The graph contains nodes for types and relation occurrences (𝑇 , 𝑟 ), with edges recording subject domains and userset dependencies. For example, if 𝑒 𝑇 ,𝑟 contains 𝑟 ′ from 𝜌 , then 𝐺 𝐶 contains dependency edges from 
+
+(𝑇 , 𝑟 ) to (𝑇 , 𝜌 ) and to the relation reached by 𝜌 . This graph represen-tation is used only to specify schema transformation; authorization semantics remain the standard userset denotation J−K𝐸 𝐶 .Let 𝐵 be the agentic overlay schema containing fresh types agent ,
+
+session , and scope , and fresh overlay relations such as delegatee ,
+
+can _execute _on _my _behalf , holder , actor , in _scope , ags _in _scope ,
+
+chain _agents _for _r, and delegated _agent _r. Freshness means that these overlay-introduced names do not occur in the domain schema 
+
+𝐶 𝐷 . The existing domain relations used as the interface to the over-lay are selected separately by the lift specification 𝜇 = (L , root , parent ).
+
+Here L( 𝑇 ) ⊆ R 𝑇 is the set of domain permissions to lift for type 
+
+𝑇 , root (𝑇 , 𝑟 ) is the human-root userset expression from which del-egation for permission 𝑟 is derived, and parent (𝑇 ) is an optional hierarchy relation used for inherited permissions. The lift specifica-tion must satisfy the following applicability conditions. 
+
+A1: Freshness. The overlay-introduced type and relation names are fresh with respect to 𝐶 𝐷 .
+
+A2: Well-typed roots. For every 𝑇 and 𝑟 ∈ L( 𝑇 ), the expression 
+
+root (𝑇 , 𝑟 ) is well-typed in 𝐶 𝐷 and denotes only human principals: Jroot (𝑇 , 𝑟 )K𝐸 𝐷  
+
+> 𝐶 𝐷
+
+(𝑜, ctx ) ⊆ 𝑈 . 
+
+A3: Root adequacy. The root expression is no more permissive than the original domain permission: 
+
+Jroot (𝑇 , 𝑟 )K𝐸 𝐷  
+
+> 𝐶 𝐷
+
+(𝑜, ctx ) ⊆ J𝑟 K𝐸 𝐷  
+
+> 𝐶 𝐷
+
+(𝑜, ctx ).
+
+A4: Agent disjointness. The fresh agent type 𝐴 is disjoint from all domain principals: 𝐴 ∩ 𝑃 𝐷 = ∅.
+
+A5: Well-foundedness. The composed userset dependency graph satisfies the same well-foundedness requirements imposed by the underlying ReBAC engine. 
+
+A6: Hierarchy compatibility. If parent (𝑇 ) is used for a lifted permission 𝑟 , then the original domain permission 𝑟 𝐷 is inherited along the same hierarchy. That is, for every parent edge from 𝑜 to 𝑜 𝑝 , J𝑟 𝐷 K𝐸 𝐷  
+
+> 𝐶 𝐷
+
+(𝑜 𝑝 , ctx ) ⊆ J𝑟 𝐷 K𝐸 𝐷  
+
+> 𝐶 𝐷
+
+(𝑜, ctx ).
+
+For each 𝑇 and 𝑟 ∈ L( 𝑇 ), the overlay applies a non-deleting graph rewrite in DPO style: 𝑝 𝑇 ,𝑟 : 𝐿 𝑇 ,𝑟 ℓ
+
+←− 𝐾 𝑇 ,𝑟 𝜌 
+
+−→ 𝑅 𝑇 ,𝑟 . We set 
+
+𝐾 𝑇 ,𝑟 = 𝐿 𝑇 ,𝑟 , so the matched domain schema is preserved and the rule only glues in fresh overlay relations. The left-hand side contains the type node 𝑇 , the permission relation (𝑇 , 𝑟 ), the dependencies of root (𝑇 , 𝑟 ), and, when present, the hierarchy relation parent (𝑇 ).The right-hand side extends this interface with: 
+
+ags _in _scope 𝑇 := agents from in _scope 𝑇 ,
+
+chain _agents _for _r𝑇 := can _execute _on _my _behalf from root (𝑇 , 𝑟 )
+
+or chain _agents _for _r𝑇 from parent (𝑇 ),
+
+delegated _agent _r𝑇 := ags _in _scope 𝑇 and chain _agents _for _r𝑇 ,𝑟 := 𝑟 𝐷 or delegated _agent _r𝑇 .𝑟 𝐷 is the original domain userset for relation 𝑟 . If 𝑇 has no parent relation, the second disjunct in chain _agents _for _r𝑇 is omitted. Since 𝐾 𝑇 ,𝑟 = 𝐿 𝑇 ,𝑟 , the rewrite is conservative: no domain type, relation, or userset dependency is deleted. Applying these rules for all 𝑇 and 𝑟 ∈ L( 𝑇 ), together with the global bootstrap rules for 
+
+agent , session , and scope , yields the composed schema 
+
+𝐶 𝐷 ⊗𝐵 = Overlay (𝐶 𝐷 , 𝜇 ).
+
+The denotational effect of the rewrite is therefore explicit: for every lifted permission 𝑟 ∈ L( 𝑇 ),                  
+
+> J𝑟 K𝐸 𝐶 𝐷 ⊗𝐵 (𝑜, ctx )=J𝑟 𝐷 K𝐸 𝐷 𝐶 𝐷 (𝑜, ctx )∪
+> 
+> Jags _in _scope 𝑇 K𝐸 𝐶 𝐷 ⊗𝐵 (𝑜, ctx ) ∩ Jchain _agents _for _r𝑇 K𝐸 𝐶 𝐷 ⊗𝐵 (𝑜, ctx )
+> 
+> .
+
+Thus the original domain permission is preserved as one branch, and agent authorization is added only through the intersection of scope membership and a human-rooted delegation chain. Appendix B gives an implementation-oriented expansion of the overlay macros used in this construction. 
+
+## 4.2 Agent Controller Engine (ACE) 
+
+To operationalize the concepts presented in this work, we propose a technical component called the Agent Controller Engine (ACE) .ACE provides dynamic, contextual, and composable governance for agentic AI. It is designed as an extension within a classical IAM architecture, as illustrated in Figure 2. At a high level, ACE unifies authorization, delegation, and auditing logic for agents. ACE interfaces with token-based authentication services—such as OAuth 2.1/OIDC providers—that may issue authenticated delegation tokens . Other identity infrastructures (e.g., DID) are equally viable; from ACE’s perspective, these components serve only as secure sources of relational facts needed for authorization. Rather than embedding fixed capabilities inside tokens, ACE requires tokens to carry relations (e.g., agentX has full user delegation ), which are incorporated into its runtime authorization graph. Dynamic, Contextual, Composable Governance For Agentic AI    
+
+> Authentication Module
+> Authenticated Delegation Module Authentication Services Agent Controller Engine
+> Agentic AI ecosystem
+> MCP
+> A2A
+> AI Application Host
+> AI Host Controller client
+> Services
+> (MCP) Server Resource
+> AI Application Host 2
+
+Figure 2: The general components in Agentic Governance. 
+
+> 7
+
+First Author et al. 
+
+We assume that ACE and the authentication module operate within a centralized trust domain accessible by agents. Enforcement occurs through controller clients , which act as policy enforcement points (PEPs), known in the XACML reference architecture [ 34 ]. These clients intercept actions and consult ACE before execution. Their role aligns with existing protocols (e.g., MCP clients, A2A clients), but ACE augments them with a zero-trust governance layer and a unified authorization engine tailored for agentic interactions. Let us unpack the ACE. Figure 3 illustrates its primary com-ponents and the flow of governance and authorization data. To operationalize the compositional model (Section 4.1), ACE incorpo-rates a governance layer . This layer embodies the required primi-tives—most notably delegation (including scoped and conditional variants), recursive delegation chains (the base model), and the in-jection of these semantics into existing domain models through our composition operator. This layer materializes these abstractions as a typed schema graph that supports runtime checks for AI agents. The execution layer forms the operational core of ACE. It main-tains an authorization graph (AG) that reflects the live state of users, agents, sessions, delegations, and scope assignments. The AG evolves as the system evolves, and therefore requires a runtime re-lations writer responsible for securely inserting, or removing edges based on system events. This module processes and verifies identity, access, or delegation tokens, and may also ingest relational facts from other trusted components. As such, the writer is extensible and functions as a hub for multiple policy information points. Finally, the execution layer exposes authorization services to its clients —users, agents, auditor software, or monitoring systems—via an authorization engine. This engine evaluates access requests by combining (i) governance primitives, (ii) domain-level permis-sions, and (iii) the current AG state. It answers queries such as: is "agent:health" allowed to access the technical-specification folder? or 
+
+which agents currently retain access to bob health records? The result is a unified, zero-trust–compatible enforcement point for AI agents. 
+
+## 4.3 Use Case: Multi-Agent Code Assistants 
+
+Coding AI agents that support developers in software development are a promising domain for AI. Their ability to generate, and review code faster than humans makes them indispensable companions for developers [ 14 ]. Coding Agents are often envisioned as multi-agent systems that cooperate toward a shared goal. For instance, a Planner Agent coordinates tasks, a Requirements Agent extracts functional requirements, and Coding and Testing Agent generates code and test cases. Because these assistants consume heterogeneous and untrusted artifacts e.g., specifications, issue threads, code comments, they are natural targets for prompt injection. In an enterprise deployment of coding assistants, their compli-ance with organizational policies is crucial. Developers work across multiple projects, each governed by domain rules and backed by structured repositories. They use shared document systems (e.g., Drive) for specifications and version control systems (e.g., GitHub) for code, both of which expose human-centric authorization mod-els (e.g., reader , maintainer ) over resources such as documents ,
+
+folders , and repositories . To enable agents to act on behalf of developers within these systems, e.g., accessing documents, or committing code, we apply our compositional authorization model. Agent Controller Engine (ACE)            
+
+> Governance Layer
+> Human (scoped, conditional) Delegation
+> Recursive Agentic Delegation Chains
+> Primitives Injection
+> Code Agent
+> Documents Agent
+> Authorization checks
+> Execution Layer
+> user:Alice
+> Model Composition Base Model
+> Agent Runtime System
+> user:bob Ag:AssistantX
+> Full Delegation for 30 mins
+> Ag:DocReaderZ
+> Delegation for 5 mins; Read Projectx/Tech docs
+> Ag:CoderY
+> Delegation only in company IP; Push code in testing repository
+> 12
+> 3
+> Delegation Relations 123
+> Ag:Coder
+> 4Can Ag:CoderY push code to
+> Production Repo ?
+> 4
+> Ag:HealthQ
+> Can Ag:HealthQ read folder
+> ProjectX/Tech ?55
+> Admin
+> Which agents
+> with access to code repository ?
+> Authorization Graph
+> user:bob
+> Ag: Health-1
+> Ag:Documents-288
+> Res:Report-1
+> Ag:Code-350
+> Runtime Relations Writer
+> Token Resolver
+> Authenticated Relations writer
+> Context Broker
+> Authorization Engine
+> Audit
+> Agent Authorization
+> List Authorization
+> user:alice
+> 66
+> Authenticated User
+> Authenticated Agent
+> Scoped Delegation
+> Conditional Delegation
+> Bound Delegation  Agentic AI systems
+> Domain Policy  Authorization Graph
+> Resources
+
+Figure 3: The complete ACE Reference Architecture with components and processes. Mapping the Domain Model. We begin by extracting the existing domain authorization models from both systems. Each can be ex-pressed as a schema (𝐶 𝐷 ) using familiar relations such as parent ,
+
+viewer , and editor . For simplicity, we omit system-specific de-tails. Our overlay rewriting can be applied to each model separately or to a unified model; we choose the latter, as it allows us to har-monize GitHub and Google Drive under a single collaboration schema. In practice, this involves mapping GitHub teams to group ,
+
+repo /folder to container , and doc /file to resource . The result is a generalized hierarchical model suitable for both domains. A more rigorous sequential composition operator is left for future work. A snippet of the resulting combined model appears below. 
+
+type user type group relations define member: [user, group#member] type organization relations define owner: [user] define member: [user, group#member] or owner type container relations define parent: [container] define viewer: [user, group#member, organization#member] or owner or editor or viewer from parent 
+
+Agentic Overlay. Using the operator from Section 4.1, we instanti-ate the lift specification 𝜇 and generate the composed schema 𝐶 𝐷 ⊗𝐵 .For this use case, 𝜇 selects container permissions such as viewer and 
+
+editor , uses the original domain permission 𝑟 𝐷 as the human root, and uses parent as the hierarchy relation. Expanding the overlay 
+
+8Overlaying Governance: A Compositional Authorization Framework for Delegation and Scope in Agentic AI group   
+
+> organization
+> document
+> repo
+> user agent
+> session scope
+> container
+> resource
+
+Figure 4: Coding Assistant Schema. Nodes are types, edges are relations. Red nodes refer to common types between base and domain models, dashed nodes refer to governance types. 
+
+macros injects: (1) global agentic types ( agent , session , scope ); (2) delegation and scope relations ( delegatee , holder ); (3) scoping and delegation-chain lifting into each resource type via in _scope ; and (4) derived agent permissions e.g., delegated _agent _viewer .The resulting extended schema 𝐶 𝐷 ⊗𝐵 , shown in Figure 4, is con-servative for domain principals while adding agentic delegation paths through the overlay branch. Delegations encode which users authorize which agents and under what terms, such as conditional delegation, or scoped sessions within a project hierarchy. 
+
+Execution and Enforcement. Using the composed model in prac-tice requires deploying it into an authorization engine, populating runtime relations, and answering access requests. We use Open-FGA as an open-source engine for storing relational tuples [ 26 ]. A tuple is generated, for example, when a user prompts an agent to perform a programming task: a delegation relation, together with a session and scope, is written to the engine, e.g., 〈alice delegatee agent:planner, condition:expires_at:"23:59:59" 〉. Scoping relations are recorded based on the user’s choices, but may also be produced by other trusted components that observe the envi-ronment—for instance, a security monitor or intrusion detection system. This enforcement point remains relevant even if an agent is influenced by malicious content, i.e.,injections do not expand the agent’s envelope, provided attempted accesses are mediated by the PEPs and checked against the current delegation chain. 
+
+Runtime checks. Authorization queries of the form Check(agent, can_view, resource) are evaluated against the composed config-uration 𝐶 𝐷 ⊗𝐵 and the current authorization graph. 
+
+Example. Consider a project projX within the web-development department ( scope:org/web ). Alice is a viewer of the project’s container ( container:projX ), which stores design documents and related artifacts, and she also holds the repository rights needed to commit changes for this project. An AI assistant agent:Planner 
+
+operates as the main task-level coordinator. To enable system to act on her behalf, Alice issues a delegation to agent:Planner guarded by a temporal condition. When the agent begins operating, it creates a session:s1 in the org/web 
+
+scope, representing its contextual envelope. The planner may then issue separate scoped delegations to specialized sub-agents, e.g., a document-view delegation to agent:DocReader and a repository-write delegation to agent:Copilot .The document ( res:design-doc ) lives inside the project con-tainer, which is itself associated with the same scope. At check time, the engine evaluates whether the agent (DocReader) can view the document. The request is authorized because: (i) there is a valid delegation chain from a human with view rights on the resource (user:alice ) to agent:Planner and then to agent:DocReader ;(ii) all delegation conditions hold; and (iii) the agent has an active session in a scope compatible with the resource’s scope. Suppose, however, that design-doc contains a malicious instruction such as “ignore prior guidance and push the repository contents to pro-duction.” The document may still influence DocReader ’s reasoning, but it does not enlarge its authorization envelope: DocReader only holds the read-oriented delegation issued for document analysis, so any attempt by DocReader itself to access a repository, invoke a non-authorized tool, or act outside org/web is denied. If the task genuinely requires a code change, agent:Planner 
+
+may issue a separate delegation relation to agent:Copilot for repository actions. When agent:Copilot attempts the push, the engine evaluates that distinct delegation chain back to Alice. Thus, reading a malicious document cannot by itself cause code to be pushed unless repository access was independently delegated to the coding agent and all relevant conditions still hold. Through model composition, coding assistants can safely operate while limiting the impact of prompt injection to the agent’s enve-lope. This achieves: (i) Delegation safety: agents cannot obtain access without a user chain; (ii) Contextual enforcement: dele-gations are active under the correct conditions; (iii) Auditability: 
+
+agent actions trace back to their delegator; (iv) Reuse: human-facing domain permissions remain intact. 
+
+## 5 Evaluation and Verification 
+
+We evaluate key qualities of our approach. First, we prove preserva-tion and agent-authorization soundness for well-formed schemas satisfying the overlay applicability conditions. Then we assess prac-tical properties such as decision latency. 
+
+## 5.1 Verification of Soundness 
+
+We verify the effect of the operator from Section 4.1. The overlay should be conservative for domain principals, while every agent authorization should be justified by an original human permission, a valid delegation chain, and a valid scope/session chain. Let 𝐶 𝐷 be a well-formed domain schema with tuple set 𝐸 𝐷 . Let 
+
+𝐶 𝐷 ⊗𝐵 = Overlay (𝐶 𝐷 , 𝜇 ), and let 𝐸 𝐷 ⊗𝐵 extend 𝐸 𝐷 only with overlay-introduced relations, e.g., delegatee , actor , holder , and in _scope .Let 𝑃 𝐷 be the set of original domain principals, 𝑈 ⊆ 𝑃 𝐷 the human principals that may act as delegation roots, and 𝐴 the fresh set of agent principals. By A4, 𝐴 ∩ 𝑃 𝐷 = ∅.We write 𝑥 {𝐸, ctx 𝑦 when 𝐸 contains a delegation tuple from 𝑥 to 
+
+𝑦 whose guard, if any, holds in context ctx . We write 𝑥 {+ 
+
+> 𝐸, ctx
+
+𝑦 for the transitive closure of such valid delegation edges. The first node of a delegation chain may be a human 𝑢 ∈ 𝑈 , while all delegatees are agents, as enforced by the subject domain of delegatee .We write Scoped 𝑇 (𝑎, 𝑜, 𝐸, ctx ) when agent 𝑎 has an active session in a scope compatible with object 𝑜 of type 𝑇 . This holds when there 
+
+> 9First Author et al.
+
+exist a session 𝑠 and scopes 𝑞, 𝑞 ′ such that 
+
+(𝑠, actor , 𝑎 ) ∈ 𝐸, (𝑞 ′, holder , 𝑠 ) ∈ 𝐸, (𝑜, in _scope , 𝑞 ) ∈ 𝐸, 
+
+all relevant guards hold in ctx , and 𝑞 ′ = 𝑞 or 𝑞 ′ is an ancestor of 𝑞 under the scope-parent relation. This is the denotation of 
+
+ags _in _scope 𝑇 .
+
+Lemma 5.1 (Conservative extension for domain principals). 
+
+For every lifted permission 𝑟 ∈ L( 𝑇 ), object 𝑜 of type 𝑇 , domain principal 𝑝 ∈ 𝑃 𝐷 , and context ctx ,
+
+𝑝 ∈ J𝑟 𝐷 K𝐸 𝐷  
+
+> 𝐶 𝐷
+
+(𝑜, ctx ) ⇐⇒ 𝑝 ∈ J𝑟 K𝐸 𝐷 ⊗𝐵   
+
+> 𝐶 𝐷 ⊗𝐵
+
+(𝑜, ctx ).
+
+Proof. By Section 4.1, 
+
+J𝑟 K𝐸 𝐷 ⊗𝐵   
+
+> 𝐶 𝐷 ⊗𝐵
+
+= J𝑟 𝐷 K𝐸 𝐷  
+
+> 𝐶 𝐷
+
+∪ Jdelegated _agent _r𝑇 K𝐸 𝐷 ⊗𝐵   
+
+> 𝐶 𝐷 ⊗𝐵
+
+.
+
+The first branch is preserved by the non-deleting rewrite. The second branch denotes only principals of the fresh agent type 𝐴 , be-cause it is constructed from ags _in _scope 𝑇 and chain _agents _for _r𝑇 .Since 𝐴 ∩ 𝑃 𝐷 = ∅, the agent branch cannot add or remove any 
+
+𝑝 ∈ 𝑃 𝐷 . □
+
+Lemma 5.2 (Human-rooted delegation). For every lifted per-mission 𝑟 ∈ L( 𝑇 ), object 𝑜 of type 𝑇 , agent 𝑎 ∈ 𝐴 , and context 
+
+ctx ,
+
+𝑎 ∈ Jchain _agents _for _r𝑇 K𝐸 𝐷 ⊗𝐵   
+
+> 𝐶 𝐷 ⊗𝐵
+
+(𝑜, ctx )
+
+implies that there exists a human 𝑢 ∈ 𝑈 such that 
+
+𝑢 ∈ J𝑟 𝐷 K𝐸 𝐷  
+
+> 𝐶 𝐷
+
+(𝑜, ctx ) and 𝑢 {+   
+
+> 𝐸 𝐷 ⊗𝐵 ,ctx
+
+𝑎. 
+
+Proof. The proof is by induction on chain _agents _for _r𝑇 ’s def-inition. In the base case, 𝑎 is reached by following can _execute .. 
+
+from root (𝑇 , 𝑟 ). By A2, the root principal is a human 𝑢 ∈ 𝑈 ; by A3, this root is included in the original domain permission 𝑟 𝐷 ; and by the definition of can _execute _on _my _behalf , there is a valid delegation path 𝑢 {+   
+
+> 𝐸 𝐷 ⊗𝐵 ,ctx
+
+𝑎 . In the parent case, the claim follows from the induction hypothesis on the parent object and A6, which ensures that 𝑟 𝐷 is inherited along the same hierarchy. □
+
+Theorem 5.3 (Agent authorization soundness). For every lifted permission 𝑟 ∈ L( 𝑇 ), object 𝑜 of type 𝑇 , agent 𝑎 ∈ 𝐴 , and context ctx ,
+
+𝑎 ∈ J𝑟 K𝐸 𝐷 ⊗𝐵   
+
+> 𝐶 𝐷 ⊗𝐵
+
+(𝑜, ctx )
+
+implies that there exists a human 𝑢 ∈ 𝑈 such that: 
+
+(i) 𝑢 ∈ J𝑟 𝐷 K𝐸 𝐷  
+
+> 𝐶 𝐷
+
+(𝑜, ctx ),
+
+(ii) 𝑢 {+   
+
+> 𝐸 𝐷 ⊗𝐵 ,ctx
+
+𝑎, 
+
+(iii) Scoped 𝑇 (𝑎, 𝑜, 𝐸 𝐷 ⊗𝐵 , ctx ).
+
+Proof. Assume 𝑎 ∈ J𝑟 K𝐸 𝐷 ⊗𝐵   
+
+> 𝐶 𝐷 ⊗𝐵
+
+(𝑜, ctx ). Since 𝑎 ∈ 𝐴 and 𝐴 ∩𝑃 𝐷 = ∅,
+
+𝑎 cannot occur in the preserved domain branch J𝑟 𝐷 K𝐸 𝐷  
+
+> 𝐶 𝐷
+
+. Hence 𝑎 
+
+must occur in the overlay branch: 
+
+𝑎 ∈ Jdelegated _agent _r𝑇 K𝐸 𝐷 ⊗𝐵   
+
+> 𝐶 𝐷 ⊗𝐵
+
+(𝑜, ctx ).
+
+By construction, 
+
+delegated _agent _r𝑇 = ags _in _scope 𝑇 ∩ chain _agents _for _r𝑇 .
+
+Membership in ags _in _scope 𝑇 gives Scoped 𝑇 (𝑎, 𝑜, 𝐸 𝐷 ⊗𝐵 , ctx ). Mem-bership in chain _agents _for _r𝑇 , together with the human-rooted delegation lemma, gives a human 𝑢 ∈ 𝑈 such that 𝑢 ∈ J𝑟 𝐷 K𝐸 𝐷  
+
+> 𝐶 𝐷
+
+(𝑜, ctx )
+
+and 𝑢 {+   
+
+> 𝐸 𝐷 ⊗𝐵 ,ctx
+
+𝑎 . □
+
+Corollary 5.4 (Revocation and guard invalidation). Let 𝐸 ′
+
+be obtained from 𝐸 𝐷 ⊗𝐵 by removing only overlay tuples, and let ctx ′
+
+be any context, possibly one in which a delegation or scope-holder guard no longer holds. If, in (𝐸 ′, ctx ′), there is no human 𝑢 ∈ 𝑈 
+
+satisfying the three conditions of the agent-authorization soundness theorem for (𝑎, 𝑟, 𝑜 ), then 
+
+𝑎 ∉ J𝑟 K𝐸 ′  
+
+> 𝐶 𝐷 ⊗𝐵
+
+(𝑜, ctx ′).
+
+Proof sketch. Immediate by the contrapositive of authoriza-tion soundness: any successful agent authorization must have a human-permission, delegation-chain, and scope/session witness. 
+
+□
+
+## 5.2 Empirical Evaluation 
+
+We assess the cost of enriching existing models with our overlay. This assessment is especially important because, unlike traditional ReBAC deployments, our approach introduces agents and sessions as runtime principals whose relations change frequently during ex-ecution. In realistic scenarios, sessions are short-lived, delegations are created and revoked recursively. The resulting authorization graph is therefore not only larger, but also more dynamic. We evaluate the effect of this richer model on performance by comparing a baseline Domain configuration against a matched Do-main+Overlay configuration, using identical domain tuples, across two known OpenFGA use-cases: Google Drive (G), and Slack (S). 
+
+For each use-case, we evaluate different sets of scenarios that gradually increase in the number of modeled relations, e.g., docu-ments. Specifically, we evaluate (G1–G8) for G and (S1–S5) for S. A brief description of the use-cases and scenarios follows and the full parameter settings for all scenarios are reported in Appendix B. 
+
+1. G. Models recursive folders and documents with concentric re-lations (viewer, commenter, writer), parent inheritance, and group-and user-side fan–out defined in the official OpenFGA guide. The series increases users (20 →1000), groups (4 →100), folders (8 →200), and per-folder documents (3 →30). Overlay parameters scale pro-portionally (agents 8 →500, fixed 1 session/agent). 
+
+2. S. Models workspaces and channels with roles (guest, ad-min), public/private visibility, and posting permissions. It exer-cises unions, implied relations (admin ⇒ writer ⇒ viewer), and workspace → channel scoping. The series scales workspaces (2 →120), channels/workspace (5 →100), users (50 →1200), and agents (5 →300). These use-cases represent contrasting structures: deep inheri-tance over content hierarchies (nested folders and documents) in G, and broad scope propagation across collaboration structures in S. They illustrate two structural poles of enterprise applications es-pecially with document based AI architectures. We deem these use-cases representative of typical structures in the enterprise. More-over, the scale of our scenarios exceeds what is used in the literature. We evaluate scenarios up to 1000 users with 780 𝑘 relations, while recent benchmarks such as Cedar benchmark evaluates 50 users and ReBAC in data-spaces study reports a 120 𝑘 relations [8, 13]. 
+
+> 10 Overlaying Governance: A Compositional Authorization Framework for Delegation and Scope in Agentic AI
+
+Methodology. For each use-case we generate a paired dataset: 1. Domain : baseline tuples describing users, groups, workspaces, re-sources, and sharing structure. 2. Overlay : the same domain tuples augmented with agents, sessions, scopes, and delegation chains. Both datasets share the same domain topology and sharing struc-ture, so any performance difference is attributable to the additional overlay state and its runtime maintenance. We manually validate a small set of representative authorization checks for correctness and then scale both families through controlled parameter sweeps. The benchmark goes beyond a read-only comparison. The Do-main configuration is executed as a check -only workload, whereas the Overlay is executed as a mixed workload that interleaves checks and writes. In every scenario, we issue 1000 operations; overlay runs use an 80 /20 check/write split. This construction reflects the target authorization setting, in which checks are issued continuously but the graph is also updated as the delegation state evolves. A write operation models a minimal update by inserting a fixed three-tuple bundle: a delegatee tuple that links an agent to a human principal, an actor tuple that links the agent to a fresh session, and a holder tuple that binds the session to an existing scope. We implemented two Python generators that take structural parameters and emit two tuple files per case: Domain and Overlay .All random choices are seeded, with separate randomness govern-ing domain construction and overlay augmentation. This yields reproducible workloads and supports parameter sweeps that vary one source of complexity at a time. We vary three factor families: (1) Scale and Topology. Controls the structural size of each dataset. For G, this includes users , groups , folders , and 
+
+docs-per-folder , where folders form a shallow layered forest and group sizes include Gaussian variation. For S, the parameters are workspaces , channels-per-workspace , and workspace user distributions. (2) Domain Fan–Out. Determines how broadly principals at-tach to objects. In G, this is expressed via group-viewer-ratio 
+
+and doc-direct-viewer-ratio . In S, the same notion gov-erns role pressure on channels. (3) Overlay State. Governs the size and complexity of the over-lay, including agents , and sessions-per-agent . Scopes follow a simple hierarchy. Delegation chains are built from user →agent roots and extended 0–2 hops. In G, overlay runs mix agent-to-document, agent-to-folder, human-to-document, and human-to-folder checks. In S, overlay runs mix agent-writer and human-writer checks. For each case we measure 
+
+1000 random checks on a 13th Gen Intel Core(TM) i7-1360P machine with 16.0 GB of memory, and report the following: 1. Memory foot-print: tuple count and average host memory usage during the run. 
+
+2. Execution time: mean, and median latency for all operations, together with separate summaries for check and write operations. 
+
+Results. Our synthetic datasets simplify real deployments. Folder and channel topologies are generated from controlled templates, and delegation chains use bounded rules rather than full production histories. These choices can shift absolute latencies, but they do not change the comparative behavior between Domain and Overlay 
+
+under identical seeds and scale settings. Table 1 reports check-to-check comparisons using Overlay/Do-main ratios 𝑅 for mean and median latency, plus overlay write                                                                          
+
+> Case Tuples ( 10 3) D/O Check Mean 𝑅 Check Med 𝑅 Write Med ( ms )Mem 𝑅
+> G1 0.12 /0.15 1.10 1.10 5.15 0.99
+> G2 0.21 /0.26 1.20 1.22 4.81 1.00
+> G3 0.80 /0.87 1.15 1.13 5.20 1.01
+> G4 1.30 /1.41 1.22 1.11 5.68 1.02
+> G5 6.23 /6.48 1.55 1.16 7.77 1.02
+> G6 16 .74 /17 .10 2.09 1.27 6.95 1.16
+> G7 131 .0/131 .52.16 1.32 6.19 1.07
+> G8 766 .6/786 .32.20 1.30 9.42 1.20
+> S1 0.09 /0.12 1.01 1.00 4.50 1.00
+> S2 0.26 /0.32 1.05 1.05 4.49 1.00
+> S3 12 .4/16 .61.80 1.17 6.94 1.00
+> S4 24 .88 /33 .52.10 1.21 5.18 0.95
+> S5 373 .3/386 .72.16 1.22 5.23 0.98
+
+Table 1: Per-case results. Tuple counts of Domain and overlay, 
+
+𝑅 = Overlay Domain for check mean, check median, and memory. 
+
+median, memory ratio, and the graph size. We report ratios to quantify the overlay’s relative impact, where values greater than 1 indicate an increase over the baseline and larger ratios correspond to stronger overhead. As expected, the overlay adds graph size and memory footprint; however, memory remains bounded with ratios in [0.95 , 1.20 ] across all cases, indicating no runaway amplifica-tion. The percentage of allowed checks ( access granted ) remained around 40 % across all the scenarios. More significantly, the overlay increases check latency, but in a manner that remains practical. In absolute terms (as plotted in Figure 5), check-latency growth is modest at the median across cases. G medians range from 1.97 ms 
+
+(G1 Domain) to 6.83 ms (G8 Overlay), while S medians remain even tighter: 2.01 ms (S1 Domain) to 4.47 ms (S5 Overlay). Domain bench-marks show medians of 1.97 ms –5.30 ms for G and 2.00 ms –3.70 ms 
+
+for S, demonstrating that checks are already fast. Overlay medians extend this only moderately: G medians increase to 2.17 ms –6.80 ms 
+
+and S to 2.00 ms –4.50 ms , confirming that median performance re-mains practical for interactive systems. The divergence between mean and median latencies, especially in larger scenarios, indicate heavy upper-tail effects. For both fami-lies, check-mean ratios range from 1.01 × (S1) to 2.20 × (G8), while check-medians remain close to unity. This illustrates that there are slower check queries that arise especially in bigger models. In summary, even for deep hierarchies median latency remain under 7𝑚𝑠 (G8), confirming real-time viability. Similarly, write oper-ations remain efficient with medians in the range 4.49 ms –9.42 ms 
+
+across the reported suite. Without engine-level tuning, caching, or indexing beyond OpenFGA’s defaults, these measurements rep-resent a conservative lower bound. Standard optimizations, e.g., by caching usersets, normalizing delegation chains, sharding the graph, would further compress latency. Thus, the overlay approach is shown to be feasible and practical within target systems. 
+
+## 6 Related Work 
+
+Governance for Agentic AI. Recent work on AI governance spans system design, identity, and runtime control. Zhang et al. apply classical security principles such as defense-in-depth to agents via a conceptual “AgentSandbox” centered on policy enforcement and data minimization [ 41 ]. Syros et al. present a centralized architec-ture combining user-centric governance, cryptographic tokens, and a provider registry to mediate agent communication under user 
+
+> 11 First Author et al.
+
+1 2 3 4 5 6 7 8
+
+2
+
+4
+
+6
+
+8
+
+Scenario index 𝑘 
+
+> Median Check latency  (ms ) 𝐺 Domain : median
+> 𝐺 Overlay : median
+> 𝑆 Domain : median
+> 𝑆 Overlay : median
+
+Figure 5: Absolute median check-latency values for Domain and Overlay across G and S scenarios, showing practical growth. 
+
+policies [ 36 ]. Huang et al. outline a zero-trust framework based on Verifiable Credentials as a complement to traditional IAM [ 18 ]. Wang et al. move closer to our setting with a runtime governance stack that monitors delegation provenance for auditing [ 39 ]. Across these efforts, however, authorization is typically expressed through RBAC/ABAC-style controls or token-based mechanisms rather than through delegation chains and scope envelopes treated as first-class predicates inside access rules. By contrast, we focus on compo-sitional authorization semantics that embed delegation relations directly into the policy model for evaluation. Palumbo et al. [ 27 ] propose a compiler that instruments agent implementations with data rules. Their architecture emphasizes static rule compilation, but does not address delegation or scoping. Our work instead provides a compositional operator for overlaying these primitives onto authorization schemas. Closely related, Potti proposes Intent-Based Access Control (IBAC), where an LLM maps user intent, expressed in a prompt, to tool permissions encoded as OpenFGA tuples [ 29 ]. Although IBAC uses similar tools, our work differs in purpose. While IBAC focuses on inferring what an agent may do from a prompt, our work specifies the relational logic by which authority is delegated, bounded, and inherited across agents. Tomasev et al. propose a framework for intelligent delegation that formalizes how agents decide when and to whom to delegate in agent systems [ 37 ]. Their focus is complementary to ours: they study delegation as a decision problem, whereas we study how a delegation, once made, should be represented as an enforceable authorization primitive and tracked through recursive chains. 
+
+Agentic Protocols and Standards. A parallel branch studies how existing standards map to agentic delegation. The OpenID community has analyzed where OAuth can be extended and where limitations arise for agents [ 34 ]. Proposals such as South et al. [ 35 ]illustrate such an extension. Decentralized-identity approaches (e.g., DID/VC-based systems [ 20 , 22 ]) articulate device-centric delegation that could be adapted for agents. Here, “delegation” is realized as secure credential issuance and presentation; in contrast, we treat delegation as a first-class relation in authorization semantics, evaluated in concert with scope constraints. Integrating our model with decentralized identity infrastructure is promising future work. 
+
+Authorization Models and Policy Composition. ReBAC sys-tems e.g., Zanzibar [ 28 ] and implementations like OpenFGA repre-sent policies as typed relations and reduce checks to reachability [ 7,15 ]. While these systems support expressive relation definitions, they generally do not prescribe model composition mechanisms for injecting new primitives into existing models. Policy-combination and algebraic operators (e.g., [ 3 ]) address decision aggregation and conflict resolution across multiple policies, whereas our contribu-tion fuses primitives (delegation chains, scope envelopes) into the graph semantics so they are evaluated natively within checks. 
+
+Authorization Logics and Trust Management. Authorization logics and trust-management systems, such as [ 1 , 11 , 30 ], model principals, credentials, and delegation as logical statements; autho-rization reduces to proof search that a requester satisfies a capability. These frameworks provide strong foundations for delegation , and 
+
+attenuation via constraints , typically consuming external credentials (certificates) as inputs to derivations. Our approach is complemen-tary: we adopt a ReBAC relation model and introduce a composi-tional overlay that injects delegation chains and scope envelopes directly into the authorization graph. The two perspectives can interoperate: logical proofs can materialize overlay tuples or satisfy guard conditions, while the overlay provides a scalable substrate for applying such evidence across checks and listings. 
+
+## 7 Conclusion 
+
+Agentic AI introduces a new operational model in which autonomous agents can act, reason, delegate, and collaborate with minimal hu-man supervision. Such behavior challenges long-standing assump-tions in IAM, where delegation is typically modeled as a static, token-mediated act. Modern agent ecosystems, however, require delegation and scoping to function as dynamic governance primitives 
+
+that support continuous enforcement and auditability. This paper presented an authorization framework that elevates delegation, scope, and contextual constraints to first-class con-structs. We developed a taxonomy of delegation suitable for agents, introduced the notion of authorization envelopes, and formalized a model capturing users, agents, sessions, and scopes as relationships. At the core of our contribution is a compositional overlay operator 
+
+that injects agentic semantics into ReBAC policies. Grounded in non-deleting typed graph rewriting, the operator is conservative for domain principals while adding agent permissions only through a human-rooted delegation chain and a compatible envelope. We proved this as an agent-authorization soundness condition: an agent may obtain a lifted permission only when there exists an authorized human principal, a valid delegation path from that principal to the agent, and a valid scope/session witness for the requested object. We operationalized these ideas through ACE , an architectural blueprint designed to integrate heterogeneous sources, context, and dynamic delegation state into an authorization layer for agents. A multi-agent coding assistant illustrated how enterprise policies can be extended with delegation and scoping semantics while preserv-ing the underlying human-facing permission structure. Our evaluation combined formal reasoning with empirical bench-marks on large-scale models. The agentic overlay increases graph 
+
+> 12
+
+Overlaying Governance: A Compositional Authorization Framework for Delegation and Scope in Agentic AI 
+
+size and check latency as expected, yet median check times remain under 7 ms even without specialized optimization. Looking forward, several directions remain open: interoperabil-ity with other authorization models, e.g., ABAC; rigorous multi-policy composition; formal treatment of scope attenuation; and authorization graph engines tailored for large, dynamic agent pop-ulations. As agentic AI becomes increasingly ubiquitous, our work provides a principled and extensible foundation for building secure, accountable, and context-aware authorization mechanisms capable of governing autonomous software actors at scale. 
+
+## References 
+
+[1] Andrew W. Appel et al . 2014. A Verified Compiler for a Logic of Authoriza-tion (NAL). In IEEE Computer Security Foundations Symposium (CSF) . Nexus Authorization Logic (NAL). [2] Moritz Y. Becker, Cédric Fournet, and Andrew D. Gordon. 2007. SecPAL: Design and Semantics of a Decentralized Authorization Language. In IEEE Computer Security Foundations Symposium (CSF) . 3–15. [3] Paolo Bonatti and Pierangela Samarati. 2002. A Unified Framework for Regulating Access and Information Release on the Web. ACM Transactions on Information and System Security (TISSEC) (2002). Policy combination operators and algebraic composition. [4] Glenn Bruns, Philip W. L. Fong, and Ida Siahaan. 2011. Relationship-Based Access Control: Its Expression and Enforcement Through Hybrid Logic . Technical Report DTR11-12. Imperial College London, Department of Computing. https://www. doc.ic.ac.uk/research/technicalreports/2011/DTR11-12.pdf Extended version; see also CODASPY 2012. [5] Mauro Cazzaniga, Ms Florence Jaumotte, Longji Li, Mr Giovanni Melina, Augus-tus J Panton, Carlo Pizzinelli, Emma J Rockall, and Ms Marina Mendes Tavares. 2024. Gen-AI: Artificial intelligence and the future of work . International Monetary Fund. [6] Aaron Chatterji, Thomas Cunningham, David J Deming, Zoe Hitzig, Christopher Ong, Carl Yan Shan, and Kevin Wadman. 2025. How people use chatgpt . Technical Report. National Bureau of Economic Research. [7] Yuan Cheng, Jaehong Park, and Ravi Sandhu. 2012. Relationship-based access control for online social networks: Beyond user-to-user relationships. In 2012 International Conference on Privacy, Security, Risk and Trust and 2012 International Conference on Social Computing . IEEE, 646–655. [8] Joseph W Cutler, Craig Disselkoen, Aaron Eline, Shaobo He, Kyle Headley, Michael Hicks, Kesha Hietala, Eleftherios Ioannidis, John Kastner, Anwar Mamat, et al . 2024. Cedar: A new language for expressive, fast, safe, and analyzable authorization. Proceedings of the ACM on Programming Languages 8, OOPSLA1 (2024), 670–697. [9] Hartmut Ehrig, Karsten Ehrig, Ulrike Prange, and Gabriele Taentzer. 2006. Fun-damentals of algebraic graph transformation . Springer. [10] Abul Ehtesham, Aditi Singh, Gaurav Kumar Gupta, and Saket Kumar. 2025. A survey of agent interoperability protocols: Model Context Protocol (MCP), Agent Communication Protocol (ACP), Agent-to-Agent Protocol (A2A), and Agent Network Protocol (ANP). arXiv:2505.02279 [cs.AI] https://arxiv.org/abs/2505. 02279 [11] Carl Ellison, Bill Frantz, Butler W. Lampson, Ronald L. Rivest, Brian M. Thomas, and Tatu Ylonen. 1999. SPKI Certificate Theory . RFC 2693. RFC Editor. https: //www.rfc-editor.org/rfc/rfc2693 [12] Philip W. L. Fong and Ida Siahaan. 2011. Relationship-based Access Control Policies and Their Policy Languages. In Proc. of the 16th ACM Symposium on Access Control Models and Technologies (SACMAT) . https://pages.cpsc.ucalgary. ca/~pwlfong/Pub/sacmat2011.pdf Preprint available at Fong’s page. [13] Nikos Fotiou, Chalima Dimitra Nassar Kyriakidou, Athanasia Maria Papathana-siou, Vasilios Siris, and George Polyzos. 2026. Relationship-based Access Control for Data Spaces. Data Science and Engineering (2026), 1–17. [14] Gartner, Inc. 2025. AI Code Assistants Market Guide. https://www.gartner.com/ reviews/market/ai-code-assistants. Accessed: 2025-01-15. [15] Fausto Giunchiglia, Rui Zhang, and Bruno Crispo. 2008. RelBAC: Relation-based access control. In 2008 Fourth International Conference on Semantics, Knowledge and Grid . IEEE, 3–11. [16] Dick Hardt. 2012. The OAuth 2.0 authorization framework . Technical Report. [17] Wayne Holmes, Fengchun Miao, et al . 2023. Guidance for generative AI in educa-tion and research . Unesco Publishing. [18] Ken Huang, Vineeth Sai Narajala, John Yeoh, Jason Ross, Ramesh Raskar, Youssef Harkati, Jerry Huang, Idan Habler, and Chris Hughes. 2025. A novel zero-trust identity framework for agentic ai: Decentralized authentication and fine-grained access control. arXiv preprint arXiv:2505.19301 (2025). [19] Nalan Karunanayake. 2025. Next-generation agentic AI for transforming health-care. Informatics and Health 2, 2 (2025), 73–83. doi:10.1016/j.infoh.2025.03.001 [20] Taehoon Kim, Daehee Seo, Su-Hyun Kim, and Im-Yeong Lee. 2024. A Com-prehensive Approach to User Delegation and Anonymity within Decentralized Identifiers for IoT. Sensors 24, 7 (2024). doi:10.3390/s24072215 [21] Legal Information Institute (LII). n.d.. delegate. https://www.law.cornell.edu/ wex/delegate. Wex legal dictionary entry. Accessed 2025-11-12. [22] Minghui Li, Jingfeng Xue, Zhenyan Liu, Yiran Suo, Tianwei Lei, and Yong Wang. 2024. DAMFSD: A decentralized authorization model with flexible and secure delegation. Internet of Things 27 (2024), 101317. doi:10.1016/j.iot.2024.101317 [23] Ninghui Li, Benjamin N Grosof, and Joan Feigenbaum. 2003. Delegation logic: A logic-based approach to distributed authorization. ACM Transactions on Infor-mation and System Security (TISSEC) 6, 1 (2003), 128–171. [24] Tula Masterman, Sandi Besen, Mason Sawtell, and Alex Chao. 2024. The land-scape of emerging ai agent architectures for reasoning, planning, and tool calling: A survey. arXiv preprint arXiv:2404.11584 (2024). [25] MCP Working Group. 2025. Model/Context Protocol (MCP) for AI Agents. Draft specification. Ongoing standardization effort for agent protocols. [26] OpenFGA Project. 2025. OpenFGA: A high-performance and flexible authoriza-tion system inspired by Zanzibar. https://github.com/openfga/openfga. Version v1.11.0; accessed 2025-11-12. [27] Nils Palumbo, Sarthak Choudhary, Jihye Choi, Prasad Chalasani, and Somesh Jha. 2026. Policy compiler for secure agentic systems. arXiv preprint arXiv:2602.16708 
+
+(2026). [28] X. Pang et al . 2019. Zanzibar: Google’s Consistent, Global Authorization System. In USENIX ATC .[29] Sumanth Potti. 2024. Intent-Based Access Control: A Fine-Grained Authorization Framework for AI Agents. arXiv preprint arXiv:2412.04653 (2024). https://arxiv. org/abs/2412.04653 [30] Ronald L. Rivest and Butler W. Lampson. 1996. SDSI – A Simple Distributed Security Infrastructure. Manuscript / web note. [31] Zhengyang Shan, Jiayun Xin, Yue Zhang, and Minghui Xu. 2026. Don’t Let the Claw Grip Your Hand: A Security Analysis and Defense Framework for OpenClaw. arXiv preprint arXiv:2603.10387 (2026). [32] Yonadav Shavit, Sandhini Agarwal, Miles Brundage, Steven Adler, Cullen O’Keefe, Rosie Campbell, Teddy Lee, Pamela Mishkin, Tyna Eloundou, Alan Hickey, et al .2023. Practices for governing agentic AI systems. Research Paper, OpenAI (2023). [33] Tobin South et al . 2025. Agentic AI - Threats and Mitigations: OWASP Top 10 for LLMs - GenAI Red Teaming Guide. Whitepaper. [34] Tobin South et al . 2025. Identity Management for Agentic AI: The new frontier of authorization, authentication, and security for an AI agent world. Whitepaper. [35] Tobin South, Samuele Marro, Thomas Hardjono, Robert Mahari, Cedric Deslandes Whitney, Dazza Greenwood, Alan Chan, and Alex Pentland. 2025. Authenticated Delegation and Authorized AI Agents. arXiv:2501.09674 [cs.CY] https://arxiv. org/abs/2501.09674 [36] Georgios Syros, Anshuman Suri, Jacob Ginesin, Cristina Nita-Rotaru, and Alina Oprea. 2025. Saga: A security architecture for governing ai agentic systems. 
+
+arXiv preprint arXiv:2504.21034 (2025). [37] Nenad Tomašev, Matija Franklin, and Simon Osindero. 2026. Intelligent AI delegation. arXiv preprint arXiv:2602.11865 (2026). [38] Lillian Tsai and Eugene Bagdasaryan. 2025. Contextual Agent Security: A Policy for Every Purpose. https://arxiv.org/pdf/2501.17070 [39] Charles L. Wang, Trisha Singhal, Ameya Kelkar, and Jason Tuo. 2025. MI9: An Integrated Runtime Governance Framework for Agentic AI. arXiv:2508.03858 [cs.AI] https://arxiv.org/abs/2508.03858 [40] Zhiheng Xi, Wenxiang Chen, Xin Guo, Wei He, Yiwen Ding, Boyang Hong, Ming Zhang, Junzhe Wang, Senjie Jin, Enyu Zhou, Rui Zheng, Xiaoran Fan, Xiao Wang, Limao Xiong, Yuhao Zhou, Weiran Wang, Changhao Jiang, Yicheng Zou, Xiangyang Liu, Zhangyue Yin, Shihan Dou, Rongxiang Weng, Wensen Cheng, Qi Zhang, Wenjuan Qin, Yongyan Zheng, Xipeng Qiu, Xuanjing Huang, and Tao Gui. 2023. The Rise and Potential of Large Language Model Based Agents: A Survey. arXiv:2309.07864 [cs.AI] https://arxiv.org/abs/2309.07864 [41] Kaiyuan Zhang, Zian Su, Pin-Yu Chen, Elisa Bertino, Xiangyu Zhang, and Ninghui Li. 2025. LLM Agents Should Employ Security Principles. arXiv preprint arXiv:2505.24019 (2025). [42] Shenzhe Zhu, Jiao Sun, Yi Nian, Tobin South, Alex Pentland, and Jiaxin Pei. [n. d.]. The automated but risky game: Modeling agent-to-agent negotiations and transactions in consumer markets, 2025. URL https://arxiv. org/abs/2506.00073 
+
+([n. d.]). 
+
+## A Open Science 
+
+All artifacts are included in the submitted supplementary material and are accessible to reviewers through the anonymous artifact URL: https://github.com/Amjad-Ibrahim-Huawei/compositional-
+
+13 First Author et al. 
+
+paper. This appendix enumerates all artifacts necessary to evaluate and reproduce the paper’s core contributions. (1) Documentation 
+
+• openfga/general/6.gdrive/agent-ai/README.md 
+
+Official documentation of the GDrive use-case, model decisions, and expected performance characteristics. 
+
+• openfga/general/slack/README.md 
+
+Official documentation of the Slack benchmark sce-nario, authorization semantics, and experimental pa-rameters. 
+
+• openfga/general/Evaluation_Commands 
+
+Step-by-step execution commands for reproducing the benchmark. (2) Benchmarking Infrastructure 
+
+• openfga/general/benchmark.py 
+
+Main benchmark driver implementing the evaluation protocol. Executes checks, collects performance met-rics, and logs execution traces. 
+
+• openfga/general/setup_and_load.sh 
+
+Orchestration script for store initialization, model load-ing, and tuple population. Handles environment config-uration and data ingestion required to prepare bench-marks. 
+
+• openfga/general/setup_store.sh 
+
+Store creation and model schema initialization. De-ploys authorization models to OpenFGA instances. 
+
+• openfga/general/delete_store.sh 
+
+Cleanup utility between benchmark runs. (3) Data Generation and Tuple Population 
+
+• openfga/general/openfga_tuple_dataset_generator.py 
+
+Generates synthetic relation tuple datasets for the GDrive scenario. Implements domain-specific rules for creating user-resource relationships at scale. 
+
+• openfga/general/openfga_tuple_slack_generator.py 
+
+Generates synthetic relation tuple datasets for the Slack scenario. Populates workspace, channel, and user relationships according to Slack’s authorization model. 
+
+• openfga/general/rebuild_analysis_from_raw.py 
+
+Post-processing utility that transforms raw benchmark output into analysis-ready formats. Aggregates met-rics and computes summary statistics. (4) Authorization Models 
+
+• openfga/general/6.gdrive/gdrive-domain.fga 
+
+Core G model defining relationships (owners, editors, viewers) and permission logic for document access control. 
+
+• openfga/general/6.gdrive/agent-ai/ 
+
+G Overlay model variant. 
+
+• openfga/general/slack/model.fga 
+
+Core S model defining workspace and channel permis-sion semantics. 
+
+• openfga/general/slack/agent-ai/ 
+
+Overlay model for Slack scenarios with AI integration. (5) Relation Tuple Datasets 
+
+• openfga/general/6.gdrive/agent-ai/generated/ 
+
+Synthetic relation tuples for GDrive scenario. Contains domain and overlay files (G1–G7). (G8 files are around 80MiB so were excluded due to size limit; but they can be reproduced using the scripts as shown in the commands.) 
+
+• openfga/general/slack/agent-ai/generated/ 
+
+Synthetic relation tuples for Slack scenario. Contains domain and domain files (S1–S4). (S5 files are around 50 MiB so were excluded from the repository due to size limit; but they can be reproduced using the scripts as shown in the commands.) (6) Experimental Results and Analysis 
+
+• openfga/general/results/analysis/ 
+
+Aggregated analysis outputs, summary statistics, and processed metrics derived from raw benchmark runs. 
+
+• openfga/general/results/model_7/ 
+
+Benchmark CSV outputs for the baseline authorization model across all datasets (check-only queries on G1– G8). 
+
+• openfga/general/results/model_8/ 
+
+Benchmark CSV outputs for an optimized variant across all datasets (mixed query types on G1–G8). 
+
+• openfga/general/results/model_slack_domain/ 
+
+Benchmark CSV outputs for the Slack domain model (check-only queries on S1–S5). 
+
+• openfga/general/results/model_slack_overlay/ 
+
+Benchmark CSV outputs for the Slack overlay variant (mixed query types on S1–S5). 
+
+## B Generative AI Usage 
+
+We used OpenAI’s ChatGPT (GPT-5.4, Plus plan) as an assistant dur-ing the preparation of this manuscript. Specifically, LLMs were used for editorial purposes (language polishing, clarification of phras-ing, and restructuring of paragraphs), for suggesting L ATEX snippets (e.g., tables, and plotting code), and for drafting Python scaffold-ing to generate synthetic OpenFGA tuples and parameterized test datasets. LLMs were used for editorial purposes in this manuscript, and all outputs were inspected by the authors to ensure accuracy and originality. All technical ideas, and experimental designs are our own; any code or data-generation logic initially drafted with the help of ChatGPT was subsequently reviewed, simplified, and re-implemented or directly validated by the authors, and all experi-ments reported in the paper can be reproduced from the code and parameters we explicitly provide. We did not use LLMs as a source of prior work or citations and relied on our own literature review for related work. 
+
+## Expansion of the Agentic Overlay 
+
+Table 2 provides an implementation-oriented expansion of the over-lay macros used by the operator. Each row summarizes the corre-sponding schema fragment and its intended effect. 
+
+## Evaluation Test Cases Table 
+
+Table 3 show the detailed parameters used for each case shown in the evaluation. 
+
+> 14 Overlaying Governance: A Compositional Authorization Framework for Delegation and Scope in Agentic AI
+
+Table 2: Implementation-Oriented Expansion of the Agentic Overlay Macro Rule Scope Intent LHS / RHS / Effects R0 Overlay Bootstrap (once per model) Ensures global agentic scaffolding and entry-points. 
+
+LHS: model lacks agent , session , scope .
+
+RHS: 
+
+> type agent, type session, type scope; scope.holder: [session] (with optional temporal guard); session.actor: [agent], session.as_agent := actor; scope.sessions := holder or sessions from parent; entrypoints: scope.agents_direct := as_agent from holder, scope.agents := agents_direct or agents from parent.
+
+Effect: valid path from agent subject to user relation (Zanzibar/OpenFGA). 
+
+R1 Scope Link-age (per type) Attach domain type 𝑇 
+
+to scope; derive agents active in envelope. 
+
+LHS: type 𝑇 without in_scope .
+
+RHS: 
+
+> in_scope: [scope] ags_in_scope: agents from in_scope
+
+Effect: determines which agents are active for 𝑇 under context. 
+
+R2 Delegation Chain Lift (per rela-tion family) Lift human permissions (viewer/editor/owner) to their delegates recursively. 
+
+LHS: 𝑇 with {𝜇 𝑇 (viewer ), 𝜇 𝑇 (owner ), 𝜇 𝑇 (editor ), 𝜇 𝑇 (parent )} .
+
+RHS: 
+
+> chain_agents_for_rel_T = can_execute_on_my_behalf from {mu.viewer} or can_execute_on_my_behalf from {mu.owner} or can_execute_on_my_behalf from {mu.editor} or chain_agents_for_rel_T from {mu.parent}
+
+Effect: collects all delegated agents for relation rel ; conditions evaluated per check. 
+
+R3 Intersection Gate (per relation family) Require scope-membership AND delegation-chain. 
+
+LHS: ags_in_scope_T and chain_agents_for_*_T 
+
+RHS: 
+
+> delegated_agent_rel_T = ags_in_scope_T and chain_agents_for_rel_T
+
+Effect: implements intersection 𝐴 ∩ 𝐵 .
+
+R4 Agent Injec-tion (per re-lation fam-ily) Union delegated agents into existing permis-sion. 
+
+LHS: existing can_view or can_edit on (T) 
+
+RHS: 
+
+> can_rel = (existing) or delegated_agent_rel_T
+
+Effect: agents share the same effective permission as humans. 
+
+R5 Delegatee Condition Enrich-ment (global) Add temporal/attribute guards on delegatee 
+
+edges. 
+
+LHS: user.delegatee, agent.delegatee 
+
+RHS: user.delegatee , agent.delegatee allow temporal_delegation ,
+
+conditional_delegation .
+
+Effect: dynamic, context-bound delegation evaluation. 
+
+R6 Temporal/ Scoping Guards (global) Place temporal/audi-ence restrictions on scope entries. 
+
+LHS: scope.holder 
+
+RHS: scope.holder: [session with temporal_delegation] .
+
+Effect: time-checked once via scope holder. 
+
+> 15 First Author et al.
+
+Case Family Users Groups Folders Docs/F Agents Sess/Ag Notes G1 Drive 20 4 8 3 8 1 GVR=0.5, DVR=0.15, SO=0.25 G2 Drive 20 8 12 3 12 1 GVR=0.5, DVR=0.15, SO=0.25 G3 Drive 60 6 12 4 20 1 GVR=0.5, DVR=0.4, SO=0.25 G4 Drive 100 10 20 8 33 1 GVR=0.5, DVR=0.1, SO=0.25 G5 Drive 200 20 40 12 70 1 GVR=0.5, DVR=0.1, SO=0.25 G6 Drive 300 30 60 16 100 1 GVR=0.5, DVR=0.1, SO=0.25 G7 Drive 500 50 100 20 150 1 GVR=0.5, DVR=0.25, SO=0.5 G8 Drive 1000 100 200 30 500 1 GVR=0.5, DVR=0.25, SO=0.5 S1 Slack 50 – – – 5 1 WS=2, Ch/W=5, Writers/Ch=2 S2 Slack 120 – – – 8 1 WS=4, Ch/W=10, Writers/Ch=2 S3 Slack 400 – – – 50 2 WS=40, Ch/W=100, Writers/Ch=2 S4 Slack 800 – – – 150 2 WS=80, Ch/W=100, Writers/Ch=2 S5 Slack 1200 – – – 300 2 WS=120, Ch/W=100, Writers/Ch=30, Temp=0.1 
+
+Table 3: Details of Evaluation test cases with Key parameters per case. (GVR= group_viewer_ratio ,DVR= doc_direct_viewer_ratio , SO= session_only_fraction , WS=workspaces, Ch/W=channels per workspace.)
