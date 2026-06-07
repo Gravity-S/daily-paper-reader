@@ -1,0 +1,472 @@
+Title: Agentic Generation and Evolution of Knowledge Models
+
+URL Source: https://arxiv.org/pdf/2606.03662v2
+
+Published Time: Fri, 05 Jun 2026 00:36:08 GMT
+
+Number of Pages: 19
+
+Markdown Content:
+# Agentic Generation and Evolution of Knowledge Models 
+
+## Man Zhang 1, Tao Yue ∗1, Nazareno M. Aguirre 2,5,6 , Diego Garbervetsky 3,5,6 , and Sebastian Uchitel 3,4,6 1Beihang University, China 
+
+> 2
+
+## Universidad Nacional de R´ ıo Cuarto, Argentina 
+
+> 3
+
+## University of Buenos Aires, Argentina 
+
+> 4
+
+## Imperial College London, United Kingdom 
+
+> 5
+
+## Guangdong Technion-Israel Institute of Technology, China 
+
+> 6
+
+## CONICET, Argentina 
+
+Abstract 
+
+Complex software systems such as autonomous vehicles, robotics increasingly interact with dynamic physical, cyber, and social environments. Reasoning about their behavior, maintaining them under contin-uous change, and evolving them safely require trustworthy knowledge about the system, its assumptions, and its operating context. Knowledge models (KMs) provide a practical basis for such reasoning, but they may themselves become incomplete, inconsistent, or outdated as systems evolve. This paper presents Trust-Model , a vision for the agentic generation and evolution of living KMs. TrustModel comprises three agentic subsystems: Modeling , for constructing and updating KMs; Conformance , for assessing their alignment with the system and its environment; and Evolution , for generating guidance to keep KMs synchronized with emerging changes. We demonstrate how TrustModel can be instantiated for model-based testing and dis-cuss its potential for supporting other MDE activities, such as requirements and assumption monitoring, architectural drift tracking, and change impact assessment. Overall, TrustModel positions living KMs as a foundation for dependable engineering of continuously evolving software systems. 
+
+# 1 Introduction 
+
+Complex software systems, such as those found in autonomous vehicles, robotics, cyber-physical systems, and other safety-critical or dynamically evolving domains, increasingly interact with physical environments, external services, human operators, and other systems [9]. As these systems evolve to accommodate new requirements, changing operating conditions, architectural modifications, and emerging functionalities, reasoning about their behavior and maintaining them safely become increasingly difficult [38, 1]. Modeling provides an essential means to manage this complexity [18]. By abstracting from low-level imple-mentation details, models make relevant system knowledge explicit and provide a structured basis for reasoning, analysis, validation, maintenance, and evolution [7]. However, the engineering knowledge captured by such mod-els is often distributed across heterogeneous artifacts and may become incomplete, inconsistent, or outdated as the system and its environment change [25]. As a result, model-driven engineering (MDE) activities that rely on such knowledge become less reliable when the underlying knowledge models (KMs) no longer reflect the actual system, its engineering artifacts, or its operating environment. This motivates the need for mechanisms that can continuously construct, validate, and evolve KMs so that they remain synchronized with the evolving system and its context, to better empowering MDE activities such as early verification and validation of system behaviors [10]. KMs provide explicit and abstract representations of system knowledge, including structural elements, be-havioral specifications, requirements, assumptions, architectural intent, dependencies, constraints, and trace-ability relationships. Different types of KMs can support a range of MDE activities that contribute to system dependability and long-term maintenance, such as model-based testing (MBT), requirements and assumption monitoring, architectural drift tracking, and change impact assessment [41]. The top part of Figure 1 illustrates how KMs serve as foundational assets for these activities. It also highlights that, to remain useful, KMs cannot be treated as static artifacts; they need to be maintained as living models that continuously and adequately reflect the evolving software system, its engineering artifacts, and its operating environment. 
+
+> ∗Corresponding author
+
+1 
+
+> arXiv:2606.03662v2 [cs.SE] 4 Jun 2026 Knowledge Model
+> use
+> MDE Activities TrustModel Platform
+> generate & evolve checks KM conformance to
+> Legend
+> Artefact Platform
+> relation Software System
+> operates in
+> Environment Execution Base
+> models
+
+Figure 1: Overall Context of TrustModel. TrustModel Platform generates and evolves a KM for MDE Activities 
+
+by checking its conformance against Execution Base , namely the running software system and its operating environment. Constructing KMs to support MDE activities has long been a central concern in the MDE community. Existing work has investigated how models can be constructed and used as primary engineering artifacts for activities such as MBT [8, 36]. Beyond their initial construction, keeping KMs “alive”, i.e., continuously aligned with the evolving software system and its operating environment, is equally important. Once models fall out of sync, the reasoning and engineering activities they support become unreliable, making failures increasingly difficult to anticipate [4]. Related efforts have addressed model evolution, uncertainty-aware model maintenance, and safety-oriented model adaptation [20, 40, 34]. However, these approaches remain insufficient for maintaining KMs as living models throughout the lifetime of modern software systems, especially when KM evolution must be continuously guided by changes observed in both the system and its operating environment [38]. To address the challenge of keeping KMs conformant with the system and its operating environment, this paper proposes an agent-based platform, that we call TrustModel . Our approach treats model evolution as a primary concern, together with corresponding agentic subsystems, that collaboratively keep KMs alive: 
+
+• Modeling , driven by an agentic subsystem that supports both the initial generation and subsequent update of KMs. The agentic subsystem uses system requirements and the target metamodel for model generation, and additionally considers previous model versions for model update. In both cases, the agentic subsystem can interact with tools for syntactic and semantic analysis to produce syntactically valid and semantically consistent KMs. 
+
+• Conformance , driven by an agentic subsystem responsible for assessing the alignment between the KM and the running system together with its operating environment. This subsystem has access to both the system and the KM, proactively seeks evidence of their conformance, and produces conformance feedback to guide subsequent KM evolution. 
+
+• Evolution , driven by an agentic subsystem that takes conformance feedback from the conformance sub-system as input and produces concrete evolution guidance for the modeling subsystem to consume. This subsystem reasons over the conformance feedback, domain knowledge, system documentation, and avail-able KM versions to determine how the KMs should be evolved. Together, these three agentic subsystems form the core of TrustModel , enabling the continuous, trustworthy evolution of KMs to support dependable MDE activities throughout the system’s operational life. Their design depends on the nature of a KM to be evolved, which in turn depends on the MDE activity that the KM is intended to support. For instance, supporting MBT requires the KM to include behavioral models, whereas supporting architectural drift tracking requires the KM to capture structural constraints. To illustrate how the 
+
+TrustModel platform supports KM evolution, we describe how the TrustModel architecture can be instantiated for MBT. The rest of the paper is structured as follows. Section 2 discusses the literature. Section 3 presents the 
+
+TrustModel architecture. Section 4 discusses how the TrustModel architecture can be instantiated to support MBT. Section 5 provides a discussion, and Section 6 concludes the paper. 22 The Literature 
+
+As previously discussed, TrustModel is envisioned as a platform organized around three agentic subsystems for KM modeling, conformance assessment, and evolution guidance. These subsystems cannot be realized merely as conventional model management functions; they require agents capable of understanding heterogeneous engi-neering artifacts, reasoning over modeling knowledge, generating and revising KMs, assessing their conformance, and guiding their evolution. Recent advances in large language models (LLMs), together with their rapidly ex-panding role in software engineering (SE), make LLMs the principal enabler for implementing these agentic capabilities [22]. Therefore, LLM-based agents constitute the main technical foundation for realizing the three agentic subsystems of TrustModel .In this section, we focus on LLM-based agents in SE, with particular attention to their use in MDE. We especially examine existing work on LLM-supported model generation, model evolution, and their potential to support MBT. 
+
+LLMs for SE in General Liu et al. [22] conducted a systematic literature review (SLR) on LLM-based agents in SE, analyzing 106 primary studies to examine how such agents are designed and applied across various phases of the software development lifecycle, including requirements engineering, code generation, static checking, testing, fault localization, repair, and end-to-end software development and maintenance. Results show that the majority of the primary studies focus on code generation, followed by testing and end-to-end software development. He et al. [19] provided a comprehensive review of LLM-based multi-agent systems for SE, with a particular focus on how multiple LLM-driven agents collaborate to solve complex SE tasks. However, there is no concrete proposal for multi-agent-based KM generation and evolution. Both reviews focus on SE in general, rather than specifically targeting the use of LLMs in MDE. 
+
+LLMs for Model Generation and Evolution Zhang et al. [41] very recently presented a comprehensive SLR of 228 primary studies to particularly examine how LLMs are applied in MDE, covering their integration into MDE workflows and the state of empirical evaluation. The SLR highlights three key findings. First, the research landscape is rapidly expanding but heavily skewed toward model generation, which accounts for 89 out of 153 studies that propose concrete methods. This trend reflects the longstanding challenge of manual model construction as a barrier to MDE adoption. Second, model generation approaches are diverse and heterogeneous, spanning a wide range of categories, from standard modeling languages and DSL development to ontology learning and enterprise modeling, which suggests broad applicability but a lack of methodological consolidation. Third, model evolution remains largely underexplored , with only two studies [21, 42] addressing it, pointing to a significant gap in supporting the continuous adaptation and co-evolution of models in dynamic environments. As reported by Zhang et al. [41], the work by Kong et al. [21] is the only study that addresses both model generation and model evolution. It first uses ChatGPT to generate two key artifacts from the original system requirements: (i) a Requirements Traceability Matrix (RTM), capturing relationships across requirements and their links to other artifacts, and (ii) a SysML-based Generative Requirements Structure Model (GRSM), representing requirement structures and dependencies. Model evolution is then carried out through a structured, model-based process: the RTM and GRSM are updated according to new requirements, and their previous and revised versions are compared to identify change impact and scope. This evolution is therefore process-driven and model-based , with the LLM assisting in artifact generation and updates , rather than directly performing autonomous model evolution .In the literature, existing tools and platforms, such as Papyrus Moka [16] and MagicDraw Cameo Simu-lation Toolkit [30], provide support for model execution and validation. At the same time, integrating LLMs with external tools has become a widely accepted paradigm for building agentic systems, where LLMs act as reasoning and orchestration components while tools provide specific capabilities, access to structured artifacts, execution mechanisms, and feedback channels. This paradigm is already reflected in LLM-based MDE: accord-ing to the survey [41], current LLM-based MDE solutions have been integrated with a variety of MDE tools and platforms, with PlantUML and the Eclipse Modeling Framework (EMF) being the most commonly used. However, these integrations primarily focus on model generation and manipulation, rather than model execution or simulation. To the best of our knowledge, no existing work tightly integrates LLM-based MDE approaches with KM execution or simulation environments as we do. Although two studies [37, 33] report integration with Cameo Systems Modeler, they do not leverage its simulation capabilities, and thus stop short of enabling execution-driven validation and feedback. 
+
+LLM-based Model-based Testing (MBT) From the SLR [41], we also identified eight studies that are about LLM-based MBT , covering model-based test generation, test execution, test incident reporting, etc., as summarized in Table 1. Specifically, most MBT approaches leverage LLMs to transform heterogeneous inputs, 3such as requirements in natural language, domain-specific scenarios, or structured models (e.g., XML), into executable test artifacts, including test scenarios and test cases. Beyond generation, a smaller number of works explore test execution (e.g., UI-level interaction) and model comprehension, such as diagnosing safety violations from scenario descriptions. Only limited efforts address more integrated pipelines that combine constraint generation, model construction, and test derivation, indicating that end-to-end support remains underexplored. Table 1: Summary of LLM-based MBT studies collected from [41]                                             
+
+> Ref. Task LLM Input LLM Output KM Domain
+> [13] Model-based test gen. Traffic rules (NL) Test scenarios (DSL) DSL ADS [5] Model-based test gen. & exec. Test scenarios (NL) UI models (nd-FSM) nd-FSM, behavioral Smart TVs [43] Model-based test gen. Scenario description (DSL) Scenario representations, unspecified DSL ADS [23] Model comprehension Scenario descriptions (DSL) Diagnostic results (NL) DSL, behavioral ADS [29] Model-based test gen. Models (XML) Test cases (NL) UML/use case model, behavioral General [32] Model-based test gen. Requirements (NL) Test scenarios (JSON) DSL, structural ADS [28] Model-based test gen. Models (XML) Test cases (NL) UML/class model, structural General [11] Model-based test gen. Use case specifications (NL) Test specification (DSL) DSL/use case model, behavioral IoT
+> Abbreviations: NL: Natural Language; DSL: Domain-Specific Language; XML: eXtensible Markup Language; JSON: JavaScript Object Notation; UML: Unified Modeling Language; nd-FSM: non-deterministic Finite State Machine; ADS: Autonomous Driving Systems; IoT: Internet of Things; gen.: generation; exec.: execution.
+
+Across these studies, LLMs primarily function as translation and synthesis mechanisms between different abstraction levels and representation formats, rather than supporting continuous model evolu-tion or closed-loop engineering processes . In terms of modeling practices, DSLs are the dominant medium, particularly in scenario-driven settings, while traditional MDE technologies such as UML and Ecore/OCL ap-pear less frequently. Generated or manipulated models are largely behavioral, reflecting the central role of scenarios in MBT workflows. From an application perspective, the literature is heavily skewed toward ADS, with additional but less frequent use cases in general software systems, IoT, and UI-based platforms. This dis-tribution suggests that current LLM-based MBT research is most mature in safety-critical, scenario-intensive domains, while its applicability to broader MDE contexts remains limited .Although these works demonstrate the potential of LLMs in automating key MBT tasks, the field remains relatively immature . In particular, there is a notable lack of research on model evolution driven by test execution feedback. Existing approaches largely treat test models as static artifacts generated upfront, without explicitly addressing how execution results (e.g., failures, coverage gaps, or runtime observations) can be used to iteratively refine, adapt, or evolve the underlying models. This absence of feedback-driven, closed-loop MBT highlights a critical gap and an important direction for future research. 
+
+# 3 The TrustModel Architecture 
+
+The TrustModel platform aims to address the challenge of supporting the construction and continuous evolution of KMs by means of an agentic architecture. By agent we mean an LLM autonomously using tools in a loop, without a strict predefined workflow, to achieve a goal [2, 3]. Hence, as shown in Figure 2, we propose an architecture, which is composed of the following three agentic subsystems: Modeling , Conformance , and 
+
+Evolution .
+
+Modeling agentic subsystem The modeling agentic subsystem is responsible for all modeling activities within the platform. In particular, it constructs initial KMs from requirements and documentation, and it also deals with the updating of existing KMs when changes are needed. Its operation is triggered by received requirements and documentation, when models are initially constructed, as well as by strategic guidance received from the evolution subsystem. Upon receiving a guidance, the modeling subsystem reactively constructs and modifies a KM accordingly. Regardless of whether a KM is built from scratch or evolved from an existing one, the resulting model must be syntactically correct (i.e., a valid instance of the KM metamodel) and semantically consistent, and thus the agent interacts with tools that help it guarantee these model characteristics. The agentic subsystem works by combining various tools. It uses an LLM-based approach to generate candidate KMs that can be iteratively refined after using a syntactic KM analyzer and consistency model checking tools for instance. To resolve semantic inconsistencies, the agentic subsystem may also have to resort to external domain knowledge. For instance, an inconsistency between a KM (e.g., state machine) and a formally specified temporal constraint will require changing one or the other based on an understanding of the context. 4Knowledge Model   
+
+> produces
+> Conformance
+> checks KM conformance to produces
+> Evolution
+> Conformance Feedback
+> Modeling
+> Guidance
+> MDE Activities
+> uses
+> Software System
+> operates in
+> Environment Execution Base Legend
+> Artefact Agentic Subsystem
+> TrustModel Platform
+> data fl ow
+> generates & updates relation
+
+Figure 2: TrustModel Architecture. The TrustModel Platform is organized around three agentic subsystems: reactive Modeling , proactive and reactive Evolution , and proactive and reactive Conformance , which are linked through Guidance and Conformance Feedback while interacting with the Execution Base .
+
+Conformance agentic subsystem The goal of the conformance agentic subsystem is to produce evidence of whether a KM conforms, or fails to conform, to the actual system and its environment. The nature of conformance checking is highly coupled with the nature of the KM itself. If the KM includes behavioral information, conformance can be checked by actively exercising the software system in a testing environment and comparing the observed behavior against the KM, or by monitoring the system in production and then performing a comparison. If the KM includes structural information about the system, conformance checking may require, for example, static analysis of the source code or inspection of deployment configuration files. Consequently, tools required by the conformance subsystem to achieve its goal may vary significantly. Some tools may be off-the-shelf, such as testing and instrumentation frameworks, logging infrastructure, coverage re-porters, assertion checkers, and trace comparators. Others may be bespoke components, which could themselves include LLMs. Note that the conformance subsystem operates both proactively and reactively. It may react to changes in an KM or the software system by initiating checks that focus specifically on the changes made (e.g., through targeted fuzzing). At the same time, it may act proactively, since changes in the environment can yield insights and behaviors worth documenting in the KM. 
+
+Evolution agentic subsystem The goal of the evolution subsystem is to provide guidance on how to evolve a KM based on positive and negative conformance feedback produced by the conformance subsystem. A key strategic decision this subsystem must make when it detects a conformance issue is whether the software system or the KM should be changed, or both. Another strategic decision concerns the kind of changes to apply to the KM. Examples of KM evolution strategies include adding a new requirement that better captures the current behavior of the software system, updating assumptions about the environment that have been monitored and found invalid, or introducing new model elements that had not previously been included in the scope of the KM. Developing an evolution strategy requires integrating a significant amount of contextual information to synthesize a meaningful suggestion. The decision of whether a non-correspondence indicates a software bug or a problem in the KM is not necessarily clear-cut; in a manual setting, it would likely require input from a domain expert. To address this, we exploit the probabilistic inference of LLM-based agents. Thus, the evolution subsystem develops strategies using a variety of tools. It may access databases containing domain knowledge (e.g., regulations, standards, requirements documents, user manuals), retrieve logs and historical data from the software system, or even consult the software code repository for commit information. The agentic subsystem may also employ symbolic reasoning tools to reduce the likelihood of issuing incorrect recommendations or to inform decision-making with sound, inferred knowledge. Like the conformance subsystem, the evolution subsystem works both reactively and proactively. It reacts to evidence of non-conformance, but may also proactively search, for instance, the internet to discover new regulations or emerging trends in user comments that are worth considering when suggesting KM evolutions. 5Summary Table 2 summarizes the three agentic subsystems, their goals, operation modes and representa-tive tools that they may be invoked within their control loops for perception, reasoning, tool use, and goal-achievement evaluation. Table 2: Summary of the Agentic Subsystems of the TrustModel Platform                        
+
+> Agentic Subsys-tem Goal Mode Examples of Tools
+> Modeling Construct a syntactically correct and semantically consistent KM or update an existing one based on an evolution strategy. Reactive Automated formalizer, Syntactic an-alyzer, Semantic consistency checker, Domain knowledge retriever. Conformance Produce evidence of conformance (or non-conformance) between the KM and the software system and its envi-ronment. Proactive and re-active Testing and instrumentation frame-works, logging infrastructure, cov-erage reporters, assertion checkers, trace comparators, static analyzers, model executors, synthetic data gen-erators. Evolution Provide guidance on how to evolve the KM based on conformance feedback re-ceived from the conformance subsys-tem. Proactive and re-active Access to technical standards library, code repositories, and symbolic rea-soners (e.g., model checkers, solvers, program analysis tools).
+
+# 4 TrustModel for Model Based Testing 
+
+In this section, we show how the TrustModel architecture might be instantiated to address the evolution of behavior models (i.e., test models) intended to support MBT. We first describe, through an example, a series of interventions performed by the three agentic subsystems to enable evolution of behaviour models. We then provide details on the instantiated TrustModel architecture for MBT and specifically on how each of its subsystems might be designed. 
+
+## 4.1 Running Example 
+
+Consider a smart home energy management system (EMS) that integrates automated control with human decision-making to balance occupant comfort, energy efficiency, and user preferences. The system autonomously manages devices such as Heating, Ventilation, and Air Conditioning (HVAC), lighting, and household appliances, while residents retain the ability to intervene by confirming, rejecting, or overriding system decisions. The EMS is required to prioritize comfort when occupants are present, transition to an energy-saving mode when the home is unoccupied, and explicitly engage users whenever automated adjustments may significantly impact comfort or energy cost. 
+
+Step 1○: Initial Model Construction The modeling subsystem takes as input system requirements and documentation for the EMS, identifies relevant information for the construction of the KM, and produces a syntactically valid and semantically consistent KM. Since the goal is to enable MBT, the KM is expressed as a SysML v2 model (with part-based structural views to describe system composition and interfaces, and state-machine-based behavioral views to capture state-dependent execution logic). The model also captures essential requirements such as temperature must be within [20 , 26] ◦C unless overridden, and the system must minimize energy cost during peak pricing periods. The obtained state machine is shown in Figure 3. Addi-tionally, the subsystem formalizes relevant requirements as signal temporal logic (STL) [15] properties (e.g., it is always the case that, when in autocontrol, the temperature is in the 20-26 degrees range, formally 
+
+FR 1 = □(Auto Control =⇒ 20 ≤ curr temp ≤ 26)), to facilitate conformance checking between the KM and the running system. 
+
+Step 2○: Evolution Proposal Based on Domain Knowledge The evolution subsystem proactively gathers domain knowledge from external sources, including safety standards, energy regulations, and human-automation interaction guidelines. From this analysis, it synthesizes guidance to refine the KM, such as user overrides expiring after 2 hours ( G1), comfort taking priority over cost ( G2), and unsafe temperature requests being rejected ( G3). 6fault  
+
+> price_spike
+> user_set_temp(T)
+> Auto_Control
+> fault
+> price_normal Energy_Saving
+> Safety_Shutdown
+> fault
+> user_set_temp(T)
+> User_Override
+> user_set_temp(T)
+> fault_cleared
+> Introduced based on consistency analysis
+> HV ACController
+> + curr_temp: Real
+> + target_temp: Real
+> + energy_price: Price
+
+Figure 3: Initial State Machine of EMS’s HVAC controller (output of Modeling Subsystem, Step 1○). High-lighted elements are introduced based on conformance assessment. Normal_Operation      
+
+> [is_comfort_satisfied]
+> price_spike
+> [is_safe_temp(T)]
+> user_set_temp(T)
+> Auto_Control
+> price_normal Energy_Saving
+> [is_safe_temp(T)]
+> user_set_temp(T)
+> cancel_override
+> override_timeout
+> User_Override
+> HV ACController
+> + current_temp: Real
+> + target_temp: Real
+> + energy_price: Price
+> + override_timer: Integer
+> reintegrate_control
+> Override_Expired
+> fault_cleared
+> Safety_Shutdown fault
+> [is_safe_temp(T)]
+> user_set_temp(T)
+> <<constraint>>
+> is_safe_temp( T: Real)
+> constraint: T>= 20 and T<= 26
+> Introduced based on consistency analysis
+
+Figure 4: Evolved State machine of EMS’s HVAC Controller with Guidance from Evolution Advisor (Output of Model Updater Step 3○). Highlighted elements are introduced based on conformance assessment. 
+
+Step 3○: Modeling Based on Guidance The modeling subsystem incorporates guidance G1–G3 by intro-ducing new model elements (e.g., an override timer variable and an Override Expired state), guarded conditions on transitions (e.g., ignoring user override requests if selected temperature is unsafe), and structural refinements. The obtained evolved state machine is shown in Figure 4. 
+
+Step 4○: Conformance Violation The conformance subsystem employs the KM to generate a battery of tests, including realistic user requests (e.g., user set temp(28) ) and checks conformance of system behaviour against the KM. The subsystem identifies a violation of the formalized STL property F R 1, with the temperature reaching 28 ◦C while the system being in Auto Control . It generates a violation trace that is reported to the evolution subsystem. 
+
+Step 5○: Evolution Proposal Based on Invariant Violation The evolution strategy agent receives the violation trace and produces a diagnosis of why the violation occurred. From this analysis, the confor-mance subsystem generates concrete guidance to be communicated to the modeling subsystem: the guard of 
+
+cancel override has to be strengthened with the constraint 20 ≤ curr temp ≤ 26. 
+
+Step 6○: Modeling Agent Updates The modeling subsystem applies the received guidance, which en-tails additional implicit modifications beyond the explicit guidance: besides strengthening the guard for can-cel override , the modeling subsystem identifies that guards of other related transitions (e.g., reintegrate control )also need to be strengthened to maintain overall property satisfaction. As a result, an updated state machine that incorporates these improved guards is generated. 7Step 7○: Conformance Finds Problem The conformance subsystem generates another battery of tests and challenging scenarios (e.g., rapid user inputs). Execution reveals delayed override handling and mode oscillations, producing concrete witnessing sequences that are communicated to the Evolution Subsystem. 
+
+Step 8○: Feedback and Updated Guidance The evolution subsystem derives new guidance from the observed mismatches, closing the TrustModel loop. In analyzing the conformance evidence, the evolution subsystem discovers that the system is not implementing mechanisms to avoid user input flooding. To address this, the evolution subsystem generates guidance to improve the KM with constraints on the frequency of user inputs. Additionally, the subsystem generates a system request for change, indicating that a system update incorporating a debouncing mechanism is necessary to fully align implementation with the evolved KM. This guidance and the corresponding development issue enable continuous KM evolution, progressively improving the safety and trustworthiness of the smart home EMS. 
+
+## 4.2 Architecture 
+
+In this section, we describe an instantiated version of the TrustModel architecture that would implement the running example described above. 
+
+4.2.1 Overview 
+
+The instantiation is depicted in Figure 5 and includes a refined version of the three agentic subsystems shown in Figure 2. We describe this refinement further down (Subsections 4.2.2–4.2.4). The TrustModel architecture for MBT also incorporates a simulator in the Execution Base and also the Data component consisting of System Data , domain body of knowledge (BoK), software lifecycle artefacts, and KM Data .
+
+KM Data comprises three elements: TrustModel Operational Data , KM Repository , and Standard KM Meta-model . These data are consumed by the agents in TrustModel . In particular, Standard KM Metamodel is used by the Modeler Constructor agent to ensure that generated KM elements are in agreement with the expected model structure. More broadly, KM Data is continuously maintained to support reuse, agent evolution, and knowledge management. It serves as an internal information hub that accommodates heterogeneous modeling languages and facilitates the efficient construction and evolution of both KMs and agents. 
+
+System Data , in contrast, is produced by Execution Base and includes both historical and real-time data. These data are fed back into the TrustModel platform to support KM validation, execution, and evolution. In the smart home scenario, system data may include real-time occupancy data from MotionSensor s, temperature readings from SmartThermostat s, and lighting states from LightingControl devices. This information may then be used by the conformance subsystem to generate execution triggers, by the evolution subsystem to suggest evolution strategies based on the real system usage, and by the modeling subsystem to refine the KM based on observed system behavior, thereby enabling continuous synchronization between the model and the real or simulated system. 
+
+4.2.2 Modeling Agentic Subsystem 
+
+The modeling subsystem comprises two agents specialized in generating and updating a KM that conforms to a given KM metamodel. The Model Constructor agent is primarily responsible for the initial generation of a KM from system documentation, which may include requirements, design specifications, and implementation details. The agent ensures structural and semantic compliance with the metamodel by leveraging model analysis tools. The Model Updater agent, in contrast, focuses on the evolution of an existing KM by incorporating new information and data. It resolves inconsistencies and adjusts the KM to reflect evolving system or domain contexts. Like Model Constructor , Model Updater also employs model analysis tools (i.e., Model Analyzer ) to verify syntactic correctness and semantic consistency. To exemplify how the different components of the subsystem interact, we return to some of the steps described above. For step 1○, the modeling subsystem takes as input documentation and requirements addressing the system’s safety, energy efficiency, and human interaction. Example relevant requirements, identified by the Subsystem, include: 
+
+• Temperature must remain within [20 , 26] ◦C unless overridden by the user; and 
+
+• The system must minimize energy cost during peak pricing periods. From these requirements, Model Constructor generates: 
+
+• A block with value properties representing the system’s current temperature ( curr temp ) and the energy price state ( energy price ); 8KM Executor Conformance Model Constructor Model Updater    
+
+> uses
+> uses
+> Model Analyzer Modeling
+> generates
+> KM Execution Driver
+> generates & updates
+> KM Execution Result ER t
+> Execution Trigger
+> produces
+> KM Validation Results VR v
+> produces
+> produce commands
+> supplies data to
+> Historical data Real-time Data
+> System Data
+> produces produces
+> Symbolic Reasoner Evolution Advisor Evolution Runtime Validator
+> Conformance Feedback
+> produces
+> Knowledge Model MBT Activities
+> uses
+> Real Environment
+> operates in
+> Software System (SUT) Simulator Environment
+
+Execution Base 
+
+> Guidance
+> produces
+
+Legend  
+
+> Agent Tool/Service Artefact Agentic Subsystem relation data fl ow
+> uses
+
+TrustModel Platform (Multi-agent)  
+
+> Software lifecycle artefacts (e.g., Req., goals) Domain BoK (e.g., regulations, standards)
+> uses
+> TrustModel Operational Data Standard KM Metamodel KM Repository
+> KM Data
+
+Data Figure 5: Architecture of TrustModel Platform for MBT. The platform instantiates the overall TrustModel 
+
+architecture through three agentic subsystems. Each subsystem is further detailed in terms of its constituent agents and the associated tools and platforms that support their operation. 
+
+• A state machine with states Auto Control , Energy Saving , User Override , and Safety Shutdown , as well as events triggered by both environmental changes and human actions (e.g., price spike and user set temp( T )). 
+
+Model Constructor then calls Model Analyzer to perform internal syntactic analysis. The subsystem identifies missing value properties (e.g., target temp for the temperature set by the user, as opposed to the system’s current temperature). These are added to the KM by Model Constructor . Additionally, the subsystem formalizes relevant requirements as STL properties to facilitate conformance checking between the KM and the running system. It produces FR 1 = □(Auto Control =⇒ 20 ≤ curr temp ≤ 26), capturing the temperature constraint when in auto-control. In a second iteration, triggered by Model Constructor , a semantic analysis performed by Model Analyzer 
+
+identifies reachable deadlock states. Model Constructor processes this feedback to produce a syntactically valid and semantically consistent model, whose state machine is shown in Figure 3. Now let us further describe another step that involved the modeling subsystem. In step 3○, the modeling subsystem incorporates guidance G1–G3 by introducing new model elements, guarded conditions, and structural refinements, as outlined in the previous section. However, the Model Updater agent may not produce the final evolved state machine (shown in Figure 4) in a single pass. For example, in a first iteration, the agent generates a version of the state machine in which the Safety Shutdown state has no outgoing transitions. Model Analyzer 
+
+then flags that deadlock states are disallowed according to the KM metamodel. In response, the Model Updater 
+
+agent adds a fault cleared transition to resolve the deadlock. Similarly, when incorporating G3 (comfort has priority over cost) and G4 (unsafe temperature requests rejected), the agent introduces guarded conditions using the predicates is comfort satisfied and is temp safe(T) .
+
+Model Analyzer subsequently determines that the KM is not a valid instance of the KM metamodel, because neither predicate is defined. Multiple iterations between Model Updater and Model Analyzer may be required, 9as is temp safe(T) needs to be defined (see highlighted constraint in Figure 4), and is comfort satisfied may refer to variable curr temp and constants for upper and lower comfort bounds, that also need to be defined. The agent iteratively adds these missing definitions until the KM becomes syntactically valid and semantically consistent. The resulting evolved state machine is shown in Figure 4. 
+
+4.2.3 Conformance Agentic Subsystem 
+
+The conformance subsystem is responsible for determining if the KM is an appropriate abstraction of the software system and its environment. In the context of MBT, execution is essential for bridging the gap between abstract model specifications and concrete system behavior. To support this process, the platform has the KM Execution Driver agent that leverages the KM to generate triggers for interacting with the system and its operating environment, while guiding the execution, collecting observed system responses, and comparing them against the expected behaviors to assess conformance. The actual KM execution is handled by KM Executor which takes the triggers and directly interacts with the system and its operating environment, which may be either real or simulated, by sending commands and collecting responses. Upon execution, KM Executor 
+
+produces results that are subsequently consumed by KM Execution Driver to determine the next trigger to generate. This creates a feedback loop that continues until a defined termination criterion is met. The results are also used by Runtime Validator for conformance checking. 
+
+KM Execution Driver can be viewed as playing a role analogous to the test strategy component in MBT. In traditional MBT, test strategies are typically defined over behavioral models (e.g., finite state machines [36], UML state machines [39]) and are largely coverage-driven, such as state coverage, transition coverage, or path coverage, to systematically derive test cases and triggers for execution. KM Execution Driver is realized as an agent, enabling a more context-aware and adaptive testing mechanism. Instead of relying solely on fixed coverage criteria, it can leverage the KM, execution history, and broader system context to generate more informed and targeted execution triggers. This aligns with recent LLM-based MBT approaches (as discussed in Section 2), where LLMs are used to generate test scenarios or test cases from requirements and models. However, existing works primarily focus on test generation, with limited support for intelligent, feedback-driven test strategy adaptation during execution. KM Execution Driver extends this paradigm by incorporating reasoning over execution results and system operation context, enabling a more dynamic and closed-loop approach to validation and testing. In step 4 ○, the conformance subsystem first analyzes the KM to identify relevant constraints and boundaries. It mines constants and value ranges from the formalized properties (e.g., the temperature bounds [20 , 26] ◦C from 
+
+F R 1) and from state machine invariants. Based on this analysis, the subsystem performs an input partitioning approach to define specific precondition cases for covering key events—in particular, the user set temp( T ) event. The partitioning yields equivalence classes such as temperatures within the comfort range ([20 , 26] ◦C), temper-atures just above the upper bound (26–28 ◦C), and unsafe temperatures ( > 28 ◦C). From this partitioning, KM Execution Driver generates test data that systematically explores each class, eventually leading to violation of the expected behavior. KM Executor executes the EMS KMs against the target system via the smart home API. It is Runtime Validator that detects that the invariant for the Auto Control state is violated. From the violation, it produces conformance feedback for the Evolution. In step 7○, KM Execution Driver produces tests that generate rapid user inputs to assess debounce control and oscillation prevention. These triggers drive systematic exploration of human-centered EMS behaviors. In addition, KM Execution Driver also generates triggers such as price spike , covering environmental variations to test the adaptive response of the system to dynamic energy pricing. KM Executor executes the tests and 
+
+Runtime Validator reveals mismatches such as delayed override handling (e.g., Override latency = 8s ) and mode oscillations. 
+
+4.2.4 Evolution Agentic Subsystem 
+
+The central component of this subsystem is Evolution Advisor , which is responsible for providing guidance to the modeling subsystem on how to evolve the current KM. This guidance must be inferred from domain knowledge originating from a variety of sources, ranging from system documentation, applicable standards and regulations, and literature covering the system’s application domain, to user forums. The guidance may also consider historical information about the KM itself (e.g., from KM Repository ) and operational data produced by Execution Base .Retrieval is therefore central to Evolution Advisor . While prior LLM-based multi-agent systems for SE commonly incorporate retrieval mechanisms for knowledge grounding and critic agents for output validation, these roles remain largely decoupled and limited in scope [19]. Retrieval mechanisms typically provide passive context, whereas critic agents focus on generic correctness (e.g., syntactic or functional validation) with little consideration of domain-specific semantics. Consequently, existing approaches lack a unified mechanism to enforce domain constraints, interpret execution feedback, and guide model evolution in a coherent manner. 10 The other important component of this subsystem is Symbolic Reasoner . It is used by Evolution Advisor to apply formal reasoning techniques that assist in diagnosing the root causes of observed violations, generalizing the problem cause, and evaluating potential repairs. Unlike Model Analyzer , which focuses on internal model consistency, Symbolic Reasoner concentrates on analyzing discrepancies captured in execution traces, verification results, or constraint violations. It acts as the system’s formal diagnostic backbone, helping Evolution Advisor 
+
+distinguish between cases where the system incorrectly implements requirements, where the KM inadequately captures domain constraints, or where environmental assumptions are missing or flawed. 
+
+Symbolic Reasoner is, in practice, a toolbox that implements a variety of formal techniques, such as unsat core extraction [14], causality analysis [6], interpolation [24], and specification inference [17, 35, 27, 26, 31, 12]. 
+
+Evolution Advisor orchestrates these reasoning tools by first collecting operational data and domain knowledge, then posing formal queries to the reasoning tools for diagnosis. The agent then integrates the diagnosis with its broader domain knowledge to decide whether the KM should be evolved, whether the system implementation requires correction, or whether domain assumptions need revision. As a result, the agent may pose new queries to the symbolic reasoning tools. In step 5○, the conformance subsystem produces evidence, in the form of a system execution trace, that violates the invariant regarding the current system temperature when in Auto Control (F R 1). Evolution Advisor 
+
+receives the execution log and decides to interact with Symbolic Reasoner for diagnosis generation. Since the execution log contains a violation of the requirements, the STL formalization ( σ) of the log and the STL specification ϕ of the state machine in the KM (including the aforementioned STL requirement constraints) are inconsistent; that is, their conjunction is unsatisfiable. Symbolic Reasoner then computes a Craig interpolant for formulas σ and ϕ.A Craig interpolant of two inconsistent formulas σ and ϕ is a formula I that predicates over the common vocabulary of σ and ϕ, is consistent with the former, and inconsistent with the latter. It can serve as an explanation of the inconsistency. For our example, the obtained interpolant is the following formula: 
+
+I = □[t,t ](cancel override ∧ temp = 28) ,
+
+and relates the violation of requirement F R 1 to a specific transition in the logical formalization of the state machine: 
+
+Tco = □(cancel override =⇒ Auto Control ).
+
+This interpolant indicates that the reason for the inconsistency stems from the user canceling the override while the temperature is 28 degrees. The interpolant acts as a filtered version of the execution log, explaining the violation of ϕ.Given the information received from Symbolic Reasoner , Evolution Advisor postulates two alternative ap-proaches to resolve the situation: either to avoid I, or to weaken property F R 1. The first approach corresponds to restricting the user’s ability to execute cancel override when such execution would lead to violating prop-erty F R 1. The second approach corresponds to relaxing the system requirements so that they cease to be inconsistent with the observed system execution. 
+
+Exploring the avoidance of the conflicting situation Evolution Advisor explores whether the violation of property F R 1 could be avoided by strengthening the constraints on the execution of the cancel override transi-tion in Figure 4. As a first exploration, the agent observes that adding temp ̸ = 28 as a guard on cancel override 
+
+would straightforwardly prevent the specific violation observed. However, upon further analyzing the feasibility of this option, Evolution Advisor notes that such guidance would be too narrow: it would still allow violations of F R 1 when the transition is taken with, for example, temp = 29. To assess whether a more general solution exists under this same strategy, the advisor instructs Symbolic Reasoner to compute the weakest precondition of the cancel override transition that guarantees property F R 1.The computed weakest precondition is 20 ≤ temp ≤ 26, which would provide a more comprehensive and reusable condition. Based on this analysis, Evolution Advisor formulates the following potential guidance for the modeling subsystem, corresponding to this violation avoidance approach:       
+
+> Strengthening Guard Guidance:
+> Strengthen the guard of transition cancel override with constraint 20 ≤temp ≤26.
+
+This guidance would be both feasible—respecting requirement F R 1—and general, covering all temperature values that would otherwise lead to a violation. Evolution Advisor thus retains this as a candidate strategy, pending further evaluation against alternative approaches. 
+
+Exploring requirements weakening An alternative approach to altering the transitions in the KM is to explore whether the formalization of the requirements is inappropriate or too restrictive with respect to the re-quirements engineers’ intent. Evolution Advisor examines this possibility by employing LLM-based probabilistic inference to assess whether a modification of requirement F R 1 could resolve the observed inconsistency. 11 As part of this exploration, Evolution Advisor considers relaxing F R 1 to give the system time—when in automated mode—to eventually reach the desired temperature. Under this relaxation, the observed execu-tion log would no longer contradict the requirement. The advisor synthesizes the following parametric STL formalization as a candidate replacement for F R 1:
+
+□ (□[0 ,cd ]Auto Control ) = ⇒ ♢[cd,cd ]20 ≤ temp ≤ 26 .
+
+This formula states that if the system has continuously remained in auto mode for cd units of time, then the temperature must have reached a value within the 20–26 °C range by that time. Of course, variable cd must be instantiated with an appropriate time value. To explore feasibility, Evolution Advisor requests Symbolic Reasoner to synthesize such a value, which performs dynamic specification inference by observing system logs and infers a suitable value for cd , e.g., 20 minutes. Based on this analysis, Evolution Advisor formulates the following potential guidance for the modeling subsystem, corresponding to this requirements relaxation approach: 
+
+> Relaxing Requirement Guidance:
+> Relax the original requirement to allow the system a bounded grace period after entering auto mode, during which the temperature may temporarily fall outside the desired comfort range, provided the target range is achieved within that period.
+
+The advisor thus retains this as a second candidate strategy, pending a final decision on which of the two approaches—strengthening transition guards or relaxing the requirement—is more appropriate given additional contextual information and system goals. 
+
+Selecting guidance from alternative scenarios Having explored both candidate strategies, Evolution Ad-visor now integrates additional information to arrive at a final decision. First, the advisor considers the nature of the requirement itself: F R 1 was confirmed, through knowledge retrieval and LLM-based probabilistic inference, to be a correct formalization of a hard requirement intended to ensure occupant comfort and safety. Strength-ening the guard on cancel override would enforce compliance with F R 1 but could also prevent legitimate user overrides in borderline cases (e.g., when the temperature is 27 °C), potentially degrading user experience. Sec-ond, the advisor examines historical operational data from Execution Base , which indicates that the system typically reaches the target temperature range within 15–20 minutes under normal conditions. Third, the ad-visor considers applicable standards and domain knowledge, which suggest that temporary deviations from the comfort range are acceptable as long as they are resolved within a reasonable time frame. Based on this integrated analysis, the advisor determines that relaxing the requirement, rather than restrict-ing user actions, is the more appropriate strategy, as it preserves user autonomy while maintaining safety and comfort over time. Consequently, the guidance provided to the modeling subsystem is as follows: 
+
+> Weaken Requirements Guidance:
+> Weaken the requirement that the temperature must be in the 20–26 °C range when in auto mode, to allow a period of up to 20 minutes to achieve that range.
+
+## 4.3 Empowering MBT 
+
+TrustModel can support diverse MBT activities, ranging from test-model construction and evolution to test generation, test execution, integration and system testing, regression testing, and coverage analysis. Therefore, in the MBT context, the agents, including Model Constructor , Model Updater , Evolution Advisor and KM Execution Driver , can be developed or adapted to address test objectives and testing activities, rather than being used only for general KM construction and evolution. Table 1 summarizes the main responsibility, inputs and outputs of each component of TrustModel in the context of MBT. In the testing context, the KM represents test models, i.e., the expected behavior of the SUT, and serves as the basis for deriving tests, executing them, and evaluating observed behaviors against expected behaviors. In the modeling agentic subsystem, Model Constructor and Model Updater can be used to construct test models from requirements, design artifacts, and testing goals. These models capture the expected behavior of the SUT and provide a structured basis for subsequent test generation and execution. In the evolution agentic subsystem, Evolution Advisor can incorporate relevant domain knowledge to assess the KM from a semantic perspective. It can also generate guidance that specifies expected behaviors, testing assumptions, and potential test oracles, thereby supporting KM refinement and evolution. In the conformance agentic subsystem, KM Execution Driver can work with KM Executor and Runtime Validator to generate triggers for achieving different testing objectives. At the early stage, these triggers can be used to explore the behavior space of the SUT (e.g., reward with new behavior discovered, code coverage). In later stages, the refined KM can be exploited to generate targeted triggers for specific objectives, such as regression testing, coverage improvement, fault detection, and system-level validation. Based on test model 12 execution results and the resulting system data, Evolution Advisor can analyze the feedback to refine the KM and update subsequent testing guidance. Together with KM Executor and Runtime Validator , the KM can support test execution and generate test reports with behavioral coverage information, while also serving as a basis for deriving concrete test cases. 
+
+TrustModel therefore enables an MBT-oriented workflow in which test models are constructed, knowledge-guided, executed, and continuously refined according to testing objectives. 
+
+# 5 Discussions 
+
+Recall that TrustModel is a multi-agent platform for constructing, validating, and evolving living KMs, ensuring that KMs remain continuously synchronized with the software system and its operating environment. Through the collaboration of its three agentic subsystems (i.e., modeling, conformance, and evolution), TrustModel 
+
+continuously maintains trustworthy and up-to-date KMs. In Section 4, we demonstrated how TrustModel can be used to maintain test models for enabling MBT. More generally, the continuously maintained KMs can serve as foundational assets for a wide range of MDE activities. In the remainder of this section, we discuss several potential applications of TrustModel beyond MBT, and summarize our understanding of how TrustModel should be utilized. 
+
+## 5.1 Requirements and Assumption Monitoring 
+
+To perform this MDE activity, the three subsystem architecture is motivated by the need to continuously assess whether requirements and assumptions captured in a KM remain valid as the system and its operating environment evolve. The modeling agentic subsystem maintains a requirements-oriented KM that captures requirements, as-sumptions, environmental expectations, constraints, and their traceability relationships. This KM serves as the reference representation of what the system is expected to achieve and under which conditions these expectations are assumed to hold. The conformance agentic subsystem is responsible for collecting evidence from Execution Base . To achieve this, a Monitoring Orchestrator agent (comparable to the KM Execution Driver agent of the TrustModel for MBT architecture) is needed to derive observation strategies from the requirements-oriented KM and generates execution triggers that drive interactions with Execution Base . This agent can be implemented as an LLM-based agent because its primary responsibility is to interpret requirements and assumptions and transform them into executable observation strategies. The resulting execution traces and environmental observations are collected and analyzed by Runtime Validator , which can rely on symbolic and rule-based mechanisms to ensure trustworthy conformance assessment. The evolution agentic subsystem is responsible for interpreting detected nonconformances between the KM and reality. Such nonconformances may indicate requirement violations, invalidated assumptions, environmen-tal changes, or obsolete requirements. Evolution Advisor (same as for TrustModel for MBT) analyzes the runtime conformance feedback, supported by symbolic reasoning over requirements, assumptions, constraints, and traceability links, and generates guidance for updating the KM. In this way, the platform supports not only runtime monitoring but also the continuous evolution of requirements and assumptions. Together, the three subsystems establish a closed-loop process in which the modeling subsystem defines the expected system behavior and operating assumptions, the conformance subsystem gathers evidence from the running system and its environment, and the evolution subsystem updates the KM when expectations and reality diverge. This enables continuous requirements and assumption monitoring in the presence of evolving systems and changing operational environments. 
+
+## 5.2 Architectural Drift Tracking 
+
+As software systems become increasingly complex, long-lived, and collaboratively developed by multiple teams, maintaining an accurate architectural representation becomes increasingly difficult. Architectural models are often created during design but are rarely updated at the same pace as the implementation. Consequently, architectural drift, i.e., the gradual divergence between the intended architecture and the actual implementa-tion, is commonly observed in practice. Such drift can reduce the usefulness of architectural knowledge for maintenance, impact analysis, and system evolution. TrustModel can support architectural drift tracking by maintaining an architecture-oriented KM as a living representation of the intended system architecture. In the modeling subsystem, the Model Constructor agent builds an architectural KM from architecture descriptions, design documents, source code artifacts, dependency information, and other available architec-tural knowledge sources. The architectural KM captures not only architectural structures, such as components, 13 Table 3: Summary of Responsibilities, Inputs and Outputs of Each Component of TrustModel for MBT 
+
+Subsystem/Component Responsibility Input and Output Modeling Constructs, updates, and analyzes test models representing expected SUT be-havior. 
+
+Input: Test basis, metamodels, guidance 
+
+Output: test models 
+
+Model Constructor (Agent) 
+
+Constructs initial test models from test basis and testing goals. 
+
+Input: Test basis, e.g., requirements, de-sign artefacts; testing goals; metamodels, e.g., SysML v2 
+
+Output: Initial test models 
+
+Model Updater (Agent) 
+
+Refines existing test models according to system changes and guidance. 
+
+Input: Test basis, metamodels, guidance, existing test models, i.e., TestModel pre 
+
+Output: Updated test models 
+
+Model Analyzer Checks test models for syntactic, struc-tural, and diagnostic issues. 
+
+Input: Test models 
+
+Output: Analyzed results, e.g., syntax errors, structural inconsistencies, diagnos-tic findings 
+
+Conformance Executes test models and assesses con-formance of observed SUT behavior. 
+
+Input: Test models, testing objectives 
+
+Output: Conformance feedback 
+
+KM Execution Driver (Agent) 
+
+Generates test-model-guided execution triggers for MBT activities. 
+
+Input: Test models, execution results, validation results, testing objectives 
+
+Output: Execution triggers, e.g., system events, user actions, environment stimuli 
+
+KM Executor Executes triggers on the SUT and its operating environment. 
+
+Input: Test models, triggers, API schemas to the SUT and operating envi-ronment 
+
+Output: Execution results, e.g., execu-tion traces, system responses, logs, run-time data 
+
+Runtime Validator Checks execution results against ex-pected test-model behavior. 
+
+Input: Test models, execution results 
+
+Output: Validation results, e.g., missing transitions, mismatched target states, vi-olated assumptions, behavioral deviations 
+
+Evolution Guides refinement and evolution of test models. 
+
+Input: Software lifecycle artefacts, e.g., test basis, domain knowledge, confor-mance feedback 
+
+Output: Guidance for test model refine-ment and evolution 
+
+Evolution Advisor (Agent) 
+
+Provides semantic guidance for refining test models. 
+
+Input: Software lifecycle artefacts, do-main knowledge, conformance feedback 
+
+Output: Guidance, e.g., expected behav-iors, testing assumptions, potential test oracles, constraints, refinement sugges-tions 
+
+Symbolic Reasoner Supports test model evolution decisions through reasoning. 
+
+Input: Test models, conformance feed-back, guidance 
+
+Output: Reasoning results, e.g., sug-gested model changes, impact analysis, evolution decisions 
+
+14 interfaces, connectors, dependencies, and deployment relationships, but also architectural intent , including archi-tectural decisions, assumptions, constraints, design rationale, and quality-attribute objectives (e.g., all external requests must pass through an API gateway). As the architecture evolves, the Model Updater agent incorpo-rates approved architectural changes into the KM. Throughout this process, both agents interact with Model Analyzer to validate the consistency, completeness, and structural correctness of the architectural KM. The conformance subsystem is responsible for detecting architectural drift by assessing the consistency be-tween the architectural KM and the implemented architecture. The Architectural Drift Assessor agent derives design decisions and observation strategies from the architectural KM and periodically generates execution trig-gers. These execution triggers specify not only the system inputs that drive active execution of the software system within Execution Base , such as invoking service endpoints, replaying representative user requests, inject-ing test events, or executing workload scenarios, but also checks to be performed through passive scanning, such as analyzing technology stack usage, architectural rules, dependency graphs, or configuration compliance. KM Executor collects architectural evidence, including runtime observations such as service invocations, message exchanges, interaction traces, and workload responses, and structural observations such as dependency relations, configuration states, and interface specifications. Runtime Validator reconstructs an observed architectural view from the collected evidence and evaluates it against the architectural structures, constraints, assumptions, and design decisions encoded in the KM. Architectural drift is identified when discrepancies are detected between the intended and observed architectures, such as undocumented dependencies or violations of architectural constraints. The resulting runtime conformance feedback provides evidence for subsequent analysis and model evolution. Similar for supporting MBT and other MDE activities, the evolution subsystem consumes the architectural conformance feedback and reasons about detected discrepancies using the architectural knowledge captured in the KM. The Evolution Advisor agent then generates guidance for updating architectural elements, assump-tions, constraints, and design decisions, thereby keeping the architectural KM synchronized with the evolving implementation and its architectural intent. 
+
+## 5.3 Change Impact Assessment 
+
+Software systems continuously evolve to accommodate new requirements, fix defects, improve quality attributes, and adapt to changing environments. Understanding the consequences of a proposed change before it is imple-mented is therefore essential for effective system maintenance and evolution. However, change impacts often propagate across requirements, architecture, implementation, operational assumptions, and environmental con-ditions, making them difficult to assess using individual artifacts alone. TrustModel addresses this challenge by maintaining a living KM that continuously captures and evolves such cross-artifact relationships. In this scenario, the modeling and evolution subsystems play the central role, while the conformance sub-system is not necessarily required. This is because change impact assessment does not always require driving the execution of the software system or comparing runtime behavior against the KM. Instead, the change im-pact KM must be continuously updated as connected engineering artifacts evolve. The modeling subsystem constructs and maintains the KM from requirements, architectural models, implementation artifacts, interface specifications, deployment configurations, assumptions, and traceability links. The evolution subsystem analyzes changes in these connected artifacts and generates guidance for updating affected dependencies, links, assump-tions, and relationships in the KM. Impact assessment can then be performed by reasoning over the maintained KM to estimate the consequences of a proposed change across related artifacts and system concerns. 
+
+## 5.4 Summary 
+
+The above discussions show that the high-level architecture of TrustModel , organized around the three agentic subsystems of modeling, conformance, and evolution, provides a general foundation for supporting different MDE activities. In particular, the detailed MBT instantiation demonstrates how this architecture can be specialized into a concrete solution in which a test-oriented KM, i.e., test model, is constructed, executed together with the software system and its operating environment, validated through conformance assessment, and evolved based on the resulting feedback. Similarly, requirements and assumption monitoring and architectural drift tracking can be supported by instantiating TrustModel with different types of KMs and task-specific conformance criteria. However, TrustModel should not be viewed as a universal replacement for all MDE techniques. When applying TrustModel to a new MDE activity, the first question is whether the activity critically depends on keeping a KM alive, that is, continuously synchronized with the evolving system, its engineering artifacts, and its operating environment. If the activity can be sufficiently supported by a static model, a one-time analysis, or artifact-specific techniques, then the full TrustModel architecture may not be necessary. In such cases, only selected mechanisms, such as KM evolution or conformance checking, may be useful. If maintaining a living KM is essential, the next question is how KM evolution should be triggered. For execution-centered activities such as MBT, and in some cases requirements monitoring or architectural drift 15 tracking, KM evolution may be driven by executing the KM together with the software system and its operating environment, namely Execution Base. In this case, the conformance subsystem plays a central role: it generates or coordinates execution triggers, collects evidence from Execution Base, validates the observed behavior against the KM, and produces conformance feedback for the evolution subsystem. In contrast, not all MDE activities require execution-based conformance assessment. As discussed for change impact assessment, the main requirement is to maintain an up-to-date KM that captures cross-artifact depen-dencies and traceability relationships among requirements, architecture, implementation, interfaces, deployment configurations, assumptions, and environmental factors. In such cases, KM evolution may be triggered by changes in connected engineering artifacts rather than by executing the software system. The conformance sub-system is therefore not always necessary; the modeling and evolution subsystems may be sufficient to maintain the KM and support reasoning over it. Overall, TrustModel is most suitable for MDE activities where the value of the analysis depends on the freshness, consistency, and trustworthiness of the underlying KM. The framework provides a reusable archi-tectural pattern, but each concrete instantiation should be designed by identifying the required KM type, the source of KM evolution triggers, the need for execution-based conformance assessment, and the form of feedback required to keep the KM alive. In practice, developing such instantiations also requires the effective combina-tion of existing technologies and tools, such as modeling environments, traceability management tools, runtime monitoring or logging infrastructures, static and dynamic analysis techniques, rule engines, symbolic reasoners, and LLM-based agents. TrustModel is therefore not intended to replace these technologies, but to organize and integrate them around the lifecycle of living KMs. As more TrustModel applications emerge, we also see an opportunity to abstract reusable modeling, confor-mance, and evolution subsystems. Such generic subsystems could provide common services for KM construction and update, model analysis, execution or observation coordination, conformance assessment, feedback interpre-tation, and KM evolution guidance. This would facilitate the rapid development of TrustModel architecture instances for different MDE tasks, where developers can specialize the KM type, conformance criteria, evolution triggers, and supporting tools rather than redesigning the whole architecture from scratch. 
+
+# 6 Conclusion and Outlook 
+
+Complex software systems are increasingly expected to operate, adapt, and remain dependable in environments that are dynamic, uncertain, and continuously evolving. In such settings, knowledge models (KMs) are not merely documentation artifacts, but essential engineering assets for making system knowledge explicit, trace-able, and actionable. They provide a basis for reasoning about system behavior, assumptions, constraints, design decisions, and operating contexts. As systems evolve, however, these models may themselves become in-complete, inconsistent, or outdated. Maintaining their trustworthiness is therefore a prerequisite for dependable engineering. This paper introduced TrustModel , a vision for the agentic generation and evolution of living KMs. By organizing this vision around three agentic subsystems: Modeling , Conformance , and Evolution , TrustModel 
+
+provides a conceptual foundation for creating and continuously evolving KMs. The modeling subsystem sup-ports the creation and update of KMs; the conformance subsystem evaluates their alignment with the actual system and its operating context; and the evolution subsystem generates guidance for resolving inconsistencies, incompleteness, and obsolescence. Through its instantiation for MBT, TrustModel illustrates how living KMs, i.e., test models, can support more adaptive and MBT practices. At the same time, the vision extends beyond testing to broader model-driven engineering (MDE) activities, including requirements and assumption monitoring, architectural drift tracking, and change impact assessment. These applications suggest that living KMs can serve as a unifying basis for maintaining engineering knowledge across the software system lifecycle. In particular, for constantly evolving complex software systems, building and sustaining such KMs is essential: engineering assumptions need to remain transparent, system and environmental changes need to be continuously reflected, and decision-making processes need to be evaluated against explicit models. More broadly, we expect this paper to contribute to a renewed discussion on the role of MDE and model-based systems engineering (MBSE) in the engineering of modern complex software systems. The long-standing ambition of MDE has been to raise the level of abstraction, make engineering knowledge explicit, and enable automation based on models. Recent advances in large language models (LLMs) and agentic AI provide a timely opportunity to reshape how such automation can be realized, especially for the continuous evolution of models together with the systems and operating environments they represent. Rather than replacing models, LLM-based agents may help MDE and MBSE overcome some of their long-standing barriers to automation. Traditionally, model-based automation has depended heavily on carefully specified transformation rules across engineering artifacts, manually constructed metamodels, and dedicated tools that offer only limited support for interpreting natural-language requirements and other informal sources of knowledge. As a result, building KMs 16 from heterogeneous artifacts has remained effort-intensive, and evolving them has been a persistent challenge, whether performed manually or through automated mechanisms. With LLMs, and with carefully selected tools integrated into agentic workflows, we now see an opportunity to more readily connect heterogeneous artifacts, derive semantics from them, and support the continuous creation, checking, evolution, and operationalization of KMs at a scale and pace that were previously difficult to achieve. Future work will focus on realizing TrustModel for MBT in the context of ModelCopilot 1. We will also investigate how TrustModel can be instantiated for other MDE activities, such as requirements and assump-tion monitoring, architectural drift tracking, and change impact assessment. In addition, we plan to evaluate the TrustModel architecture and its concrete instantiations in real-world software engineering contexts, with particular attention to their effectiveness in maintaining trustworthy, living KMs under continuous system and environmental change. In the long term, TrustModel aims to support dependable engineering practices in which KMs continuously evolve with the systems they describe. We hope that this vision will call for further contri-butions from the MDE, MBSE, software engineering, and AI communities toward trustworthy, living KMs for continuously evolving software-intensive systems. 
+
+# References 
+
+[1] 2025. Control Software Engineering Approaches for Cyber-Physical Systems: A Systematic Mapping Study. Comput. Surveys (2025). doi: 10.1145/3704737 
+
+[2] Anthropic. 2024. Building effective agents. https://www.anthropic.com/engineering/ building-effective-agents .[3] Anthropic. 2025. How we built our multi-agent research system. https://www.anthropic.com/ engineering/multi-agent-research-system .[4] Hugo Araujo, Mohammad Reza Mousavi, and Mahsa Varshosaz. 2023. Testing, validation, and verification of robotic and autonomous systems: a systematic review. ACM Transactions on Software Engineering and Methodology 32, 2 (2023), 1–61. [5] Mohammad Yusaf Azimi and Cemal Yilmaz. 2025. Model-based test execution from high-level natural language instructions using GPT-4. Software Quality Journal 33, 1 (2025), 15. [6] Ilan Beer, Shoham Ben-David, Hana Chockler, Avigail Orni, and Richard Trefler. 2012. Explaining counterexamples using causality. Form. Methods Syst. Des. 40, 1 (Feb. 2012), 20–40. doi: 10.1007/ s10703-011-0132-2 
+
+[7] Lola Burgue˜ no, Davide Di Ruscio, Houari Sahraoui, and Manuel Wimmer. 2025. Automation in Model-Driven Engineering: A look back, and ahead. ACM Transactions on Software Engineering and Methodology 34, 5 (2025), 1–25. [8] Matteo Camilli, Angelo Gargantini, Patrizia Scandurra, and Catia Trubiani. 2021. Uncertainty-aware exploration in model-based testing. In 2021 14th IEEE Conference on Software Testing, Verification and Validation (ICST). IEEE, 71–81. [9] Roberto Casadei, Gianluca Aguzzi, Giorgio Audrito, Ferruccio Damiani, Danilo Pianini, Giordano Scarso, Gianluca Torta, and Mirko Viroli. 2025. Software Engineering for Collective Cyber-Physical Ecosystems. ACM Transactions on Software Engineering and Methodology 34, 5 (2025), 153:1–153:40. doi: 10.1145/ 3712004 
+
+[10] Johan Cederbladh, Antonio Cicchetti, and Robbert Jongeling. 2025. A road-map to readily available early validation and verification of system behaviour in model-based systems engineering using software engineering best practices. ACM Transactions on Software Engineering and Methodology 34, 5 (2025), 1–30. [11] Zacharie Chenail-Larcher, Jean Baptiste Minani, and Naouel Moha. 2025. Test generation from use case specifications for IoT systems: Custom, LLM-based, and hybrid approaches. In 2025 IEEE Conference on Software Testing, Verification and Validation (ICST). IEEE, 597–602. [12] Guido de Caso, V´ ıctor A. Braberman, Diego Garbervetsky, and Sebasti´ an Uchitel. 2013. Enabledness-based program abstractions for behavior validation. ACM Trans. Softw. Eng. Methodol. 22, 3 (2013), 25:1–25:46. doi: 10.1145/2491509.2491519 
+
+> 1ModelCopilot: https://www.modelcopilot.org/model-copilot.html
+
+17 [13] Yao Deng, Zhi Tu, Jiaohong Yao, Mengshi Zhang, Tianyi Zhang, and Xi Zheng. 2025. Target: Traffic rule-based test generation for autonomous driving systems. IEEE Transactions on Software Engineering (2025). [14] Nachum Dershowitz, Ziyad Hanna, and Alexander Nadel. 2006. A Scalable Algorithm for Minimal Unsat-isfiable Core Extraction. In Theory and Applications of Satisfiability Testing - SAT 2006, Armin Biere and Carla P. Gomes (Eds.). Springer Berlin Heidelberg, Berlin, Heidelberg, 36–41. [15] Alexandre Donz´ e. 2013. On signal temporal logic. In International Conference on Runtime Verification. Springer, 382–383. [16] Eclipse Foundation. 2023. Papyrus Moka. https://eclipse.googlesource.com/papyrus/org.eclipse. papyrus-moka/ . Accessed: 2026-04-13. [17] Michael D. Ernst, Jeff H. Perkins, Philip J. Guo, Stephen McCamant, Carlos Pacheco, Matthew S. Tschantz, and Chen Xiao. 2007. The Daikon system for dynamic detection of likely invariants. Sci. Comput. Program. 69, 1-3 (2007), 35–45. doi: 10.1016/J.SCICO.2007.01.015 
+
+[18] Robert France and Bernhard Rumpe. 2007. Model-driven development of complex software: A research roadmap. In Future of Software Engineering (FOSE’07). IEEE, 37–54. [19] Junda He, Christoph Treude, and David Lo. 2025. Llm-based multi-agent systems for software engineering: Literature review, vision, and the road ahead. ACM Transactions on Software Engineering and Methodology 34, 5 (2025), 1–30. [20] Regina Hebig, Djamel Eddine Khelladi, and Reda Bendraou. 2017. Approaches to Co-Evolution of Meta-models and Models: A Survey. IEEE Transactions on Software Engineering 43, 5 (2017), 396–414. doi: 10.1109/TSE.2016.2610424 
+
+[21] Yuan Kong, Nan Zhang, Zhenhua Duan, and Bin Yu. 2025. Collaboration with Generative AI to improve Requirements Change. Computer Standards & Interfaces (2025), 104013. [22] Junwei Liu, Kaixin Wang, Yixuan Chen, Xin Peng, Zhenpeng Chen, Lingming Zhang, and Yiling Lou. 2024. Large language model-based agents for software engineering: A survey. arXiv preprint arXiv:2409.02977 (2024). [23] You Lu, Yifan Tian, Yuyang Bi, Bihuan Chen, and Xin Peng. 2024. Diavio: Llm-empowered diagnosis of safety violations in ads simulation testing. In Proceedings of the 33rd ACM SIGSOFT International Symposium on Software Testing and Analysis. 376–388. [24] K. L. McMillan. 2005. Applications of craig interpolants in model checking. In Proceedings of the 11th International Conference on Tools and Algorithms for the Construction and Analysis of Systems (Edin-burgh, UK) (TACAS’05). Springer-Verlag, Berlin, Heidelberg, 1–12. doi: 10.1007/978-3-540-31980-1_1 
+
+[25] Judith Michael, Loek Cleophas, Steffen Zschaler, Tony Clark, Benoit Combemale, Thomas Godfrey, Djamel Eddine Khelladi, Vinay Kulkarni, Daniel Lehner, Bernhard Rumpe, et al. 2025. Model-driven engineering for digital twins: opportunities and challenges. Systems Engineering 28, 5 (2025), 659–670. [26] Facundo Molina, Marcelo d’Amorim, and Nazareno Aguirre. 2022. Fuzzing Class Specifications. In 44th IEEE/ACM 44th International Conference on Software Engineering, ICSE 2022, Pittsburgh, PA, USA, May 25-27, 2022. ACM, 1008–1020. doi: 10.1145/3510003.3510120 
+
+[27] Facundo Molina, Pablo Ponzio, Nazareno Aguirre, and Marcelo F. Frias. 2021. EvoSpex: An Evolu-tionary Algorithm for Learning Postconditions. In 43rd IEEE/ACM International Conference on Software Engineering, ICSE 2021, Madrid, Spain, 22-30 May 2021. IEEE, 1223–1235. doi: 10.1109/ICSE43902. 2021.00112 
+
+[28] Lahbib Naimi, El Mahi Bouziane, and Abdeslam Jakimi. 2024. Automating Test Case Generation from Class Diagram Using Generative AI. In International Conference on Smart Medical, IoT & Artificial Intelligence. Springer, 133–140. [29] Lahbib Naimi, Mohamed Manaouch, Abdeslam Jakim, et al. 2024. A new approach for automatic test case generation from use case diagram using LLMs and prompt engineering. In 2024 International Conference on Circuit, Systems and Communication (ICCSC). IEEE, 1–5. [30] No Magic, Inc. 2021. Cameo Simulation Toolkit User Guide. Dassault Syst` emes. Accessed: 2026-04-13. 18 [31] Agust´ ın Nolasco, Facundo Molina, Renzo Degiovanni, Alessandra Gorla, Diego Garbervetsky, Mike Pa-padakis, Sebasti´ an Uchitel, Nazareno Aguirre, and Marcelo F. Frias. 2024. Abstraction-Aware Inference of Metamorphic Relations. Proc. ACM Softw. Eng. 1, FSE (2024), 450–472. doi: 10.1145/3643747 
+
+[32] Nenad Petrovic, Krzysztof Lebioda, Vahid Zolfaghari, Andr´ e Schamschurko, Sven Kirchner, Nils Purschke, Fengjunjie Pan, and Alois Knoll. 2024. LLM-Driven Testing for Autonomous Driving Scenarios. In 2024 2nd International Conference on Foundation and Large Language Models (FLLM). IEEE, 173–178. [33] Keisuke Sugawara, Yutaka Komatsu, and Atsushi Wada. 2025. Extracting Information from System Model as Graph Structure by Large Language Model in MBSE. In INCOSE International Symposium, Vol. 35. Wiley Online Library, 496–517. [34] Chao Tan, Tiexin Wang, Man Zhang, and Tao Yue. 2025. Safety behavior abstraction and model evolution in autonomous driving. Software and Systems Modeling 24, 3 (2025), 843–863. [35] Valerio Terragni, Gunel Jahangirova, Paolo Tonella, and Mauro Pezz` e. 2021. GAssert: A Fully Automated Tool to Improve Assertion Oracles. In 43rd IEEE/ACM International Conference on Software Engineering: Companion Proceedings, ICSE Companion 2021, Madrid, Spain, May 25-28, 2021. IEEE, 85–88. doi: 10. 1109/ICSE-COMPANION52605.2021.00042 
+
+[36] Uraz Cengiz T¨ urker, Robert M Hierons, Khaled El-Fakih, Mohammad Reza Mousavi, and Ivan Y Tyukin. 2024. Accelerating finite state machine-based testing using reinforcement learning. IEEE Transactions on Software Engineering 50, 3 (2024), 574–597. [37] Oliver Von Heissen, Fabian Hanke, Isaac Mpidi Bita, Aschot Hovemann, Roman Dumitrescu, et al. 2024. Toward intelligent generation of system architectures. DS 130: Proceedings of NordDesign 2024, Reykjavik, Iceland, 12th-14th August 2024 (2024), 504–513. [38] Tao Yue and Shaukat Ali. 2023. Evolve the Model Universe of a System Universe . In 2023 38th IEEE/ACM International Conference on Automated Software Engineering (ASE). IEEE Computer Society, Los Alami-tos, CA, USA, 1726–1731. doi: 10.1109/ASE56229.2023.00022 
+
+[39] Man Zhang, Shaukat Ali, and Tao Yue. 2019. Uncertainty-wise test case generation and minimization for Cyber-Physical Systems. Journal of Systems and Software 153 (jul 2019), 1–21. doi: 10.1016/j.jss.2019. 03.011 
+
+[40] Man Zhang, Shaukat Ali, Tao Yue, and Roland Norgre. 2017. Uncertainty-wise evolution of test ready models. Information and Software Technology 87 (2017), 140–159. [41] Man Zhang, Yunyang Li, and Tao Yue. 2026. LLMs for Model-driven Engineering: A Survey. doi: 10.5281/ zenodo.19387475 
+
+[42] Weixing Zhang, Regina Hebig, and Daniel Str¨ uber. 2025. Leveraging LLMs to support co-evolution between definitions and instances of textual DSLs. In LLM4SE’25: Large Language Models for Software Engineering Workshop. to appear. [43] Xi Zheng, Aloysius K Mok, Ruzica Piskac, Yong Jae Lee, Bhaskar Krishnamachari, Dakai Zhu, Oleg Sokol-sky, and Insup Lee. 2024. Testing learning-enabled cyber-physical systems with large-language models: A formal approach. In Companion Proceedings of the 32nd ACM International Conference on the Foundations of Software Engineering. 467–471. 19
