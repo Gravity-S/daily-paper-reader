@@ -6,76 +6,64 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-07
-- 运行时间：2026-06-07 21:10:31 UTC
+- 最新运行日期：2026-06-08
+- 运行时间：2026-06-08 22:13:00 UTC
 - 运行状态：成功
-- 本次总论文数：18
-- 精读区：8
-- 速读区：10
+- 本次总论文数：14
+- 精读区：10
+- 速读区：4
 
 ### 今日简报（AI）
-1) 今日精选18篇论文，聚焦智能体系统自适应进化与协同学习，精读两篇9.0高分工作。
-2) 最值得关注的方向：联合训练框架（HarnessForge、EvoTrainer）推动策略与训练机制协同进化，以及智能体操作系统（AOS）将控制面融入传统OS。
-3) 推荐优先精读《HarnessForge》和《EvoTrainer》，了解自适应代理系统的前沿方法，再速读《Agent Operating Systems》把握系统架构趋势。
-- 详情：[/202606/07/README](/202606/07/README)
+今日共处理14篇论文，精读10篇，持续学习评测与AI Agent形式化验证成焦点。
+精读推荐《Continual Learning Bench》探讨真实状态环境下的前沿AI系统评估，以及《Lean4Agent》做Agent工作流的形式化建模与验证。
+普通读者可优先关注这两个方向，速读中《TRACE》的跨步证据聚合思路也值得快速了解。
+- 详情：[/202606/08/README](/202606/08/README)
 
 ### 精读区论文标签
-1. [HarnessForge: Joint Harness and Policy Evolution for Adaptive Agent Systems](/202606/07/2606.01779v1-harnessforge-joint-harness-and-policy-evolution-for-adaptive-agent-systems)  
+1. [Continual Learning Bench: Evaluating Frontier AI Systems in Real-World Stateful Environments](/202606/08/2606.05661v1-continual-learning-bench-evaluating-frontier-ai-systems-in-real-world-stateful-environments)  
    标签：评分：9.0/10、query:agent-evolve
-   evidence：联合框架与策略演化实现自适应智能体系统
-2. [EvoTrainer: Co-Evolving LLM Policies and Training Harnesses for Autonomous Agentic Reinforcement Learning](/202606/07/2606.03108v1-evotrainer-co-evolving-llm-policies-and-training-harnesses-for-autonomous-agentic-reinforcement-learning)  
+   evidence：持续学习基准衡量AI系统是否随经验改进，是自进化智能体的核心
+2. [Lean4Agent: Formal Modeling and Verification for Agent Workflow and Trajectory](/202606/08/2606.06523v1-lean4agent-formal-modeling-and-verification-for-agent-workflow-and-trajectory)  
+   标签：评分：9.0/10、query:agent-safety
+   evidence：形式化验证确保智能体行为可信
+3. [Attack Selection in Agentic AI Control Evaluations Meaningfully Decreases Safety](/202606/08/2606.06529v1-attack-selection-in-agentic-ai-control-evaluations-meaningfully-decreases-safety)  
+   标签：评分：9.0/10、query:agent-safety
+   evidence：AI控制评估中的攻击选择直接影响智能体安全
+4. [OpenSkill: Open-World Self-Evolution for LLM Agents](/202606/08/2606.06741v1-openskill-open-world-self-evolution-for-llm-agents)  
    标签：评分：9.0/10、query:agent-evolve
-   evidence：协同进化LLM策略和训练架构，用于自主智能体强化学习，实现自我改进
-3. [Post-Hoc Robustness for Model-Based Reinforcement Learning](/202606/07/2606.03521v1-post-hoc-robustness-for-model-based-reinforcement-learning)  
+   evidence：面向LLM智能体的开放世界自进化框架，从零构建技能和验证信号
+5. [DPAgent-in-the-Middle: Agentic Defense and Repair Against AI-Groomed Deceptive Patterns](/202606/08/2606.06914v1-dpagent-in-the-middle-agentic-defense-and-repair-against-ai-groomed-deceptive-patterns)  
    标签：评分：9.0/10、query:agent-safety
-   evidence：对抗性扰动下的后验鲁棒性
-4. [Toward Pre-Deployment Assurance for Enterprise AI Agents: Ontology-Grounded Simulation and Trust Certification](/202606/07/2606.04037v1-toward-pre-deployment-assurance-for-enterprise-ai-agents-ontology-grounded-simulation-and-trust-certification)  
+   evidence：防御隐私欺骗模式和AI诱骗，解决AI智能体中的隐私问题
+6. [Tree-of-Experience: A Structured Experience-Management Solution for Self-Evolving Agents under Low-Repetition and Implicit-Reward Environments](/202606/08/2606.06960v1-tree-of-experience-a-structured-experience-management-solution-for-self-evolving-agents-under-low-repetition-and-implicit-reward-environments)  
+   标签：评分：9.0/10、query:agent-evolve
+   evidence：面向自演化智能体的结构化经验管理
+7. [From Privacy to Workflow Integrity: Communication-Graph Metadata in Autonomous Agent Interoperability](/202606/08/2606.07150v1-from-privacy-to-workflow-integrity-communication-graph-metadata-in-autonomous-agent-interoperability)  
    标签：评分：9.0/10、query:agent-safety
-   evidence：AI智能体部署前的安全保证与信任认证
-5. [BraveGuard: From Open-World Threats to Safer Computer-Use Agents](/202606/07/2606.01166v2-braveguard-from-open-world-threats-to-safer-computer-use-agents)  
-   标签：评分：8.0/10、query:agent-safety
-   evidence：为计算机使用智能体设计的自进化防御框架，挖掘新兴威胁并训练守护模型
-6. [Discovering Agents for Discovery: The Case for DNS](/202606/07/2606.02314v1-discovering-agents-for-discovery-the-case-for-dns)  
-   标签：评分：8.0/10、query:agent-safety
-   evidence：AI智能体的发现、认证、完整性和授权问题
-7. [COMAP: Co-Evolving World Models and Agent Policies for LLM Agents](/202606/07/2606.02372v1-comap-co-evolving-world-models-and-agent-policies-for-llm-agents)  
-   标签：评分：8.0/10、query:agent-evolve
-   evidence：共同进化文本世界模型和代理策略，实现语言代理的自我进化
-8. [When Tools Fail: Benchmarking Dynamic Replanning and Anomaly Recovery in LLM Agents](/202606/07/2606.05806v1-when-tools-fail-benchmarking-dynamic-replanning-and-anomaly-recovery-in-llm-agents)  
-   标签：评分：8.0/10、query:agent-safety
-   evidence：针对工具故障恢复的基准测试
+   evidence：分析了智能体互操作中通信图元数据的隐私风险
+8. [Self-evolving LLM agents with in-distribution Optimization](/202606/08/2606.07367v1-self-evolving-llm-agents-with-in-distribution-optimization)  
+   标签：评分：9.0/10、query:agent-evolve
+   evidence：自进化LLM智能体框架
+9. [An End-to-End Encrypted Control Pipeline for Multi-Agent Coordination via CKKS Homomorphic Encryption](/202606/08/2606.07375v1-an-end-to-end-encrypted-control-pipeline-for-multi-agent-coordination-via-ckks-homomorphic-encryption)  
+   标签：评分：9.0/10、query:mas-security
+   evidence：多智能体系统的隐私保护控制
+10. [Socratic-SWE: Self-Evolving Coding Agents via Trace-Derived Agent Skills](/202606/08/2606.07412v1-socratic-swe-self-evolving-coding-agents-via-trace-derived-agent-skills)  
+   标签：评分：9.0/10、query:agent-evolve
+   evidence：通过痕迹派生技能实现自进化编码智能体
 
 ### 速读区论文标签
-1. [Agent Operating Systems (AOS): Integrating Agentic Control Planes into, and Beyond, Traditional Operating Systems](/202606/07/2606.01508v1-agent-operating-systems-aos-integrating-agentic-control-planes-into-and-beyond-traditional-operating-systems)  
+1. [TRACE: Trajectory Reasoning through Adaptive Cross-Step Evidence Aggregation for LLM Agents](/202606/08/2606.07054v1-trace-trajectory-reasoning-through-adaptive-cross-step-evidence-aggregation-for-llm-agents)  
+   标签：评分：8.0/10、query:agent-safety
+   evidence：LLM智能体中隐藏恶意目标的监测
+2. [RiskFlow: Fast and Faithful Safety-Critical Traffic Scenario Generation](/202606/08/2606.06423v1-riskflow-fast-and-faithful-safety-critical-traffic-scenario-generation)  
    标签：评分：7.0/10、query:agent-safety
-   evidence：提出智能体操作系统概念，涉及智能体系统的安全、可观测性和治理
-2. [Agentic Generation and Evolution of Knowledge Models](/202606/07/2606.03662v1-agentic-generation-and-evolution-of-knowledge-models)  
+   evidence：为自主智能体生成安全关键交通场景
+3. [Re-imagining ISO 26262 in the Age of Autonomous Vehicles: Enhancing Controllability through Transferability and Predictability](/202606/08/2606.07437v1-re-imagining-iso-26262-in-the-age-of-autonomous-vehicles-enhancing-controllability-through-transferability-and-predictability)  
    标签：评分：7.0/10、query:agent-safety
-   evidence：可信知识模型演化
-3. [Agentic Generation and Evolution of Knowledge Models](/202606/07/2606.03662v2-agentic-generation-and-evolution-of-knowledge-models)  
-   标签：评分：7.0/10、query:agent-safety
-   evidence：用于自主系统安全演化的可信知识模型
-4. [Multi$^2$: Hierarchical Multi-Agent Decision-Making with LLM-Based Agents in Interactive Environments](/202606/07/2606.03698v1-multi2-hierarchical-multi-agent-decision-making-with-llm-based-agents-in-interactive-environments)  
-   标签：评分：7.0/10、query:agent-safety
-   evidence：分层多智能体决策框架，解决目标漂移以增强鲁棒性
-5. [Multi-Agent Next-Best-View Optimization for Risk-Averse Planning](/202606/07/2606.04158v1-multi-agent-next-best-view-optimization-for-risk-averse-planning)  
-   标签：评分：7.0/10、query:mas-security
-   evidence：多智能体路径规划中分布式风险感知安全
-6. [Learning to cooperate with emergent reputation via multi-agent reinforcement learning](/202606/07/2606.04359v1-learning-to-cooperate-with-emergent-reputation-via-multi-agent-reinforcement-learning)  
-   标签：评分：7.0/10、query:mas-security
-   evidence：通过多智能体强化学习涌现声誉，促进多代理系统的合作与安全
-7. [Agent Planning Benchmark: A Diagnostic Framework for Planning Capabilities in LLM Agents](/202606/07/2606.04874v1-agent-planning-benchmark-a-diagnostic-framework-for-planning-capabilities-in-llm-agents)  
-   标签：评分：7.0/10、query:agent-safety
-   evidence：规划鲁棒性诊断基准，涵盖工具噪声和不可解任务
-8. [Continual Learning Bench: Evaluating Frontier AI Systems in Real-World Stateful Environments](/202606/07/2606.05661v1-continual-learning-bench-evaluating-frontier-ai-systems-in-real-world-stateful-environments)  
-   标签：评分：7.0/10、query:agent-evolve
-   evidence：评估AI代理持续学习能力的基准
-9. [Behavior-Invariant Task Representation Learning with Transformer-based World Models for Offline Meta-Reinforcement Learning](/202606/07/2606.00780v1-behavior-invariant-task-representation-learning-with-transformer-based-world-models-for-offline-meta-reinforcement-learning)  
+   evidence：自动驾驶安全框架
+4. [Perceive Before Reasoning: A Pre-Reasoning Perception Framework for Efficient and Reliable Proactive Mobile Agents](/202606/08/2606.03236v1-perceive-before-reasoning-a-pre-reasoning-perception-framework-for-efficient-and-reliable-proactive-mobile-agents)  
    标签：评分：6.0/10、query:agent-safety
-   evidence：通过不变表示学习提升离线元强化学习的鲁棒泛化，适用于AI代理系统的鲁棒性
-10. [Uncertainty-Aware Clarification in LLM Agents with Information Gain](/202606/07/2606.03135v1-uncertainty-aware-clarification-in-llm-agents-with-information-gain)  
-   标签：评分：6.0/10、query:agent-safety
-   evidence：不确定性感知的澄清方法减少代理错误动作，提升LLM代理的鲁棒性
+   evidence：提升主动移动智能体的可靠性和效率
 
 
 <div class="dpr-home-promo-card">

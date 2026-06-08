@@ -1,0 +1,428 @@
+Title: Re-imagining ISO 26262 in the Age of Autonomous Vehicles: Enhancing Controllability through Transferability and Predictability
+
+URL Source: https://arxiv.org/pdf/2606.07437v1
+
+Published Time: Mon, 08 Jun 2026 01:07:20 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# Re-imagining ISO 26262 in the Age of Autonomous Vehicles 
+
+## Enhancing Controllability through Transferability and Predictability 
+
+Chaitanya Shinde 1, Hadi Hajieghrary 2, Paul Schmitt 3, Adam Shoemaker 4, Bodo Seifert 5, Steve Kenner 6
+
+Abstract — The ISO 26262 standard defines functional safety for road vehicles through risk assessments based on Severity, Exposure, and Controllability, grounded in a human-driven vehicle paradigm. In the context of autonomous vehicles (AVs), the absence of a human driver necessitates revisiting these principles. This paper decomposes the Controllability place-holder into two auditable evidence dimensions of ISO 26262 by introducing two measurable sub-concepts: Transferability and 
+
+Predictability . Transferability extends Controllability to capture AV systems’ ability to hand off control to dedicated fallback safety mechanisms, while Predictability captures how easily external agents can anticipate AV behavior. Predictability is formally defined from human-robot interaction-inspired prin-ciples, and a mathematical framework is provided to quantify. A designed-versus-achievable gap ∆T is introduced to distinguish architectural fallback claims from scene-conditioned achievable fallback capability. The proposed metrics align with ISO 26262 and ISO/PAS 21448 (SOTIF), rendering fallback and interac-tion claims falsifiable and traceable across ODD slices. These dimensions complement rather than replace existing standards, and the enhancements preserve ISO 26262’s structure while extending its applicability to the driverless automated systems levels, SAE L4 and L5. 
+
+I. I NTRODUCTION 
+
+The ISO 26262 standard establishes a comprehensive framework for ensuring the functional safety of human-operated road vehicles [1]. Its safety concept is fundamen-tally driver-centric: the standard repeatedly assumes the pres-ence of a human who can mitigate hazards through corrective action; however, autonomous vehicles (AVs) operating at SAE Levels 4 and 5 challenge this foundational assumption. With no human driver available to intervene, responsibility for hazard mitigation and situational control shifts entirely to the vehicle’s system architecture. Consequently, Control-lability, a core pillar of ISO 26262, requires systematic reinterpretation and augmentation. The analytical constructs introduced in this paper are proposed as supplemental tools for consideration by standards bodies; they are not intended as normative replacements for existing ISO 26262 processes. This paper introduces two complementary constructs that extend rather than replace Controllability. Transferability 
+
+quantifies a system’s ability to safely transfer control to fallback mechanisms within the Fault-Tolerant Time Interval  
+
+> 1Chaitanya Shinde
+
+chaitanya.shinde@torc.ai , 2Hadi Ha-jieghrary hadi.hajieghrary@torc.ai , and 6Steve Kenner 
+
+steve.kenner@torc.ai are with Torc Robotics, Inc., an indepen-dent subsidiary of Daimler Truck AG.  
+
+> 3Paul Schmitt
+
+pauls@massrobotics.org is with Reynolds & Moore.  
+
+> 4Adam Shoemaker
+
+shoe@vt.edu . 
+
+> 5Bodo Seifert
+
+bseifert@criticalsa.com is with Critical Sys-tems Analysis, LLC. 
+
+(FTTI). Predictability quantifies how accurately external road users can anticipate an AV’s behavior, thereby shifting part of the safety focus from the absent driver to surround-ing humans—pedestrians, cyclists, and other drivers—whose understanding of the AV’s intent directly affects overall road safety. Together, these metrics expand Controllability into both the system-level and human-observer dimensions. ISO 26262 [1] primarily addresses malfunction-based functional safety, while ISO 21448:2022 (SOTIF) [2] con-siders risks arising from intended functionality. Within this combined framework, Transferability and Predictability serve as SOTIF-aligned key performance indicators that comple-ment—not replace—existing processes. They provide mea-surable evidence of fallback performance and safety in external interactions, supporting integration into established functional safety lifecycles. 
+
+Contributions. This paper makes three principal contribu-tions to the methodology for assessing autonomous-vehicle safety: 1) We formalize Transferability by evaluating Minimal Risk Maneuver performance with respect to Fault-Tolerant Time Intervals, thereby extending the Control-lability construct for driverless contexts. 2) We establish Predictability as a quantifiable dimension of external road-user safety, capturing both conformance to expected motion patterns and clarity of intent com-munication. 3) We propose acceptance criteria and validation method-ologies, including fault-injection testing for Transfer-ability and human-observer studies for Predictability, enabling their adoption as falsifiable metrics within ISO 26262 and SOTIF safety-lifecycle processes. II. R ELATED WORKS 
+
+This section positions the proposed extensions to ISO 26262 within the broader context of automotive safety standards, human-robot interaction (HRI) research, and em-pirical human-driver data. Together, these domains motivate the expansion of Controllability from a driver-centric con-struct to one encompassing both system fallback capability and external behavioral Predictability. 
+
+A. Controllability in ISO 26262 
+
+ISO 26262 [1] defines Controllability as ”the ability to avoid a specified harm or damage through the timely reac-tions of the driver.” Within the standard’s risk framework-Severity (S), Exposure (E), and Controllability (C)-this pa-rameter estimates the probability that a driver can mitigate a hazardous event. Four classes (C0-C3) reflect decreasing 
+
+> arXiv:2606.07437v1 [cs.RO] 5 Jun 2026
+
+ease of control, from ”generally controllable” to ”difficult or uncontrollable.” These definitions presuppose an attentive driver and therefore cannot apply directly to SAE L4-L5 systems. However, the probabilistic notion of avoiding harm remains valid if the scope of control is broadened: the driver’s reaction becomes the system’s fallback capability (Transfer-ability), and the driver’s understanding of the vehicle’s intent becomes external observers’ ability to anticipate its behavior (Predictability). 
+
+B. Related Safety Standards 
+
+UL 4600 [3] provides a non-prescriptive assurance frame-work for autonomous products, emphasizing evidence-based safety arguments covering fallback performance and trans-parency. Transferability and Predictability align with its prin-ciples of behavioral explainability and safety-case complete-ness. The broader call for evidence-based, ODD-conditioned safety arguments has been mentioned in [4] as an inter-disciplinary challenge spanning controls, machine learning, human factors, and assurance, and reinforced through the ODD-coverage analyses of ISO/TR [5]; the per-ODD-slice reporting discipline used throughout this paper inherits directly from that line of work. ISO 21448:2022 (SOTIF) [2] extends safety analysis to hazards arising from correct but inadequate function. It ad-dresses performance limitations in perception and decision-making that can yield unsafe behavior without faults. Pre-dictability directly supports SOTIF by quantifying behav-ioral adequacy-how well other road users can interpret and anticipate vehicle motion-while Transferability captures the system’s robustness in known unsafe scenarios. Parallel autonomy architectures further demonstrate how supervi-sory safety layers can assume responsibility for maintain-ing minimal-risk system behavior when primary autonomy functions fail [6]. IEEE Std 2846-2022 [7] formalizes assumptions used in safety-related decision-making models for automated driving systems, including the reasonably foreseeable behaviors of other road users. The four-channel Predictability monitor of Section IV-C consumes this assumption layer from the AV-as-observed side: whereas IEEE 2846 specifies what other agents may reasonably do, our framework specifies what affected road users may reasonably anticipate from the AV. Salay and Czarnecki [8] surveyed the gaps that arise when ISO 26262 process requirements are applied to systems con-taining machine-learned components, motivating the explicit calibration declarations and out-of-distribution rejection rules required of pref and p(g | ξ0: t, c, a ) in Section IV-B. ISO 34502:2022 [4] defines a scenario-based safety-evaluation framework directly relevant to ODD-sliced eval-uation of Transferability and Predictability evidence (Sec-tions III and ?? ). ISO/TR 4804:2020 [5] provides safety-and cybersecurity-by-design guidance for SAE Level 3–4 automated driving systems, into which the proposed evidence channels can be embedded as concrete work products. To-gether, this set of standards forms the assurance landscape into which our framework slots: ISO 26262 for malfunction-based functional safety, ISO 21448 for SOTIF, IEEE 2846 for assumption-layer formalization, ISO 34502 for scenario-based evaluation, ISO/TR 4804 for ADS-specific V&V, and UL 4600 for the overarching safety case. 
+
+C. Predictability in Human-Robot Interaction 
+
+HRI research defines Predictability as the extent to which humans can anticipate a robot’s motion, with studies showing that trust and coordination improve when trajectories con-form to expected motion patterns [9]–[15]. Predictability is typically evaluated through observer experiments and quantified using trajectory-dissimilarity metrics or forecast-error statistics. These measures quantify how closely an autonomous system’s motion aligns with human expectations of smooth, rational, and context-appropriate behavior. Ap-plied to driving, Predictability reflects how interpretable a vehicle’s motion is to surrounding road users-a prerequisite for reasonably safe, coordinated interaction. 
+
+D. Human-Driver Datasets 
+
+Large-scale naturalistic-driving datasets such as SAE J2944 [16] and NHTSA’s SHRP 2 [17] provide statistical baselines for normal driving behavior across diverse scenarios. Comparing autonomous-vehicle trajectories against these human distributions enables aquantitative assessment of Predictability through measures such as L2 trajectory norms or Kullback-Leibler divergence. Motion consistent with human norms indicates high Predictability; deviations suggest behaviors that may reduce external users’ confidence or increase the risk of interaction. III. I NTRODUCING TRANSFERABILITY 
+
+This section introduces Transferability as a system-level enhancement to Controllability for autonomous vehicle (AV) safety assessment, addressing the practical limits of human-centric Controllability metrics for SAE J3016 Level 4–5 sys-tems. Rather than replacing Controllability, Transferability extends it to capture an AV’s intrinsic capability to manage hazardous events without human intervention. 
+
+A. Limitations of Traditional Controllability 
+
+ISO 26262-1:2018 Clause 3.25 defines Controllability as the driver’s ability to avoid harm through timely reactions. ISO 26262-3:2018 Table 3 classifies Controllability ( C0–
+
+C3) by the probability that a human driver can successfully intervene. For SAE Levels 4–5, this metric cannot be applied directly, as no human operator participates in the dynamic driving task. However, the conceptual foundation remains valid - avoiding harm within a bounded time frame. Trans-ferability preserves this logic by reframing it from human action to system capability .
+
+B. Transferability: A System-Capability-Based Extension 
+
+To address this fundamental incompatibility, we introduce Transferability as a theoretically grounded replacement con-struct for autonomous vehicle safety assessment: 
+
+Transferability: The capability of an autonomous vehicle to execute a reasonably safe and timely transition from the primary autonomy function to a dedicated fallback mechanism, thereby achieving a minimal-risk condition or safe state within the Fault Tolerant Time Interval (FTTI) and without introducing additional hazards to occupants or external road users. 
+
+This definition enhances Controllability by internalizing the function of hazard mitigation. While human Controllabil-ity quantifies the probability of successful reaction from the driver, Transferability quantifies the probability of successful fallback execution by the system. The same probabilistic semantics, therefore, apply, but the responsibility shifts from the driver to the system. Two properties govern a valid transfer: safety (the transition must not introduce new haz-ards) and timeliness (completion must occur within the FTTI defined in ISO 26262-1:2018 Clause 3.61). An isolated success rate, however, is not by itself evidence of fallback capability: the claim must declare under what conditions it holds. We therefore formalize Transferability as a function of the operational context, 
+
+T = T (o, f, s, m, τ FTTI ), (1) with o the ODD slice, f the fault family, s the scene state at demand, m the minimal-risk maneuver (MRM) class, and τFTTI the fault-tolerant time interval. The per-demand evidence tuple captures evidence supporting any class assignment, 
+
+ET = o, f, s, m, τ FTTI , t detect , (2) 
+
+tinit , t MRC , z stop , ˆpsucc , CI ,
+
+recording detection latency tdetect , fallback initiation latency 
+
+tinit , minimal-risk-condition achievement time tMRC , the realized stop zone zstop , the per-demand MRM success prob-ability ˆpsucc , and its confidence interval CI . The tuple ET
+
+makes the conditioning of any Transferability claim explicit and supports independent reproduction or contestation; a class assignment unaccompanied by ET does not constitute complete evidence under this framework. 
+
+C. Fallback Mechanisms in Autonomous Systems 
+
+Fallback mechanisms embody the system’s embedded Controllability. They activate when the primary driving func-tion fails or leaves its validated Operational Design Domain (ODD). Fallbacks can be categorized by their terminal states: 
+
+Fail-Safe : Immediate transition to a safe state (ISO 26262-1:2018 Clause 3.131) through controlled immobilization or standstill. 
+
+Fail-Degraded : Continued operation under restricted per-formance envelopes (e.g., controlled deceleration or shoulder pull-over), aligning with ISO 26262-1:2018 Clause 3.43”‘emergency operation’ 
+
+Fail-Operational : Seamless redundancy maintaining full performance through duplicated or diverse architectures, consistent with ISO 26262-1:2018 Clause 3.122 and 3.37. These mechanisms represent increasing levels of intrinsic system Controllability, from degraded operation to uninter-rupted safety-critical function. 
+
+D. Transferability Classification 
+
+Transferability is classified analogously to Controllability (C0–C3) to facilitate integration with existing ISO 26262 processes. Four qualitative classes (T 0-T 3) quantify the robustness and reliability of system fallbacks. Point success thresholds are not by themselves statistically defensible; we therefore assign classes based on the lower confidence bound ˆpLCB succ of the per-demand MRM success probability, conditioned on the declared (o, f ) pair from (1)–(2). These levels allow Transferability to be treated as ameasurable sub-dimension of Controllability within ASIL risk assessment. A class assignment that does not also report 
+
+ˆpLCB succ , the declared (o, f ) slice, the FTTI assumption, the failure definition, and the sample size is not acceptable evidence. 
+
+E. Designed Versus Achievable Transferability 
+
+A Transferability class derived from architectural fallback design need not equal the class supported by scenario-conditioned evidence. Mismatches arise from environmen-tal or contextual limitations, for example, blocked shoul-ders, degraded localization, sun glare, partial occlusion, etc, which must be explicitly analyzed within safety cases. Let Tdesigned (f ) denote the fallback capability claimed at design time for fault family f from architectural redundancy analysis, and Tachievable (o, s, f ) the capability supported by validated evidence under ODD slice o and scene state s. The 
+
+designed-versus-achievable Transferability gap is 
+
+∆T (o, s, f ) = Tachievable (o, s, f ) − Tdesigned (f ), (3) taken on the ordinal scale {T 0, T 1, T 2, T 3} with T 0 <T 1 < T 2 < T 3, so T 0 denotes the most capable class and 
+
+T 3 the least. The sign convention follows the engineering intuition that ∆T > 0 corresponds to evidence falling short of the architectural claim, ∆T = 0 to evidence matching the claim, and ∆T < 0 to evidence exceeding the claim. Table II summarizes the interpretation. A positive ∆T is not a defect indicator on its own; it is a routine outcome at the start of a validation campaign, but it must be auditable, ODD-sliced, and traceable rather than subsumed in an undifferentiated aggregate claim. 
+
+F. Operationalizing Transferability via Minimal-Risk Ma-neuver (MRM) Performance 
+
+Transferability is evaluated through three auditable indi-cators derived from MRM performance: 1) Initiation latency tinit relative to FTTI, 2) MRM success rate ˆpsucc with confidence interval, across fault scenarios, and 3) Final stop-zone compliance zstop with designated minimal-risk locations. These indicators complement ISO 26262 fault analy-ses rather than replace them. They provide quantifiable, ISO 21448:2022 SOTIF-aligned evidence for fallback ro-bustness that can be verified through fault-injection testing, hardware-in-the-loop (HIL) simulation, or field data. Report-ing ET together with ∆T captures fallback capability in a unified, auditable framework for AV safety assessment. IV. I NTRODUCING PREDICTABILITY 
+
+This section introduces Predictability as a complementary sub-dimension of Controllability for autonomous-vehicle (AV) safety assessment. While Transferability internalizes TABLE I: Non-normative Transferability reporting classes. Classes are evidence bins whose acceptance thresholds must be calibrated per vehicle class, ODD slice, scenario family, and stakeholder risk tolerance.            
+
+> Class Description Example Evidence Interpretation
+> T0 Seamless, fully redundant, fail-operational transition Transfer to the stated MRC is consistently achieved within the hazard deadline with low secondary risk across the declared ODD slice; fallback function is uninterrupted. T1 Reliable degraded fallback Transfer is usually achieved within the hazard deadline; the outcome depends on the declared scene and degraded-mode assumptions; minor functional limitations are present. T2 Partial or uncertain fallback Transfer is conditional; identifiable ODD sub-slices show deadline, endpoint, or secondary-risk violations; the fallback endpoint may be limited to in-lane stop. T3 No defined or achievable fallback capability Transfer is frequently unachievable in the relevant scene, the deadline is exceeded, or the endpoint creates unacceptable secondary risk.
+
+TABLE II: Interpretation of the designed-versus-achievable Transferability gap ∆T defined in equation (3).                          
+
+> Case Interpretation
+> ∆T≤0Validation evidence supports or exceeds the architectural fallback claim under the declared (o, s, f ). The claim is auditable and may be entered into the safety case as supplementary evidence of Controllability. Small ∆T(=1)The architectural claim outruns the achievable evidence by one class. The claim must be qualified, the validation campaign extended, or the ODD restricted to slices where ∆T≤0is established. Large ∆T(≥2)The architectural claim is unsupported by the available evidence. The claim is invalid for the declared (o, s, f )
+> unless the design or the ODD is changed.
+
+Controllability through the system’s fallback capability, Pre-dictability externalizes it by capturing the extent to which affected road users can anticipate the AV’s near-future be-havior from observable motion, signals, and scene context before they must commit to their own response. Together, these two dimensions extend ISO 26262 Controllability from driver reaction to system behavior and human interpretation. 
+
+A. The Need for Predictability in Autonomous-Vehicle Safety 
+
+We are interested in the safety of the interaction between an automated vehicle and the road users it shares space with. For most road users, a vehicle’s motion is the primary channel of communication. In the absence of direct cues such as gaze or gesture, pedestrians, cyclists, and other drivers infer vehicle intent through observable kinematics: changes in speed, trajectory, and position relative to the environment. Studies on external human–machine interfaces report that, while visual or auditory signals can supplement understand-ing, motion cues remain the most consistent indicator of intent across contexts [18], [19]. The timing and quality of motion further influence pedestrians’ perception of safety and confidence during interactions [19], [20]. Within this framework, Predictability quantifies how ef-fectively an AV’s motion enables observers to anticipate its next maneuver before they must commit to a response. We therefore define: 
+
+Predictability: The extent to which affected road users can anticipate an AV’s near-future behavior from observable motion, signals, and scene context, before they must commit to their own response. 
+
+This definition is interaction-facing. It does not require the AV to imitate average human drivers, nor does it equate human-likeness with safety. We adopt a usage broader than the narrower human-robot interaction (HRI) distinction be-tween predictable motion and legible motion [9], [11]: AV safety needs both, since road users must first infer the vehicle’s intent and then judge whether the executed motion is consistent with that inferred intent. When motion departs from these expectations, accelerating abruptly, braking in-consistently, or failing to yield when the context calls for it, road users may hesitate or respond unpredictably, increasing interaction risk regardless of compliance with traffic rules. 
+
+B. Reference Model and Observer Model 
+
+Let ξ0: t denote the observed prefix of the AV trajectory, 
+
+c the scene context, o the operational-design-domain (ODD) slice, and a the relevant observer class-pedestrian, cyclist, passenger-car driver, or professional truck driver. We note that a Predictability monitor should not collapse the observer to a single deterministic inferred trajectory: a road user maintains a belief over multiple plausible maneuvers, and that distribution is the object the monitor must address. We therefore work with a context-conditioned reference distribution over expected future motion, 
+
+pref (ξt:t+H | ξ0: t, c, o, a ), (4) together with an observer model for goal inference, 
+
+p(g | ξ0: t, c, a ), g ∈ G, (5) where H is the prediction horizon (held distinct from the Transferability class symbols T 0–T 3) and G is the declared goal alphabet for the scenario family. The reference distribution in (4) may be constructed from naturalistic driving data, expert demonstrations, rule-compliant synthetic policies, learned motion-forecasting models, or validated simulator baselines [17]. We emphasize that these sources are evidence models, not ground truth about what the AV ought to do: human data may encode unsafe habits, synthetic policies may encode designer as-sumptions, and learned predictors may be poorly calibrated in rare situations. Departure from pref is therefore not auto-matically unsafe, but it is evidence requiring explanation. A monitor declaration must specify, for each scenario family, the prediction horizon (typically H = 3 –5 s for urban interaction); the context variables used by the reference, such as lane topology, signal state, right-of-way, relative speed, and vulnerable-road-user proximity; the observer class 
+
+a; the model class or dataset used to construct pref ; the calibration criterion, for instance held-out negative log-TABLE III: Non-normative Transferability reporting classes with quali-tative acceptance criteria.              
+
+> Class Initiation latency Example Final stop-zone
+> T0 ≪τhMinimal-risk location consistently reached T1 < τ hSafe-harbor or shoulder T2 < τ hControlled in-lane stop T3 ≥τhor unknown Non-compliant or undefined endpoint
+
+TABLE IV: Transferability–Predictability map-ping for Unified Controllability (SAE L4–L5).                     
+
+> T\PP0 P1 P2 P3
+> T0 C0 C0 C1 C2 T1 C1 C1 C2 C3 T2 C2 C2 C3 C3 T3 C3 C3 C3 C3
+
+likelihood, reliability of maneuver probabilities, or scenario-family false-alarm rate; and an out-of-distribution rejection rule. These declarations are recommended for a complete safety argument. Without them, the reference reduces to an unverifiable appeal to “normal driving” and may not support a safety-case argument. 
+
+C. Vector Monitor Channels 
+
+We report Predictability through four diagnostic channels, each addressing a distinct facet of observer-facing anticipata-bility. The first channel is contextual conformity . Within the declared pref , the raw negative log-likelihood 
+
+Snll (ξt:t+H ) = − log pref (ξt:t+H | ξ0: t, c, o, a ) (6) is informative within a fixed model, but its scale depends on the entropy and parameterization of the reference. For reporting, we therefore use a calibrated tail statistic, 
+
+Qconf = Pr  
+
+> ξ′
+> t:t+H∼pref
+
+Snll (ξ′ 
+
+> t:t+H
+
+) ≥ Snll (ξt:t+H ) . (7) Small Qconf places the observed AV behavior in the low-likelihood tail of the declared reference. We note that Qconf 
+
+is comparable only within the declared model, coordinate convention, ODD slice, and scenario family; it is not a universal measure of safety, and aggregations across dec-larations are not meaningful. The second channel is intent clarity . Let the observer model estimate p(g | ξ0: t, c, a ) over the fixed alphabet G.We define a normalized intent-clarity score 
+
+Sintent (t) = 1 − H(g | ξ0: t, c, a )log |G| , (8) where H(·) denotes Shannon entropy (typeset to remain distinct from the prediction horizon H), Sintent = 1 indicates low ambiguity, and Sintent = 0 indicates maximal ambiguity under the chosen alphabet. Distinct from this instantaneous measure, the first-confidence time is 
+
+tθ ≜ inf {t : p(g⋆ | ξ0: t, c, a ) ≥ θ} , (9) and the decision-margin acceptance condition is 
+
+tθ ≤ tdecision − ∆tresponse . (10) Equation (10) asks whether the correct intent becomes clear before the affected road user must commit to a response. The response margin ∆tresponse is observer-class dependent and must be calibrated against the relevant perception– response literature for the declared observer class [21], [22]. Because (8) depends on |G|, the goal alphabet must be declared and held fixed for each scenario family. 
+
+Remark 4.1 (Relation to Dragan-style legibility): The intent-clarity construct is operationally close to the legibility formalism of Dragan et al. [9], [11]. Their legibility functional integrates the observer’s posterior on the true goal g⋆ along the observed trajectory prefix, 
+
+L(ξ) =  R p(g⋆ | ξ0: t, c, a ) f (t) dt / R f (t) dt , with 
+
+f (t) a time-discounting weight. Equation (8) replaces the marginal posterior with a normalized entropy on G,retaining ambiguity reduction as the central object while accommodating multimodal posteriors with no privileged ground-truth goal at runtime. The first-confidence time (9) is the time-to-decision dual of L: rather than averaging confidence over the prefix, it asks when confidence in the true goal first crosses an observer-relevant threshold, which is the quantity the decision-margin condition (10) consumes. The third channel is signal consistency . It assesses whether turn signals, brake lights, lateral motion, gap choice, and right-of-way behavior agree. A lane-change monitor, for instance, reports 
+
+Ssignal =  ∆tsig , N conflict 
+
+, ∆tsig = tmotion − tsignal ,
+
+(11) where ∆tsig is the signal lead time and Nconflict counts signal–motion conflicts within a fixed window. The fourth channel is kinematic surprise . It measures context-unexplained jerk, hard braking, lateral drift, or hes-itation, 
+
+Skin = X
+
+> t
+
+1 |j(t)| > j max ∧ ¬ E(t) , (12) where E(t) denotes an observable or validated explanation, such as an occluded pedestrian, lead-vehicle braking, or a sudden obstacle. We note that the monitor does not penalize abrupt motion when an explanation is available; abrupt braking for an occluded pedestrian is safety-justified, while abrupt braking in free traffic without an observable trigger is a separate evidentiary item. The four channels assemble into the vector 
+
+MP =  Qconf , S intent , S signal , S kin 
+
+. (13) Because the components carry heterogeneous units and admit different mitigations, MP is the primary evidentiary object archived in the safety case. Any scalar derived from MP
+
+for ranking or class assignment must be accompanied by its calibration basis and treated as a derived report, not as the underlying evidence. 
+
+D. Aggregation to an Ordinal Predictability Class 
+
+Sections V and VI consume Predictability through an ordinal class P ∈ { P 0, P 1, P 2, P 3}, parallel to the Trans-ferability classes T0–T3. We therefore introduce an explicit aggregation rule from the vector monitor MP to the ordinal 
+
+P . The rule is declared, ODD-conditioned, and calibrated; it is not derived from first principles. TABLE V: Predictability classes derived from the vector monitor MP via the worst-channel aggregation rule of equation (14).        
+
+> Class Evidence interpretation
+> P0 All four channels of MPremain within calibrated bounds for the declared ODD slice and observer class. P1 Channels are usually within bounds, with isolated and explained excursions tied to declared assumptions. P2 One or more channels fail on identifiable ODD sub-slices or observer classes; the anticipation claim is fragile and must be qualified. P3 A channel fails systematically, or multiple channels fail concur-rently; observer anticipation cannot be claimed without redesign or ODD restriction.
+
+For each channel k ∈ { Qconf , S intent , S signal , S kin } we declare a thresholding map πk : R → { P 0, P 1, P 2, P 3}
+
+that assigns the channel value to a four-level evidence band given the scenario family, the ODD slice, and the observer class. The per-channel thresholds are calibrated on a held-out reference set with a stated false-alarm rate; their numerical values are not universal and must accompany any reported 
+
+P .We adopt the worst-channel aggregation rule 
+
+P = max 
+
+
+
+πQconf (Qconf ), π Sintent (14) 
+
+(Sintent ), π Ssignal (Ssignal ), π Skin (Skin )
+
+
+
+,
+
+where the ordering on {P 0, P 1, P 2, P 3} is P 0 < P 1 <P 2 < P 3. Equation (14) is conservative by construction: a single-channel failure dominates the class assignment, mirroring the safety-engineering convention that the weakest evidence governs the claim. The interpretive semantics of the four bands are summarized in Table V. The vector MP remains the underlying evidence archived in the safety case. The ordinal P is the derived report consumed by the unified Controllability computation in Section V. Both must be reported together: a P -class as-signment without the underlying MP and the accompanying calibration declaration does not constitute complete evidence under this framework. 
+
+E. Calibration Limits and Composition with Transferability 
+
+Predictability thresholds are not universal constants. A truck entering a highway work zone, a robotaxi negotiating a pedestrian crossing, and a passenger car changing lanes in free-flow traffic expose different observer populations, available cues, response times, and acceptable motion en-velopes. Calibration is therefore scenario-family and ODD-slice-specific. The monitor must declare the observer class, available cues, decision point, response margin, and goal alphabet. When human-subject evidence is unavailable, an observer model may serve as a provisional surrogate, but the safety case must state the residual uncertainty rather than treat the model as settled human behavior. This calibration discipline mirrors the per-ODD treatment of Transferability evidence introduced in Section III. Both Predictability and Transferability are reported and calibrated independently for each ODD slice, and only then composed into the unified Controllability of Section V; the integrity of the composition depends on the integrity of each input. Predictability metrics are accordingly proposed as auditable evidence artifacts under Parts 3-6 of ISO 26262, and as key performance indicators for ISO 21448:2022 SOTIF val-idation, with the accompanying declaration of model, ODD slice, observer class, and calibration basis carried as part of the work product. V. U NIFIED ENHANCED CONTROLLABILITY 
+
+This section formalizes how Transferability and Pre-dictability jointly extend ISO 26262 Controllability into a unified, auditable construct for hazard and risk assessment. The objective is to preserve the original three-parameter ISO 26262 risk logic-Severity ( S), Exposure ( E), and Con-trollability ( C)-while decomposing C into two measurable sub-dimensions representing internal and external Controlla-bility. 
+
+A. Unified Controllability Computation 
+
+For SAE Levels 0–2, Controllability ( Ch) remains human-centric as defined in ISO 26262. For higher automation, the unified Controllability evidence class ( Cu) is computed by composing the Transferability class with the Predictability class through an additive-penalty rule: 
+
+Cu = min  3, T + ∆ P
+
+, (15) where T ∈ { 0, 1, 2, 3} is the Transferability class assigned per Section III-D, and 
+
+∆P =
+
+
+
+0, P ∈ { P 0, P 1},
+
+1, P = P 2,
+
+2, P = P 3,
+
+(16) with the ordinal P -class derived from the underlying vec-tor monitor MP by the worst-channel aggregation rule of Section IV-D. The additive-penalty rule is one of several admissible composition policies; alternatives are discussed in Section V-B. The resulting Cu preserves ISO 26262’s ordinal scaling (C0–C3) and satisfies three properties any candidate alterna-tive in Section V-B must also preserve: severity dominance 
+
+(S0 remains QM regardless of Cu); monotonicity (degrading 
+
+T or P never improves Cu); and bounded compensation within Cu (a strong T can partially absorb a weakened P
+
+in the Controllability-evidence report, but Cu does not relax ASIL elsewhere in the safety case). 
+
+B. Candidate Composition Policies 
+
+Equations (15)–(16) are one of several reporting poli-cies that satisfy monotonicity and the ordinal range 
+
+{C0, . . . , C 3}. Three candidates spanning the practical de-sign space are summarized in Table VI. We adopt the additive-penalty rule as an illustrative re-porting convention only; standardization of Cu would require empirical and consensus-based calibration against scenario-conditioned hazardous-event data. The asymmetry between 
+
+T and P in equation (15) is not a derived result; it reflects an operational asymmetry in the underlying evi-dence. Transferability evidence is collected from controlled fault-injection campaigns whose (o, f ) conditioning, FTTI TABLE VI: Candidate composition policies for the unified Controllability evidence class Cu. The additive-penalty rule is used in this paper as an illustrative reporting convention and is not proposed as a normative standardization choice.                       
+
+> Policy Formula Properties
+> Additive penalty (this paper)
+> Cu=min(3 , T +∆P)
+> Simple, monotonic, treats Transfer-ability as the base class with Pre-dictability as a graded penalty; the asymmetry assumes that fallback ev-idence carries primary weight in the Controllability rationale. Max rule Cu=max( T, P ord )
+> Symmetric and conservative; the weakest evidence governs the report. May over-penalize when only one channel of MPfails on a narrow sub-slice. Safety-case ma-trix Expert-declared
+> T×Ptable per scenario family Most flexible and auditable; permits scenario-specific weighting. Requires explicit governance and consensus calibration.
+
+assumption, and lower confidence bound are declarable on demand; Predictability evidence is observer-conditioned, channel-heterogeneous, and admits greater residual uncer-tainty in calibration. The additive-penalty rule encodes the engineering preference that the better-instrumented evidence stream sets the base class, while the more uncertain stream contributes a graded penalty. A reviewer or standards body unconvinced by this preference may substitute the symmetric max rule of Table VI or the safety-case-matrix policy without disturbing the rest of the framework. 
+
+C. Integration into Hazard and Risk Assessment 
+
+In the enhanced HARA process, each identified hazard records both sub-dimensions:  
+
+> •
+
+Transferability evidence: the tuple ET of (2) including the (o, f ) slice, FTTI, ˆpsucc with confidence interval, and the gap ∆T of (3), verified through FTTI analysis, redundancy tests, and fault-injection campaigns.  
+
+> •
+
+Predictability evidence: the vector monitor MP
+
+of (13) with its calibration declaration and per-channel thresholds, validated through trajectory-conformity met-rics and human-observer studies. The derived Cu value is reported alongside conventional HARA attributes as supplementary evidence of Controlla-bility for driverless ADS items. It does not replace the ISO 26262 Controllability classification or alter the nor-mative ASIL determination procedure; it provides traceable evidence linking internal system design (Transferability) and external behavioral comprehension (Predictability) within a single ISO 26262-compatible safety argument. Transferability and Predictability evidence must not be double-counted: a fallback mechanism credited to Trans-ferability as a pre-mitigation Controllability factor cannot also be credited as a post-HARA safety measure satisfying the resulting ASIL, unless its availability is part of the item definition and is justified under the hazardous-event assumptions. The same restriction applies to Predictability-enhancing motion behaviors. Cu therefore stands as supple-mentary Controllability evidence, not as a substitution that relaxes ASIL. 
+
+D. Outcome 
+
+The unified Controllability construct maintains the inter-pretability of ISO 26262’s risk classification while embed-ding autonomy-specific evidence streams. It directly supports cross-standard alignment between ISO 26262 (functional safety) and ISO 21448:2022 (SOTIF) by quantifying both intrinsic system control and external human understanding within a consistent, auditable framework. VI. ASIL D ETERMINATION WITH ENHANCED 
+
+CONTROLLABILITY 
+
+This section extends the ISO 26262 ASIL determination process to incorporate the enhanced Controllability construct, integrating Transferability (internal fallback capability) and 
+
+Predictability (external behavioral intelligibility). The goal is to maintain ISO 26262’s original three-parameter logic-Severity (S), Exposure (E), and Controllability (C)-while decomposing C into its system and human-interaction com-ponents for autonomous vehicle (AV) applications. 
+
+A. Extended ASIL Assessment Framework 
+
+The proposed approach retains the standard definitions of Severity ( S0–S3) and Exposure ( E0–E4) from ISO 26262. Controllability is evaluated through its measurable sub-dimensions: Transferability ( T 0–T 3) and Predictability ( P 0–
+
+P 3). The resulting unified Controllability evidence class Cu
+
+is obtained from the additive-penalty rule of equation (15) and the mapping shown in Table IV. Cu is reported along-side the standard Controllability parameter and feeds the 
+
+(S, E, C u) tuple into the ASIL determination of ISO 26262-3:2018 Clause 6 Table 4 as supplementary Controllability evidence; it does not replace the normative Controllability parameter but informs its classification through auditable, scenario-conditioned evidence. A high Transferability ( T 0–T 1) combined with a high Predictability ( P 0–P 1) yields a low Cu class, which in the standard ASIL mapping is associated with reduced ASIL designations under matching S and E. Conversely, poor fallback or erratic behavior ( T 3, P 3) yields a high Cu class, escalating ASIL requirements consistent with ISO 26262’s monotonic risk progression. The compensation operates strictly inside the Controllability rationale: T and P do not offset Severity or Exposure, which remain independent risk factors determined by the hazardous event itself. 
+
+B. Integration Logic 
+
+The framework preserves ISO 26262’s core risk principles:  
+
+> •
+
+Severity dominance: S0 scenarios remain Quality Management (QM), unaffected by T or P . 
+
+> •
+
+Monotonicity: Increasing severity or exposure, or de-grading T or P (raising Cu), never decreases ASIL.  
+
+> •
+
+Bounded composition within Cu: Strong T can par-tially absorb weakened P inside the Controllability-evidence report, but Cu is never used to relax ASIL elsewhere in the safety case (see the double-counting prohibition of Section V-A). C. Implementation 
+
+During Hazard Analysis and Risk Assessment (HARA), practitioners record evidence for each sub-dimension:  
+
+> •
+
+Transferability: the evidence tuple ET of equa-tion (2) including validated FTTI, redundancy data, fault-injection results, lower confidence bounds ˆpLCB succ ,and the gap ∆T of equation (3).  
+
+> •
+
+Predictability: the vector monitor MP of equation (13) with the calibration declarations of Section IV-E, con-formity metrics, observer-study data, or telematics com-parison results. The computed Cu is reported in the Controllability column of the ISO 26262-3:2018 Clause 6 Table 4 ASIL determination as supplementary evidence informing the C classification. Concretely, for a hazardous event characterized by Severity S
+
+and Exposure E, the safety case records (S, E, C u) together with the underlying ET , MP , ∆T , and the calibration dec-larations of Sections III-D and IV-E, so that any reviewer can trace the Controllability classification back to the underlying fault-injection and observer evidence rather than to an opaque 
+
+C-class assignment. 
+
+D. Outcome 
+
+This extended ASIL determination method embeds AV-specific attributes within the established ISO 26262 risk structure. It quantifies both the vehicle’s intrinsic capability to manage hazards and its clarity of interaction with the environment, providing auditable, evidence-based inputs for functional safety assessment without altering the underlying ASIL methodology. VII. P ROPOSED AMENDMENTS TO ISO 26262 
+
+Note: The proposed amendments are the authors’ individ-ual research recommendations to the ISO standards body and do not reflect any organization’s compliance obligations. This section outlines concise modifications across ISO 26262 Parts 1–10 proposed to operationalize the en-hanced Controllability framework. The goal is not to replace existing processes but to introduce measurable evidence paths for Transferability and Predictability , ensuring that functional safety analyses remain applicable to SAE L3–L5 autonomous vehicles and explicitly include external road-user safety. The amendments are not intended to alter the standard’s normative HARA, ASIL, or item-definition se-mantics, but rather to extend its applicability and evidence base. 
+
+A. General Amendment Principles 
+
+Amendments follow four principles: (1) extend the scope of safety to include external road users; (2) integrate Trans-ferability and Predictability where Controllability is refer-enced, supported by the per-demand evidence tuple ET of (2) and the gap ∆T of (3); (3) reinforce architectural require-ments for autonomous fallback and fault-tolerant design; and (4) enable data-driven verification using simulation, natu-ralistic driving datasets, and human-observer studies. These principles ensure continuity with ISO 26262’s structure while expanding its evidence base. 
+
+B. Part 1 – Vocabulary 
+
+Add formal definitions for Transferability , Predictabil-ity , Fallback Mechanism , External Road User , and the gap ∆T . Clarify that a Safe State must balance occupant and external-user safety and that the Fault-Tolerant Time Interval (FTTI) also bounds the period within which the AV must complete reasonably safe fallback to protect nearby actors. 
+
+C. Part 2 – Functional Safety Management 
+
+Recommend dedicated organizational roles for external-road-user safety and cross-team interfaces linking functional-safety, human-factors, and autonomy disciplines. Impact analyses for design changes shall evaluate effects on ET and on the four channels of the Predictability monitor MP .
+
+D. Part 3 – Concept Phase 
+
+Update Hazard Analysis and Risk Assessment (HARA) to record both Transferability ( T ) and Predictability ( P )ratings as a part of Controllability ( C), alongside Severity (S) and Exposure ( E). For each hazard, the work product carries ET , MP , the derived P -class, Cu, and the calibration declarations of Sections III-D and IV-E. Safety goals can be a function of Predictability and fallback-performance require-ments, including the response margin ∆tresponse -validated through empirical testing and observer studies. 
+
+E. Part 4-6 – Product Development 
+
+System level: decompose safety goals into verifiable re-quirements addressing fallback initiation timing, FTTI com-pliance, observer-facing intent clarity, and signal consistency. 
+
+Hardware level: define redundancy and diversity evidence criteria consistent with the claimed Transferability class, reported with their lower confidence bounds. Software level: 
+
+propose isolation between primary and fallback functions, and motion-planning constraints whose effect on the four Predictability channels is independently monitored (Sec-tion VIII). 
+
+F. Part 7-8 – Production and Supporting Processes 
+
+Operational data collection includes monitoring outputs for Transferability and Predictability under field conditions, with explanations for any channel excursions. Tool qualifica-tion and change-management clauses reference the datasets, simulators, and observer models used for MP and ˆpsucc cal-ibration, thereby making the calibration basis itself traceable. 
+
+G. Part 9 – Safety Analyses 
+
+Controllability in risk classification becomes an enhanced parameter represented by Cu, derived from T and P via (15)–(16) and reported alongside the standard Controllability entry. Dependent-failure analysis must consider faults that simultaneously degrade fallback reliability and behavioral anticipatability, since a single root cause may compromise both. 
+
+H. Part 10 – Informative Guidance 
+
+Introduce a new appendix on Predictability Operational-ization , providing: (i) the calibration protocols of Sec-tion IV-E; (ii) recommended scenario families-unprotected turns, crosswalk yields, highway merging, work-zone narrowing-following the scenario-based evaluation discipline of ISO 34502:2022 [4] and the ADS V&V guidance of ISO/TR 4804:2020 [5]; and (iii) reporting templates that record the evidence tuple ET of (2), the vector monitor MP
+
+of (13), the gap ∆T of (3), and the calibration basis for each declared (o, s, f, a ). This appendix provides practical guidance on implementing human-perception-based safety validation in ISO 26262 projects. 
+
+I. Summary 
+
+These concise amendments integrate Transferability and Predictability throughout the ISO 26262 lifecycle, extend-ing the standard’s applicability from driver-controlled to autonomous systems. The revisions preserve ISO 26262’s core philosophy while embedding measurable, evidence-based assurance of both internal fallback performance and external behavioral intelligibility. VIII. P LANNER DESIGN IMPLICATIONS 
+
+The four channels of the Predictability monitor MP
+
+introduced in Section IV-C, together with the Transferability indicators of Section III, can inform planner design. We note, however, that they should not be confused with safety evi-dence. A planner may employ contextual conformity, intent clarity, signal consistency, or kinematic-surprise penalties as candidate-trajectory filters, as terms in a constrained-optimization objective, or as reward-shaping signals for a learned policy. Such use can encourage smoother, more leg-ible, and better-signaled behavior during development, and the monitor declarations of Section IV-B-reference model, observer class, ODD slice, calibration criterion, transfer di-rectly to the planner’s specification of its own objective. Sim-ilarly, the Transferability indicators-initiation latency tinit ,MRM success probability ˆpsucc , and stop-zone compliance 
+
+zstop -can inform fallback trigger thresholds and redundancy design; for instance, a planner aware of τFTTI can maintain a continuously feasible fallback trajectory to reduce tinit at demand time. Nevertheless, planner-internal rewards, costs, and con-straints are not independent evidence that the executed be-havior is predictable or that fallback capability is achieved. Three failure modes are of particular concern. First, a learned policy optimized against Sintent may commit early to one goal interpretation in ways that are locally legible but difficult to abort-surrogate overfitting that improves a scalar metric while leaving real observer-facing ambiguity unresolved. Second, a reward derived from Qconf is only meaningful within the declared ODD slice; outside it, the planner may receive reward signals that are uncorrelated with actual an-ticipatability. Third, and most critically, using MP as both a training signal and a safety-case evidence artifact introduces a circular dependency that invalidates the independence assumption underlying the safety argument. The evidence tuple ET of (2) should be populated from independent fault-injection campaigns and hardware-in-the-loop evaluation, not from simulations that share assumptions with the primary driving function; a ∆T computation drawn from the same environment used to train fallback-awareness constraints is not a valid ∆T measurement. Any planner who uses Transferability or Predictability during optimization must therefore be evaluated by an in-dependent monitor on executed closed-loop behavior, with the safety case reporting the monitor outputs, calibration basis, detection power, false-positive rate, and ODD-sliced failure diagnosis separately from the planner’s objective. We emphasize that this independence is not a procedural nicety: it is the only mechanism that distinguishes a predictable planner from one that has merely learned to satisfy its surrogate. IX. C ONCLUSION 
+
+This paper enhances the ISO 26262 functional safety framework by extending its Controllability construct to ad-dress the operational realities of autonomous vehicles. Rather than replacing established principles, the proposed approach decomposes Controllability into two measurable and comple-mentary sub-dimensions: Transferability , representing the autonomous system’s intrinsic fallback capability, and Pre-dictability , representing the degree to which external road users can anticipate its behavior. Together, these extensions preserve the intent of ISO 26262:2018 while enabling its direct application to SAE L4-L5 automation. The framework developed in this document aligns with ISO 26262’s risk factors: Severity, Exposure, and Con-trollability. However, it enhances Controllability by using measurable indicators grounded in system reliability, human factors science, and behavioral data. Mathematical definitions and validation methods are used to connect Transferability to fault-tolerant fallback performance and Predictability to trajectory clarity and human understanding. This is compat-ible with the ISO 26262:2018 standard and broadens risk assessment to include both the system’s internal control and human understanding. Comprehensive lifecycle integration points are identified throughout ISO 26262:2018 Parts 1-10, ensuring that ev-idence of fallback performance and behavioral intelligi-bility is incorporated into standard work products. These targeted amendments harmonize functional safety with ISO 21448:2022 SOTIF and bridge classical safety engineer-ing, human-robot interaction research, and real-world au-tonomous vehicle validation. By embedding Transferability and Predictability within the ISO 26262 structure, this work provides a scalable, evidence-driven pathway for certifying the safety of highly automated and fully autonomous systems. The proposed enhancements maintain the rigor of functional safety while aligning its assurance framework with the distributed, data-intensive, and human-interactive nature of modern autonomous driving. 
+
+Limitations. The numerical targets of Tables III and V, and the per-channel thresholds of (14), are scenario-family-, ODD-slice-, and observer-class-specific; they must be re-ported with their calibration basis and are not transfer-able across declarations without re-calibration. Naturalistic driving data may encode behaviors that may not reflect optimal safety practices and culturally specific norms-it is an evidence model, not a normative target. Where human-subject evidence is unavailable, an observer model serves as a reasonably approximate model, subject to validation and project-specific calibration, for p(g | ξ0: t, c, a ), with the substitution and residual uncertainty declared as part of the safety case. The framework does not propose ASIL relax-ation based on high T or P ; the unified Controllability evi-dence class Cu supplements, rather than replaces, the norma-tive ISO 26262 Controllability parameter. High-confidence Transferability claims for safety-critical fault families require statistical care: a finite fault-injection campaign cannot es-tablish lower confidence bounds beyond a level dictated by sample size, and rare-event estimation, accelerated testing, and scenario-coverage arguments are required for the higher classes of Tables I and III. Both MP and Tachievable may degrade silently outside their declared ODD slices; the out-of-distribution rejection rule required by Section IV-B is part of the calibration declaration, not an optional extension. 
+
+Future Work. In the future, we are interested in the calibration methodology for Sections III and IV - ODD-slice-specific thresholds, observer-model validation against human-subject data, and rare-event estimation for high-confidence class assignments remain open for the field. The composition policies of Table VI merit empirical compari-son against hazardous-event data to replace the illustrative 
+
+Cu convention adopted here. Finally, the coupling between legibility-oriented planning and the ∆T gap warrants explicit study, provided that the independence requirement of Sec-tion VIII is preserved throughout. 
+
+DISCLAIMER This publication reflects the individual research views of the named authors and does not constitute the official position, policy, or design philosophy of any author’s employer or affiliated organization. The proposed frameworks, mathematical formulations, acceptance criteria, and amendment recommendations are research contributions offered for consideration by standards bodies and the broader research community; they do not describe the current or intended internal processes, safety cases, compliance posture, or product architecture of any author’s employer. For the avoidance of doubt, this publication is not intended and shall not be construed to establish a maximum or min-imum requirement for dependability, safety, or performance for any automated driving system, nor shall it restrict any organization from adopting approaches that differ from those described herein. Its contents may require revision as tech-nology, regulatory guidance, and community understanding evolve. Where the views of any individual author may appear to conflict with the positions of their employer, the employer’s own published materials, official documentation, and design decisions shall prevail. REFERENCES [1] Road vehicles — Functional safety (ISO 26262) , International Organization for Standardization Std., 2018, iSO 26262 series. [Online]. Available: https://www.iso.org/standard/43464.html [2] Road vehicles — Safety of the intended functionality (SOTIF) (ISO 21448:2022) , International Organization for Standardization Std., 2022. [Online]. Available: https://www.iso.org/standard/77490.html [3] Underwriters Laboratories (UL), UL 4600: Standard for Safety for the Evaluation of Autonomous Products , Underwriters Laboratories Std., 2023, covers safety case development, behavioral transparency, and system-level assurance for autonomous systems. [4] Road vehicles — Test scenarios for automated driving systems — Scenario based safety evaluation framework , International Organization for Standardization Std. ISO 34 502:2022, 2022. [Online]. Available: https://www.iso.org/standard/78951.html [5] International Organization for Standardization, “Road vehicles — safety and cybersecurity for automated driving systems —design, verification and validation,” International Organization for Standardization, Tech. Rep. ISO/TR 4804:2020, 2020. [Online]. Available: https://www.iso.org/standard/80363.html [6] D. Garikapati, S. Poovalingam, W. Hau, R. De Castro, and C. Shinde, “A comprehensive review of parallel autonomy systems within vehi-cles: applications, architectures, safety considerations and standards,” 
+
+IEEE Access , 2024. [7] IEEE, IEEE Standard for Assumptions in Safety-Related Models for Automated Driving Systems , Institute of Electrical and Electronics Engineers Std. IEEE Std 2846-2022, 2022. [Online]. Available: https://standards.ieee.org/ieee/2846/10831/ [8] R. Salay and K. Czarnecki, “Using machine learning safely in automotive software: An assessment and adaption of software process requirements in ISO 26262,” arXiv preprint arXiv:1808.01614 , 2018. [Online]. Available: https://arxiv.org/abs/1808.01614 [9] A. Dragan, “Legible motion for robot planning and control,” Ph.D. dissertation, Carnegie Mellon University, 2015. [10] A. D. Dragan and S. S. Srinivasa, “Integrating human observer inferences into robot motion planning,” Autonomous Robots , vol. 37, no. 4, pp. 351–368, 2014. [11] A. D. Dragan, K. C. T. Lee, and S. S. Srinivasa, “Legibility and predictability of robot motion,” in ACM/IEEE Int. Conf. on Human-Robot Interaction (HRI) , 2013. [12] A. D. Dragan, S. Bauman, J. Forlizzi, and S. S. Srinivasa, “Effects of robot motion on human-robot collaboration,” in Proceedings of the 10th ACM/IEEE International Conference on Human-Robot Interac-tion (HRI) , 2015, pp. 51–58. [13] S. Nikolaidis, A. D. Dragan, and S. S. Srinivasa, “Viewpoint-based legibility optimization,” in Proceedings of the 11th ACM/IEEE Inter-national Conference on Human-Robot Interaction (HRI) , 2016, pp. 271–278. [14] D. Sadigh, S. S. Sastry, S. A. Seshia, and A. D. Dragan, “Planning for autonomous cars that leverage the effects on human drivers,” in 
+
+Proceedings of Robotics: Science and Systems (RSS) , 2016. [15] A. Zhou, D. Hadfield-Menell, A. Nagabandi, and A. D. Dragan, “Ex-pressive robot motion timing,” in Proceedings of the 2017 ACM/IEEE International Conference on Human-Robot Interaction (HRI) , 2017, pp. 22–31. [16] Society of Automotive Engineers (SAE) International, Road Vehicle – Human-Centric Driving Data Acquisition for Research and Develop-ment , Std., 2015, sAE J2944 201503. Standard issued 2015-03-31. [17] National Highway Traffic Safety Administration (NHTSA), “Strategic highway research program 2 (shrp 2) naturalistic driving study (nds) data,” Dataverse, various years. [18] J. Jenness, A. K. Benedick, J. P. Singer, S. Yahoodik, E. Petraglia, J. Jaffe, and J. M. Sullivan, “Automated driving systems’ com-munication of intent with shared road users,” U.S. Department of Transportation, National Highway Traffic Safety Administration, Tech. Rep. DOT HS 813 148, 11 2021. [19] P. Schmitt, N. Britten, J. Jeong, A. Coffey, K. Clark, S. S. Kothawade, E. C. Grigore, A. Khaw, C. Konopka, L. Pham, K. Ryan, C. Schmitt, and E. Frazzoli, “Can cars gesture? a case for expressive behav-ior within autonomous vehicle and pedestrian interactions,” IEEE Robotics and Automation Letters , vol. 7, no. 2, pp. 1416–1423, 2022. [20] A. Block, S. Joshi, W. Tabone, A. Pandya, S. Lee, V. Patil, N. Britten, and P. Schmitt, “The road ahead: Advancing interactions between autonomous vehicles, pedestrians, and other road users,” in 2023 32nd IEEE International Conference on Robot and Human Interactive Communication (RO-MAN) , 2023, pp. 16–23. [21] B. J. Schroeder and N. M. Rouphail, “Estimating pedestrian behavior at crosswalks: Stated preference and behavioral models for engineering applications,” in Transportation Research Record , vol. 2264, no. 1, 2011, pp. 90–98. [22] Transportation Research Board, Highway Capacity Manual , 5th ed. Washington, DC: National Academies Press, 2010, pedestrian perception–response time guidance, Chapter 17.
