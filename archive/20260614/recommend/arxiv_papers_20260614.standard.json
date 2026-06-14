@@ -1,0 +1,954 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-06-14T21:06:34.033671+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 3,
+    "deep_divecandidates": 18,
+    "deep_cap": 8,
+    "deep_selected": 8,
+    "quick_candidates": 17,
+    "quick_skim_target": 13,
+    "quick_selected": 13
+  },
+  "deep_dive": [
+    {
+      "id": "2606.12780v1",
+      "source": "arxiv",
+      "title": "ProPlay: Procedural World Models for Self-Evolving LLM Agents",
+      "abstract": "Self-evolving agents are expected to improve through interaction without external supervision, but this remains difficult in partially observable environments where agents must explore actively, learn from limited feedback, and decide when to trust prior experience. Existing LLM-agent methods often rely on memory or planning modules, yet they rarely close the loop between them to continually refine an internal understanding of environment dynamics. We introduce ProPlay, a procedural world model that supports procedure-level preplay, where agents can rehearse future procedural paths using the learned world knowledge. Rather than representing experience as isolated rules or low-level action constraints, ProPlay abstracts successful trajectories into procedures and organizes them in a procedure graph that captures causal transitions among task stages. Each transition is associated with a reliability record embedding to estimate its task-specific contribution from past outcomes. Before each episode, ProPlay simulates future procedural trajectories over known graph structures as structured soft guidance; after execution, it refines the graph using environment feedback. Experiments on public benchmarks show that ProPlay consistently improves environment understanding and self-evolution capability over strong baselines. Our code has been released in https://github.com/antman9914/proplay.",
+      "authors": [
+        "Yijun Ma",
+        "Zehong Wang",
+        "Yiyang Li",
+        "Ziming Li",
+        "Xiaoguang Guo",
+        "Weixiang Sun",
+        "Chuxu Zhang",
+        "Yanfang Ye"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "published": "2026-06-11T00:47:37+00:00",
+      "link": "https://arxiv.org/pdf/2606.12780v1",
+      "tags": [
+        "keyword:agent-evolve",
+        "keyword:agent-safety",
+        "keyword:mas-security",
+        "query:agent-evolve",
+        "query:agent-safety",
+        "query:mas-security"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "procedural world models enabling self-evolving LLM agents without external supervision",
+      "llm_evidence_cn": "提出程序化世界模型，使LLM智能体无需外部监督即可自进化",
+      "llm_evidence": "提出程序化世界模型，使LLM智能体无需外部监督即可自进化",
+      "canonical_evidence": "提出程序化世界模型，使LLM智能体无需外部监督即可自进化",
+      "llm_tldr_en": "ProPlay introduces procedural world models for self-evolving LLM agents that rehearse future procedural paths using learned world knowledge, closing the loop between memory and planning.",
+      "llm_tldr_cn": "自进化智能体旨在无外部监督下通过交互提升，但在部分可观测环境中面临探索与反馈利用难题。本文提出ProPlay程序化世界模型，支持过程级预演，使智能体利用习得的世界知识排练未来过程路径，将成功轨迹抽象为程序，实现持续自我改进。",
+      "llm_tldr": "自进化智能体旨在无外部监督下通过交互提升，但在部分可观测环境中面临探索与反馈利用难题。本文提出ProPlay程序化世界模型，支持过程级预演，使智能体利用习得的世界知识排练未来过程路径，将成功轨迹抽象为程序，实现持续自我改进。",
+      "llm_tags": [
+        "query:agent-evolve"
+      ],
+      "matched_query_tag": "query:agent-evolve",
+      "matched_query_text": "self-evolving AI agent",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.12797v1",
+      "source": "arxiv",
+      "title": "The Containment Gap: How Deployed Agentic AI Frameworks Fail Public-Facing Safety Requirements",
+      "abstract": "Agentic large language model systems that autonomously invoke tools, maintain persistent memory, and execute multi-step plans are increasingly deployed in public-facing domains, including government services, healthcare triage, and financial advising. We ask whether the frameworks used to build these systems provide architectural-level structural safety guarantees. Applying six containment principles derived from a compositional model of agentic architectures, we audit three dominant frameworks (LangChain, AutoGPT, and OpenAI Agents SDK) and find no native compliance in any of them. Memory integrity, a defense against one of the most prevalent vulnerability classes, is not observed in any of the three evaluated frameworks. We validate these findings empirically: in a simulated government benefits agent built on LangChain, a single memory-poisoning write induces persistent targeted corruption across all tested seeds and backends, increasing the wrongful denial rate for targeted applicants to 88.9%. Under a complex five-factor policy, the same attack preserves aggregate accuracy while increasing targeted wrongful denials by 3.5x, rendering the corruption difficult to detect through standard monitoring. We then introduce two lightweight containment mechanisms: a memory integrity validator and a policy gate, which eliminate both attack vectors with sub-millisecond overhead (<0.2ms per call). We conclude that the current agentic framework ecosystem may not yet meet secure-by-default expectations for public-facing deployments and outline priority architectural interventions to enable trustworthy deployment in high-stakes, socially impactful applications.",
+      "authors": [
+        "Md Jafrin Hossain",
+        "Mohammad Arif Hossain",
+        "Weiqi Liu",
+        "Nirwan Ansari"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-06-11T01:46:26+00:00",
+      "link": "https://arxiv.org/pdf/2606.12797v1",
+      "tags": [
+        "keyword:agent-evolve",
+        "keyword:agent-safety",
+        "keyword:mas-security",
+        "query:agent-evolve",
+        "query:agent-safety",
+        "query:mas-security"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "audit revealing safety failures in deployed agentic AI frameworks",
+      "llm_evidence_cn": "审计发现已部署代理AI框架的安全缺陷",
+      "llm_evidence": "审计发现已部署代理AI框架的安全缺陷",
+      "canonical_evidence": "审计发现已部署代理AI框架的安全缺陷",
+      "llm_tldr_en": "Audits three major agentic frameworks (LangChain, AutoGPT, OpenAI Agents SDK) showing no native compliance with containment principles for public-facing safety.",
+      "llm_tldr_cn": "自主调用工具、维持记忆的代理系统正部署到公共服务领域。本文从组合式代理架构模型中推导出六项容器化原则，审计LangChain、AutoGPT和OpenAI Agents SDK发现均未原生满足任何原则。特别是内存完整性这一最普遍漏洞的防御在所有框架中缺失，揭示了AI代理框架的重大安全隐患。",
+      "llm_tldr": "自主调用工具、维持记忆的代理系统正部署到公共服务领域。本文从组合式代理架构模型中推导出六项容器化原则，审计LangChain、AutoGPT和OpenAI Agents SDK发现均未原生满足任何原则。特别是内存完整性这一最普遍漏洞的防御在所有框架中缺失，揭示了AI代理框架的重大安全隐患。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "safety concerns in AI agents",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.12703v1",
+      "source": "arxiv",
+      "title": "SMSR: Certified Defence Against Runtime Memory Poisoning in Persistent LLM Agent Systems",
+      "abstract": "Retrieval-augmented generation (RAG) agents increasingly run with persistent memory that accumulates across user sessions. This creates a new attack surface: an adversary interacting only through normal channels can inject crafted memories that, once retrieved, steer the agent's responses for future users, without touching model weights or code. We call this Multi-Session Memory Poisoning (MSMP) and show that no existing defence certifies against it; static-corpus defences (RobustRAG, ReliabilityRAG) assume a fixed knowledge base, and heuristic filters are bypassed by fluent enterprise-style text. We present Signed Memory with Smoothed Retrieval (SMSR), the first defence with a certified robustness bound for this setting. Component 1 adds HMAC-SHA256 provenance at write time, blocking unsigned injection. Component 2 applies randomised memory ablation with verdict-based majority voting at query time, bounding the influence of authenticated adversaries. We prove that no provenance-free retrieval-time filter can certify against adaptive injection, derive a hypergeometric certificate for Component 2, and formalise the Consistent Minority Effect, whereby a consistent adversarial answer wins string-based voting as a numerical minority while verdict-based voting removes it. Across 15 enterprise scenarios (3,150 repeated trials), Component 1 cuts attack success from 93-100% to 0% for all unsigned variants. For an authenticated adversary with a single injection, Component 2 holds success to 8.0% (95% CI [5.8, 10.9], n=450), below the certified worst case. In an end-to-end query-only attack where the agent itself writes the poison rather than it being pre-seeded, SMSR reduces success from 65.3% to 5.3% (n=150, non-overlapping CIs) on a live agent stack. Clean-query utility is 90% (Component 1) and 85% (combined).",
+      "authors": [
+        "Tarun Sharma"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-06-10T21:45:52+00:00",
+      "link": "https://arxiv.org/pdf/2606.12703v1",
+      "tags": [
+        "keyword:agent-evolve",
+        "keyword:agent-safety",
+        "keyword:mas-security",
+        "query:agent-safety",
+        "query:mas-security"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Certified defense against memory poisoning in persistent LLM agents",
+      "llm_evidence_cn": "对持久LLM代理的内存中毒提供认证防御",
+      "llm_evidence": "对持久LLM代理的内存中毒提供认证防御",
+      "canonical_evidence": "对持久LLM代理的内存中毒提供认证防御",
+      "llm_tldr_en": "Introduces SMSR, the first certified defense against multi-session memory poisoning in persistent LLM agents, providing robustness guarantees against adversarial memory injections.",
+      "llm_tldr_cn": "持久化LLM代理面临多会话内存中毒攻击，现有防御无法提供认证保障。本文提出SMSR防御框架，结合签名记忆和平滑检索，首次在RAG代理中实现可认证的鲁棒性边界。实验表明SMSR能有效抵御针对记忆的恶意注入，确保代理回答不被操控。该工作为LLM代理的持久记忆安全提供了重要理论基础和实用方案。",
+      "llm_tldr": "持久化LLM代理面临多会话内存中毒攻击，现有防御无法提供认证保障。本文提出SMSR防御框架，结合签名记忆和平滑检索，首次在RAG代理中实现可认证的鲁棒性边界。实验表明SMSR能有效抵御针对记忆的恶意注入，确保代理回答不被操控。该工作为LLM代理的持久记忆安全提供了重要理论基础和实用方案。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "safety concerns in AI agents",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.12737v1",
+      "source": "arxiv",
+      "title": "PI-Hunter: Automated Red-Teaming for Exposing and Localizing Prompt Injections",
+      "abstract": "Large Language Models (LLMs) are rapidly evolving into agentic systems that interact with external tools and environments, introducing new security risks such as indirect prompt injection attacks through untrusted external sources. Existing defenses mainly focus on blocking malicious content at inference time, and current red-teaming methods primarily optimize attack success. As a result, developers have limited visibility into how latent prompt injections emerge and propagate through agents. We propose PI-Hunter, an automated agentic auditing framework for proactive vulnerability exposure in LLM agents. PI-Hunter constructs realistic source-aware test cases and iteratively evolves them through feedback-driven exploration to induce agents to retrieve and reveal latent malicious instructions embedded within external environments. Extensive experiments across multiple benchmarks, agent architectures, attacks, and defenses demonstrate that PI-Hunter substantially improves vulnerability exposure and attack-surface coverage over strong automated red-teaming baselines, while remaining effective under existing prompt injection defenses.",
+      "authors": [
+        "Pengfei He",
+        "Lesly Miculicich",
+        "Vishesh Sharma",
+        "Ash Fox",
+        "George Lee",
+        "Jiliang Tang",
+        "Tomas Pfister",
+        "Long T. Le"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-06-10T22:57:02+00:00",
+      "link": "https://arxiv.org/pdf/2606.12737v1",
+      "tags": [
+        "keyword:agent-evolve",
+        "keyword:agent-safety",
+        "keyword:mas-security",
+        "query:agent-evolve",
+        "query:agent-safety",
+        "query:mas-security"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "automated red-teaming for prompt injection security in LLM agents",
+      "llm_evidence_cn": "针对LLM智能体提示注入安全的自动化红队测试",
+      "llm_evidence": "针对LLM智能体提示注入安全的自动化红队测试",
+      "canonical_evidence": "针对LLM智能体提示注入安全的自动化红队测试",
+      "llm_tldr_en": "PI-Hunter is an automated auditing framework that exposes and localizes prompt injection vulnerabilities in LLM agents via realistic test cases and feedback-driven evolution.",
+      "llm_tldr_cn": "该论文针对LLM智能体面临的新型安全风险（如间接提示注入攻击），提出PI-Hunter自动化审计框架。该框架通过构建逼真的源感知测试用例，并利用反馈驱动的迭代演化来暴露和定位智能体中的潜伏提示注入。实验证明了该方法在发现安全漏洞方面的有效性，为智能体安全审计提供了新工具。",
+      "llm_tldr": "该论文针对LLM智能体面临的新型安全风险（如间接提示注入攻击），提出PI-Hunter自动化审计框架。该框架通过构建逼真的源感知测试用例，并利用反馈驱动的迭代演化来暴露和定位智能体中的潜伏提示注入。实验证明了该方法在发现安全漏洞方面的有效性，为智能体安全审计提供了新工具。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "safety concerns in AI agents",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.12918v1",
+      "source": "arxiv",
+      "title": "MAStrike: Shapley-Guided Collusive Red-Teaming on Multi-Agent Systems",
+      "abstract": "Hierarchical multi-agent systems (MAS) are rapidly being deployed in high-stakes workflows across domains such as finance and software engineering. In these systems, safety and security are inherently distributed across role-specialized agents, significantly expanding the attack surface, particularly under coordinated adversarial behaviors such as privilege escalation and cross-agent collusion. Existing red-teaming approaches for MAS remain limited: they rely on heuristic selection of target agents and perturb isolated message streams, leaving critical questions unanswered as which agents are most responsible for system safety, and how compromised agents can coordinate to bypass defenses. We propose MAStrike, a closed-loop framework for collusive red-teaming in hierarchical MAS. We propose the first agent-level Shapley value analysis for MAS, quantifying each agent's marginal contribution to system robustness under task-specific distributions. GGuided by this attribution, MAStrike identifies vulnerable agent coalitions and generates coordinated, role-aware adversarial manipulations. These attacks are iteratively refined through structured causal diagnosis, attributing failure cases to uncompromised agents that block adversarial attempts. We further build a comprehensive MAS red-teaming benchmark and controllable environments spanning diverse hierarchical topologies and domains, including finance, software engineering, and CRM. Extensive experiments across MAS built on multiple frontier models show that MAStrike substantially outperforms heuristic baselines. Our analysis further uncovers non-trivial Shapley value distributions and higher-order interaction structures among agents, revealing critical vulnerabilities and coordination patterns that are overlooked by prior single-agent or template-based methods.",
+      "authors": [
+        "Chejian Xu",
+        "Zhaorun Chen",
+        "Jingyang Zhang",
+        "Freddy Lecue",
+        "Avni Kothari",
+        "Sarah Tan",
+        "Wenbo Guo",
+        "Bo Li"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-06-11T05:21:39+00:00",
+      "link": "https://arxiv.org/pdf/2606.12918v1",
+      "tags": [
+        "keyword:agent-evolve",
+        "keyword:agent-safety",
+        "keyword:mas-security",
+        "query:agent-evolve",
+        "query:agent-safety",
+        "query:mas-security"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "collusive red-teaming framework for security of hierarchical multi-agent systems",
+      "llm_evidence_cn": "提出合谋红队框架，评估层次化多智能体系统的安全性",
+      "llm_evidence": "提出合谋红队框架，评估层次化多智能体系统的安全性",
+      "canonical_evidence": "提出合谋红队框架，评估层次化多智能体系统的安全性",
+      "llm_tldr_en": "MAStrike is a closed-loop framework for collusive red-teaming in hierarchical multi-agent systems, using Shapley values to identify critical agents and coordinate attacks.",
+      "llm_tldr_cn": "层次化多智能体系统在高风险场景部署中面临合谋攻击的安全隐患。本文提出MAStrike闭环框架，通过沙普利值识别关键智能体，并协调合谋攻击以绕过防御。实验揭示了特权提升和跨智能体合谋等攻击面的严重威胁。",
+      "llm_tldr": "层次化多智能体系统在高风险场景部署中面临合谋攻击的安全隐患。本文提出MAStrike闭环框架，通过沙普利值识别关键智能体，并协调合谋攻击以绕过防御。实验揭示了特权提升和跨智能体合谋等攻击面的严重威胁。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "security of multi-agent systems",
+      "matched_requirement_id": "req-19",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.13079v1",
+      "source": "arxiv",
+      "title": "The Emergence of Autonomous Penetration Capabilities in Large Language Model-Powered AI Systems",
+      "abstract": "Nowadays, the autonomous execution of cyberattacks capable of causing substantial real-world harm is widely regarded as one of the critical red lines that frontier AI systems must not cross. Within this broader red-line scenario, autonomous penetration represents a core enabling capability and subtask: the ability of LLM-powered AI systems to independently conduct adversarial operations against a target server without human intervention, identify and exploit vulnerabilities, and obtain unauthorized access or control. A growing body of work has sought to assess the autonomous penetration capabilities of AI systems. However, existing evaluations often employ opaque methodologies, rely on unrealistic or overly simplified penetration-testing scenarios, or provide LLMs with excessive prior knowledge and task-specific guidance, and cannot accurately capture the extent to which modern AI systems can autonomously perform this core capability within broader high-impact cyberattack scenarios.   To address these limitations, we construct a new autonomous penetration evaluation framework consisting of two components: target servers and agent scaffolding. Specifically, on the target-server side, we design two levels of target environments based on the number of secure services without known vulnerabilities deployed alongside a vulnerable service: Tier~1 (one secure service) and Tier~2 (three secure services), resulting in a total of 300 target servers. Meanwhile, the agent scaffolding adopts a general-purpose agent architecture equipped with a set of general-purpose cybersecurity tools, without any target-specific prior knowledge. We evaluate 19 open-weight and proprietary LLMs, and find that current models achieve penetration success rates ranging from 10.7% to 69.3%. Moreover, we observe that autonomous penetration capability continues to improve alongside advances in overall model capability.",
+      "authors": [
+        "Jiaqi Luo",
+        "Jiarun Dai",
+        "Zhile Chen",
+        "Jia Xu",
+        "Weibing Wang",
+        "Yawen Duan",
+        "Brian Tse",
+        "Geng Hong",
+        "Xudong Pan",
+        "Yuan Zhang",
+        "Min Yang"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-06-11T09:02:14+00:00",
+      "link": "https://arxiv.org/pdf/2606.13079v1",
+      "tags": [
+        "keyword:agent-evolve",
+        "keyword:agent-safety",
+        "keyword:mas-security",
+        "query:agent-evolve",
+        "query:agent-safety",
+        "query:mas-security"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "autonomous penetration capabilities raise safety concerns in AI agents",
+      "llm_evidence_cn": "自主渗透能力引发AI智能体安全问题",
+      "llm_evidence": "自主渗透能力引发AI智能体安全问题",
+      "canonical_evidence": "自主渗透能力引发AI智能体安全问题",
+      "llm_tldr_en": "Evaluates autonomous penetration capabilities of LLM-powered AI systems, highlighting safety risks and need for robust evaluation methodologies.",
+      "llm_tldr_cn": "自主执行网络攻击是前沿AI系统的红线之一。本文评估了LLM驱动的AI系统自主渗透能力，指出现有评估方法存在不透明和过于简化的问题。研究发现当前系统已具备一定自主渗透能力，对AI安全构成严重挑战，呼吁发展更稳健的评估框架和防护措施。",
+      "llm_tldr": "自主执行网络攻击是前沿AI系统的红线之一。本文评估了LLM驱动的AI系统自主渗透能力，指出现有评估方法存在不透明和过于简化的问题。研究发现当前系统已具备一定自主渗透能力，对AI安全构成严重挑战，呼吁发展更稳健的评估框架和防护措施。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "safety concerns in AI agents",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.13317v1",
+      "source": "arxiv",
+      "title": "SkillCAT: Contrastive Assessment and Topology-Aware Skill Self-Evolution for LLM Agents",
+      "abstract": "Skill self-evolution methods for LLM agents aim to turn execution trajectories into reusable skill documents, but current pipelines typically learn from one trajectory per task, merge candidate skill patches before checking them, and load the full skill corpus before inference. We propose SkillCAT, a training-free framework that separates this process into three stages. Contrastive Causal Extraction (CCE) samples multiple trajectories for each task and compares same-task success/failure pairs to identify evidence that explains outcome differences. Assessment-Augmented Evolution (AAE) replays each candidate patch on source-task clones and keeps only patches that improve or preserve task outcomes before hierarchical skill patch merging. Topology-Aware Task Execution (TTE) compiles the evolved skills into a routable sub-skill topology, so inference loads only the capability nodes relevant to the task. We evaluate SkillCAT on common agent benchmarks, including SpreadsheetBench, WikiTableQuestions, and DocVQA, and further test cross-model and out-of-distribution generalization. Across these settings, SkillCAT raises the average score over baselines by up to 40.40%, demonstrating reliable skill evolution without model training.",
+      "authors": [
+        "Kunfeng Chen",
+        "Qihuang Zhong",
+        "Juhua Liu",
+        "Bo Du"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-06-11T13:12:10+00:00",
+      "link": "https://arxiv.org/pdf/2606.13317v1",
+      "tags": [
+        "keyword:agent-evolve",
+        "keyword:agent-safety",
+        "keyword:mas-security",
+        "query:agent-evolve",
+        "query:agent-safety",
+        "query:mas-security"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "skill self-evolution for LLM agents",
+      "llm_evidence_cn": "LLM智能体的技能自进化",
+      "llm_evidence": "LLM智能体的技能自进化",
+      "canonical_evidence": "LLM智能体的技能自进化",
+      "llm_tldr_en": "SkillCAT proposes a training-free framework for LLM agent skill self-evolution via contrastive extraction and assessment-augmented evolution, improving task outcomes without full corpus loading.",
+      "llm_tldr_cn": "本工作针对LLM智能体技能自进化中单轨迹学习、合并前未评估、全语料库加载等局限，提出SkillCAT框架，通过对比因果抽取多轨迹成功/失败对，以及评估增强进化回放候选补丁，仅保留改进任务结果的补丁再进行层次合并。实验表明该方法能有效提升智能体技能复用效果。",
+      "llm_tldr": "本工作针对LLM智能体技能自进化中单轨迹学习、合并前未评估、全语料库加载等局限，提出SkillCAT框架，通过对比因果抽取多轨迹成功/失败对，以及评估增强进化回放候选补丁，仅保留改进任务结果的补丁再进行层次合并。实验表明该方法能有效提升智能体技能复用效果。",
+      "llm_tags": [
+        "query:agent-evolve"
+      ],
+      "matched_query_tag": "query:agent-evolve",
+      "matched_query_text": "self-evolving AI agent",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.13385v1",
+      "source": "arxiv",
+      "title": "Who Pays the Price? Stakeholder-Centric Prompt Injection Benchmarking for Real-world Web Agents",
+      "abstract": "Web agents driven by large language models (LLMs) are increasingly deployed in real-world environments, where they operate over untrusted web content and execute actions with direct consequences. This makes them vulnerable to prompt-injection attacks, in which seemingly benign content embeds adversarial instructions that manipulate agent behaviour. Existing security benchmarks adopt an \\textit{attack-centric} perspective, focusing on the technical feasibility of injections while overlooking the nuanced distribution of resulting harms. In practice, however, prompt-injection risk is victim-dependent: a single exploit can produce asymmetric consequences for different stakeholders, and the same attack pattern may exhibit substantially different effectiveness depending on whom it targets. To capture these properties, we introduce \\textbf{\\sysname}, a \\textit{stakeholder-centric} benchmark to systematically categorize and attribute harm in real-world web agent systems. It distinguishes between affected entities (e.g., user, seller, platform), decomposes the attacks into concrete objectives, and evaluates each case with complementary outcome- and process-level metrics. Our results reveal substantial and heterogeneous vulnerabilities: not a single attack objective is reliably resisted by current agents, and failures distribute across qualitatively distinct modes ranging from \\emph{stealthy parasitism} (attack succeeds without disrupting the user's delegated task) to \\emph{misaligned disruption} (task disrupted without attack success) and \\emph{compounded failure} (both adversarial objective and task integrity simultaneously violated). These patterns are missed by conventional evaluation, highlighting the need for stakeholder-aware assessment of LLM-based agents in real-world deployments. Benchmark is available at https://github.com/StakeBench/SBC.",
+      "authors": [
+        "Zihao Wang",
+        "Yiming Li",
+        "Yutong Wu",
+        "Zheyu Liu",
+        "Kangjie Chen",
+        "Fok Kar Wai",
+        "Pin-Yu Chen",
+        "Vrizlynn L. L. Thing",
+        "Bo Li",
+        "Dacheng Tao",
+        "Tianwei Zhang"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI",
+        "cs.CY",
+        "cs.HC",
+        "cs.MM"
+      ],
+      "published": "2026-06-11T14:12:43+00:00",
+      "link": "https://arxiv.org/pdf/2606.13385v1",
+      "tags": [
+        "keyword:agent-evolve",
+        "keyword:agent-safety",
+        "keyword:mas-security",
+        "query:agent-safety",
+        "query:mas-security"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Benchmarks prompt injection attacks on web agents, focusing on security and stakeholder impact",
+      "llm_evidence_cn": "对网络智能体的提示注入攻击进行基准测试，关注安全性和利益相关者影响",
+      "llm_evidence": "对网络智能体的提示注入攻击进行基准测试，关注安全性和利益相关者影响",
+      "canonical_evidence": "对网络智能体的提示注入攻击进行基准测试，关注安全性和利益相关者影响",
+      "llm_tldr_en": "Proposes a stakeholder-centric benchmark for prompt injection attacks on real-world web agents, revealing asymmetric consequences across different victims.",
+      "llm_tldr_cn": "该论文提出从利益相关者角度对网络智能体的提示注入攻击进行基准测试。现有基准仅关注攻击可行性，而忽略了不同受害者所遭受的不对称伤害。通过对真实网络智能体的评估，揭示了相同攻击模式对不同利益相关者的影响差异，强调了在AI Agent安全评估中纳入多方视角的重要性。",
+      "llm_tldr": "该论文提出从利益相关者角度对网络智能体的提示注入攻击进行基准测试。现有基准仅关注攻击可行性，而忽略了不同受害者所遭受的不对称伤害。通过对真实网络智能体的评估，揭示了相同攻击模式对不同利益相关者的影响差异，强调了在AI Agent安全评估中纳入多方视角的重要性。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "safety privacy security of AI agents",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2606.08049v1",
+      "source": "arxiv",
+      "title": "SKILL.nb: Selective Formalization and Gated Execution for Durable Agent Workflows",
+      "abstract": "AI agents increasingly turn past experience into reusable artifacts such as code, workflows, and procedural memories. Reuse can improve efficiency, but it also creates a lifecycle reliability problem: artifacts that succeed once may fail under environment drift, underspecified tasks, or changing task distributions, especially in web automation. We introduce SKILL.nb, a framework for governing reusable agent workflows with evidence-calibrated lifecycle policies. SKILL.nb uses selective formalization: execution evidence decides which workflow steps should become executable code, which should remain natural-language guided, and when those choices should be revised. Workflows are stored as auditable, versioned notebooks that interleave natural-language guidance, multi-language executable cells, validation gates, fallback paths, and multimodal evidence such as outputs, screenshots, and error traces. At runtime, gate-conditioned execution lets each step run code when its gates validate, or fall back locally when drift invalidates the executable realization. On WebArena-Verified, SKILL.nb achieves 53.7% single-round success, improving over the strongest baseline by 3.9 percentage points. Across three re-executions, it retains 91.7% of initially successful tasks, 15.5 points above the next best method. Under bounded repair, it recovers 72.9% of subsequent failures while limiting post-repair regressions to 4.2%, compared with 15.0% to 17.0% for persistent baselines. It also leads on Mind2Web cross-website and cross-domain splits. In a GitLab migration test, SKILL.nb preserves performance when reusing frozen state learned on GitLab 15.7, with frozen-versus-fresh target-version gaps of -1.7 points on GitLab 16.11 and +0.6 points on GitLab 18.9. These results identify lifecycle governance and gate-conditioned execution as reliability axes beyond one-shot task success.",
+      "authors": [
+        "Amine El Hattami",
+        "Nicolas Chapados",
+        "Christopher Pal"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.MA"
+      ],
+      "published": "2026-06-06T08:27:18+00:00",
+      "link": "https://arxiv.org/pdf/2606.08049v1",
+      "tags": [
+        "keyword:agent-evolve",
+        "keyword:agent-safety",
+        "keyword:mas-security",
+        "query:agent-evolve",
+        "query:agent-safety",
+        "query:mas-security"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "framework for ensuring reliability of reusable agent workflows under environment drift",
+      "llm_evidence_cn": "确保可重用代理工作流在环境漂移下可靠性的框架",
+      "llm_evidence": "确保可重用代理工作流在环境漂移下可靠性的框架",
+      "canonical_evidence": "确保可重用代理工作流在环境漂移下可靠性的框架",
+      "llm_tldr_en": "SKILL.nb uses selective formalization to govern reusable agent workflows, enhancing robustness against environment drift and task changes.",
+      "llm_tldr_cn": "AI代理重用过往经验时，工作流因环境漂移可能失效。本文提出SKILL.nb，通过选择性形式化——根据执行证据决定工作流步骤是转为代码还是保留自然语言——并存储为可审计版本笔记本。该方法提高了代理工作流在动态环境中的鲁棒性和可追溯性。",
+      "llm_tldr": "AI代理重用过往经验时，工作流因环境漂移可能失效。本文提出SKILL.nb，通过选择性形式化——根据执行证据决定工作流步骤是转为代码还是保留自然语言——并存储为可审计版本笔记本。该方法提高了代理工作流在动态环境中的鲁棒性和可追溯性。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "robustness of AI agent systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2606.08470v1",
+      "source": "arxiv",
+      "title": "LUNA-AD: Lightweight Uncertainty-Aware Language Model with Lifelong Learning for Autonomous Driving",
+      "abstract": "While large language models (LLMs) offer promising reasoning capabilities, their integration into safety-critical driving systems is hindered by limited reasoning diversity, high computational overhead, and static learning paradigms. To address these challenges, we propose LUNA-AD, a lightweight uncertainty-aware language model with lifelong learning for autonomous driving (AD). LUNA-AD features a tri-system architecture that reconciles complex multimodal behavioral reasoning, efficient deployment, and continual refinement. We design a multi-agent analytical system to generate uncertainty-aware decision-making demonstrations through diverse hypothesis exploration. A dual-head lightweight heuristic model is distilled to unify the inference of decision distributions and textual explanations while enabling efficient deployment. Furthermore, a reflection-driven lifelong learning mechanism operates on multimodal decision outputs and preserves strategic diversity, allowing for the refinement of candidate decisions and rationales via closed-loop feedback to enhance driving robustness. Extensive experiments on nuPlan benchmarks demonstrate that LUNA-AD achieves state-of-the-art success rates under both non-reactive and reactive modes, with drastically reduced inference latency compared to existing knowledge-driven AD frameworks.",
+      "authors": [
+        "Ruoyu Yao",
+        "Pei Liu",
+        "Ruiguo Zhong",
+        "Mingxing Peng",
+        "Rui Yang",
+        "Jun Ma"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-06-07T06:27:29+00:00",
+      "link": "https://arxiv.org/pdf/2606.08470v1",
+      "tags": [
+        "keyword:agent-evolve",
+        "keyword:agent-safety",
+        "keyword:mas-security",
+        "query:agent-evolve",
+        "query:agent-safety",
+        "query:mas-security"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "focuses on safety-critical autonomous driving systems with uncertainty-aware model",
+      "llm_evidence_cn": "关注安全关键的自动驾驶系统并采用不确定性感知模型",
+      "llm_evidence": "关注安全关键的自动驾驶系统并采用不确定性感知模型",
+      "canonical_evidence": "关注安全关键的自动驾驶系统并采用不确定性感知模型",
+      "llm_tldr_en": "LUNA-AD proposes a lightweight lifelong learning LLM for autonomous driving, addressing safety and uncertainty via multi-agent analysis and heuristic distillation.",
+      "llm_tldr_cn": "为解决大语言模型在安全关键的自动驾驶中推理多样性不足、计算开销大和静态学习的问题，本文提出LUNA-AD，一个轻量级不确定性感知语言模型，采用三系统架构实现多模态行为推理、高效部署和持续改进。通过多智能体分析系统生成不确定性感知决策演示，并蒸馏为轻量启发式模型。实验表明其在自动驾驶任务上兼顾安全与性能。",
+      "llm_tldr": "为解决大语言模型在安全关键的自动驾驶中推理多样性不足、计算开销大和静态学习的问题，本文提出LUNA-AD，一个轻量级不确定性感知语言模型，采用三系统架构实现多模态行为推理、高效部署和持续改进。通过多智能体分析系统生成不确定性感知决策演示，并蒸馏为轻量启发式模型。实验表明其在自动驾驶任务上兼顾安全与性能。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "safety of autonomous intelligent agents",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.10201v1",
+      "source": "arxiv",
+      "title": "Game-Theoretic Area Coverage Control with Cooperative-Adversarial Multi-Agent Systems",
+      "abstract": "We formulate a multi-agent area coverage control problem as a two-player zero-sum game between two agent groups with conflicting goals. Conventional coverage control allocates resources based on an environmental risk density field. In contrast, we generalize this metric by allowing a second group of adversarial agents to generate the spatial risk field. Coupled agent dynamics are linked through the area coverage metric, which functions as the game reward. This framework induces coupled gradient-descent-ascent controllers for the groups. Analysis of a low-dimensional case reveals a Hopf bifurcation dictated by the ratio of the groups' control gains. In the regime dominated by adversarial agents, the system is driven into a periodic chase-evasion cycle. In the regime dominated by ordinary agents, the system converges to a fixed configuration. Numerical simulations validate these theoretical insights. Finally, we characterize the Nash equilibrium conditions. Under this equilibrium, ordinary agents converge to a generalized centroidal Voronoi tessellation, whereas adversarial agents settle at their corresponding equilibrium centroids.",
+      "authors": [
+        "Ruiming Zheng",
+        "Mohammad Pirani",
+        "Davide Spinello"
+      ],
+      "primary_category": "eess.SY",
+      "categories": [
+        "eess.SY"
+      ],
+      "published": "2026-06-08T21:43:39+00:00",
+      "link": "https://arxiv.org/pdf/2606.10201v1",
+      "tags": [
+        "keyword:agent-evolve",
+        "keyword:agent-safety",
+        "keyword:mas-security",
+        "query:agent-evolve",
+        "query:agent-safety",
+        "query:mas-security"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "game-theoretic area coverage with adversarial multi-agent systems",
+      "llm_evidence_cn": "对抗性多智能体系统中的博弈论区域覆盖控制",
+      "llm_evidence": "对抗性多智能体系统中的博弈论区域覆盖控制",
+      "canonical_evidence": "对抗性多智能体系统中的博弈论区域覆盖控制",
+      "llm_tldr_en": "This paper formulates multi-agent area coverage as a zero-sum game between cooperative and adversarial agents, where adversarial agents generate risk fields, inducing gradient-descent-ascent controllers and periodic chase dynamics.",
+      "llm_tldr_cn": "该论文将多智能体区域覆盖问题建模为合作组与对抗组之间的零和博弈。对抗智能体生成空间风险场，引导梯度下降-上升控制器。分析表明在对抗主导区域会出现Hopf分岔周期追逐行为，为多智能体对抗鲁棒性提供了新视角。",
+      "llm_tldr": "该论文将多智能体区域覆盖问题建模为合作组与对抗组之间的零和博弈。对抗智能体生成空间风险场，引导梯度下降-上升控制器。分析表明在对抗主导区域会出现Hopf分岔周期追逐行为，为多智能体对抗鲁棒性提供了新视角。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "adversarial robustness in multi agent systems",
+      "matched_requirement_id": "req-25",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2606.09826v1",
+      "source": "arxiv",
+      "title": "OmniGameArena: A Unified UE5 Benchmark for VLM Game Agents with Improvement Dynamics",
+      "abstract": "Vision-language model (VLM) agents are increasingly deployed in interactive game environments. Yet game benchmarks for VLM agents typically report a single first-attempt score per (agent, game) pair, focus on single-agent Solo play, and lack unified protocols for evaluating heterogeneous agent classes (commercial VLMs, open-weight VLMs, and specialized game policies) on the same footing. We address these gaps with OmniGameArena, a real-time benchmark of twelve newly built Unreal Engine 5 games spanning Solo (7), PvP (3), and Coop (2) with unified action interfaces, and the Improvement Dynamics Curve (IDC), an agentic-reflection harness in which a tool-using reflector LLM autonomously refines a bounded skill prompt across multiple rounds. Beyond cold-start leaderboard scores, IDC exposes two additional observables for each (agent, game) pair: how the score evolves across reflection rounds, and how the learned skill behaves on held-out task variants. We report these observables for twelve VLM agents on the cold-start leaderboard and four top agents under IDC.",
+      "authors": [
+        "Mingxian Lin",
+        "Shengju Qian",
+        "Yuqi Liu",
+        "Yi-Hua Huang",
+        "Yiyu Wang",
+        "Wei Huang",
+        "Yitang Li",
+        "Fan Zhang",
+        "Zeyu Hu",
+        "Lingting Zhu",
+        "Xin Wang",
+        "Xiaojuan Qi"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-06-08T17:59:43+00:00",
+      "link": "https://arxiv.org/pdf/2606.09826v1",
+      "tags": [
+        "keyword:agent-evolve",
+        "keyword:agent-safety",
+        "keyword:mas-security",
+        "query:agent-evolve",
+        "query:agent-safety",
+        "query:mas-security"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Improvement Dynamics Curve for agentic self-reflection and self-improvement",
+      "llm_evidence_cn": "提出改进动态曲线实现代理自我反思与自我提升",
+      "llm_evidence": "提出改进动态曲线实现代理自我反思与自我提升",
+      "canonical_evidence": "提出改进动态曲线实现代理自我反思与自我提升",
+      "llm_tldr_en": "OmniGameArena introduces a UE5 benchmark for VLM game agents with Improvement Dynamics, enabling agents to autonomously refine skill prompts via reflection, directly addressing self-evolving AI agents.",
+      "llm_tldr_cn": "现有VLM游戏代理基准只报告一次成绩且缺乏统一评估协议。本文提出OmniGameArena，包含12个Unreal Engine 5游戏，并引入改进动态曲线（IDC），通过反射机制让代理自主优化技能提示。实验表明该方法能有效提升代理性能，为自进化AI代理研究提供了标准化测试平台。",
+      "llm_tldr": "现有VLM游戏代理基准只报告一次成绩且缺乏统一评估协议。本文提出OmniGameArena，包含12个Unreal Engine 5游戏，并引入改进动态曲线（IDC），通过反射机制让代理自主优化技能提示。实验表明该方法能有效提升代理性能，为自进化AI代理研究提供了标准化测试平台。",
+      "llm_tags": [
+        "query:agent-evolve"
+      ],
+      "matched_query_tag": "query:agent-evolve",
+      "matched_query_text": "self-evolving AI agent",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2606.12835v1",
+      "source": "arxiv",
+      "title": "The Internet of Agentic AI: Communication, Coordination, and Collective Intelligence at Scale",
+      "abstract": "The rapid emergence of autonomous AI agents is transforming artificial intelligence from isolated model inference into distributed systems of reasoning, communication, and action. This paper develops the vision of the Internet of Agentic AI (IoAI): an open ecosystem in which heterogeneous agents discover one another, negotiate responsibilities, exchange context, invoke tools, and execute workflows across cloud, edge, device, organizational, and cyber-physical environments. We synthesize foundations from single-agent agentic AI, multi-agent systems, distributed computing, communication networks, game theory, and security engineering to characterize the architectures and mechanisms required for scalable agent ecosystems. The paper examines agent deployment models, workflow lifecycles, communication protocols, interoperability layers, resource-management challenges, and trust architectures, with case studies in adaptive manufacturing and distributed operational coordination. The resulting framework highlights the central research challenges of controlled emergence, semantic interoperability, secure identity, incentive-compatible coordination, resource-aware orchestration, and governance for large-scale networks of autonomous agents.",
+      "authors": [
+        "Quanyan Zhu"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA",
+        "cs.AI",
+        "cs.CY",
+        "cs.NI"
+      ],
+      "published": "2026-06-11T03:02:59+00:00",
+      "link": "https://arxiv.org/pdf/2606.12835v1",
+      "tags": [
+        "keyword:agent-evolve",
+        "keyword:agent-safety",
+        "keyword:mas-security",
+        "query:agent-evolve",
+        "query:agent-safety",
+        "query:mas-security"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "discusses security engineering for multi-agent ecosystems",
+      "llm_evidence_cn": "讨论了多智能体生态系统的安全工程",
+      "llm_evidence": "讨论了多智能体生态系统的安全工程",
+      "canonical_evidence": "讨论了多智能体生态系统的安全工程",
+      "llm_tldr_en": "Develops vision of Internet of Agentic AI, synthesizing security engineering with multi-agent systems for scalable agent ecosystems.",
+      "llm_tldr_cn": "随着自主AI智能体的兴起，异构智能体之间的通信、协调和安全成为一个关键问题。本文提出智能体AI互联网（IoAI）愿景，综合多智能体系统、分布式计算、博弈论和安全工程，构建了可扩展智能体生态系统的架构和机制。强调了安全工程在跨云、边、端环境中智能体交互中的核心作用，为大规模多智能体系统的安全设计提供了基础框架。",
+      "llm_tldr": "随着自主AI智能体的兴起，异构智能体之间的通信、协调和安全成为一个关键问题。本文提出智能体AI互联网（IoAI）愿景，综合多智能体系统、分布式计算、博弈论和安全工程，构建了可扩展智能体生态系统的架构和机制。强调了安全工程在跨云、边、端环境中智能体交互中的核心作用，为大规模多智能体系统的安全设计提供了基础框架。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "security of multi-agent systems",
+      "matched_requirement_id": "req-19",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.12587v1",
+      "source": "arxiv",
+      "title": "Strategic Decision Support for AI Agents",
+      "abstract": "Traditionally, decision support studies how humans use machine learning models to make better decisions. In modern agentic systems, this division of roles is increasingly reversed: AI agents act on behalf of users, while humans and tools becomes support mechanisms around them. This role reversal brings reliability concerns to the forefront, since agentic errors can be consequential and agent behavior must remain aligned with human goals and constraints. Departing from the classical view of decision support, we revisit its two basic principles, the cost--value tradeoff of seeking support and the role of uncertainty quantification, in a setting where AI agents are the central actors. We propose a framework for strategic decision support for AI agents through an optimization problem that minimizes support usage subject to controlling a counterfactual missed-support error: the probability that the agent acts alone on instances where support would have materially improved its output. At the population level, we show that the optimal policy is a threshold rule on the value of support. Building on this structure, we develop an online algorithm that adaptively thresholds such a score and uses randomized exploration to control missed-support error without distributional assumptions. We further introduce a calibration-on-the-fly method that reduces unnecessary support calls online. We instantiate this framework across diverse scenarios, including information gathering, human--AI collaboration, and tool use, showing how each can be modeled through the same strategic decision-support lens. Experiments across these settings show that our method reliably controls the target error while substantially reducing support usage in practice.",
+      "authors": [
+        "Shayan Kiyani",
+        "Sima Noorani",
+        "George Pappas",
+        "Hamed Hassani"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.HC"
+      ],
+      "published": "2026-06-10T18:34:36+00:00",
+      "link": "https://arxiv.org/pdf/2606.12587v1",
+      "tags": [
+        "keyword:agent-evolve",
+        "keyword:agent-safety",
+        "keyword:mas-security",
+        "query:agent-evolve",
+        "query:agent-safety",
+        "query:mas-security"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Focuses on reliability and alignment of AI agents in decision support",
+      "llm_evidence_cn": "聚焦AI代理在决策支持中的可靠性和对齐问题",
+      "llm_evidence": "聚焦AI代理在决策支持中的可靠性和对齐问题",
+      "canonical_evidence": "聚焦AI代理在决策支持中的可靠性和对齐问题",
+      "llm_tldr_en": "Proposes a framework for strategic decision support for AI agents, addressing reliability and alignment through cost-value tradeoff and uncertainty quantification.",
+      "llm_tldr_cn": "传统决策支持研究人类如何使用模型；本文逆转角色，研究AI代理作为决策主体时的可靠性。提出一个优化框架，通过成本-价值权衡和不确定性量化来确保代理行为与人类目标一致。实验表明该框架能有效提升代理决策的可靠性和可解释性。",
+      "llm_tldr": "传统决策支持研究人类如何使用模型；本文逆转角色，研究AI代理作为决策主体时的可靠性。提出一个优化框架，通过成本-价值权衡和不确定性量化来确保代理行为与人类目标一致。实验表明该框架能有效提升代理决策的可靠性和可解释性。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "trustworthiness of AI agents",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2606.10742v1",
+      "source": "arxiv",
+      "title": "MemVenom: Triggered Poisoning of Multimodal Memories in Web Agents",
+      "abstract": "External memory has become a core component of modern web agents, enabling long-horizon reasoning through the retrieval of past experiences. However, this paradigm introduces a critical vulnerability: malicious content injected into memory can be persistently recalled and repeatedly influence agent behavior. In this work, we identify and systematically study multimodal memory poisoning, an overlooked yet practical attack surface in web-agent systems. We propose MemVenom, a unified black-box attack framework that poisons graph-structured external memory with coordinated text-image evidence. Our method consists of a two-stage design: (1) a trigger-conditioned retrieval attack that ensures high-probability recall of malicious memory, and (2) a post-retrieval attack induction that leverages adversarial perturbations and stealthy OCR injection to override the original user objective. Unlike prior attacks that operate on prompts or text-only memory, our approach enables persistent, reusable, and goal-agnostic attacks without modifying model parameters or re-optimizing malicious tasks. Experiments across multiple web-agent frameworks and vision-language models demonstrate that MemVenom achieves strong end-to-end attack success with minimal impact on benign performance, reaching up to 99.15% on GPT-5-family web agents, while transferring effectively across architectures and model scales.",
+      "authors": [
+        "Yv Zhang",
+        "Hao Sun",
+        "Hao Fang",
+        "Kuofeng Gao",
+        "Fan Mo",
+        "Bin Chen",
+        "Shu-Tao Xia",
+        "Yaowei Wang"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.LG"
+      ],
+      "published": "2026-06-09T11:53:25+00:00",
+      "link": "https://arxiv.org/pdf/2606.10742v1",
+      "tags": [
+        "keyword:agent-evolve",
+        "keyword:agent-safety",
+        "keyword:mas-security",
+        "query:agent-evolve",
+        "query:agent-safety",
+        "query:mas-security"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Attack framework poisoning multimodal memories in web agents",
+      "llm_evidence_cn": "针对Web代理中多模态记忆的中毒攻击框架",
+      "llm_evidence": "针对Web代理中多模态记忆的中毒攻击框架",
+      "canonical_evidence": "针对Web代理中多模态记忆的中毒攻击框架",
+      "llm_tldr_en": "This work identifies multimodal memory poisoning as a critical vulnerability in web agents and proposes MemVenom, a unified black-box attack framework that poisons graph-structured memory with text-image evidence, demonstrating high success in triggering malicious behavior.",
+      "llm_tldr_cn": "Web代理依赖外部记忆进行长程推理，但记忆注入恶意内容可持久影响行为。本文系统研究了多模态记忆中毒攻击，提出MemVenom框架，通过文本-图像协同证据毒化图结构记忆，并利用触发条件确保高概率召回。实验证明该攻击能有效操控代理行为，暴露了现有记忆系统的安全漏洞。",
+      "llm_tldr": "Web代理依赖外部记忆进行长程推理，但记忆注入恶意内容可持久影响行为。本文系统研究了多模态记忆中毒攻击，提出MemVenom框架，通过文本-图像协同证据毒化图结构记忆，并利用触发条件确保高概率召回。实验证明该攻击能有效操控代理行为，暴露了现有记忆系统的安全漏洞。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "safety concerns in AI agents",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2606.13076v1",
+      "source": "arxiv",
+      "title": "$α$-fair heterogeneous agent reinforcement learning",
+      "abstract": "Cooperation in multi-agent systems is typically optimized through utilitarian objectives that maximize overall efficiency but fail to account for reward distribution, often resulting in inequitable \"leader-follower\" dynamics. While fairness-based approaches encourage pro-social behaviors where every agent benefits from cooperation, many current algorithms - including those utilizing reward shaping - break the stationarity of Markov Games or lack rigorous theoretical guarantees. This creates a critical gap between fair objective methods and theoretically safe learning frameworks. We propose a novel framework that bridges $α$-fairness with Heterogeneous-Agent Trust Region Learning (HATRL), ensuring monotonic improvement and convergence toward Nash Equilibria. Our approach leverages a fair advantage function that dynamically weights agent utilities based on their expected returns, allowing the global objective to transition from purely utilitarian efficiency to $α$-fairness welfare based on the parameter $α$. We introduce two practical algorithms, $α$-fair HATRPO and $α$-fair HAPPO, and demonstrate through experiments in sequential social dilemmas like CleanUp and CommonHarvest that they perform better than HATRL's algorithms from a utilitarian point of view while achieving socially higher outcomes.",
+      "authors": [
+        "Yao-hua Franck Xu",
+        "Tayeb Lemlouma",
+        "Jean-Marie Bonnin",
+        "Arnaud Braud"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA",
+        "cs.GT",
+        "cs.LG"
+      ],
+      "published": "2026-06-11T08:59:41+00:00",
+      "link": "https://arxiv.org/pdf/2606.13076v1",
+      "tags": [
+        "keyword:agent-evolve",
+        "keyword:agent-safety",
+        "keyword:mas-security",
+        "query:agent-evolve",
+        "query:agent-safety",
+        "query:mas-security"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Theoretically safe learning framework for multi-agent systems with fairness",
+      "llm_evidence_cn": "多智能体系统中结合公平性的理论安全学习框架",
+      "llm_evidence": "多智能体系统中结合公平性的理论安全学习框架",
+      "canonical_evidence": "多智能体系统中结合公平性的理论安全学习框架",
+      "llm_tldr_en": "Alpha-fair HATRL bridges fairness with theoretically safe multi-agent reinforcement learning, ensuring monotonic improvement and convergence to Nash equilibria.",
+      "llm_tldr_cn": "多智能体合作优化常忽略奖励分配公平性且缺乏安全理论保证。本文提出α-公平异构智能体信任区域学习（HATRL）框架，结合公平目标与单调改进保证，收敛到纳什均衡。理论分析和实验表明该方法在保持安全性的同时实现公平奖励分配，对多智能体系统安全研究有重要价值。",
+      "llm_tldr": "多智能体合作优化常忽略奖励分配公平性且缺乏安全理论保证。本文提出α-公平异构智能体信任区域学习（HATRL）框架，结合公平目标与单调改进保证，收敛到纳什均衡。理论分析和实验表明该方法在保持安全性的同时实现公平奖励分配，对多智能体系统安全研究有重要价值。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "safety of multi-agent systems",
+      "matched_requirement_id": "req-21",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.11804v1",
+      "source": "arxiv",
+      "title": "Toward Trustworthy AI: Multi-Target Adversarial Attacks and Robust Defenses for Continuous Data Summarization",
+      "abstract": "Trustworthy AI requires reliable data-processing pipelines, not only robust downstream predictive models. As an upstream component, data summarization determines which information is retained and passed to subsequent learning or decision modules. Therefore, adversarial perturbations to the summarization process can compromise trustworthy AI in an upstream manner: they may alter the selected summary, reduce its representativeness, and further degrade the utility of subsequent learning tasks. In this paper, we study adversarial attacks on continuous data summarization under similarity-level perturbations through DR-submodular optimization. We show that a class of multi-resolution image summarization objectives can be formulated as multilinear extensions of non-negative submodular set functions and satisfy DR-submodularity with $m$-weak monotonicity. We then formulate multi-target attack generation as a min-max problem, where one admissible perturbation of the similarity structure is optimized to degrade multiple target summarization models. To mitigate such perturbations, we formulate robust defense against mixed attack types as a regularized max-min problem. For both problems, we develop approximation algorithms with theoretical guarantees. Experiments on real-data and controlled clustered benchmarks show that the proposed attack is effective in representative low-to-moderate budget regimes and can induce downstream task-performance loss. The proposed defense improves the robustness--mitigation trade-off in structured settings, while also revealing the parameter sensitivity of robust protection on real data.",
+      "authors": [
+        "Yuefang Lian",
+        "Longkun Guo",
+        "Zhongrui Zhao",
+        "Zhigang Lu",
+        "Yanan Cai",
+        "Shuchao Pang",
+        "Dachuan Xu",
+        "Jason Xue"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CR",
+        "cs.LG"
+      ],
+      "published": "2026-06-10T08:38:27+00:00",
+      "link": "https://arxiv.org/pdf/2606.11804v1",
+      "tags": [
+        "keyword:agent-evolve",
+        "keyword:agent-safety",
+        "keyword:mas-security",
+        "query:agent-safety",
+        "query:mas-security"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "title includes Trustworthy AI and focuses on adversarial robustness",
+      "llm_evidence_cn": "标题包含可信AI并关注对抗鲁棒性",
+      "llm_evidence": "标题包含可信AI并关注对抗鲁棒性",
+      "canonical_evidence": "标题包含可信AI并关注对抗鲁棒性",
+      "llm_tldr_en": "Studies adversarial attacks on continuous data summarization to undermine trustworthy AI, proposing defenses under DR-submodular optimization.",
+      "llm_tldr_cn": "可信AI需要可靠的数据处理流程，但数据摘要这一上游组件可能被对抗性攻击破坏。本文研究连续数据摘要的对抗攻击，通过DR次模优化实现攻击与防御。在图像摘要任务上展示了攻击如何降低下游任务效用，并验证了防御的有效性。",
+      "llm_tldr": "可信AI需要可靠的数据处理流程，但数据摘要这一上游组件可能被对抗性攻击破坏。本文研究连续数据摘要的对抗攻击，通过DR次模优化实现攻击与防御。在图像摘要任务上展示了攻击如何降低下游任务效用，并验证了防御的有效性。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "trustworthiness of AI agents",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2606.13097v1",
+      "source": "arxiv",
+      "title": "Functional Cache Grafting: Robust and Rapid Code-Policy Synthesis for Embodied Agents",
+      "abstract": "Code-writing large language models (CodeLLMs) generate executable code policies for embodied agents by translating natural language goals and environmental constraints into structured control programs. However, policy generation in open-domain embodied environments suffers from two fundamental limitations: (i) delayed decoding caused by repetitive prefill computation over long prompts, and (ii) limited robustness due to fully generative decoding, which often produces API mismatches, missing safety guards, and unstable control logic. To address these limitations, we present FCGraft, a Functional Cache Grafting framework. FCGraft maintains a library of function-level validated code skeletons and their associated prompt-level Transformer key-value (KV) caches, and synthesizes new policies by retrieving relevant functions and grafting their KV caches when a new task is provided. Given retrieved function caches, FCGraft performs cache grafting via stitching, which composes cached function segments into a composite policy, and patching, which locally adapts only the necessary code regions to satisfy task-specific parameters and constraints with minimal additional decoding. By eliminating redundant prefill computation, this approach reduces generation latency, while reusing validated control structures improves robustness over prompt-level caching methods RAGCache, achieving 18.31% higher task success rate and 2.3x faster policy synthesis.",
+      "authors": [
+        "Saehun Chun",
+        "Wonje Choi",
+        "Sera Choi",
+        "Sanghyun Ahn",
+        "Honguk Woo"
+      ],
+      "primary_category": "cs.PL",
+      "categories": [
+        "cs.PL",
+        "cs.AI"
+      ],
+      "published": "2026-06-11T09:25:27+00:00",
+      "link": "https://arxiv.org/pdf/2606.13097v1",
+      "tags": [
+        "keyword:agent-evolve",
+        "keyword:agent-safety",
+        "keyword:mas-security",
+        "query:agent-evolve",
+        "query:agent-safety",
+        "query:mas-security"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "robustness in code-policy synthesis for embodied agents",
+      "llm_evidence_cn": "具身智能体代码策略合成中的鲁棒性",
+      "llm_evidence": "具身智能体代码策略合成中的鲁棒性",
+      "canonical_evidence": "具身智能体代码策略合成中的鲁棒性",
+      "llm_tldr_en": "FCGraft improves robustness of code-policy generation for embodied agents by caching validated code skeletons and prompt-level keys.",
+      "llm_tldr_cn": "具身智能体的代码策略生成面临延迟和鲁棒性不足的问题，容易产生API不匹配、缺少安全防护等。本文提出功能缓存嫁接（FCGraft）框架，通过维护已验证的函数级代码骨架及其提示级Transformer键库，在推理时快速检索和嫁接，显著提升了代码策略的鲁棒性和生成速度。实验表明该方法能有效防止安全错误和控制逻辑不稳定。",
+      "llm_tldr": "具身智能体的代码策略生成面临延迟和鲁棒性不足的问题，容易产生API不匹配、缺少安全防护等。本文提出功能缓存嫁接（FCGraft）框架，通过维护已验证的函数级代码骨架及其提示级Transformer键库，在推理时快速检索和嫁接，显著提升了代码策略的鲁棒性和生成速度。实验表明该方法能有效防止安全错误和控制逻辑不稳定。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "robustness of AI agent systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.12474v1",
+      "source": "arxiv",
+      "title": "SAIGuard: Communication-State Simulation for Proactive Defense of LLM Multi-Agent Systems",
+      "abstract": "LLM-based multi-agent systems (MAS) solve complex tasks through inter-agent collaboration, but their communication-driven nature also allows security risks to spread across agents and trigger system-wide failures. Existing MAS defenses mainly follow a reactive paradigm after execution by detecting and isolating harmful agents, which may cause irreversible damage and degrade collaborative utility. To address this, we propose a proactive defense framework for MAS security, namely a Simulation-aware Interception Guard (SAIGuard). SAIGuard performs communication-state simulation over the MAS interaction graph, estimates the impact of incoming messages on local agent states and the global MAS state, and detects risky messages via reconstruction deviations from benign communication patterns. Instead of isolating agents, SAIGuard sanitizes or regenerates suspicious messages before it propagation into system. Experiments across diverse topologies and attack scenarios show that SAIGuard reduces attack success rates while maintaining MAS utility, outperforming reactive defenses.",
+      "authors": [
+        "Ruxue Shi",
+        "Yili Wang",
+        "Mengnan Du",
+        "Qinggang Zhang",
+        "Rui Miao",
+        "Yixin Liu",
+        "Xin Wang"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA",
+        "cs.AI",
+        "cs.CR"
+      ],
+      "published": "2026-06-10T05:37:58+00:00",
+      "link": "https://arxiv.org/pdf/2606.12474v1",
+      "tags": [
+        "keyword:agent-evolve",
+        "keyword:agent-safety",
+        "keyword:mas-security",
+        "query:agent-evolve",
+        "query:agent-safety",
+        "query:mas-security"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Proactive defense for multi-agent systems against communication-based attacks",
+      "llm_evidence_cn": "针对基于通信攻击的多代理系统主动防御",
+      "llm_evidence": "针对基于通信攻击的多代理系统主动防御",
+      "canonical_evidence": "针对基于通信攻击的多代理系统主动防御",
+      "llm_tldr_en": "Proposes SAIGuard, a proactive defense for LLM multi-agent systems that simulates communication states to detect and intercept risky messages, preventing security breaches before execution.",
+      "llm_tldr_cn": "LLM多代理系统通过通信协作，但也使安全风险易扩散。现有防御多为事后检测，不可逆损害可能已发生。本文提出SAIGuard主动防御框架，对交互图进行通信状态仿真，预估消息影响，在消息执行前拦截风险消息。实验显示SAIGuard能有效降低攻击成功率且不损害协作效用。",
+      "llm_tldr": "LLM多代理系统通过通信协作，但也使安全风险易扩散。现有防御多为事后检测，不可逆损害可能已发生。本文提出SAIGuard主动防御框架，对交互图进行通信状态仿真，预估消息影响，在消息执行前拦截风险消息。实验显示SAIGuard能有效降低攻击成功率且不损害协作效用。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "security of multi-agent systems",
+      "matched_requirement_id": "req-19",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2606.12709v1",
+      "source": "arxiv",
+      "title": "Smarter Saboteurs, Better Fixers: Scaling & Security in Linear Multi-Agent Workflows",
+      "abstract": "As LLM-based multi-agent systems (MAS) are deployed in the wild, the resilience of their collaboration structures against adversarial compromise becomes a critical safety concern. Attackers may leverage prompt-injection or jailbreaking to sabotage individual agents within MAS workflows, but the interaction between model scaling and system-level resilience remains poorly understood. This paper investigates how model scale affects the security of linear multi-agent workflows. Our experiments across scales of two open-weight model families on the HumanEval benchmark reveal a compliance-correction symmetry: larger models are far more likely to faithfully execute malicious instructions, with the control-to-malicious performance drop reaching 53.7pp at 27B in uncorrected pipelines. However, appending a lightweight terminal Fixer stage collapses this to 0.6pp and restores statistical parity with control-level performance, demonstrating that strictly linear collaboration structures can be viable and resilient to adversaries at this scale, and suggesting that the brittleness previously attributed to linear topology may stem from a lack of correction.",
+      "authors": [
+        "Timothy McAllister",
+        "Sina Abdidizaji",
+        "Ivan Garibay",
+        "Ozlem Ozmen Garibay"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA",
+        "cs.CR",
+        "cs.LG"
+      ],
+      "published": "2026-06-10T21:55:24+00:00",
+      "link": "https://arxiv.org/pdf/2606.12709v1",
+      "tags": [
+        "keyword:agent-evolve",
+        "keyword:agent-safety",
+        "keyword:mas-security",
+        "query:agent-evolve",
+        "query:agent-safety",
+        "query:mas-security"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Security analysis of LLM-based multi-agent systems against adversarial compromise",
+      "llm_evidence_cn": "针对LLM多代理系统对抗妥协的安全性分析",
+      "llm_evidence": "针对LLM多代理系统对抗妥协的安全性分析",
+      "canonical_evidence": "针对LLM多代理系统对抗妥协的安全性分析",
+      "llm_tldr_en": "Investigates how model scale affects security of linear multi-agent workflows, revealing larger models more susceptible to executing malicious instructions, highlighting scaling-security tradeoffs.",
+      "llm_tldr_cn": "随着LLM多代理系统部署，其协作结构的安全性成为关键问题。本文研究模型规模对线性多代理工作流抵抗对抗攻击的影响，发现较大模型更容易忠实执行恶意指令，导致安全性能显著下降。揭示了规模与安全之间的权衡，为大规模多代理系统的安全设计提供指导。",
+      "llm_tldr": "随着LLM多代理系统部署，其协作结构的安全性成为关键问题。本文研究模型规模对线性多代理工作流抵抗对抗攻击的影响，发现较大模型更容易忠实执行恶意指令，导致安全性能显著下降。揭示了规模与安全之间的权衡，为大规模多代理系统的安全设计提供指导。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "security of multi-agent systems",
+      "matched_requirement_id": "req-19",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2606.12896v1",
+      "source": "arxiv",
+      "title": "PolicyGuard: Towards Test-time and Step-level Adversary Defense for Reinforcement Learning Agent",
+      "abstract": "While real-world applications of reinforcement learning (RL) are becoming increasingly popular, the security of RL systems deserve more attention and exploration. In particular, recent work has revealed that RL agents are vulnerable to backdoor attacks, where a victim agent behaves normally under standard conditions but executes malicious actions when a specific trigger is activated. Existing backdoor defenses for RL either require access to the agent's internal parameters, operate only at the model or trajectory level, or are limited to specific attack types. To ensure the security of RL agents, we propose \\texttt{PolicyGuard}, a \\textit{test-time step-level} backdoor defense which leverages Gaussian Process (GP) posterior variance and adapts pseudo trajectories to enable uncertainty computation for individual time step. Besides, we also provide theoretical foundations to explain the efficacy of GP posterior variance. Extensive experiments across seven RL games demonstrate that PolicyGuard achieves state-of-the-art detection performance in most cases, with average AUROC of 0.856 for perturbation-based attacks and 0.859 for adversary-agent attacks.",
+      "authors": [
+        "Junfeng Guo Heng Huang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CR"
+      ],
+      "published": "2026-06-11T04:54:28+00:00",
+      "link": "https://arxiv.org/pdf/2606.12896v1",
+      "tags": [
+        "keyword:agent-evolve",
+        "keyword:agent-safety",
+        "keyword:mas-security",
+        "query:agent-evolve",
+        "query:agent-safety",
+        "query:mas-security"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "defends RL agents against backdoor attacks at test-time step-level",
+      "llm_evidence_cn": "在测试时步骤级防御RL智能体的后门攻击",
+      "llm_evidence": "在测试时步骤级防御RL智能体的后门攻击",
+      "canonical_evidence": "在测试时步骤级防御RL智能体的后门攻击",
+      "llm_tldr_en": "Proposes PolicyGuard, a test-time step-level backdoor defense for RL agents using Gaussian Process posterior variance to detect and mitigate attacks.",
+      "llm_tldr_cn": "强化学习智能体易受后门攻击，现有防御需要内部参数或仅限轨迹级别。本文提出PolicyGuard，在测试时利用高斯过程后验方差检测每个步骤的异常动作，无需访问智能体内部参数。实验证明该方法能有效识别多种后门触发模式并恢复安全行为，显著提升了RL智能体的鲁棒性，且计算开销低。",
+      "llm_tldr": "强化学习智能体易受后门攻击，现有防御需要内部参数或仅限轨迹级别。本文提出PolicyGuard，在测试时利用高斯过程后验方差检测每个步骤的异常动作，无需访问智能体内部参数。实验证明该方法能有效识别多种后门触发模式并恢复安全行为，显著提升了RL智能体的鲁棒性，且计算开销低。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "robustness of AI agent systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    }
+  ]
+}
