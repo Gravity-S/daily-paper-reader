@@ -6,83 +6,82 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-14
-- 运行时间：2026-06-14 21:20:30 UTC
+- 最新运行日期：2026-06-15
+- 运行时间：2026-06-15 22:32:02 UTC
 - 运行状态：成功
-- 本次总论文数：21
+- 本次总论文数：20
 - 精读区：8
-- 速读区：13
+- 速读区：12
 
 ### 今日简报（AI）
-今日共梳理21篇论文，精读8篇，其中《ProPlay》与《The Containment Gap》均获满分10分。最值得关注的是代理AI的自我进化世界模型与公共安全缺陷两大方向。建议优先精读这两篇，深入理解自演化机制与安全约束的实践挑战。
-- 详情：[/202606/14/README](/202606/14/README)
+今日聚焦多智能体系统安全，两篇高分论文分别揭示隐蔽分解攻击威胁和Shapley引导的协同红队测试方法。  
+最值得关注的是DECOMPBENCH对智能体瘫痪式攻击的精准测评，以及MAStrike在红队协作上的突破。  
+建议读者从博弈论和安全契约的角度跟进LLM多智能体鲁棒性的最新进展。
+- 详情：[/202606/15/README](/202606/15/README)
 
 ### 精读区论文标签
-1. [ProPlay: Procedural World Models for Self-Evolving LLM Agents](/202606/14/2606.12780v1-proplay-procedural-world-models-for-self-evolving-llm-agents)  
-   标签：评分：10.0/10、query:agent-evolve
-   evidence：提出程序化世界模型，使LLM智能体无需外部监督即可自进化
-2. [The Containment Gap: How Deployed Agentic AI Frameworks Fail Public-Facing Safety Requirements](/202606/14/2606.12797v1-the-containment-gap-how-deployed-agentic-ai-frameworks-fail-public-facing-safety-requirements)  
+1. [Hidden in Plain Sight: Benchmarking Agent Safety Against Decomposition Attacks with DECOMPBENCH](/202606/15/2606.13994v1-hidden-in-plain-sight-benchmarking-agent-safety-against-decomposition-attacks-with-decompbench)  
    标签：评分：10.0/10、query:agent-safety
-   evidence：审计发现已部署代理AI框架的安全缺陷
-3. [SMSR: Certified Defence Against Runtime Memory Poisoning in Persistent LLM Agent Systems](/202606/14/2606.12703v1-smsr-certified-defence-against-runtime-memory-poisoning-in-persistent-llm-agent-systems)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：对持久LLM代理的内存中毒提供认证防御
-4. [PI-Hunter: Automated Red-Teaming for Exposing and Localizing Prompt Injections](/202606/14/2606.12737v1-pi-hunter-automated-red-teaming-for-exposing-and-localizing-prompt-injections)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：针对LLM智能体提示注入安全的自动化红队测试
-5. [MAStrike: Shapley-Guided Collusive Red-Teaming on Multi-Agent Systems](/202606/14/2606.12918v1-mastrike-shapley-guided-collusive-red-teaming-on-multi-agent-systems)  
+   evidence：针对分解攻击的代理安全基准
+2. [MAStrike: Shapley-Guided Collusive Red-Teaming on Multi-Agent Systems](/202606/15/2606.12918v2-mastrike-shapley-guided-collusive-red-teaming-on-multi-agent-systems)  
    标签：评分：9.0/10、query:mas-security
-   evidence：提出合谋红队框架，评估层次化多智能体系统的安全性
-6. [The Emergence of Autonomous Penetration Capabilities in Large Language Model-Powered AI Systems](/202606/14/2606.13079v1-the-emergence-of-autonomous-penetration-capabilities-in-large-language-model-powered-ai-systems)  
+   evidence：通过协同红队测试评估多智能体系统安全性
+3. [Exploring Systems-Thinking Approaches to Loss of Control Risk](/202606/15/2606.13474v1-exploring-systems-thinking-approaches-to-loss-of-control-risk)  
    标签：评分：9.0/10、query:agent-safety
-   evidence：自主渗透能力引发AI智能体安全问题
-7. [SkillCAT: Contrastive Assessment and Topology-Aware Skill Self-Evolution for LLM Agents](/202606/14/2606.13317v1-skillcat-contrastive-assessment-and-topology-aware-skill-self-evolution-for-llm-agents)  
-   标签：评分：9.0/10、query:agent-evolve
-   evidence：LLM智能体的技能自进化
-8. [Who Pays the Price? Stakeholder-Centric Prompt Injection Benchmarking for Real-world Web Agents](/202606/14/2606.13385v1-who-pays-the-price-stakeholder-centric-prompt-injection-benchmarking-for-real-world-web-agents)  
+   evidence：使用系统安全方法分析失控风险
+4. [Beyond Runtime Enforcement: Shield Synthesis as Defensibility Analysis for Adversarial Networks](/202606/15/2606.13621v1-beyond-runtime-enforcement-shield-synthesis-as-defensibility-analysis-for-adversarial-networks)  
    标签：评分：9.0/10、query:agent-safety
-   evidence：对网络智能体的提示注入攻击进行基准测试，关注安全性和利益相关者影响
+   evidence：盾牌合成作为自主代理的安全机制
+5. [MedLatentDx: Latent Multi-Agent Communication for Cross-Hospital Rare-Disease Diagnosis](/202606/15/2606.13945v1-medlatentdx-latent-multi-agent-communication-for-cross-hospital-rare-disease-diagnosis)  
+   标签：评分：9.0/10、query:mas-security
+   evidence：保护隐私的多智能体诊断潜在通信
+6. [Minim: Privacy-Aware Minimal View for Agents via Trusted Local Sanitization](/202606/15/2606.13949v1-minim-privacy-aware-minimal-view-for-agents-via-trusted-local-sanitization)  
+   标签：评分：9.0/10、query:agent-safety
+   evidence：代理的隐私保护本地净化
+7. [Contract-Based Compositional Shielding for Safe Multi-Agent Reinforcement Learning](/202606/15/2606.14130v1-contract-based-compositional-shielding-for-safe-multi-agent-reinforcement-learning)  
+   标签：评分：9.0/10、query:mas-security
+   evidence：基于合约的组合屏蔽确保多智能体强化学习安全
+8. [SkillAudit: Ground-Truth-Free Skill Evolution via Paired Trajectory Auditing](/202606/15/2606.14239v1-skillaudit-ground-truth-free-skill-evolution-via-paired-trajectory-auditing)  
+   标签：评分：8.0/10、query:agent-evolve
+   evidence：无真实反馈的LLM智能体技能进化
 
 ### 速读区论文标签
-1. [SKILL.nb: Selective Formalization and Gated Execution for Durable Agent Workflows](/202606/14/2606.08049v1-skillnb-selective-formalization-and-gated-execution-for-durable-agent-workflows)  
+1. [Game-Theoretic Multi-Agent Control for Robust Contextual Reasoning in LLMs](/202606/15/2606.10322v2-game-theoretic-multi-agent-control-for-robust-contextual-reasoning-in-llms)  
+   标签：评分：8.0/10、query:mas-security
+   evidence：博弈论多代理控制实现上下文安全
+2. [EvoArena: Tracking Memory Evolution for Robust LLM Agents in Dynamic Environments](/202606/15/2606.13681v1-evoarena-tracking-memory-evolution-for-robust-llm-agents-in-dynamic-environments)  
    标签：评分：8.0/10、query:agent-safety
-   evidence：确保可重用代理工作流在环境漂移下可靠性的框架
-2. [OmniGameArena: A Unified UE5 Benchmark for VLM Game Agents with Improvement Dynamics](/202606/14/2606.09826v1-omnigamearena-a-unified-ue5-benchmark-for-vlm-game-agents-with-improvement-dynamics)  
+   evidence：针对动态环境下鲁棒LLM代理的基准测试和记忆范式
+3. [Safety-Contract Graph Multi-Agent Reinforcement Learning for Autonomous Network Security Response](/202606/15/2606.13832v1-safety-contract-graph-multi-agent-reinforcement-learning-for-autonomous-network-security-response)  
+   标签：评分：8.0/10、query:mas-security
+   evidence：基于安全合约图的多智能体强化学习用于自主网络安全响应
+4. [Same-Origin Policy for Agentic Browsers](/202606/15/2606.14027v1-same-origin-policy-for-agentic-browsers)  
+   标签：评分：8.0/10、query:agent-safety
+   evidence：分析代理浏览器中同源策略违规的安全问题
+5. [Trust but Verify: Mitigating Medical Hallucinations via Post-Hoc Adversarial Auditing and Multi-Agent Feedback Loops](/202606/15/2606.14149v1-trust-but-verify-mitigating-medical-hallucinations-via-post-hoc-adversarial-auditing-and-multi-agent-feedback-loops)  
+   标签：评分：8.0/10、query:agent-safety
+   evidence：通过对抗审计和多智能体反馈提升AI代理的可信度
+6. [When Should Agent Trust Be Conditional? Characterizing and Attacking Skill-Conditional Reputation in Agent Swarms](/202606/15/2606.14200v1-when-should-agent-trust-be-conditional-characterizing-and-attacking-skill-conditional-reputation-in-agent-swarms)  
+   标签：评分：8.0/10、query:agent-safety
+   evidence：智能体群中的技能条件信任与声誉攻击
+7. [From Chatbot to Digital Colleague: The Paradigm Shift Toward Persistent Autonomous AI](/202606/15/2606.14502v1-from-chatbot-to-digital-colleague-the-paradigm-shift-toward-persistent-autonomous-ai)  
    标签：评分：8.0/10、query:agent-evolve
-   evidence：提出改进动态曲线实现代理自我反思与自我提升
-3. [MemVenom: Triggered Poisoning of Multimodal Memories in Web Agents](/202606/14/2606.10742v1-memvenom-triggered-poisoning-of-multimodal-memories-in-web-agents)  
-   标签：评分：8.0/10、query:agent-safety
-   evidence：针对Web代理中多模态记忆的中毒攻击框架
-4. [Toward Trustworthy AI: Multi-Target Adversarial Attacks and Robust Defenses for Continuous Data Summarization](/202606/14/2606.11804v1-toward-trustworthy-ai-multi-target-adversarial-attacks-and-robust-defenses-for-continuous-data-summarization)  
-   标签：评分：8.0/10、query:agent-safety
-   evidence：标题包含可信AI并关注对抗鲁棒性
-5. [SAIGuard: Communication-State Simulation for Proactive Defense of LLM Multi-Agent Systems](/202606/14/2606.12474v1-saiguard-communication-state-simulation-for-proactive-defense-of-llm-multi-agent-systems)  
-   标签：评分：8.0/10、query:mas-security
-   evidence：针对基于通信攻击的多代理系统主动防御
-6. [Smarter Saboteurs, Better Fixers: Scaling & Security in Linear Multi-Agent Workflows](/202606/14/2606.12709v1-smarter-saboteurs-better-fixers-scaling--security-in-linear-multi-agent-workflows)  
-   标签：评分：8.0/10、query:mas-security
-   evidence：针对LLM多代理系统对抗妥协的安全性分析
-7. [PolicyGuard: Towards Test-time and Step-level Adversary Defense for Reinforcement Learning Agent](/202606/14/2606.12896v1-policyguard-towards-test-time-and-step-level-adversary-defense-for-reinforcement-learning-agent)  
-   标签：评分：8.0/10、query:agent-safety
-   evidence：在测试时步骤级防御RL智能体的后门攻击
-8. [LUNA-AD: Lightweight Uncertainty-Aware Language Model with Lifelong Learning for Autonomous Driving](/202606/14/2606.08470v1-luna-ad-lightweight-uncertainty-aware-language-model-with-lifelong-learning-for-autonomous-driving)  
+   evidence：自主AI中的推理、行动、记忆和自我改进能力
+8. [ERTS: Adversarial Robustness Testing of Ethical AI via Semantic Perturbation in a Bounded Consequence Space](/202606/15/2606.13282v1-erts-adversarial-robustness-testing-of-ethical-ai-via-semantic-perturbation-in-a-bounded-consequence-space)  
    标签：评分：7.0/10、query:agent-safety
-   evidence：关注安全关键的自动驾驶系统并采用不确定性感知模型
-9. [The Internet of Agentic AI: Communication, Coordination, and Collective Intelligence at Scale](/202606/14/2606.12835v1-the-internet-of-agentic-ai-communication-coordination-and-collective-intelligence-at-scale)  
-   标签：评分：7.0/10、query:mas-security
-   evidence：讨论了多智能体生态系统的安全工程
-10. [$α$-fair heterogeneous agent reinforcement learning](/202606/14/2606.13076v1--fair-heterogeneous-agent-reinforcement-learning)  
-   标签：评分：7.0/10、query:mas-security
-   evidence：多智能体系统中结合公平性的理论安全学习框架
-11. [Functional Cache Grafting: Robust and Rapid Code-Policy Synthesis for Embodied Agents](/202606/14/2606.13097v1-functional-cache-grafting-robust-and-rapid-code-policy-synthesis-for-embodied-agents)  
+   evidence：伦理AI代理的对抗鲁棒性与对齐
+9. [Selective Agentic Recovery for UAV Autonomy with a Persistent Mission Runtime](/202606/15/2606.14219v1-selective-agentic-recovery-for-uav-autonomy-with-a-persistent-mission-runtime)  
    标签：评分：7.0/10、query:agent-safety
-   evidence：具身智能体代码策略合成中的鲁棒性
-12. [Game-Theoretic Area Coverage Control with Cooperative-Adversarial Multi-Agent Systems](/202606/14/2606.10201v1-game-theoretic-area-coverage-control-with-cooperative-adversarial-multi-agent-systems)  
+   evidence：具有智能推理的安全关键型无人机恢复
+10. [AgentCyberRange: Benchmarking Frontier AI Systems in Realistic Cyber Ranges](/202606/15/2606.14295v1-agentcyberrange-benchmarking-frontier-ai-systems-in-realistic-cyber-ranges)  
+   标签：评分：7.0/10、query:agent-safety
+   evidence：评估前沿AI系统的网络安全攻击能力
+11. [A Reactive Redistribution Mechanism for STL Tasks in Multi-Agent Systems Under Time-Varying Communication](/202606/15/2606.13479v1-a-reactive-redistribution-mechanism-for-stl-tasks-in-multi-agent-systems-under-time-varying-communication)  
    标签：评分：6.0/10、query:mas-security
-   evidence：对抗性多智能体系统中的博弈论区域覆盖控制
-13. [Strategic Decision Support for AI Agents](/202606/14/2606.12587v1-strategic-decision-support-for-ai-agents)  
-   标签：评分：6.0/10、query:agent-safety
-   evidence：聚焦AI代理在决策支持中的可靠性和对齐问题
+   evidence：时变通信下的多智能体任务再分配机制涉及系统安全性
+12. [Elastic Queries Reinforcement Learning: Self-Aware Policy Execution for VLA Models](/202606/15/2606.14375v1-elastic-queries-reinforcement-learning-self-aware-policy-execution-for-vla-models)  
+   标签：评分：6.0/10、query:agent-evolve
+   evidence：自感知策略执行与弹性推理预算实现自适应智能体
 
 
 <div class="dpr-home-promo-card">

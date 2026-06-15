@@ -1,0 +1,370 @@
+Title: When Should Agent Trust Be Conditional? Characterizing and Attacking Skill-Conditional Reputation in Agent Swarms
+
+URL Source: https://arxiv.org/pdf/2606.14200v1
+
+Published Time: Mon, 15 Jun 2026 00:36:41 GMT
+
+Number of Pages: 18
+
+Markdown Content:
+# When Should Agent Trust Be Conditional? 
+
+# Characterizing and Attacking Skill-Conditional Reputation in Agent Swarms Yihan Xia Shenzhen University, China 
+
+# xiayihan2023@email.szu.edu.cn 
+
+# Taotao Wang *
+
+# Shenzhen University, China 
+
+# ttwang@szu.edu.cn 
+
+# Abstract 
+
+Open platforms increasingly route tasks among heterogeneous LLM agents—differing in base model, scaffold, and tool stack—whose competence varies sharply by skill: an agent excellent at one skill may be useless at another. The standard reputation approach summarizes each agent by a single global trust score, but that scalar is the wrong object here, because routing every task to the globally most-trusted agent leaves the value of specialization unclaimed. We study skill-conditional trust R(i | k)—the trust to place in agent i for a task requiring skill k, rather than one score per agent—and pose three falsifiable questions: when is conditioning worth it, how much cross-skill evidence should be borrowed, and whether that borrowing is safe. A controlled phase-diagram analysis answers the first two: conditional trust wins only in a specific regime—high agent heterogeneity, sparse per-skill evidence, and correlated skills—and the coupling strength β that buys this data efficiency is dual-use , because the same cross-skill borrowing is also a laundering channel. On a public benchmark of 14 genuinely heterogeneous AppWorld agents, real pools land inside the beneficial regime—a small but genuine gain, with the per-skill best agent genuinely changing across skills. We then show that an attacker with cheap evidence in one skill and none in a target skill hijacks the conditional router, driving routing regret from 0 to 0.94 on a pool our zero-cost Conditional Information Value Test (CIVT) rates GREEN —while the ungated trust verdict it contaminates reads −0.06 instead of the honest +0.19 . A zero-evidence gate bounds the attack but does not eliminate it; we characterize the residual cost under an explicit budget. We do not claim Sybil-resistance—we quantify the trade-off. 
+
+Keywords: multi-agent systems, LLM agents, trust and reputation, task routing, adversarial robust-ness, reputation laundering, estimation under sparsity 
+
+# 1 Introduction 
+
+Open platforms are increasingly populated by heterogeneous LLM agents offered as services—each a distinct combination of base model, scaffold, and tool stack—and standards for inter-agent delegation and trust are already being drafted around them Hu and Rong [2025], Yu et al. [2025]. An orchestrator must decide which agent to trust with each incoming task. The dominant approach to such trust, inherited from reputation systems for online marketplaces and peer-to-peer networks Kamvar et al. [2003], summarizes each participant by a single global score : how much the system, on aggregate, should trust them. That scalar is exactly right when a participant’s trustworthiness is one-dimensional. But these agents are not uniformly good, and which one is best depends on the task—a regularity that model- and agent-routing systems already exploit to trade cost against quality Ong et al. [2024], 
+
+> *
+
+Corresponding author. 
+
+1
+
+> arXiv:2606.14200v1 [cs.AI] 12 Jun 2026
+
+Moslem and Kelleher [2026]. On the public AppWorld benchmark Trivedi et al. [2024] we study (§5), the agent that is best at phone tasks (an IPF UN CALL scaffold on GPT-4 Turbo) is not the agent best at venmo payments (a P LAN EXEC scaffold on GPT-4o), which is in turn not the best at spotify 
+
+(FullCodeRefl on GPT-4o). A single global trust score implicitly assumes an agent is uniformly trustworthy across tasks; for skill-specialized agents that assumption is simply false, and routing every task to the globally most-trusted agent forfeits the value of specialization. We therefore ask whether the trust object itself should be conditional : not one score per agent, but one score per agent per skill —R(i | k), the trust to place in agent i when the task requires skill k.The difficulty is that per-skill evidence is sparse—an agent may have run only a handful of episodes on any given skill—so a naive per-skill estimate is too noisy to route on. The natural remedy is to 
+
+borrow evidence across correlated skills: an agent’s record on related skills is informative about a skill it has rarely attempted—an agent reliable at venmo payments is a reasonable prior for the closely related splitwise , even with few direct splitwise episodes. This borrowing of strength across related cells is the classic variance-reduction logic of empirical-Bayes shrinkage James and Stein [1961], Efron and Morris [1977], and the same move classical reputation systems use to cope with sparse direct evidence—structured borrowing along a correlation graph, applied here on the agent–skill axis rather than the peer graph (§3.1). 
+
+The question, sharpened. It is tempting to stop there and assert that “conditional trust must be better.” It is not. Earlier attempts—including our own—to claim blanket superiority of conditional routing do not survive scrutiny: when agents are not specialized, or when per-skill evidence is plentiful, a single global-best agent is genuinely hard to beat, and cross-skill borrowing can even inject harmful bias. We therefore reframe the contribution from advocacy to characterization , and ask three falsifiable questions: when does conditioning on a task’s skill beat a single global-best agent; 
+
+how much cross-skill evidence should one borrow when per-skill data is sparse; and whether that borrowing opens an attack surface. The third question is not an afterthought: the very mechanism that buys data efficiency—cross-skill evidence borrowing, tuned by a coupling strength β —turns out to be a reputation-laundering channel, echoing how added inter-agent trust can enlarge the attack surface rather than only improve collaboration Xu et al. [2025], Prakash [2026]. How much to borrow and whether it is safe are thus two faces of one knob. This measurement-first, mechanism-then-attack stance is the honest and, we argue, the more durable contribution. 
+
+What we find. The three answers turn out sharper than the framing promises. When : conditioning helps only in a specific regime—high heterogeneity, sparse per-skill evidence, and correlated skills— and a zero-cost test (CIVT) reads off from existing logs, before any model is run, whether a given pool lies inside it; real public pools land just inside, with a small but genuine gain. How much : the borrowing strength has a constrained optimum, since pushing it past β ≈0.1 adds little accuracy while widening the laundering channel. Whether it is safe : here the result is alarming. On a pool CIVT 
+
+certifies as carrying real conditional value, an attacker with perfect evidence on one cheap skill and 
+
+no evidence on the target skill captures the router for the price of a single fabricated episode, driving routing regret from 0 to 0.94 (§6); the same contamination flips the trust verdict a defender reads from an honest +0.19 (“conditioning is clearly worth it”) to −0.06 (“conditioning is harmful”). The defense that should work makes it worse: the adaptive coupling that gracefully avoids over-borrowing on benign pools rides the very correlation the attacker exploits, so robustness at low skill correlation 
+
+inverts into vulnerability at high correlation. Rate limits and coupling caps are algebraically powerless too; only a structural rule that refuses to borrow for an agent with no direct target evidence bounds the attack, and even that is bypassable at a cost we quantify (§6.2). 
+
+Contributions. We answer the three questions in four steps—formalizing the object, mapping when and how much to condition, placing real data on that map, and then turning the borrowing mechanism against itself as an attack: 1. A skill-conditional trust object R(i | k), with idealized routers ( πglobal , πskill , πoracle ) and a zero-cost de-risking test (CIVT) that decides, from existing logs alone, whether skill conditioning 
+
+2carries value (§3). 2. A phase diagram of when/how-much/whether (§4): conditioning wins only under high heterogeneity H + sparse evidence N + correlated skills C; the borrowing strength β has a 
+
+constrained optimum because the borrowing channel is dual-use; and the coupling must be 
+
+adaptively estimated , not assumed. 3. Real-data placement (§5): on 14 heterogeneous public AppWorld agents, real pools land in the beneficial regime (validated on both continuous and binary outcomes); across five landing points the conditional gain tracks skill correlation C as the phase diagram predicts, and CIVT 
+
+discriminates —GREEN on test_normal , AMBER on the harder test_challenge —rather than rubber-stamping. 4. Adversarial analysis (§6): cross-skill laundering hijacks the conditional router at small β ; we give a budgeted threat model and defenses that bound—not eliminate—attack benefit. 
+
+# 2 Related Work 
+
+Our work sits at the intersection of four threads: the reputation paradigm we depart from (and its classical Sybil/whitewashing attacks, which we specialize); LLM-agent routing, to which we add an adversarial trust dimension; the emerging agent-trust-and-security literature, which we make 
+
+quantitative ; and classical shrinkage estimation, which we re-read as a security knob. We position against each in turn. 
+
+Spectral reputation aggregation and its classical attacks. Power-iterating a normalized adjacency matrix to its principal eigenvector is the canonical recipe for ranking participants in an open graph: P AGE RANK applies it to web authority Page et al. [1999], E IGEN TRUST to peer-to-peer reputation Kamvar et al. [2003], and a long line of work since studies the recipe’s robustness, its pretrust/damping defenses, and personalized or context-aware variants. What this family shares is the 
+
+object it produces: a single scalar score per participant (in personalized variants, per evaluator ). The classical threat models are the Sybil attack Douceur [2002]—forging many identities to outvote honest participants—and the cheap-pseudonym or whitewashing problem Friedman and Resnick [2001], shedding a bad history by re-registering. Both are provably hard to eliminate in open systems: Cheng and Friedman [2005] prove that no symmetric reputation function—a class that includes P AGE RANK -style scores—can be Sybil-proof, so every such mechanism admits a beneficial Sybil attack. This impossibility is exactly why classical defenses are budgeted —bounding rather than eliminating harm—as in the social-network admission control of S YBIL GUARD and S YBIL LIMIT Yu et al. [2006, 2008]. We depart on the conditioning axis , not the aggregation rule: we make the trust object depend on the task’s skill —which agent to trust depends on what is being asked—recovering the single global score as the no-conditioning special case (§3.1). Our attacks (§6) are correspondingly cross-skill reputation-laundering variants of Sybil/whitewashing, and we inherit the classical impossibility—our defenses bound the attack benefit under an explicit budget but are not Sybil-proof. 
+
+LLM-agent routing and model selection. A large recent literature routes queries among mod-els or agents to cut cost or raise quality: learned cost-routers such as R OUTE LLM Ong et al. [2024], cost-cutting model cascades such as F RUGAL GPT Chen et al. [2023], dynamic routing/cascading systems surveyed in Moslem and Kelleher [2026], cost-aware cross-attention routers Pulishetty et al. [2025], and mixture-of-experts architectures Jiang et al. [2024] that route within a single model. This line has largely matured from a research question into infrastructure, and it is not our competitor: it routes on cost or claimed capability , assumes the candidate agents are non-strategic, and presupposes a trustworthy quality signal. We study the prior question that this presupposition hides—when, and how safely, a trust signal should be conditioned on skill at all. Without a reliable, attack-resistant rep-utation signal, skill-routing is building on sand; we characterize that signal’s value and its adversarial limits rather than proposing a better router. 
+
+3Agent trust, reputation, and security. As the “agentic web” begins to deploy, trust between agents has become an active concern, and recent work approaches our thesis closely. Industry-facing protocol studies catalog inter-agent trust mechanisms across emerging standards (A2A, AP2, ERC-8004) Hu and Rong [2025], and surveys map the threat landscape of trustworthy LLM agents Yu et al. [2025] and zero-trust agentic architectures Liu et al. [2025]; these establish that attack-resistant agent reputation is a real, deployed open problem but remain framework-level. Two papers are close enough to require sharp differentiation. Prakash [2026] identify a provenance paradox : self-claimed quality in multi-agent LLM delegation collapses routing below random, and their remedy is protocol-level attestation of identity and delegation contracts. Our launderer is strictly harder to defend against, because it does not lie: it holds genuine observed performance on a farm skill and exploits the 
+
+β -coupling of Eq. (1) to contaminate the target estimate—the signal is real and attestable, the pooling structure is the vulnerability, so attestation does not address it. Xu et al. [2025] document a trust paradox —parameterized inter-agent trust improves collaboration while enlarging the attack surface— and their trust parameter plays the role of our β ; but they treat trust as undifferentiated information exposure, whereas we give a skill-conditional structure and quantify the cost as routing regret, a phase diagram of when conditioning pays, and a bounded-attack benefit. Closest in object are concurrent decentralized-trust proposals. Qi et al. [2025] equip each agent with a per-skill capability vector 
+
+beside a scalar reputation and match tasks by capability, and Wang et al. [2025] make a decentralized trust mechanism evolutionarily stable under adversarial mutation. Both build a mechanism ; neither asks our question. A per-skill capability vector is precisely the object we estimate—but they do not analyze the cross-skill borrowing that sparse per-skill evidence forces: its dual-use as a laundering channel, the budget degeneracy that makes the attack one-episode cheap, or the regime in which conditioning carries value at all. Our contribution is the conditions under which estimating that vector conditionally helps, how much to borrow, and what the borrowing costs under attack. Across this thread the work either identifies a paradox qualitatively or proposes a trust mechanism ; our contribution is the quantitative map— when conditioning has value, how much borrowing is optimal, and the upper bound on what an attacker gains—rather than a new framework. 
+
+Estimation under sparsity. Borrowing strength across related cells to reduce variance at the cost of bias is classical: James–Stein estimation James and Stein [1961] and empirical-Bayes shrinkage Efron and Morris [1977] formalize when pooling beats independent per-cell estimates. Our coupling-weighted estimator (Eq. (1) ) is an instance of this family on the agent–skill matrix, with β
+
+controlling the degree of pooling. The classical analysis treats β as a purely statistical bias–variance knob; our contribution is to give it a security reading—the same parameter that optimally trades bias for variance under honest data is the parameter an attacker tunes to launder reputation, so its safe setting is bounded from above by adversarial, not just statistical, considerations. 
+
+# 3 Problem Formulation and Method 
+
+This section builds the machinery the rest of the paper measures and attacks. We first explain why the live question is conditioning rather than transitive aggregation (§3.1). We then state the observation model, give a single coupling-weighted estimator whose four special cases are the methods we compare, and define the routing regret that scores them. Finally we introduce CIVT—a zero-cost test of whether conditioning carries value on a given log—and the three pool statistics (H, N,C) that the mechanism analysis of §4 sweeps. 
+
+# 3.1 Why conditioning, not transitive aggregation 
+
+Classical reputation systems confront sparse pairwise evidence —a participant has interacted with few others—and the canonical response is transitive borrowing across the graph: power-iterate a nor-malized trust matrix to a fixed point, the same spectral recipe that ranks web pages (P AGE RANK Page et al. [1999]) and peers (E IGEN TRUST Kamvar et al. [2003]). Our setting differs in two ways that make conditioning , not transitive aggregation, the live question. 
+
+4First, the sparse evidence lives on a different axis. Trust here is competence , and what is scarce is episodes in the agent ×skill matrix (an agent has few runs on a given skill). We therefore borrow evidence across correlated skills , along the structure encoded by the coupling matrix WWW (Eq. (1) ), with the no-conditioning special case (all-ones WWW ) recovering a single global score. This borrowing channel is dual-use in exactly the way transitive borrowing is in classical systems—the strength β
+
+that buys data efficiency is the same knob an attacker tunes to launder reputation across skills (§6). Second, outcomes here are program-verifiable rather than peer-reported. In that setting, a relay’s identity matters when the object being relayed is an assessment whose credibility must itself be judged. Here, the object is an environment-verified episode record. Relays may still matter for discovery, synchronization, or selective withholding of records, but once a record is observed, its evidentiary weight does not depend on the peer who forwarded it. The sparse axis therefore moves from who-trusts-whom evidence on a peer graph to per-cell evidence in the agent ×skill matrix, where a cell is one agent–skill entry. Transitive reputation machinery becomes relevant again when the signal includes unverifiable peer assessments, subjective ratings, or cross-organization reports. In the verifiable-outcome slice studied here, the estimation problem is how much evidence to borrow across skills .
+
+# 3.2 Setup and observation model 
+
+A pool of M agents serves tasks spanning K skills. Agent i has unknown ground-truth competence 
+
+θi,k ∈ [0, 1] on skill k. At the task level, an episode is an attempt by agent i on task t, with skill label k(t) and verifiable outcome yi,t ∈ [0, 1]; for estimation we aggregate these task-level records into agent–skill cells. Each cell (i, k) is observed through ni,k episodes with verifiable outcomes (program-checked pass/fail, or a graded score), summarized by an observed mean score oi,k ∈ [0, 1]
+
+carrying evidence mass ni,k. Verifiability is the feature that distinguishes our setting from classical reputation: an episode’s outcome is checked by the environment, not reported by a peer, so a single observation oi,k is itself trustworthy and the only scarce resource is the number of observations ni,k.This is why the live problem is conditioning, not transitive aggregation (§3.1). Our object of interest is the skill-conditional trust R(i | k): the degree to which the orchestrator should trust agent i on a task of skill k. Its ideal value is the (unobserved) ground-truth competence θi,k; the estimators of §3.3 approximate it from the sparse, verifiable evidence {oi,k, ni,k}, and we write ˆτi,k for such an estimate. Recovering R(i | k) well—and, since routing selects the per-skill arg max , recovering for each skill k an across-agent ordering close to that of the true θ·,k—is the core problem. (One may further condition on role r and query q; we study k and leave r, q to future work.) 
+
+# 3.3 A single coupling-weighted estimator 
+
+All trust estimators we consider are instances of one rule—evidence-mass pooling across skills through a coupling matrix WWW (K×K, nonnegative, unit diagonal): ˆτi,k(WWW ) = ∑k′ Wk,k′ ni,k′ oi,k′
+
+∑k′ Wk,k′ ni,k′
+
+. (1) Skill k borrows skill k′’s evidence in proportion to the coupling Wk,k′ and to its evidence mass ni,k′ —an empirical-Bayes–style partial pooling James and Stein [1961], Efron and Morris [1977]. The methods differ only in WWW :• Independent (WWW =III): ˆτi,k = oi,k. No borrowing; unbiased but high-variance when ni,k is small. • Global (WWW =1111 11⊤, all ones): pools every skill into one score per agent, broadcast across k—the single global-score object. Low variance, but biased when agents are skill-specialized. • Conditional (fixed block coupling): Wk,k′ =β if k̸ = k′ lie in the same correlated skill block, else 0, with strength β ∈ [0, 1]. Independent is the limit β =0 ; the strength interpolates between no pooling and within-block pooling. 
+
+5• Adaptive : data-estimated coupling Wk,k′ =β max (Rk,k′ , 0), k̸ = k′, with RRR the cross-agent column-correlation matrix (2) . Borrowing follows empirically positive correlation only; when skills are uncorrelated WWW → III and it degrades gracefully to Independent (no backfire). 
+
+Rk,k′ = ∑i ˜oi,k ˜oi,k′
+
+q
+
+∑i ˜o2
+
+> i,k
+
+q
+
+∑i ˜o2
+
+> i,k′
+
+, ˜oi,k = oi,k − ¯o·,k. (2) Here ¯o·,k = 1 
+
+> M
+
+∑i oi,k is the mean of skill column k, so Rk,k′ is the across-agent Pearson correlation between skill columns k and k′. The coupling strength β is thus a single knob trading variance for bias—and, as §6 shows, the same knob an attacker exploits. 
+
+# 3.4 Conditional routing and regret 
+
+Given estimates ˆτ and a candidate pool P, the conditional router sends a skill-k task to a⋆ 
+
+> k
+
+=
+
+arg max i∈P ˆτi,k. We score a router by routing regret , the normalized shortfall in true competence against the per-skill oracle: 
+
+Reg ( ˆτ) = 1
+
+K
+
+> K
+
+# ∑
+
+> k=1
+
+
+
+max  
+
+> i∈P
+
+θi,k − θa⋆  
+
+> k,k
+
+
+
+. (3) Thus, estimates determine the routing decision, while regret is evaluated using the true competence θ .
+
+# 3.5 The Conditional Information Value Test (CIVT) 
+
+Before deploying any estimator, we ask whether conditioning could help at all on a given evaluation log of verified episodes over agents and skills. We answer with the Conditional Information Value Test (CIVT)—a zero-cost screen of whether the skill information is worth conditioning on, computed from existing logs with no model run. Treating the observation matrix OOO (entries oi,k) as the trust signal, we compare three idealized routers by their value V (·) (mean score of the routed agent): πglobal 
+
+(one fixed agent—the row of largest overall mean, i.e. the single global-score baseline), πskill (the best agent per skill ), and πoracle (the best agent per task , an upper bound). The decision gaps are 
+
+∆sk = V (πskill ) −V (πglobal ) (value of conditioning) ,
+
+∆or = V (πoracle ) −V (πglobal ) (total headroom). (4) A pool is labelled GREEN (conditioning carries value) when ∆or ≥ 0.05 , ∆sk ≥ 0.03 , and the per-skill best agent is not unique. The numerical thresholds are practical-effect cutoffs on a [0, 1] outcome scale, not fitted parameters or statistical significance tests: ∆or ≥ 0.05 requires at least five points of total routing headroom, while ∆sk ≥ 0.03 requires the deployable skill-level router to recover at least three points. We report the raw gaps throughout, so changing these cutoffs changes only the GREEN /AMBER label, not the measured effect. Each condition rules out a distinct failure of conditioning: ∆or demands that some per-task headroom exists at all; ∆sk demands that a skill-level 
+
+router (the deployable object, since per-task routing requires an oracle) captures enough of it to be worth the machinery; and the non-uniqueness condition rules out the degenerate case in which one agent happens to win every skill, where a single global pick is already optimal. CIVT runs on existing logs at zero model cost—it is the operational form of the when question (Proposition 1, §4), a de-risking step that decides whether the estimators of §3.3 are even worth deploying before any model is run. 
+
+# 3.6 Characterizing a pool: H, N, C
+
+Whether conditioning pays off, and whether borrowing is safe, is governed by three measurable properties of the observation matrix OOO, whose row oooi is agent i’s skill profile: • Heterogeneity H = 1√K mean i< j∥oooi − ooo j∥2: how differently agents perform. 
+
+6Figure 1: Mechanism (controlled DGP). (A) At fixed heterogeneity, the Conditional estimator attains the lowest routing regret when evidence is sparse, converging to Independent as N
+
+grows. (B) Phase diagram over H × N at C=1 : green = Conditional net-wins; the tie line marks where it stops beating the best baseline. Panel C uses a perfectly correlated honest farm–target pair ( C=1 ) with sparse target evidence; the AppWorld star in panel B previews the real-data placement expanded in Fig. 4. (C) Attack tension: as coupling β rises, clean regret falls but laundering capture rises—the dual-use of the borrowing channel. 
+
+• Evidence N = mean i,k ni,k: episodes per cell (sparsity). • Correlation C = mean k̸ =k′ Rk,k′ : how correlated the skill columns are (legitimacy of borrow-ing). Sections 4–6 show conditioning wins in a specific (H, N,C) regime, and that C governs whether borrowing helps or backfires. 
+
+# 4 Mechanism: When, How Much, and Whether to Condition 
+
+Real data answers where a given pool lands but cannot vary H, N, and C independently to expose the underlying mechanism. We therefore isolate the mechanism in a controlled data-generating process (DGP) in which all three are knobs: M=12 agents and K=4 skills arranged in two correlated blocks, so that the within-block correlation directly sets C, per-agent profiles set H, and the episode count per cell sets N. We instantiate the estimator family of Eq. (1) —Global ( WWW =1111 11⊤), Independent ( WWW =III), and Conditional (block coupling β )—sweep H, N, C, and β over 500 trials per cell, and score each choice of WWW by routing regret (3) against the known ground truth. The three propositions below answer, in order, the when , how much , and whether of §1. 
+
+Proposition 1 (When). Conditional trust wins exactly under high H and sparse N . The reason is a bias–variance trade-off read through the two baselines. Global ( WWW =1111 11⊤) has low variance but is biased whenever agents are specialized—it broadcasts one score across skills the agent is unequal on—so its error grows with H. Independent ( WWW =III) is unbiased but high-variance when 
+
+N is small, because each per-skill estimate rests on a handful of episodes. Conditional coupling occupies the gap: it borrows correlated cross-skill evidence to cut the variance Independent suffers, without inheriting the cross-skill bias Global suffers. The win is therefore largest precisely where both baselines are weak—high H and sparse N. Scoring the three WWW choices by regret (3) (Fig. 1A– B): at H=0.6, N=1 the Conditional estimator [Eq. (1) with block-β WWW ] attains regret 0.107 versus Independent’s [ WWW =III] 0.176 (−40% ); as N grows, the borrowing terms in Eq. (1) add little over the already-abundant diagonal evidence and the two converge. At low H, Global suffices; at high H
+
+with dense N, Independent suffices. The tie line in Fig. 1(B) is where Conditional’s regret (3) stops beating the best baseline—the operational boundary CIVT estimates from logs alone. 
+
+7Figure 2: Whether to borrow depends on skill correlation C. (D) Coupling validity over 
+
+C × H. (E) Fixed-block coupling hurts at low C (injects irrelevant bias), while adaptive coupling degrades gracefully to Independent and stays non-negative across C.
+
+Proposition 2 (How much). The borrowing strength β has a constrained optimum because the evidence-borrowing channel is also the reputation-laundering channel. Here β is the off-diagonal scale of WWW in Eq. (1) : raising it pulls each skill’s estimate toward its block-mates. In Fig. 1(C), clean regret (3) falls from 0.160 to 0.109 for β ≥ 0.1 ; but the same off-diagonal coupling lets an attacker’s farm-skill evidence flow into a target skill through Eq. (1) , and laundering capture rises from 0 to 0.34 with β (§6). The two curves move in opposite directions in the same parameter, so β cannot be set by data efficiency alone: there is a smallest value, β ≈ 0.1, that secures essentially all of the regret reduction while sitting at the low end of the laundering-capture ramp. We adopt β =0.1 as the deployed coupling throughout, and §6 shows even this conservative setting is enough for an attacker to capture a GREEN pool. This dual-use of one knob is the hinge to §6. 
+
+Proposition 3 (Whether). Whether to borrow depends on C , and the coupling must be estimated, not assumed. Contrast two ways of setting WWW in Eq. (1) : fixed block coupling, which assumes the block structure, versus adaptive coupling Wk,k′ =β max (Rk,k′ , 0) built from the estimated correlation 
+
+RRR (2) . In Fig. 2, fixed coupling hurts when C is low (advantage −0.018 at C=0 ), because it injects evidence from uncorrelated skills—borrowing where there is nothing legitimate to borrow. The adaptive WWW instead stays ≥ 0 across all C, collapsing to III when RRR≈000, so it never backfires: borrowing is safe only along empirically estimated correlation. This makes adaptive coupling the natural safe default —but the safety is conditional on C being low where it matters. We flag now, and demonstrate in §6.2, that the guarantee inverts under attack: on a genuinely high -C pool the adaptive estimator borrows along exactly the channel the attacker rides, so graceful degradation at low C does not imply robustness at high C.
+
+# 5 Real-Data Placement 
+
+The mechanism analysis tells us where conditioning wins; it cannot tell us whether real agent pools fall there. The phase diagram is only useful if real pools occupy its interesting regions rather than collapsing into a corner. We therefore take a pool we did not design—a public leaderboard—measure its (H, N,C), and ask CIVT whether conditioning carries value. 
+
+Data. Among the many benchmarks now used to evaluate LLM agents Liu et al. [2024], we use public AppWorld Trivedi et al. [2024] because it pairs genuinely different scaffold ×model agents with 
+
+8Figure 3: Agent ×skill success matrix on AppWorld (14 agents × 7 app-skills). Orange boxes mark the best agent per skill: the winner changes across skills , the basic precondition for skill conditioning to carry value. 
+
+program-verifiable, per-app outcomes—exactly the heterogeneous, verifiable evidence our setting needs. We take its leaderboard bundles: 14 genuinely heterogeneous agents —the cross product of scaffolds {ReAct Yao et al. [2023], PlanExec, FullCodeRefl, IPFunCall} and base models {GPT-4o, GPT-4 Turbo OpenAI [2023], DeepSeekCoder Guo et al. [2024], LLaMA3-70B Llama Team, AI @ Meta [2024]}—evaluated on the same 168 test_normal tasks ( 2352 episodes). The skill axis is the primary app of each task (file_system, phone, simple_note, splitwise, spotify, todoist, venmo). No model is executed: we download, parse, and analyze published trajectories, so the pool is one we did not construct and cannot tune in our favor—a deliberately adversarial-to-ourselves test of whether real public pools contain skill-conditional value. The heterogeneity is real by construction: the scaffold × base-model cross product mixes planning styles and underlying models, the two axes most likely to produce skill specialization. 
+
+Result: GREEN . Over the 14-agent pool (Table 1), skill conditioning beats the global-best agent by ∆sk = + 0.041 (score) / +0.054 (success), against a total per-task headroom of ∆or = 0.190 /0.310 .Two facts make this a genuine—if modest—win. First, the gain is positive on both a continuous score and a binary success metric, so it is not an artifact of one scoring choice. Second, the best agent genuinely differs across skills: the best on phone is IPFunCall/GPT-4T, on venmo PlanExec/GPT-4o, and on spotify FullCodeRefl/GPT-4o (Fig. 3), so the non-uniqueness condition of CIVT holds and no single global pick is optimal. Both gaps clear the GREEN thresholds ( ∆sk ≥ 0.03 , ∆or ≥ 0.05 ); the verdict is GREEN on both metrics. 
+
+9Table 1: Idealized router values on AppWorld (14-agent pool). Router Score Success 
+
+πglobal 0.743 0.488 
+
+πskill 0.784 0.542 
+
+πoracle 0.933 0.798 
+
+∆sk (skill vs. global) +0.041 +0.054 
+
+∆or (oracle vs. global) +0.190 +0.310 
+
+Landing point. The empirical (H, N,C) = ( 0.217 , 24 , 0.795 ), previewed by the AppWorld star in Fig. 1B and expanded with additional real landings in Fig. 4, projects into the shallow green part of the reference H × N slice; its full (H, N,C) coordinates explain the modest effect size exactly as Proposition 1 predicts. H=0.22 is only moderate: frontier models on a shared benchmark are more alike than not, limiting the Global baseline’s bias. N=24 is not sparse: with two dozen episodes per cell, Independent is already a decent estimator, so there is little variance for borrowing to cut. 
+
+C=0.79 is high: the skills are strongly correlated, so we cannot attribute the gain to fully orthogonal competence. Honest reading: real public pools do contain skill-conditional value, and the sign and significance survive scrutiny, but the magnitude is small because AppWorld sits near—not deep inside—the beneficial regime. We read the small magnitude not as a weak effect but as a measured location on the phase diagram, which converts into a falsifiable prediction: the gain is small because 
+
+today’s public pools are built from a few frontier models that are mutually similar (moderate H,high C) and densely evaluated (large N); as open marketplaces fill with more specialized, unevenly evidenced agents—lower C, higher H, sparser N—a pool’s coordinates move along the diagram toward the deep-green region, and the conditional gain grows with them. The mechanism is the same; only the substrate’s coordinates change. This is the result (the mechanism is real on real data) and its caveat (the public landscape is shallow) at once, stated as a curve the ecosystem will climb rather than a constant. The high C also foreshadows the adversarial result: it is precisely the correlation that makes borrowing legitimate here that an attacker will later exploit (§6). 
+
+# 5.1 Robustness: the phase diagram holds in both directions 
+
+A single landing point cannot show that the phase diagram governs real pools rather than merely admitting one. We add four more landing points from the same public source, at zero model cost: three difficulty strata of test_normal (slicing the 14-agent pool by AppWorld task difficulty), and the independent, harder test_challenge split ( 380 tasks across the same 14 agents, recovered by decrypting the public leaderboard bundles; same app-primary skill axis). Table 2 reports the full coordinates; Fig. 4 visualizes them by projecting H, N onto the reference phase slice and plotting 
+
+C directly against the observed conditional gain. Slicing out difficulty lowers the skill correlation 
+
+C from 0.79 to 0.56 – 0.68 and the conditional gain rises to +0.06 –+0.09 : pooling difficulties had averaged specialization away, so the headline +0.04 understates the per-stratum value. The harder 
+
+test_challenge split moves the other way— C rises to 0.82 as multi-app tasks and floored-out weak agents inflate cross-skill correlation—and conditioning value collapses to +0.01 , an AMBER 
+
+verdict: ample total headroom (oracle −global = 0.25 ) that the primary-app axis fails to capture. The governing variable is the correlation C (and the coarseness of the skill axis), not task difficulty. Crucially, CIVT discriminates : it certifies test_normal GREEN and flags test_challenge AMBER 
+
+from logs alone, returning a negative exactly where conditioning stops paying. The de-risking test is therefore not a rubber stamp—which is what makes its GREEN on test_normal , and the attack we now mount on that pool, meaningful. 
+
+10 Table 2: Five real AppWorld landing points (no model execution). The table reports the full 
+
+(H, N,C) coordinates behind Fig. 4; CIVT returns GREEN or AMBER accordingly. ∆sk is skill-vs-global on the continuous score. Pool H N C ∆sk CIVT 
+
+test_normal (§5) 0.22 24.0 0.79 +0.041 GREEN 
+
+difficulty 1 0.28 11.4 0.56 +0.063 GREEN 
+
+difficulty 2 0.29 12.0 0.62 +0.089 GREEN 
+
+difficulty 3 0.22 9.0 0.68 +0.059 GREEN 
+
+test_challenge 0.24 47.5 0.82 +0.010 AMBER 
+
+Figure 4: Five real AppWorld landing points. (A) Projection onto a reference H × N phase slice at C=1 ; marker color shows the CIVT verdict, marker size tracks ∆sk , and labels report each pool’s empirical C. Since C is not an axis in this panel, (B) plots empirical skill correlation C directly against conditional gain ∆sk ; the dashed line marks the CIVT skill-value cutoff ∆sk =0.03. 
+
+# 6 Adversarial Analysis 
+
+Proposition 2 warned, in the controlled DGP, that the borrowing channel is dual-use; §5 then found a real pool whose conditional value rests on high skill correlation. We now collide the two: we run the laundering attack on exactly that real, CIVT-certified GREEN pool, and ask how cheap the attack is, which defenses bound it, and at what residual cost. 
+
+Threat model. In an open pool an attacker registers one or more agents and seeks to be routed skill-kt tasks despite having no genuine competence on the target skill kt . Its lever is a cheap farm 
+
+skill k f on which honest evidence is easy to produce, and the borrowing channel of Eq. (1) , which lets farm evidence inflate the target estimate whenever Wkt ,k f >0. We hold the attacker to an explicit 
+
+budget B—the number of farm episodes it can fabricate, or the number of Sybil identities it can register—and the defender routes with the conditional estimator at the deployed coupling β =0.1fixed in §4. We distinguish four attacker profiles by how they spend the budget: a launderer (one agent, perfect farm evidence, zero target evidence); a whitewasher (a fresh identity that sheds a bad history and re-enters with farm evidence only); a Sybil (the same farm budget split across k identities); and a sleeper (farm build-up plus partial, genuine target evidence). A fifth profile, the learner , plants failing target episodes to defeat the defense of §6.2 and is analyzed there. We measure attack benefit by the same full-pool routing regret (3) used for the honest analysis: the attack succeeds to the extent 
+
+11 Table 3: Capture at the β =0.1 sweet spot on the simple_note →phone GREEN pair. Attack Captured Min. β Farm evidence Launderer yes 0.05 24 ep (1 full agent) Whitewasher yes 0.05 8 ep (fresh identity) Sybil ( k=1–6) yes 0.05 24 ep total Sleeper no — 24 farm + target evidence 
+
+it makes the router send target tasks to an incompetent agent. 
+
+Attack surface. The choice of farm–target pair matters for the strength of the claim. We first examined simple_note →venmo, but its honest gap is sub-GREEN (∆sk =0.02 ): CIVT would not recom-mend conditioning on that pair in the first place, so capturing it invites the reply “you attacked a pool the system would avoid.” To close that gap we attack a pair CIVT itself endorses : farm = simple_note, target = phone. This pair is highly correlated ( R=0.861 )—so the honest borrowing the attacker abuses is exactly the borrowing Proposition 3 sanctions—and GREEN under the honest gated verdict, 
+
+∆sk =∆or =0.1922 , well above the 0.03 /0.05 thresholds. The attack is therefore not an edge case on a pair the system would avoid; it captures a skill-conditioned pool with real, CIVT-certified routing value. This is the strongest form of the threat: the defense cannot escape it by simply refusing to condition, because refusing to condition here forfeits a genuine +0.19 gain. Sweeping β (Fig. 5, Table 3), a zero-target attacker —either a launderer with perfect farm evidence or a whitewasher with a fresh identity—is captured at β ≥ 0.05 and drives full-pool routing regret (3) from 0 to 0.9357 : above the threshold coupling the inflated target estimate exceeds every honest incumbent’s, so the router hands phone tasks to an agent with no phone competence. The same attack contaminates the trust signal itself. On the clean pool the gated CIVT verdict is +0.1922 (strongly GREEN ); but the launderer’s perfect farm score also lifts its global mean, so if it is admitted into the global baseline—as a naive verdict does—the apparent value of conditioning collapses to 
+
+−0.0643 . The same pool thus reads “conditioning is harmful” to a defender who does not gate, and “conditioning is worth +0.19 ” to one who does: the gap between −0.06 and +0.19 is entirely an artifact of whether zero-target evidence is allowed to vote, which is exactly what the defense of §6.2 controls. The remaining profiles confirm the pattern: a Sybil splitting 24 farm episodes across k
+
+identities is captured for all k ≥ 1 (splitting the budget does not weaken it, since each identity still carries zero target evidence), while a sleeper that mixes in partial genuine target evidence is not 
+
+captured at β =0.1 —its real target failures dilute the laundering signal below the capture threshold. This realizes Proposition 2’s warning on a real GREEN pool, at the conservative coupling β =0.1 we adopted there. 
+
+# 6.1 The attack is one-episode cheap 
+
+A natural first instinct is to defend by rate-limiting: cap how much farm evidence B an agent may accumulate, on the theory that laundering needs a large farm balance to outweigh honest competence. We measure attack benefit as full-pool routing regret (3) against B and find this instinct is mathematically void for pure laundering. 
+
+Budget degeneracy. Consider a zero-target launderer on target skill kt with farm skill k f : it holds no genuine target evidence ( ni,kt =0 ) and farm evidence equal to its budget ( ni,k f =B). Every honest target term then drops out of Eq. (1), and the target estimate collapses: ˆτi,kt = β B o i,k f + 
+
+> =0
+
+z }| {
+
+ni,kt oi,kt
+
+β B + ni,kt
+
+|{z}  
+
+> =0
+
+= β B o i,k f
+
+β B = oi,k f ,
+
+12 Figure 5: Cross-skill laundering on a GREEN AppWorld pair (simple_note →phone). As 
+
+β crosses 0.05 , the zero-target attack captures the target skill and regret jumps to 0.9357 .The gated verdict remains strongly GREEN (+0.1922 ), while the naive global baseline is contaminated ( −0.0643). 
+
+identically for every B≥1 and every β >0 : the budget B and the coupling β cancel algebraically. The estimate is pinned at the farm score the instant a single farm episode exists, so one fabricated episode already drives regret to its capped value 0.9357 and a full agent’s 24 episodes buy nothing more (Fig. 6). The flat budget curve is not a plotting artifact—it is this cancellation. Two consequences follow. (i) The attack is not merely possible but one-episode cheap : there is no budget threshold to raise, because the threshold is one. (ii) The defense cannot be a rate limit on B or a clip on β , both of which the cancellation neutralizes; it must instead be structural , keying on the qualitative fact that genuine target evidence is absent. That is precisely the gate of §6.2. 
+
+# 6.2 Only an evidence gate bounds it 
+
+Budget degeneracy already rules out rate-limiting, but three other defensive instincts remain: make the estimator robust (adaptive coupling), cap the borrowed contribution, or detect and flag the attacker. We evaluate all four against each attack profile at the deployed β =0.1 (Fig. 7), and the picture is sharply asymmetric—only the one structural defense works: • Zero-evidence gate —suppress cross-skill borrowing for any agent with ni,k<1 direct episodes on the target skill—is the only effective defense, cutting launderer and whitewasher benefit from 0 .9357 to 0 .0000 while leaving the honest GREEN verdict intact. • Adaptive coupling —the hero of Proposition 3— fails here. Because the farm and target skills are genuinely correlated in the honest pool ( R=0.861 ), the adaptive estimator (2) borrows along exactly the channel the attacker rides, and cannot separate laundering from honest correlated competence. Graceful degradation at low C (§4) does not imply robustness at high 
+
+13 Figure 6: Attack benefit vs. budget B on the GREEN pair. For zero-target laun-derer/whitewasher attacks, B and β cancel in Eq. (1) : any B ≥ 1 and β > 0 yields the same capped regret (0 .9357). The sleeper does not capture at β =0.1. 
+
+C.• Capped borrowing (clip the off-diagonal contribution) is ineffective at this β : the coupling structure of Eq. (1) still admits full inflation. • Detection signature (flag agents with perfect farm and zero target evidence) attains precision and recall 1.0 at capture, but flagging is not mitigation: benefit is unchanged unless the flag triggers an action such as the gate. 
+
+Bounded claim, and where it breaks. We therefore state a deliberately bounded result: at 
+
+β =0.1, the zero-evidence gate reduces zero-target laundering benefit from 0.9357 to 0 on a GREEN 
+
+pair, while leaving the honest +0.1922 verdict intact. The gate works because it keys on the one thing budget degeneracy could not fake: the qualitative presence of genuine target evidence. A pure launderer has ni,target =0 by definition, so suppressing cross-skill borrowing exactly for ni,k<1removes its inflation without touching any agent that has actually attempted the target skill. But this is a bounded result, not Sybil-resistance, and we are explicit about where it breaks. The predicate 
+
+ni,k<1 is a cliff at zero, so an attacker who plants even a single failing target episode—posing as a “learner” acquiring the skill rather than a pure launderer—steps over the cliff and re-enters the borrowing channel. The question is what that costs. Figure 8 quantifies this residual channel, and the cost is high. The budget axis, degenerate for pure laundering, comes back to life once a planted episode appears in the denominator of Eq. (1) : the attacker must now out-mass its own planted failures with farm evidence. With one planted target-zero episode, regaining capture takes 64 farm episodes; with two, four, or eight planted episodes, capture does not occur at all up to 64 farm episodes. The gate is therefore not a cure, but it converts a free, one-episode attack into an explicit and steep target-evidence-versus-farm-budget tradeoff. Crucially, the bypass is costlier on greener pools : a high-∆sk pool has strong honest incumbents, so each planted failure drags the attacker’s pooled estimate below their bar faster than farm evidence can lift it back—the gate is most effective exactly where conditioning is most valuable, and weakest on the marginal pools where there was little to protect. This is the shape of the bounded-defense claim we 
+
+14 Figure 7: Defense benefit matrix at β =0.1 (lower is better). Of four defenses, only the zero-evidence gate reduces launderer and whitewasher regret to 0; adaptive coupling, capping, and detection leave the 0.9357 benefit intact. Zero-height bars are marked explicitly at the baseline. The sleeper is harmless throughout. 
+
+make: rather than assert Sybil-resistance, we map which attacks each defense blocks, at what cost, and where the classical Sybil-proofness impossibility Cheng and Friedman [2005], Friedman and Resnick [2001] remains open—a trade-off quantified, not a guarantee overclaimed. 
+
+# 7 Limitations and Future Work 
+
+We state the boundaries of the claims plainly. • Verifiable-outcome scope. We study skills whose outcome a program can check—tool use, code, payments, data tasks (the makeup of AppWorld). For quality services such as summarization, writing, or translation there is no environment judge, and the only available signal is a consumer’s subjective rating; such skills fall outside our setting. When unverifiable peer ratings enter the signal, transitive cross-agent propagation (and the Sybil/collusion surface it must then defend) becomes a live problem again; we leave that regime to future work. We view restricting to the verifiable slice as deliberate, not a simplification: when a checkable signal exists, routing on it strictly dominates routing on a gameable rating, and the slice already covers a large class of real agent tasks. • Skill definition. The skill axis is the single primary app of each task; multi-app tasks are projected onto their primary app, and task difficulty is not modeled as a separate skill. A finer skill taxonomy could raise both H and the conditional gain. • Shallow real landing. AppWorld lands inside the beneficial regime but shallowly (high 
+
+C=0.79 , modest gain +0.04 ). We validate the mechanism on real data but cannot, on this benchmark, exhibit a large real-world effect; the difficulty strata of §5.1 already show the gain rising as C falls, but reaching the deep-green regime would require pools with higher heterogeneity and sparser, less-correlated evidence than current public benchmarks supply. 
+
+15 Figure 8: Residual learner cost under the zero-evidence gate. Once the attacker plants target-skill evidence, the budget axis becomes non-degenerate: on the GREEN pair, one planted failing target episode requires 64 farm episodes to recover capture, while two or more planted episodes are not captured up to 64 farm episodes. 
+
+• Bounded adversarial claim. The gate’s guarantee is bounded, not absolute: it defeats zero-target laundering but is bypassable by a learner at a quantified cost (§6.2), and we explicitly do not claim Sybil-resistance. • Conditioning axis. We condition on skill k only; conditioning on role r and query q, and the interaction among them, is future work. 
+
+# 8 Conclusion 
+
+As open systems fill with heterogeneous LLM agents, a single global trust score becomes the wrong object, and the natural fix—conditioning trust on the task’s skill—is neither universally better nor a free lunch. Our characterization makes three things precise. When : conditioning pays off only under high heterogeneity and sparse, correlated evidence, a regime CIVT detects from logs at zero cost. How much : the borrowing strength β has a constrained optimum because the same channel that buys data efficiency launders reputation. Whether it is safe : cross-skill laundering captures even a CIVT-certified GREEN pool at one-episode cost, and only a structural zero-evidence gate bounds it—bounds, not eliminates, with a residual learner cost we quantify. We give the map, place real public data on it, and chart its adversarial limits, trading the comfortable claim that conditional trust is simply better for the more durable one that says exactly when, how much, and at what risk. 
+
+# References 
+
+L. Chen, M. Zaharia, and J. Zou. FrugalGPT: How to use large language models while reducing cost and improving performance, 2023. A. Cheng and E. Friedman. Sybilproof reputation mechanisms. In Proceedings of the 2005 ACM SIG-COMM Workshop on Economics of Peer-to-Peer Systems (P2PECON) , pages 128–132. Association for Computing Machinery, 2005. doi: 10.1145/1080192.1080202. J. R. Douceur. The Sybil attack. In International Workshop on Peer-to-Peer Systems (IPTPS) , pages 251–260, 2002. B. Efron and C. Morris. Stein’s paradox in statistics. Scientific American , 236(5):119–127, 1977. 
+
+16 E. J. Friedman and P. Resnick. The social cost of cheap pseudonyms. In Journal of Economics & Management Strategy , 2001. whitewashing / cheap-pseudonym reputation problem. D. Guo, Q. Zhu, D. Yang, Z. Xie, K. Dong, W. Zhang, G. Chen, X. Bi, Y. Wu, Y. K. Li, F. Luo, Y. Xiong, and W. Liang. DeepSeek-Coder: When the large language model meets programming— the rise of code intelligence, 2024. B. Hu and H. Rong. Inter-agent trust models: A comparative study of brief, claim, proof, stake, reputation and constraint in agentic web protocol design (A2A, AP2, ERC-8004), 2025. AAAI 2026 Workshop on Trust and Control in Agentic AI (TrustAgent). W. James and C. Stein. Estimation with quadratic loss. In Proceedings of the Fourth Berkeley Symposium on Mathematical Statistics and Probability , volume 1, pages 361–379, 1961. A. Q. Jiang, A. Sablayrolles, A. Roux, A. Mensch, B. Savary, C. Bamford, D. S. Chaplot, D. de las Casas, E. B. Hanna, F. Bressand, G. Lengyel, G. Bour, G. Lample, L. R. Lavaud, L. Saulnier, M.-A. Lachaux, P. Stock, S. Subramanian, S. Yang, S. Antoniak, T. Le Scao, T. Gervet, T. Lavril, T. Wang, T. Lacroix, and W. El Sayed. Mixtral of experts, 2024. S. D. Kamvar, M. T. Schlosser, and H. Garcia-Molina. The EigenTrust algorithm for reputation management in P2P networks. In Proceedings of the 12th International Conference on World Wide Web (WWW) , pages 640–651, 2003. X. Liu, H. Yu, H. Zhang, Y. Xu, X. Lei, H. Lai, Y. Gu, H. Ding, K. Men, K. Yang, S. Zhang, X. Deng, A. Zeng, Z. Du, C. Zhang, S. Shen, T. Zhang, Y. Su, H. Sun, M. Huang, Y. Dong, and J. Tang. AgentBench: Evaluating LLMs as agents. In International Conference on Learning Representations (ICLR) , 2024. Y. Liu, R. Zhang, H. Luo, Y. Lin, G. Sun, D. Niyato, H. Du, Z. Xiong, Y. Wen, A. Jamalipour, D. I. Kim, and P. Zhang. Secure multi-LLM agentic AI and agentification for edge general intelligence by zero-trust, 2025. Llama Team, AI @ Meta. The Llama 3 herd of models, 2024. Y. Moslem and J. D. Kelleher. Dynamic model routing and cascading for efficient LLM inference: A survey, 2026. I. Ong, A. Almahairi, V. Wu, W.-L. Chiang, T. Wu, J. E. Gonzalez, M. W. Kadous, and I. Stoica. RouteLLM: Learning to route LLMs with preference data, 2024. ICLR 2025. OpenAI. GPT-4 technical report, 2023. L. Page, S. Brin, R. Motwani, and T. Winograd. The PageRank citation ranking: Bringing order to the web. Technical Report 1999-66, Stanford InfoLab, 1999. S. Prakash. The provenance paradox in multi-agent LLM routing: Delegation contracts and attested identity in LDP, 2026. R. Pulishetty, M. K. Ghantasala, K. K. Dasoju, N. Mangwani, V. Garimella, A. Mate, S. Chatterjee, Y. Kang, E. Nosakhare, S. Hasan, and S. Srinivasan. One head, many models: Cross-attention routing for cost-aware LLM selection, 2025. M. Qi, T. Zhu, L. Zhang, N. Li, and W. Zhou. Towards transparent and incentive-compatible collaboration in decentralized LLM multi-agent systems: A blockchain-driven approach, 2025. H. Trivedi, T. Khot, M. Hartmann, R. Manku, V. Dong, E. Li, S. Gupta, A. Sabharwal, and N. Bala-subramanian. AppWorld: A controllable world of apps and people for benchmarking interactive coding agents. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (ACL) , 2024. Best Resource Paper. 
+
+17 J. Wang, S. Yang, T. Qiao, J. Qin, J. Li, Y. Wang, and Y. Zhao. Ev-Trust: An evolutionarily stable trust mechanism for decentralized LLM-based multi-agent service economies, 2025. Z. Xu, M. Qi, S. Wu, L. Zhang, Q. Wei, H. He, and N. Li. The trust paradox in LLM-based multi-agent systems: When collaboration becomes a security vulnerability, 2025. S. Yao, J. Zhao, D. Yu, N. Du, I. Shafran, K. Narasimhan, and Y. Cao. ReAct: Synergizing reasoning and acting in language models. In International Conference on Learning Representations (ICLR) ,2023. H. Yu, M. Kaminsky, P. B. Gibbons, and A. Flaxman. SybilGuard: Defending against sybil attacks via social networks. In Proceedings of the ACM SIGCOMM Conference , pages 267–278, 2006. H. Yu, P. B. Gibbons, M. Kaminsky, and F. Xiao. SybilLimit: A near-optimal social network defense against Sybil attacks. IEEE/ACM Transactions on Networking , 2008. M. Yu, F. Meng, X. Zhou, S. Wang, J. Mao, L. Pan, T. Chen, K. Wang, X. Li, Y. Zhang, B. An, and Q. Wen. A survey on trustworthy LLM agents: Threats and countermeasures. In Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining , KDD ’25, pages 6216–6226, New York, NY, USA, 2025. Association for Computing Machinery. doi: 10.1145/3711896.3736561. 
+
+18

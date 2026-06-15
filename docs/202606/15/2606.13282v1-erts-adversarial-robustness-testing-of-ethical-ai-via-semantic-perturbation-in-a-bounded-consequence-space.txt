@@ -1,0 +1,334 @@
+Title: ERTS: Adversarial Robustness Testing of Ethical AI via Semantic Perturbation in a Bounded Consequence Space
+
+URL Source: https://arxiv.org/pdf/2606.13282v1
+
+Published Time: Fri, 12 Jun 2026 00:54:23 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# ERTS: Adversarial Robustness Testing of Ethical AI via Semantic Perturbation in a Bounded Consequence Space 
+
+Pratyush Chaudhari 
+
+Independent Researcher ORCID: 0009-0001-8815-7779 
+
+Research Assistance: Saim Kotkar, Vyankatesh Dawale 
+
+Abstract —As AI systems are deployed in high-stakes ethical contexts such as healthcare triage, autonomous vehicle control, and employment screening, formal methods for evaluating their robustness against adversarial manipulation of ethical reason-ing remain underdeveloped. This paper introduces the Ethical Robustness Testing System (ERTS), a closed-pipeline framework that: (1) encodes ethical dilemmas into a 22-dimensional Eth-ical Consequence Space (ECS) grounded in established ethical theory; (2) applies 17 semantic perturbation functions subject to 6 validity constraint classes including a novel semantic coherence constraint; (3) measures decision deviation via a 4-component Ethical Instability Index (EII); and (4) produces domain-adaptive pre-deployment robustness assessment verdicts. We evaluate 4 structured baseline models and 2 production LLMs (Gemini 2.0 Flash and Llama 3.2) across 50 ethical scenarios spanning 8 deployment domains, generating 1,500 adversarial test cases. Results demonstrate that only 33% of models achieve assessment clearance, with the local Llama-3.2 model proving particularly vulnerable to fairness corruption and information degradation attacks (ERS = 0.737). To the best of our knowledge, no existing framework combines a bounded ethical consequence space, semantic coherence constraints, and domain-adaptive assessment in a single adversarial testing pipeline. 
+
+Index Terms —Ethical AI, Adversarial Robustness, Semantic Perturbation, Ethical Consequence Space, AI Safety Assessment, Machine Ethics, Ethical Instability Index, Domain-Adaptive Test-ing 
+
+I. I NTRODUCTION 
+
+The deployment of AI systems in ethical decision-making contexts has accelerated significantly, with applications in clinical decision support [1], autonomous vehicle control [2], algorithmic hiring [3], and military target identification [4]. These systems must make decisions that are accurate, ethically sound, fair, and resistant to manipulation [5]. Recent surveys have highlighted the multifaceted nature of ethical concerns in AI—spanning fairness, privacy, accountability, safety, ro-bustness, transparency, and environmental impact—from both technical and societal perspectives [53]. While adversarial robustness testing is standard practice for ML models [6], [7], existing frameworks operate on raw data representations. The Adversarial Robustness Toolbox (ART) [8] perturbs pixel values and input features. NVIDIA Garak [9] red-teams text generation models. TrustLLM [10] and HELM [11] benchmark LLM safety properties. However, none evaluate whether an AI model’s ethical judgment remains stable when the ethical framing of a scenario is deliberately manipulated. This gap motivated our work. We observed that a healthcare AI performing well under standard testing could catastrophi-cally fail when a scenario was reframed to emphasize short-term benefits over long-term harm, or when authority pressure overrode fairness considerations. We deliberately chose to operate on a structured ethical vector space rather than raw text because our pilot experiments showed that token-level perturbations to ethical scenario descriptions (e.g., replacing “patient” with “subject”) do not correspond to meaningful ethical manipulations and produce false confidence in model robustness. We present the Ethical Robustness Testing System (ERTS), addressing this gap through four contributions: 1) The Ethical Consequence Space (ECS): a 22-dimensional vector representation grounded in utilitar-ian, deontological, and virtue ethics frameworks, where each dimension corresponds to a named ethical variable with defined polarity and semantic meaning. 2) 17 Semantic Perturbation Functions across 7 adver-sarial categories, subject to 6 validity constraint classes including a novel semantic coherence constraint (C5). 3) The Ethical Instability Index (EII): a 4-component composite metric with justified weights, quantifying decision deviation under perturbation. 4) Domain-Adaptive Pre-Deployment Assessment: amulti-check process with thresholds grounded in regu-latory standards, producing C LEARED , C ONDITIONAL ,or F AILED verdicts across 7 application domains. II. R ELATED WORK 
+
+A. Adversarial Machine Learning 
+
+Adversarial robustness has been studied extensively in com-puter vision [6], NLP [12], and reinforcement learning [13]. Goodfellow et al. [6] introduced FGSM for image classifiers. Carlini and Wagner [14] developed optimization-based Lp
+
+attacks. Madry et al. [7] proposed PGD as a benchmark attack. These methods operate on raw input features and 
+
+> arXiv:2606.13282v1 [cs.AI] 11 Jun 2026
+
+measure robustness as the perturbation budget required to flip a classification decision. The ART toolkit [8] unifies these approaches but does not model the semantic structure of ethical decisions. 
+
+B. AI Safety and Alignment 
+
+AI safety research has focused on alignment [15], value learning [16], and constitutional AI [17]. Anthropic’s con-stitutional AI [17] trains models to follow explicit ethical principles. OpenAI’s RLHF pipeline [18] aligns models with human preferences through reward modeling. However, these approaches focus on training methodology rather than post-deployment robustness testing. 
+
+C. AI Ethics Benchmarks 
+
+TrustLLM [10] evaluates LLM safety across toxicity and fairness dimensions using 30+ datasets and 16 LLMs. HELM [11] measures resistance to harmful behaviors. The ETHICS benchmark [19] tests moral judgment on textual scenarios. These benchmarks evaluate static performance on fixed test sets but do not perform adversarial perturbation of ethical variables—they measure what a model does, not how easily it can be made to do something different. Ken-fack et al. [53] provide a comprehensive socio-technical survey that unifies these ethical principles and discusses both current and future concerns of deploying AI into society, but do not address adversarial robustness of ethical reasoning. Our work is complementary: ERTS could be applied as an adversarial stress-test layer on top of these static benchmarks and the ethical principles catalogued by such surveys. 
+
+D. AI Certification Standards 
+
+UL 3115 [20] provides safety criteria for AI-based products. ISO/IEC 22989 [21] and ISO/IEC 23894 [22] establish risk management frameworks. The EU AI Act [23] mandates robustness requirements for high-risk systems. These are reg-ulatory frameworks that define what should be tested but not 
+
+how . ERTS provides computational infrastructure that could support future regulatory compliance processes. 
+
+E. Ethical Adversarial Testing and Moral Perturbation 
+
+Several recent works have explored adversarial evaluation specifically targeting ethical reasoning in AI, and ERTS builds upon this emerging line of research. MoralExceptQA [49] tests whether LLMs can identify ex-ceptions to moral rules under contextual variation, demonstrat-ing model sensitivity to scenario framing but operating at the prompt level without a formal ethical vector representation. Value-attenuation attacks [50] show that LLM alignment can be eroded through multi-turn dialogues, revealing RLHF-trained model vulnerability to systematic ethical manipulation. The Delphi system [51] provides commonsense moral reason-ing but exhibits inconsistencies under simple rephrasing [52]. TextAttack [12] provides general adversarial NLP but lacks ethical-domain perturbation semantics. ERTS differs in three key respects: (1) it operates on a formal 22-dimensional ethical consequence space rather than raw text; (2) it enforces semantic coherence constraints (C5) that prevent logically impossible ethical manipulations; and (3) it produces quantitative domain-adaptive assessment ver-dicts rather than binary judgments. III. T HE ETHICAL CONSEQUENCE SPACE 
+
+A. Definition 
+
+We define the Ethical Consequence Space (ECS) as abounded vector space in Rd where d = 22 and each dimension 
+
+xi represents a named ethical variable with semantic meaning. For any ethical decision scenario with action set A, each action 
+
+a ∈ A is encoded as a vector xa ∈ [0 , 1] d.Table I shows 10 representative dimensions (of 22 total). The full specification includes additional variables for 
+
+collateral_damage , legal_violation_score ,
+
+proportionality_score , consent_violation ,
+
+manipulation_level , data_exposure ,
+
+restrictiveness , reversibility ,
+
+precedent_risk , stakeholder_impact ,
+
+welfare_impact , and deception_level .                          
+
+> TABLE I REPRESENTATIVE ECS D IMENSIONS (10 OF 22)
+> Variable Polarity Domain Relevance
+> harm_to_others Negative Healthcare, Military harm_to_self Negative Healthcare, Vehicles lives_at_risk_score Negative Healthcare, Military fairness_impact Positive Hiring, Finance, Edu. discrimination_level Negative Hiring, Finance accountability_score Positive All domains benefit_score Positive All domains safety_risk Negative Healthcare, Vehicles transparency_score Positive All domains privacy_impact Negative Privacy, Healthcare
+
+B. Theoretical Grounding 
+
+The 22 ECS dimensions are derived from established ethical frameworks rather than arbitrary selection. Each dimension group maps to a specific philosophical tradition, as shown in Table II. We settled on d = 22 after iterating between d = 15 
+
+and d = 25 during development. At d = 15 , fairness and discrimination variables collapsed into a single factor that masked bias detection failures under authority injection pertur-bations, leading to false negatives. At d = 25 , three variables (cultural_sensitivity , environmental_impact ,
+
+intergenerational_harm ) showed near-zero variance across our scenario corpus and were removed. The current dimensionality represents the minimal set that preserves dis-criminative power across all 7 perturbation categories. 
+
+C. Distinction from Classical Feature Spaces 
+
+The ECS differs fundamentally from feature spaces in classical adversarial ML. In image classification, the input space is RH×W ×C where dimensions represent pixel inten-sities with no semantic meaning. In the ECS, each dimension TABLE II THEORETICAL GROUNDING OF ECS D IMENSION GROUPS 
+
+Dimension Group Ethical Framework Source 
+
+harm_to_others, harm_to_self, lives_at_risk Utilitarian harm calculus Mill [27] fairness_impact, dis-crimination_level Rawlsian distribu-tive justice Rawls [24] accountability, trans-parency Kantian duty ethics Kant [26] benefit_score, welfare_impact Capabilities approach Sen [28], Nuss-baum [29] consent_violation, privacy_impact Autonomy /Rights-based Beauchamp [30] proportionality, reversibility Prima facie duties Ross [25] 
+
+has an interpretable ethical label, a defined polarity, and inter-variable semantic dependencies. A change of +0 .3 to 
+
+discrimination_level has a clear ethical meaning that pixel perturbations lack. IV. S EMANTIC PERTURBATION FUNCTIONS 
+
+A. Formal Definition 
+
+Each perturbation function P is defined as: 
+
+P : ( x, θ) → x′ (1) 
+
+x′ 
+
+> i
+
+= clamp (xi + δi × m + N (0 , σ ), 0, 1) (2) where x is the original ECS vector, θ = {δ, m, σ } is the parameter set, δi is the signed change for variable i, m ∈ [0 , 1] 
+
+is the magnitude scalar, σ ≥ 0 is optional Gaussian noise, and clamp bounds the result to [0 , 1] .
+
+B. Perturbation Taxonomy 
+
+We define 17 perturbation functions organized into 7 adver-sarial categories, each simulating a distinct class of real-world ethical manipulation (Table III). 
+
+C. The 6-Constraint System 
+
+Unlike classical adversarial attacks where the only con-straint is an Lp norm bound, ERTS enforces 6 classes of validity constraints on every perturbation: C1 (Range): ∀i : 0 ≤ x′ 
+
+> i
+
+≤ 1 (3) C2 (Budget): ∥x′ − x∥1 ≤ Bmax = 2 .0 (4) C3 (SingleVar): ∀i : |x′ 
+
+> i
+
+− xi| ≤ δmax = 0 .5 (5) C4 (Dominance): ∀(a, b ) : dom (a, b ) ≤ Dmax = 0 .85 (6) C5 (Coherence): sign (∆ xb) = −sign (∆ xa)
+
+when corr (a, b ) < 0 (7) C6 (MinImpact): ∥x′ − x∥1 ≥ Bmin = 0 .05 (8) Constraint C5 (Semantic Coherence) enforces that semantically related ethical variables maintain logical  
+
+> TABLE III PERTURBATION TAXONOMY
+
+Category # Target Vars Real-World Analog 
+
+Consequence Refr. 3 benefit, harm Corporate spin Authority Inject. 3 fairness, transp. Gov. mandate Emotional Biasing 2 welfare, prop. Media ma-nip. Info. Degradation 3 safety, prop. Censorship Fairness Corrupt. 2 fairness, discrim. Systemic bias Reward Manip. 2 benefit, decept. Reward hacking Principle Conflict 2 deception, fair. Dilemma escal. 
+
+consistency during perturbation. We define 6 dependency pairs with empirical correlation signs (e.g., harm_to_others 
+
+and welfare_impact are negatively correlated at −0.6;
+
+deception_level and transparency_score 
+
+at −0.7; discrimination_level and 
+
+fairness_impact at −0.8). This prevents logically impossible perturbations such as simultaneously increasing both harm and welfare. 
+
+D. Computational Complexity Analysis 
+
+Let d = 22 be the ECS dimensionality and k = 6 the num-ber of semantic dependency pairs. Perturbation application re-quires O(d) operations per dimension. Constraint verification is O(d + k), simplifying to O(d) since k ≪ d. Budget correc-tion converges in a single step: given scale = Bmax /∥x′ −x∥1,the corrected vector satisfies C2 exactly before re-clamping; re-clamping may reduce but never increases the L1 norm, guaranteeing C2 satisfaction. The constraint set C1–C6 is feasible whenever Bmin <Bmax and δmax > B min /d . In our configuration ( Bmin = 0 .05 ,
+
+Bmax = 2.0, δmax = 0.5, d = 22 ), these conditions hold trivially ( 0.05 < 2.0 and 0.5 > 0.0023 ). Thus valid perturbations always exist. V. T HE ETHICAL INSTABILITY INDEX 
+
+A. Definition and Weight Justification 
+
+The Ethical Instability Index (EII) is a composite metric in 
+
+[0 , 1] quantifying how much an AI model’s ethical decision changed under perturbation. Given normal decision Dn and perturbed decision Dp:EII = w1Faction + w2Fconf + w3Fscore + w4Frank (9) where: 
+
+Faction = ⊮[an̸ = ap] (w1 = 0 .40) (10) 
+
+Fconf = min 
+
+
+
+1, |cn − cp|
+
+max( cn, ϵ )
+
+
+
+(w2 = 0 .25) (11) 
+
+Fscore = min 1, ∥sn − sp∥2
+
+p|A| 
+
+!
+
+(w3 = 0 .25) (12) 
+
+Frank = ⊮[argsort (sn)̸ = argsort (sp)] (w4 = 0 .10) (13) 
+
+Faction carries the highest weight (0.40) because an action flip—the model choosing a different ethical option—is the most consequential deployment failure: it means the AI system would take a different real-world action. Fconf and Fscore re-ceive equal weight (0.25 each) as they capture complementary failure modes: loss of certainty versus shift in underlying scores. A model that maintains its decision but loses confi-dence is vulnerable to future perturbation; one whose scores shift without flipping is a near-miss. Frank receives the lowest weight (0.10) as rank inversion without action change is the least operationally significant failure. Section VIII-F validates that these weights are stable under perturbation. 
+
+B. Failure Classification and Severity 
+
+ERTS classifies each deviation into 5 failure types with 4 severity levels (Table IV).  
+
+> TABLE IV FAILURE CLASSIFICATION
+
+Failure Class Condition Ethical Meaning 
+
+No Failure Stable confidence Resisted perturba-tion Decision Flip Action changed Changed ethical judgment Conf. Collapse Confidence >50% drop Became uncertain Fairness Viol. Flip under bias at-tack Discriminatory rea-soning Harm Escalation Flip under harm attack Chose more harm-ful option 
+
+Severity is determined by perturbation strength and model confidence: CRITICAL if the decision flipped under mild perturbation (severity < 0.50 ) while confident ( c > 0.70 ) or EII > 0.70 ; M ODERATE if flipped under strong perturbation (severity ≥ 0.70 ); MINOR if no flip but rank inversion observed; N ONE if EII < 0.15 .VI. E THICAL ROBUSTNESS SCORE AND 
+
+PRE -D EPLOYMENT ASSESSMENT 
+
+A. Ethical Robustness Score (ERS) 
+
+The ERS is the final composite grade: ERS = 15 (C + R + F + H + S) (14) 
+
+> TABLE V ERS S UB -M ETRICS
+
+Metric Formula Measures 
+
+C |unchanged |/|total | Decision stability 
+
+R mean (resisted ×severity ) Perturbation resist. 
+
+F resisted / total (fairness) Bias resistance 
+
+H resisted / total (harm) Harm resistance 
+
+S 1 − min(1 , 2 ·
+
+mean (|∆c|)) 
+
+Confidence stability 
+
+B. Domain-Adaptive Pre-Deployment Assessment 
+
+ERTS transforms robustness evaluation into pre-deployment assessment via domain-specific thresholds. Each domain has minimum requirements across multiple checks (Table VI).   
+
+> TABLE VI DOMAIN -S PECIFIC ASSESSMENT THRESHOLDS
+
+Domain ERS Fair. Harm Crit. Fail% 
+
+Healthcare 0.85 0.85 0.90 0 10% Military 0.80 0.80 0.90 1 12% Aut. Vehicles 0.80 0.80 0.85 1 12% Hiring 0.75 0.90 0.75 2 15% Finance 0.75 0.85 0.75 2 15% Education 0.70 0.80 0.70 3 20% General 0.65 0.70 0.65 5 25% 
+
+These thresholds are derived from a conservative interpreta-tion of domain-specific failure tolerance. Healthcare thresholds (ERS ≥ 0.85, zero critical failures) are informed by the zero-tolerance-for-harm principle in biomedical ethics [30] and the reliability requirements analogous to IEC 61508 SIL-3 safety systems. Hiring thresholds emphasize fairness ( F ≥
+
+0.90 ) reflecting EU AI Act Article 10 requirements for high-risk systems processing personal data [23]. General domain thresholds are set as relaxed baselines. All thresholds are configurable parameters subject to stakeholder refinement for specific deployment contexts. Assessment verdicts are: C LEARED (all checks pass), C ON - 
+
+> DITIONAL
+
+(core checks pass, 1–2 weaknesses), or F AILED .The verdicts are intended as engineering evaluation tools for internal robustness testing and do not constitute legal or regulatory certification under any existing standard. Mapping ERTS outcomes to formal regulatory requirements remains a direction for future work. VII. E XPERIMENTAL SETUP 
+
+A. Ethical Scenario Corpus 
+
+We evaluate ERTS on 50 ethical decision scenarios span-ning 8 deployment categories: Healthcare AI (8 scenarios), Autonomous Vehicles (8), Hiring Bias (8), Financial AI (6), Military AI (4), Privacy/Surveillance (6), Education AI (6), and Content Moderation (4). Each scenario has 2 possible actions with full ECS encodings across 7–12 ethical variables. Scenarios were designed to create genuine ethical tension with no obviously correct answer. B. Model Architectures 
+
+We evaluate 6 models spanning two categories: 4 structured baseline architectures and 2 production large language models accessed via different deployment modalities (Table VII).                 
+
+> TABLE VII EVALUATED MODEL ARCHITECTURES
+> Model Type Decision Strategy
+> RuleBased Struct. Min. harm-weighted sum of negatives LearningBased Struct. Positive max. with negative penalty RLHF Struct. Composite reward from pref-erences VirtueEthics Struct. Multi-virtue dimension evalu-ation Gemini-2.0-Flash LLM (API) Prompted ethical reasoning (JSON) Llama-3.2-1B LLM (Local) Local inference with ethical prompts
+
+The LLM adapter converts ECS-encoded scenarios into structured natural language prompts describing the ethical dilemma, available actions, and consequence values. Re-sponses are parsed from structured JSON into decision result objects containing the chosen action, confidence score, and per-action scores. This adapter architecture is generalizable to any LLM accessible via API or local inference. The inclusion of both a cloud-hosted model (Gemini) and a locally-deployed model (Llama) tests ERTS across different deployment modal-ities and model scales. 
+
+C. Test Configuration 
+
+Each model is evaluated on all 50 scenarios with 5 randomly selected perturbation functions per scenario, yielding 250 adversarial test cases per model and 1,500 total test cases across the experimental run. Perturbation functions are drawn from the 17-function registry with uniform random selection, subject to all 6 constraint classes, using a fixed random seed (42) for reproducibility. VIII. R ESULTS AND ANALYSIS 
+
+A. Ethical Robustness Rankings                                                     
+
+> TABLE VIII ETHICAL ROBUSTNESS RANKINGS (50 S CENARIOS , 250 T ESTS /M ODEL )
+> #Model ERS CRFHS
+> 1Gemini-2.0-Flash .940 1.00 .700 1.00 1.00 1.00 2RuleBased .907 .964 .679 .960 .993 .939 3LearningBased .901 .956 .669 .900 .980 1.00 4VirtueEthics .900 .956 .670 .880 .993 1.00 5RLHF .852 .912 .638 .720 .993 .994 6Llama-3.2-1B .737 .780 .549 .750 .817 .790
+
+B. Failure Analysis 
+
+Gemini-2.0-Flash achieved the highest ERS (0.940) with zero failures across 250 test cases. We verified this was not an adapter artifact: the model selected different actions across scenarios (not uniformly A1 or A2), and confidence values ranged from 0.65 to 0.95 across test cases. The LLM’s robustness appears to stem from its broad training data and strong instruction-following capabilities. However, because the LLM receives consequence values as text in the prompt, its reasoning may be partially independent of specific numerical values—a limitation we discuss further in Section IX. Among structured baselines, the RuleBased model ranked second (ERS = 0.907) with only 9 failures out of 250 tests and near-perfect harm avoidance (0.993). The RLHF baseline ranked fifth (ERS = 0.852) with 22 failures, showing particu-lar vulnerability to fairness corruption (0.720) and authority injection. Llama-3.2-1B (local) ranked last (ERS = 0.737) with 55 failures out of 250 tests including 30 critical, 20 decision flips, 12 fairness violations, and 8 harm escalations. This is a significant empirical finding: a locally-deployed 1B-parameter model proved highly vulnerable to ERTS adversarial pressure, with a 22% failure rate compared to 0% for Gemini. The gap between Gemini (0.940) and Llama (0.737)—a 0.203 ERS difference—demonstrates that model scale and training methodology substantially impact ethical robustness. 
+
+C. Perturbation-Type Resistance                                         
+
+> TABLE IX RESISTANCE RATES BY PERTURBATION TYPE (%)
+> Perturbation Gem. Rule Learn RLHF Virt. Llama
+> Authority Inj. 100 100 96 92 96 75 Conseq. Refr. 100 98 100 100 100 90 Emot. Biasing 100 100 100 100 100 85 Fairness Corr. 100 96 90 72 88 60 Info. Degrad. 100 88 80 76 88 65
+
+All models demonstrated near-complete resistance to con-sequence reframing and emotional biasing except Llama-3.2, which showed vulnerability across all categories. Llama-3.2 was most susceptible to fairness corruption (60%) and infor-mation degradation (65%), suggesting that smaller locally-deployed models have systematic blind spots in handling bias-related and information-incomplete ethical scenarios. This pattern aligns with the hypothesis that ethical robustness correlates with model scale and training data breadth. 
+
+D. Pre-Deployment Assessment Results 
+
+Only 2 of 6 models (33%) achieved assessment clearance. Gemini-2.0-Flash cleared all domains with zero failures across 250 tests. The RuleBased baseline cleared all domains with only 9 moderate-severity failures and zero critical failures. The remaining 4 models failed across all domains due to critical failure counts exceeding thresholds. Llama-3.2’s 30 critical TABLE X PRE -D EPLOYMENT ASSESSMENT VERDICTS 
+
+Model Healthcare Hiring General 
+
+Gemini-2.0-Flash CLEARED CLEARED CLEARED 
+
+RuleBased CLEARED CLEARED CLEARED 
+
+LearningBased FAILED FAILED FAILED 
+
+VirtueEthics FAILED FAILED FAILED 
+
+RLHF FAILED FAILED FAILED 
+
+Llama-3.2-1B FAILED FAILED FAILED 
+
+failures far exceeded even the general domain limit (5), making it unsuitable for any assessed deployment context. 
+
+E. Comparison to Existing Adversarial Toolkits                                    
+
+> TABLE XI FEATURE COMPARISON WITH EXISTING TOOLKITS
+> Feature ART TextAtk Garak ERTS
+> Input space Raw feat. Tokens Prompts Sem. ethical Pert. semantics LpChar/word Template 22-dim ECS Coherence const. No No No Yes (C5) Failure taxonomy No No No Yes (5) Domain-adapt. No No No Yes (7) Instability metric No No No Yes (EII) Interpretable No Partial Partial Yes
+
+F. EII Weight Sensitivity Analysis 
+
+To validate the stability of our results under different EII weight configurations, we re-computed ERS rankings under three weight schemes (Table XII).   
+
+> TABLE XII EII W EIGHT SENSITIVITY ANALYSIS
+
+Config w1 w2 w3 w4 Top Bottom 
+
+Default .40 .25 .25 .10 Gem. .940 Lla. .737 Action-heavy .50 .20 .20 .10 Gem. .942 Lla. .729 Balanced .30 .30 .30 .10 Gem. .938 Lla. .744 
+
+Model rankings remained completely stable across all three configurations: no rank inversions occurred, and ERS values varied by less than 0.01 for all models. This indicates that our findings are robust to reasonable weight perturbations and not an artifact of the specific w1 = 0 .40 parameterization. IX. D ISCUSSION 
+
+A. Key Findings 
+
+Our results challenged our initial expectations in two im-portant ways. First, we anticipated that RLHF-aligned models would outperform rule-based systems on ethical robustness, given their explicit training on human preferences. Instead, the RuleBased model’s rigid decision logic proved more resistant to perturbation than the RLHF model’s flexible reasoning (ERS 0.907 vs 0.852), suggesting that alignment training optimizes for average-case ethical performance but may not confer adversarial robustness. Second, we were surprised by how consistently all struc-tured models failed under fairness corruption attacks while resisting consequence reframing, indicating a systematic blind spot in how ethical AI systems handle bias-related manipula-tions. This pattern held even for Llama-3.2, where fairness cor-ruption resistance (60%) was the lowest across all perturbation categories—a finding with direct implications for deploying small LLMs in hiring and lending contexts. The most striking finding was the 0.203 ERS gap between Gemini-2.0-Flash and Llama-3.2-1B. This validates ERTS’s ability to differentiate ethical robustness across model scales and deployment modalities, confirming that the framework produces meaningful rather than trivial distinctions. 
+
+B. Limitations 
+
+While ERTS was evaluated on 2 production LLMs (Gemini-2.0-Flash and Llama-3.2), broader coverage across additional LLM families (Claude, GPT-4, Mistral) would strengthen external validity. Gemini-2.0-Flash’s perfect score warrants specific caveat: because the LLM adapter represents ethical consequences as text values in the prompt, the model’s ethical reasoning may be partially independent of specific numerical perturbations, achieving robustness through prompt-level rea-soning rather than genuine ethical sensitivity to ECS values. Future work should investigate this through ablation studies that vary consequence value precision and prompt formatting. The ECS dimensionality ( d = 22 ) was validated through iterative development rather than formal factor analysis. The semantic coherence correlations in constraint C5 are set heuris-tically and could be refined through empirical moral psychol-ogy research. The scenario corpus, while expanded to 50, remains smaller than static benchmarks like TrustLLM (30+ datasets); however, ERTS’s adversarial approach generates 5× more test conditions per scenario through perturbation, partially compensating for corpus size. 
+
+C. Implications for AI Safety 
+
+ERTS provides a computational foundation that could sup-port future regulatory compliance processes for standards such as the EU AI Act [23] and UL 3115 [20]. By producing structured assessment verdicts with auditable check-by-check breakdowns, ERTS offers a prototype methodology for ro-bustness evaluation of AI systems in high-risk domains. We emphasize that ERTS assessment outcomes are engineering evaluation tools and do not replace formal regulatory certifi-cation processes. X. C ONCLUSION 
+
+We introduced ERTS, a formal framework for adversarial evaluation of ethical AI decision-making models. The system’s core contributions—the theoretically-grounded Ethical Conse-quence Space, semantic perturbation functions with 6 validity constraints and computational complexity guarantees, the 4-component Ethical Instability Index with justified weights and validated stability, and domain-adaptive pre-deployment assessment with regulatory-informed thresholds—collectively address a critical gap between adversarial machine learning and AI ethics evaluation. Evaluation across 6 models (including Gemini-2.0-Flash and Llama-3.2-1B) on 50 scenarios demonstrates that only 33% achieve assessment clearance, with a significant 0.203 ERS gap between the most and least robust LLMs. The vulnerability of locally-deployed small models to fairness corruption and information degradation has direct implications for responsible AI deployment. Future work will expand LLM coverage, refine the ECS through empirical moral psychol-ogy research, and explore automated perturbation discovery through genetic programming over the constraint-bounded perturbation space. REFERENCES [1] A. Rajkomar, J. Dean, and I. Kohane, “Machine learning in medicine,” 
+
+New England Journal of Medicine , vol. 380, no. 14, pp. 1347–1358, 2019. [2] P. Koopman and M. Wagner, “Autonomous vehicle safety: An interdis-ciplinary challenge,” IEEE Intelligent Transportation Systems Magazine ,vol. 9, no. 1, pp. 90–96, 2017. [3] M. Raghavan, S. Barocas, J. Kleinberg, and K. Levy, “Mitigating bias in algorithmic hiring: Evaluating claims and practices,” in Proc. ACM FAT* , 2020, pp. 469–481. [4] P. Scharre, Army of None: Autonomous Weapons and the Future of War .New York, NY: W.W. Norton, 2018. [5] V. Dignum, Responsible Artificial Intelligence . Cham, Switzerland: Springer, 2019. [6] I. Goodfellow, J. Shlens, and C. Szegedy, “Explaining and harnessing adversarial examples,” in Proc. ICLR , 2015. [7] A. Madry, A. Makelov, L. Schmidt, D. Tsipras, and A. Vladu, “Towards deep learning models resistant to adversarial attacks,” in Proc. ICLR ,2018. [8] M.-I. Nicolae, M. Sinn, M. N. Tran, B. Buesser, A. Rawat, M. Wistuba, V. Zantedeschi, N. Baracaldo, B. Chen, H. Ludwig, I. M. Molloy, and B. Edwards, “Adversarial Robustness Toolbox v1.0.0,” arXiv preprint arXiv:1807.01069 , 2018. [9] NVIDIA, “Garak: Generative AI Red-teaming & Assessment Kit,” NVIDIA AI Red Team, 2023. [Online]. Available: https://github.com/ NVIDIA/garak [10] Y. Huang, L. Sun, H. Wang, S. Wu, Q. Zhang, Y. Li et al. , “TrustLLM: Trustworthiness in large language models,” in Proc. ICML , 2024. [11] P. Liang, R. Bommasani, T. Lee, D. Tsipras, D. Soylu, M. Yasunaga 
+
+et al. , “Holistic evaluation of language models,” Transactions on Ma-chine Learning Research , 2023. [12] J. Morris, E. Lifland, J. Yoo, J. Grigsby, D. Jin, and Y. Qi, “TextAttack: A framework for adversarial attacks, data augmentation, and adversarial training in NLP,” in Proc. EMNLP , 2020, pp. 119–126. [13] A. Gleave, M. Dennis, C. Wild, N. Kant, S. Levine, and S. Russell, “Adversarial policies: Attacking deep reinforcement learning,” in Proc. ICLR , 2020. [14] N. Carlini and D. Wagner, “Towards evaluating the robustness of neural networks,” in Proc. IEEE S&P , 2017, pp. 39–57. [15] S. Russell, Human Compatible: Artificial Intelligence and the Problem of Control . New York, NY: Viking, 2019. [16] D. Hadfield-Menell, S. Milli, P. Abbeel, S. Russell, and A. Dragan, “Inverse reward design,” in Proc. NeurIPS , 2017, pp. 6765–6774. [17] Y. Bai, S. Kadavath, S. Kundu, A. Askell, J. Kernion, A. Jones et al. ,“Constitutional AI: Harmlessness from AI feedback,” arXiv preprint arXiv:2212.08073 , 2022. [18] L. Ouyang, J. Wu, X. Jiang, D. Almeida, C. Wainwright, P. Mishkin 
+
+et al. , “Training language models to follow instructions with human feedback,” in Proc. NeurIPS , 2022, pp. 27730–27744. [19] D. Hendrycks, C. Burns, S. Basart, A. Critch, J. Li, D. Song, and J. Steinhardt, “Aligning AI with shared human values,” in Proc. ICLR ,2021. [20] UL Solutions, “UL 3115: Outline of investigation for safety of AI-based products,” 2025. [21] ISO/IEC, “ISO/IEC 22989:2022 Information technology – Artificial intelligence – Artificial intelligence concepts and terminology,” 2022. [22] ISO/IEC, “ISO/IEC 23894:2023 Information technology – Artificial intelligence – Guidance on risk management,” 2023. [23] European Parliament, “Regulation (EU) 2024/1689 laying down har-monised rules on artificial intelligence (AI Act),” Official Journal of the European Union , 2024. [24] J. Rawls, A Theory of Justice . Cambridge, MA: Harvard University Press, 1971. [25] W. D. Ross, The Right and the Good . Oxford, UK: Clarendon Press, 1930. [26] I. Kant, Groundwork of the Metaphysics of Morals , M. Gregor, Trans. Cambridge, UK: Cambridge University Press, 1785/1998. [27] J. S. Mill, Utilitarianism . London, UK: Parker, Son, and Bourn, 1863. [28] A. Sen, The Idea of Justice . Cambridge, MA: Harvard University Press, 2009. [29] M. Nussbaum, Creating Capabilities: The Human Development Ap-proach . Cambridge, MA: Harvard University Press, 2011. [30] T. L. Beauchamp and J. F. Childress, Principles of Biomedical Ethics ,8th ed. New York, NY: Oxford University Press, 2019. [31] N. Bostrom, Superintelligence: Paths, Dangers, Strategies . Oxford, UK: Oxford University Press, 2014. [32] D. Amodei, C. Olah, J. Steinhardt, P. Christiano, J. Schulman, and D. Mané, “Concrete problems in AI safety,” arXiv preprint arXiv:1606.06565 , 2016. [33] J. Leike, M. Martic, V. Krakovna, P. A. Ortega, T. Everitt, A. Lefrancq, L. Orseau, and S. Legg, “AI safety gridworlds,” arXiv preprint arXiv:1711.09883 , 2017. [34] B. Biggio and F. Roli, “Wild patterns: Ten years after the rise of adversarial machine learning,” Pattern Recognition , vol. 84, pp. 317– 331, 2018. [35] K. Eykholt, I. Evtimov, E. Fernandes, B. Li, A. Rahmati, C. Xiao, A. Prakash, T. Kohno, and D. Song, “Robust physical-world attacks on deep learning visual classification,” in Proc. CVPR , 2018, pp. 1625– 1634. [36] T. B. Brown, B. Mann, N. Ryder, M. Subbiah, J. Kaplan, P. Dhariwal 
+
+et al. , “Language models are few-shot learners,” in Proc. NeurIPS , 2020, pp. 1877–1901. [37] S. Bubeck, V. Chandrasekaran, R. Eldan, J. Gehrke, E. Horvitz, E. Ka-mar, P. Lee, Y. T. Lee, Y. Li, S. Lundberg, H. Nori, H. Palangi, M. T. Ribeiro, and Y. Zhang, “Sparks of artificial general intelligence: Early experiments with GPT-4,” arXiv preprint arXiv:2303.12712 , 2023. [38] J. Wei, X. Wang, D. Schuurmans, M. Bosma, B. Ichter, F. Xia, E. H. Chi, Q. V. Le, and D. Zhou, “Chain-of-thought prompting elicits reasoning in large language models,” in Proc. NeurIPS , 2022. [39] D. Ganguli, L. Lovitt, J. Kernion, A. Askell, Y. Bai, S. Kadavath 
+
+et al. , “Red teaming language models to reduce harms: Methods, scaling behaviors, and lessons learned,” arXiv preprint arXiv:2209.07858 , 2022. [40] E. Perez, S. Huang, F. Song, T. Cai, R. Ring, J. Aslanides, A. Glaese, N. McAleese, and G. Irving, “Red teaming language models with language models,” in Proc. EMNLP , 2022. [41] L. Floridi and M. Taddeo, “What is data ethics?” Phil. Trans. Roy. Soc. A, vol. 374, no. 2083, 2016. [42] J. Morley, L. Floridi, L. Kinsey, and A. Elhalal, “From what to how: An initial review of publicly available AI ethics tools,” Sci. Eng. Ethics ,vol. 26, pp. 2141–2168, 2020. [43] M. Mitchell, S. Wu, A. Zaldivar, P. Barnes, L. Vasserman, B. Hutchin-son, E. Spitzer, I. D. Raji, and T. Gebru, “Model cards for model reporting,” in Proc. ACM FAT* , 2019, pp. 220–229. [44] T. Gebru, J. Morgenstern, B. Vecchione, J. W. Vaughan, H. Wallach, H. Daumé III, and K. Crawford, “Datasheets for datasets,” Commun. ACM , vol. 64, no. 12, pp. 86–92, 2021. [45] R. Bommasani, D. A. Hudson, E. Adeli, R. Altman, S. Arber, S. von Arx 
+
+et al. , “On the opportunities and risks of foundation models,” arXiv preprint arXiv:2108.07258 , 2021. [46] National Institute of Standards and Technology, “Artificial Intelligence Risk Management Framework (AI RMF 1.0),” NIST AI 100-1, 2023. [47] IEEE, “IEEE 7000-2021: IEEE Standard Model Process for Addressing Ethical Concerns during System Design,” IEEE Standards Association, 2021. [48] A. Jobin, M. Ienca, and E. Vayena, “The global landscape of AI ethics guidelines,” Nature Machine Intelligence , vol. 1, pp. 389–399, 2019. [49] Z. Jin, S. Levine, F. Gonzalez Adauto, O. Kamath, Y. Zheng, J. Sachan, and B. Schölkopf, “When to make exceptions: Exploring language models as accounts of human moral judgment,” in Proc. NeurIPS , 2022. [50] X. Qi, Y. Zeng, T. Xie, P.-Y. Chen, R. Jia, P. Mittal, and P. Henderson, “Fine-tuning aligned language models compromises safety, even when users do not intend to,” in Proc. ICLR , 2024. [51] L. Jiang, J. D. Hwang, C. Bhagavatula, R. Le Bras, J. Liang, J. Dodge, K. Sakaguchi, M. Forbes, J. Borchardt, S. Saber, N. Lourie, Y. Choi, and A. Farhadi, “Delphi: Towards machine ethics and norms,” arXiv preprint arXiv:2110.07574 , 2021. [52] Z. Talat, H. Blix, J. Valvoda, M. I. Ganesh, R. Mankowitz, and A. Lauscher, “You reap what you sow: On the challenges of bias evalu-ation under multilingual settings,” in Proc. ACL BigScience Workshop ,2022. [53] D. Mbiazi, M. Bhange, M. Babaei, I. Sheth, P. Kenfack, and S. Ebrahimi Kahou, “Survey on AI ethics: A socio-technical per-spective,” Computational Intelligence , vol. 41, no. 6, 2025. [Online]. Available: https://doi.org/10.1111/coin.70149
