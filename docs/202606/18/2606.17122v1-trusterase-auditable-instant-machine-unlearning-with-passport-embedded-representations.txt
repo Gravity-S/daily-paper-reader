@@ -1,0 +1,633 @@
+Title: TrustErase: Auditable Instant Machine Unlearning with Passport-Embedded Representations
+
+URL Source: https://arxiv.org/pdf/2606.17122v1
+
+Published Time: Wed, 17 Jun 2026 00:04:49 GMT
+
+Number of Pages: 21
+
+Markdown Content:
+# TrustErase: Auditable Instant Machine Unlearning with Passport-Embedded Representations 
+
+Rutger Hendrix 
+
+University of Catania Catania, Italy 
+
+rutger.hendrix@phd.unict.it 
+
+Leonardo G. Russo 
+
+University of Catania Catania, Italy 
+
+leonardo.russo@studium.unict.it 
+
+Concetto Spampinato 
+
+University of Catania Catania, Italy 
+
+concetto.spampinato@unict.it 
+
+Matteo Pennisi 
+
+University of Catania Catania, Italy 
+
+matteo.pennisi@unict.it 
+
+Giovanni Bellitto 
+
+University of Catania Catania, Italy 
+
+giovanni.bellitto@unict.it 
+
+## Abstract 
+
+The demand for privacy-compliant AI has amplified the need for machine unlearn-ing ; yet, existing retraining or distillation-based methods remain unverifiable and computationally costly. We introduce TrustErase , a verifiable, data-free unlearning framework leveraging passport-embedded representations for instant, modular, and auditable forgetting. By treating passports as cryptographic keys within parameter-efficient adaptation layers, TrustErase enables the removal of specific classes or datasets through simple deactivation, without retraining, fine-tuning, or access to the original data. A singular value based decomposition conceals passports within model weights, ensuring that unlearning actions remain transparent and provably compliant. Evaluations on MNIST, CIFAR10 and CIFAR100 show that 
+
+TrustErase matches or exceeds state-of-the-art benchmarks such as DELETE, L2UL, and Boundary Shrink, while operating in a strictly data-free regime. Ulti-mately, TrustErase establishes a new paradigm for trustworthy, accountable, and instantly forgettable AI systems. 
+
+## 1 Introduction 
+
+The increasing adoption of large-scale pretrained models across domains such as vision, language, and multimodal reasoning [ 12 , 7 , 34 ] has magnified the challenge of machine unlearning [ 6, 5, 31 ], which is the ability to remove specific knowledge or data influence from a trained model. This capability is now a regulatory and ethical requirement, mandated by frameworks such as the GDPR’s ‘right to be forgotten’ [ 1, 11 , 2 ]. Yet, achieving auditable and efficient unlearning remains difficult [ 20 , 18 , 29 ]: models must erase information about targeted data without retraining or access to the original dataset, while maintaining performance and trust on retained knowledge [16, 36, 33]. In real-world AI deployments, retraining-based unlearning can be operationally costly or even in-feasible, as it may require service interruption, repeated compliance checks, and access to training data that is no longer available. Nevertheless, existing methods largely rely on post-hoc interventions. 
+
+> Preprint.
+> arXiv:2606.17122v1 [cs.CR] 15 Jun 2026
+
+Retraining or fine-tuning approaches [ 39 , 40 ] such as SISA [ 5 ], gradient-based deletion [ 30 ], or distillation-based unlearning [ 43 , 24 ], aim to counteract the contribution of forgotten data through additional optimization steps. DELETE [ 43 ], in particular, formulates a decoupled distillation frame-work that jointly optimizes forgetting and retention losses, achieving strong results but still requiring multiple training stages and computational overhead. Other lines of work, such as certified removal via influence functions [ 21 ] or boundary-based regularization methods like L2UL [ 8] and Boundary Shrink [ 9 ], provide approximate or partial forgetting yet depend on the availability of training data and lack provable guarantees. Despite their effectiveness, these approaches fundamentally treat unlearning as a secondary optimization problem executed after training, even when scenarios may demand immediate compliance. More recently, prompt-based unlearning [ 23 ] reframed forgetting as a native architectural property, enabling instant, data-free removal by deleting learned prompt tokens. However, prompt-based designs still rely on external management of prompts and offer no structural assurance that unlearn-ing has been correctly applied once a model is shared. This is opposed to the growing regulatory pressure demanding mechanisms that can guarantee auditable compliance of deployed models [ 3 ]. Parallel research on passport-based model verification [ 14 , 32 ] has shown that embedding constant matrices within network layers can bind a model’s functionality to hidden credentials. Although originally conceived for copyright protection [ 32 , 14 ], this paradigm suggests a promising direction for unlearning: coupling a model’s behavior with auditable structures. Building on these insights, we propose TrustErase , a data-free unlearning framework with authority-mediated audit. TrustErase draws on three prior lines of work and extends them. From SEAL [ 32 ], we adopt the passport-in-LoRA construction with SVD-based hiding and repurpose it for unlearning. From DELETE [ 43 ], we adapt the masked-distribution forgetting objective into single-stage multi-task training without a teacher. Inspired by Pre-Forgettable Models [ 23 ], we adopt the activate-at-inference paradigm, with passports as the modular unit. Our contributions are (i) joint multi-task training of shared LoRA factors against a passport library coexisting within one parameter space; (ii) a hypernetwork that composes atomic passports into credentials for unseen forget-set combinations without retraining or data access; and (iii) an authority-mediated audit binding each released adapter to its claimed unlearning configuration. The result is instant, modular, data-free forgetting with auditable evidence. Experimental results demonstrate that TrustErase matches or exceeds state-of-the-art unlearning methods on MNIST, CIFAR-10, and CIFAR-100, while operating in a strictly data-free regime at deployment. By shifting the computational burden to pre-optimization phase, TrustErase establishes a train-once, forget-anytime paradigm in which compliance is achieved through passport deactivation rather than post-hoc retraining. 
+
+## 2 Related Work 
+
+Machine unlearning. Machine unlearning aims to remove the influence of specific data or concepts from trained models, addressing privacy mandates such as the GDPR and the ‘right to be forgot-ten’ [ 1]. Early works explored this in traditional ML settings, where convex formulations allowed exact removal through analytical or incremental updates [ 18 , 29 , 4]. However, such formulations do not generalize to deep networks [ 6], where nonlinearity and overparameterization prevent effi-cient inversion. Unlearning for deep neural networks (DNNs) has therefore focused on post-hoc 
+
+interventions. SISA [ 5] partitions the training data into independent shards, retraining only those affected by deletion requests. Subsequent methods accelerate unlearning via gradient tracking [ 39 ], parameter perturbation [ 15 ], or Fisher-based importance weighting [ 19 ], yet they still depend on stored gradients or access to specific data sets. Other strategies, such as Boundary Shrink [ 9] and L2UL [ 8 ], suppress forgotten information by regularizing latent decision boundaries or selectively constraining parameter updates, but they remain data-dependent. The recent DELETE framework [ 43 ]introduced a decoupled distillation process that explicitly separates forgetting and retention terms, enabling strong performance across class-centric tasks without access to remaining data. However, DELETE still requires multiple optimization phases and teacher–student distillation, limiting its use for instant or data-free unlearning. In contrast, Pre-Forgettable Models [ 23 ] reinterpret forgetting as an architectural property: learned prompt tokens corresponding to target classes can be removed to achieve immediate forgetting. While efficient and data-free, such prompt-based methods, as well as the other existing strategies, lack auditable guarantees: once models are deployed, there is no mechanism to ensure that forgotten knowledge cannot be reactivated. 2Table 1: Comparison of core capabilities across representative unlearning approaches. A checkmark (✓) indicates native support for the corresponding feature.                                    
+
+> Capability L2UL [8] Boundary Shrink [9] DELETE [43] Pre-Forgettable [23] TrustErase (Ours)
+> Instant unlearning ✗✗✗✓✓
+> Forget-data free ✗✗✓✓✓
+> Retain-data free ✗✗✗✓✓
+> Multi-setting adaptability ✓✓✓✓✓
+> Authority-mediated audit ✗✗✗✗✓
+
+Parameter merging. Task arithmetic [ 26 ] showed that task-specific weight differences can be linearly combined in parameter space to compose or remove model behaviors. The broader model merging literature [ 41 ] extends this to handling parameter interference across many tasks. These observations motivate our hypernetwork-based [ 22 , 28 ] passport composition, which exploits parameter-space additivity in the low-rank subspace to synthesize new unlearning configurations without retraining. 
+
+Passport-based verification. Parallel efforts in model watermarking and ownership verification have introduced passport-based schemes [ 14 , 32 ]. These embed non-trainable matrices (passports) between LoRA weights to entangle model functionality with hidden credentials that can later be used for verification. SEAL [ 32 ], for instance, integrates constant passports into LoRA adapters and hides them through singular-value decomposition, enabling ownership proof without accuracy degradation. However, passport methods target intellectual-property protection rather than data removal; they certify ownership but not forgetting. We unify these research threads by embedding passport matrices within LoRA adapters to realize an auditable instant unlearning framework. Here, passports serve dual roles: as containers of task-specific knowledge and as hidden credentials enabling authority-mediated audit of the applied forgetting. This results in a unique approach in the unlearning landscape, as shown in Table 1. TrustErase in particular, is the only method that combines instant unlearning (removal without retraining), independence from both forget and retain data, and a built-in audit mechanism. Moreover, it supports multi-setting adaptability, not only across different forgetting granularities, such as instance-level and class-level unlearning, but also across diverse unlearning objectives. This flexibility makes TrustErase applicable in a wide range of operational and regulatory scenarios. 
+
+## 3 Method 
+
+We introduce TrustErase , a framework for auditable machine unlearning that leverages passport-modulated LoRA adapters to encode multiple unlearning behaviors within a single model. Each unlearning task is associated with a fixed passport matrix that modulates shared LoRA parameters, enabling selective forgetting without retraining. As illustrated in Figure 1, the framework consists of three stages: multi-task training with task-specific passports, passport hiding through matrix decomposition before model distribution, and an audit protocol that reconstructs and validates the embedded passport. The remainder of this section details the components of the proposed framework. We first review the passport mechanism and its integration with LoRA adapters (Section 3.1) and then describe the unlearning formulation and training objective (Section 3.2). Next, we introduce a hypernetwork for compositional passport synthesis (Section 3.3) to enable multi-class forgetting on-the-fly. Finally, we describe the audit procedure (Section 3.4). 3Figure 1: Overview of TrustErase for Auditable Machine Unlearning. Left: Multi-task training with task-specific passports Ci inserted between shared LoRA matrices A and B, enabling simulta-neous optimization across multiple unlearning objectives. Middle: Post-training passport hiding via SVD decomposition ( Ci = C1,i C2,i ), where factors are absorbed into public weights B′ 
+
+> i
+
+= BC 1,i 
+
+and A′ 
+
+> i
+
+= C2,i A. Right: Audit protocol reconstructs the embedded passport ˆCi = B†B′
+
+> i
+
+A′
+
+> i
+
+A† from public adapter and private base matrices, certifying compliance when ∥ψ(Ci) − ψ( ˆCi)∥ < ϵ T .
+
+3.1 Background 
+
+Passports were first introduced in [ 14 ] as constant matrices embedded within neural networks to enable model ownership verification. When integrated into training, a passport acts as a hidden credential that entangles the model parameters with a secret key: the network performs correctly only when the valid passport is present, and its accuracy degrades if the passport is removed or replaced. The SEAL framework [ 32 ] extended this concept to parameter-efficient finetuning by embedding passports within the Low-Rank Adaptation (LoRA) formulation [ 25 ]. In standard LoRA, the task-specific update of a pretrained weight matrix W0 ∈ Rd×k is defined as 
+
+∆W = BA , (1) with B ∈ Rd×r , A ∈ Rr×k, and r ≪ min( d, k ). SEAL introduces a non-trainable, constant passport matrix C between them: 
+
+∆W = BCA , (2) thereby entangling C ∈ Rr×r with the trainable parameters A and B. Before model distribution, the passport is hidden through a decomposition function f : C 7 → (c1, c2) such that c1 × c2 = C. A common choice is the singular value decomposition (SVD), C = UΣV ⊤, yielding c1 = U × Σ1/2
+
+and c2 = Σ1/2 × V⊤. The decomposed components are then absorbed into the LoRA weights: 
+
+B′ = B × c1 and A′ = c2 × A, (3) so that the distributed model (B′, A′) is indistinguishable from a standard LoRA adapter, while still implicitly containing the hidden passport. Verification relies on the fact that only the legitimate owner, who possesses the original A and B, can reconstruct the passport using the Moore–Penrose pseudoinverses A† and B†:
+
+bC = B† × B′ × A′ × A†. (4) If bC statistically matches the claimed passport C, ownership (or authorization) is verified. This mechanism establishes a binding between model performance and the presence of the correct passport: a property that we exploit in this work to achieve auditable instant unlearning .
+
+3.2 Auditable Unlearning Framework 
+
+Building upon Section 3.1, TrustErase extends the role of passports from ownership verification to 
+
+machine unlearning , proposing a framework where a single Vision Transformer (ViT) expresses multiple unlearning behaviors through task-specific passports modulating the LoRA updates (Eq. 2). This modification is applied to the query ( Q) and value ( V ) projection layers within each self-attention block. While A and B remain shared and trainable across all tasks, swapping C allows multiple unlearning configurations to coexist within a single parameter space. 43.2.1 Task Unlearning Definition 
+
+Let D = {(xi, y i)}Ni=1 denote the complete training set. We define the space of potential forgetting configurations as the power set P(D). In practice, a finite collection of unlearning tasks is considered during training: 
+
+S = {S1, S 2, . . . , S K } ⊆ P (D), (5) where Sk represents the data to forget for task k, and ¯Sk = D \ Sk the data to retain. Each task 
+
+k is associated with a fixed passport Ck ∈ Rr×r, initialized randomly and kept frozen throughout training, yielding a library C = {C1, . . . , CK } of task-specific keys. During training, A and B
+
+are shared and updated jointly across all tasks, while each Ck remains fixed. The adapted forward computation for task k is: 
+
+hk = ( W0 + BC kA) x. (6) By switching the active passport Ck, the same model can forget specific classes, instances, or arbitrary data subsets without altering its base parameters or accessing the original data. 
+
+3.2.2 Learning and Unlearning Optimization. 
+
+In line with [ 23 ], TrustErase jointly optimizes (A, B) to retain general task performance while embedding the ability to selectively forget specific data subsets through the fixed passports {Ck},enabling instant unlearning without access to the original data. For each passport, the objective combines a forgetting and a retaining loss. 
+
+Forgetting Loss ( Lforget ). Inspired by DELETE [ 43 ], we adopt a masking strategy that redistributes probability mass away from forgotten classes onto retained ones. Unlike DELETE, which has post-hoc access to frozen teacher,we apply it in a single training stage using the current model’s logits. Let z(x; θ) be the logits from the current model and Sk the indices of classes or samples to forget. We define a masking operator: 
+
+Mask Sk (z)i =
+
+zi, i / ∈ Sk,
+
+−∞ , i ∈ Sk. (7) The masked distribution is then: 
+
+p∗(y|x, Ck) = Softmax(Mask Sk (z(x; θ))) . (8) The forgetting loss minimizes the KL divergence between this masked distribution and the current model prediction: 
+
+Lforget = KL  p∗(y|x, Ck) qθ (y|x, Ck) . (9) 
+
+Retaining Loss ( Lretain ). To preserve discriminative ability on the remaining data, we apply standard cross-entropy over classes not in Sk:
+
+Lretain = − 1
+
+| ¯Sk|
+
+X
+
+> j / ∈Sk
+
+log pθ (yj |x, Ck). (10) The overall objective for task k combines forgetting and retention: 
+
+Lk = λL forget + (1 − λ)Lretain , (11) where λ ∈ [0 , 1] balances the two terms. A single backward pass aggregates per-task objectives across all passports, resulting in: 
+
+Ltotal = 1
+
+K
+
+> K
+
+X
+
+> k=1
+
+Lk. (12) 
+
+3.3 Hypernetwork-based Passport Composition 
+
+The framework described so far requires defining each unlearning configuration a priori . For example, one passport may be trained to forget class 1 and another to forget class 2. If a new configuration such as forgetting both classes 1 and 2 simultaneously is needed, a dedicated passport must normally be trained for that specific combination. To avoid retraining for every possible combination, we introduce a hypernetwork-based passport synthesis mechanism, as depicted in Fig. 2 that learns to compose new passports from the existing atomic ones. 5Atomic Passports. During base training, TrustErase learns a compact set of atomic passports , each corresponding to a forgetting task while retaining all others. For a C-class problem, this produces C
+
+base passports {C1, . . . , CC }, which act as compositional building blocks. 
+
+Hypernetwork Composition. After training all atomic passports, a simple hypernetwork Hϕ
+
+is trained once to synthesize composite passports by combining a given selection of atomic ones 
+
+{Ci1 , . . . , CiN } associated with the classes or samples to be forgotten: 
+
+Ccomb = Hϕ(Ci1 , . . . , CiN ). (13) During this stage, A and B remain frozen, and Hϕ is optimized end-to-end using the same joint objective as base training (Eq. 9, Eq. 10). The choice of a hypernetwork is motivated by the additivity of behavioral composition in parameter space, here operating in the low-rank passport space, as seen in task arithmetic and model merging literature [ 26 , 41 ]. To handle variable-sized subsets, 
+
+Hϕ leverages a Transformer encoder with padding masks; architectural details are provided in the Appendix A.3. 
+
+3.4 Passport Verification and ϵ-Tolerance 
+
+The passports {Ck} encode sensitive information, as each acts as a key controlling which unlearning configuration the model performs. Distributing these matrices directly would compromise both the integrity of the unlearning mechanism and the privacy of the authorization process. Instead, we apply the SVD decomposition introduced in Section 3.1 as a privacy mechanism, absorbing the passport factors into (A′
+
+> k
+
+, B′
+
+> k
+
+) such that the distributed model is indistinguishable from a standard LoRA adapter. This ensures that the true passport cannot be inferred from the distributed weights alone, yet controlled audit by trusted entities remains possible through the original private matrices 
+
+(A, B). Given access to the original private matrices, an estimated passport bCk can be reconstructed following equation 4. Verification then consists of checking whether bCk faithfully approximates the original passport Ck
+
+under a suitable distance metric d(·):
+
+∥ψ( bCk) − ψ(Ck)∥ < ϵ T , (14) where ψ(·) denotes an arbitrary feature mapping and ϵT is a predefined tolerance accounting for nu-merical imprecision. If this condition holds, the adapter (A′
+
+> k
+
+, B′
+
+> k
+
+) is certified as correctly implement-ing the unlearning configuration associated with Ck, providing a lightweight and privacy-preserving form of structural verification . To strengthen assurance, the procedure can be complemented by a func-tional verification step. Here, one compares the behavior of the reconstructed model (W0 + B′
+
+> k
+
+A′
+
+> k
+
+)
+
+with that of an ideal reference (W0 + BC kA) on a held-out set, assessing their agreement in terms of logits, intermediate activations, or task-specific metrics. When both structural and functional checks fall within the ϵ-tolerance, the model is deemed to have the valid unlearning configuration. 
+
+Figure 2: Hypernetwork-based Passport Composition. Atomic passports are sampled from the power set and fed into a hypernetwork to synthesize composite passports. The hypernetwork is optimized end-to-end with frozen LoRA parameters and base passports. 6Table 2: Single-class unlearning performance on CIFAR-10 and CIFAR-100 for ViT-Small rank 32.                                                                                                  
+
+> Method CIFAR10 CIFAR100
+> Acc f t ↓Acc rt ↑MIA ↓Acc f t ↓Acc rt ↑MIA ↓
+> Original Model 98.63 97.11 0.963 87.59 90.44 0.816
+> Retrain 0.00 96.50 0.140 0.00 85.86 0.308 Finetune 0.30 97.13 0.252 41.00 86.10 0.728 Random Labels 5.00 96.66 0.000 0.00 79.95 0.000 Gradient Ascent 0.00 21.42 0.000 0.00 53.95 0.000 Delete 0.00 98.52 0.000 0.00 82.88 0.006 Bad Teacher 32.40 98.24 0.000 0.00 82.99 0.002 Boundary Expand 0.40 97.78 0.000 0.00 82.42 0.994 Boundary Shrink 41.80 95.70 0.048 0.00 82.43 0.038 SalUn 8.20 98.19 0.000 0.00 83.01 0.010 L2UL 0.00 68.33 0.000 0.00 45.37 0.000 UNSIR 0.00 22.76 0.393 0.00 64.77 0.266 Amnesiac 0.00 96.51 0.009 0.00 88.07 0.010
+> Ours 0.00 96.82 0.220 0.00 88.35 0.260
+
+## 4 Experiments 
+
+4.1 Experimental Setup 
+
+We evaluate TrustErase along four complementary dimensions: single-class unlearning , assessing erasure of one semantic concept while preserving the others; multi-class unlearning , testing scalability as the number of forgotten classes increases (forget-set sizes 2, 5, 10, and 20 on CIFAR-100); 
+
+compositional generalization , analyzing the hypernetwork’s ability to synthesize passports for unseen class combinations; and audit robustness , evaluating tolerance to passport perturbations. Experiments use MNIST, CIFAR-10, and CIFAR-100 on Vision Transformer backbones (ViT-Tiny, ViT-Small, ViT-Base); the framework is architecture-agnostic, and VGG-16 results are reported in Appendix D. We compare against unlearning methods compatible with transformer architectures: Gradient Ascent ,
+
+Fisher Forgetting [19 ], Boundary Shrink/Expand [9 ], Learn-to-Unlearn (L2UL) [ 8 ], Saliency Unlearn (SalUn) [13 ], Bad Teacher [ 10 ], Amnesiac [20 ], UNSIR [38 ], and DELETE [ 43 ], with Finetune ,
+
+Random Label , Retrain (upper bound), and Original (lower bound) as reference points; competitor numbers are taken from their original papers. TrustErase and the hypernetwork are trained with AdamW and cosine annealing for 10 epochs each, with LoRA modules applied to the query and value projections. Full training details, hyperparameter search, reconstruction attacks, instance-level forgetting, extended quantitative tables across methods, objectives, architectures, time-performance evaluation, and audit protocol use cases are detailed in the Appendix. 
+
+Metrics. Following prior work [ 43 , 9 ], we report accuracy on the forgotten test set ( Acc f t ), accuracy on the retained test set ( Acc rt ), and Membership Inference Attack (MIA) success rate [ 37 ], measuring residual memorization; for MIA we use a logistic regressor implementation [ 15 ]. To compare against 
+
+Pre-Forgettable Models [23 ] we additionally report the average forgetting gap ( Gap f ), defined as the distance to the target Acc , and its maximum deviation ( Gap max  
+
+> f
+
+). Audit robustness is quantified through Passport Verification , which measures whether perturbed or invalid passports are correctly rejected within an ϵT -tolerant bound. Table 3: Multi-class unlearning performance on CIFAR-100 for varying numbers of forgotten classes using ViT-Small rank 32. Our method trains once to handle all subset combinations simultaneously.                                                                                                                                                
+
+> Method 2 Classes 5 Classes 10 Classes 20 Classes
+> Acc f t ↓Acc rt ↑MIA ↓Acc f t ↓Acc rt ↑MIA ↓Acc f t ↓Acc rt ↑MIA ↓Acc f t ↓Acc rt ↑MIA ↓
+> Finetune 59.54 86.21 0.780 52.82 86.52 0.724 60.11 87.28 0.790 56.49 88.50 0.739 Random Label 4.58 82.73 0.089 7.67 75.88 0.061 4.79 42.57 0.971 12.55 29.25 0.941 Gradient Ascent 86.55 83.00 0.981 77.01 83.31 0.947 81.70 83.00 0.964 79.93 82.79 0.950 Delete 1.85 97.26 0.120 2.68 97.10 0.094 5.76 96.90 0.038 13.51 96.92 0.036 Bad Teacher 4.82 96.62 0.000 2.24 79.01 1.000 0.86 12.44 0.988 3.23 4.44 0.830 Boundary Shrink 46.51 83.02 0.702 46.81 82.44 0.687 21.51 54.18 0.841 17.73 32.35 0.906 Boundary Expand 19.69 96.74 0.996 51.47 94.27 0.012 58.78 88.64 0.012 73.48 87.67 0.012 SalUn 75.84 97.44 0.180 71.84 97.17 0.124 61.74 92.14 0.116 71.84 97.17 0.124 L2UL 85.55 83.03 0.977 75.86 83.26 0.940 80.91 83.07 0.964 79.10 83.11 0.945 Ours 0.00 88.50 0.390 0.00 88.70 0.000 0.00 89.03 0.380 0.00 90.59 0.320
+
+74.2 Unlearning performance 
+
+We evaluate the ability of TrustErase to forget one or multiple semantic classes while preserving accuracy on the remaining ones. A single passport based LoRA model is trained once to encode all unlearning configurations jointly. Each class or subset is associated with a specific passport, and forgetting is achieved by deactivating the corresponding passports, without any retraining or access to data. 
+
+Single Class Unlearning. This experiment measures how effectively the model can erase one class while retaining knowledge of the others. Table 2 reports results on CIFAR-10 and CIFAR-100. On CIFAR-10, TrustErase reaches complete forgetting ( Acc f t = 0 ) and 96 .82% test accuracy. On CIFAR-100, forgetting accuracy also reaches zero, with retained accuracy 88 .35% on the test set. These results are comparable to retraining based and recent unlearning methods such as DELETE and Boundary strategies, but obtained without any fine tuning or data reuse, with minimal detectable trace as illustrated by MIA scores. 
+
+Multi Class Unlearning. We then extend the analysis to forgetting several classes simultaneously. Forgetting is performed by deactivating the passports of the target classes, again with no additional training. As shown in Table 3, TrustErase achieves complete forgetting ( Acc f t = 0 ) across all configurations while maintaining stable retained accuracy. Even when removing 20 classes on CIFAR-100, the model preserves 90 .59% test accuracy. Compared with Finetune, L2UL, and Random Label methods that require multiple optimization steps, TrustErase attains similar forgetting quality through a single constant time operation. These results demonstrate that TrustErase enables instant, auditable unlearning in both single and multi-class settings, achieving comparable (often better) performance to existing approaches while being fully data independent. We extend our evaluation by comparing TrustErase with Pre-Forgettable Models [ 23 ], which perform modular unlearning by removing class-specific prompts. While our main experiments adopt the masked loss of equation 9 to suppress forgotten logits, Pre-Forgettable Models instead enforce a uniform distribution over them. To ensure a fair comparison, we retrain TrustErase using the same uniform objective, replacing the masked target distribution in equation 9 with a uniform one across all classes. Table 4 summarizes single-class unlearning results on MNIST and CIFAR-10 using ViT-Tiny and ViT-Small backbones with two LoRA ranks (R8 and R32), respectively. Unlike Tables 2 and 3, here we report the mean and standard deviation of all single-class unlearning tasks following the evaluation protocol of Pre-Forgettable Models. Across datasets and architectures, TrustErase achieves forgetting gaps comparable to or smaller than those of Pre-Forgettable Models while maintaining high retained accuracy, confirming that its passport mechanism is compatible with uniform-distribution unlearning. Unlike Pre-Forgettable Models, TrustErase additionally supports authority-mediated audit of the applied unlearning configuration (Sect. 3.4). Table 4: Comparison with Pre-Forgettable Models on MNIST and CIFAR-10 under the uniform-distribution forgetting objective. Both approaches employ LoRA adapters; results are shown for ViT-Tiny and ViT-Small backbones with two LoRA ranks (R8, R32). Reported values are mean and standard deviation averaged over all single-class unlearning tasks.                                                                                                                  
+
+> Method MNIST CIFAR10
+> Acc rt ↑Acc f t ↓Gap f t ↓Gap max
+> f↓Acc rt ↑Acc f t ↓Gap f t ↓Gap max
+> f↓
+> ViT-Tiny
+> Pre-Forgettable-R8 99.54 ±0.04 11.95 ±7.34 1.95 18.50 96.17 ±0.46 05.27 ±6.24 4.73 12.10 Pre-Forgettable-R32 99.50 ±0.04 07.46 ±6.98 2.54 15.58 96.66 ±0.41 04.95 ±2.62 5.05 0.80 Ours-R8 98.68 ±0.16 09.45 ±2.26 0.55 4.36 88.54 ±2.89 05.88 ±1.60 4.12 2.00 Ours-R32 99.28 ±0.09 09.47 ±2.71 0.53 3.66 93.32 ±0.52 09.04 ±2.10 0.96 2.20
+> ViT-Small
+> Pre-Forgettable-R8 99.63 ±0.03 11.02 ±8.68 1.02 14.42 98.04 ±0.23 03.46 ±2.13 6.54 7.92 Pre-Forgettable-R32 99.64 ±0.05 07.51 ±5.30 2.49 7.92 98.32 ±0.20 05.40 ±4.97 4.60 8.60 Ours-R8 99.14 ±0.11 10.41 ±3.27 0.41 6.55 94.94 ±0.90 10.93 ±4.22 0.93 10.90 Ours-R32 99.44 ±0.09 10.61 ±3.11 0.61 8.02 96.32 ±0.42 11.40 ±2.24 1.40 5.40
+
+8Table 5: Hypernetwork-based compositional unlearning on CIFAR-10. Scalability across 100 seen and 100 unseen passport combinations, each composed of up to 9 atomic passports. Unseen combinations are excluded during training to evaluate generalization to novel unlearning configura-tions. 
+
+Setting Acc rt ↑ Acc f t ↓ MIA ↓
+
+Seen 98 .92 ± 0.64 0.00 ± 0.00 0.250 ± 0.176 
+
+Unseen 96 .07 ± 14 .85 2.22 ± 11 .11 0.240 ± 0.180 
+
+We evaluate the hypernetwork described in Section 3.3, which learns to synthesize composite passports by combining atomic single-class ones, enabling flexible unlearning without retraining or data access afterwards. For compositions of up to 9 unique atomic passports on CIFAR-10, the combination space grows combinatorially to over 600 possible combinations, making exhaustive evaluation infeasible. We therefore sample 100 seen and 100 unseen combinations (Table 5), where the unseen combinations are deliberately excluded during training to assess generalization. For seen configurations, all 100 achieve perfect forgetting with retained accuracy above 98% . For unseen configurations, 96 out of 100 reach perfect forgetting with retained accuracy above 96% , with only 4 cases showing minimally incomplete unlearning. In practice, all combinations would be included during training. These results demonstrate that the hypernetwork generalizes well beyond its training combinations, confirming that TrustErase extends its instant, data-free, and auditable unlearning to unseen tasks without additional training. As introduced in Sect. 3.4, the passport decomposition mechanism enables authority-mediated audit of unlearning configurations without exposing private credentials. Verifi-cation consists of assessing whether the reconstructed passport obtained from the released adapter remains within an ϵ-tolerance of the original one, both structurally and function-ally. Since random passport matrices are almost surely full-rank, honest reconstruction er-rors are dominated by floating-point precision, yielding relative errors of the order 10 −6.
+
+Figure 3: Sensitivity to perturbations. The x-axis represents the magnitude of a random perturba-tion ϵP added to the passport, and the y-axis shows the mean ℓ2 distance between the logits produced using the original and perturbed passports. To evaluate robustness, we perturb the passport matrix with random noise of magnitude ϵP and measure the resulting change in model logits (Fig. 3). For perturbations below approximately 
+
+10 −2, both the mean ℓ2 and per-logit deviations remain negligible, showing that the functional behavior of the passport-entangled LoRA up-date is stable within this range. Beyond this threshold, deviations grow rapidly, indicating that even small perturbations outside the toler-ance window cause significant changes in model behavior. Based on this stability elbow, we set 
+
+ϵT = 0 .01 , which is far above numerical noise yet strictly rejects perturbations that would col-lapse model behavior. These results confirm that passport verification is reliable within a well-defined ϵT region, robust to reconstruction noise yet sensitive enough to detect incorrect or tam-pered passports, thereby providing a practical and auditable basis for unlearning. 
+
+## 5 Discussion 
+
+TrustErase reformulates machine unlearning as a pre-committed architectural property rather than a post-hoc optimization step. Authorized forgetting configurations are encoded directly into LoRA adapters during training, enabling a train-once, forget-anytime paradigm where unlearning is per-formed instantly at deployment without access to user data. Passport decomposition makes unlearning configurations auditable through authority-mediated reconstruction, a property absent from existing approaches. We further demonstrate extensibility through a hypernetwork that composes atomic passports into credentials for previously unseen subset combinations, allowing the framework to 9scale to combinatorially large forget spaces without additional training. Experiments on MNIST, CIFAR-10, and CIFAR-100 show effective forgetting with strong retention within a single unified model, positioning TrustErase as a practical mechanism for privacy-compliant AI that combines parameter efficiency, instant unlearning, and authority-mediated audit. 
+
+Scope and limitations. TrustErase pre-commits to atomic forget targets at training time; this is the price of the train-once, forget-anytime regime, and it rules out scenarios where the forget set cannot be defined in advance. Two extensions to already-trained models, post-hoc passport-augmented LoRA finetuning and passport distillation from existing adapters, are sketched in Appendix C but not empirically evaluated. Our evaluation targets the operational regime of ≤ 100 atomic targets; extending to ≥ 1000 targets requires addressing gradient interference between per-task losses 
+
+{Lk} in the shared low-rank subspace, for which gradient-surgery or task-grouping strategies are natural next steps (Appendix B). Comparable modular approaches such as Pre-Forgettable Models encounter a related but distinct bottleneck: their prompt-per-class design grows the input sequence linearly with C, hurting inference speed and accuracy at scale. TrustErase avoids this, preserving constant-time inference regardless of the number of atomic targets. At the instance level, TrustErase 
+
+supports bucketed forgetting via prototype-divergence partitions; per-instance passport allocation is not supported. Finally, the audit protocol is authority-mediated: it assumes an honest verification authority that holds private (A, B). Cryptographic third-party verification, for example, commitment plus zero-knowledge proof of the reconstruction identity, is left to future work. These limitations bound the scope but not the contribution. Real-world GDPR compliance is fundamentally data-free and auditable. By the time a deletion request arrives, the data subject’s records may no longer be accessible. TrustErase (Table 1) is the only method designed for this regime, and we view it as a foundational step toward regulation-aligned machine unlearning. 
+
+## 6 Acknowledgements 
+
+Rutger Hendrix is a PhD student enrolled in the National PhD in Artificial Intelligence, XXXVIII cycle BIS, course on Health and life sciences, organized by Università Campus Bio-Medico di Roma. We acknowledge the support of the PNRR ICSC National Research Centre for High Performance Computing, Big Data and Quantum Computing (CN00000013), under the NRRP MUR program funded by the NextGenerationEU. Giovanni Bellitto, Concetto Spampinato, and Matteo Pennisi have been supported by the European Union – Next Generation EU, Mission 4 Component 2 Line 1.3, through the PNRR MUR project PE0000013 – FAIR “Future Artificial Intelligence Research” (CUP E63C22001940006). 
+
+## References 
+
+[1] Regulation (eu) 2016/679 of the european parliament and of the council of 27 april 2016 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data, and repealing directive 95/46/ec (general data protection regulation) (text with eea relevance), May 2016. [2] Alessandro Acquisti et al. The economics of personal data and the economics of privacy. 
+
+Background Paper for OECD Joint WPISP-WPIE Roundtable , 1:50, 2010. [3] NIST AI. Artificial intelligence risk management framework (ai rmf 1.0). URL: https://nvlpubs. nist. gov/nistpubs/ai/nist. ai , pages 100–1, 2023. [4] Thomas Baumhauer, Pascal Schöttle, and Matthias Zeppelzauer. Machine unlearning: Linear filtration for logit-based classifiers. Machine Learning , 111(9):3203–3226, 2022. [5] Lucas Bourtoule, Varun Chandrasekaran, Christopher A Choquette-Choo, Hengrui Jia, Adelin Travers, Baiwu Zhang, David Lie, and Nicolas Papernot. Machine unlearning. In 2021 IEEE symposium on security and privacy (SP) , pages 141–159. IEEE, 2021. [6] Yinzhi Cao and Junfeng Yang. Towards making systems forget with machine unlearning. In 
+
+2015 IEEE symposium on security and privacy , pages 463–480. IEEE, 2015. 10 [7] Nicholas Carlini, Florian Tramer, Eric Wallace, Matthew Jagielski, Ariel Herbert-Voss, Kather-ine Lee, Adam Roberts, Tom Brown, Dawn Song, Ulfar Erlingsson, et al. Extracting training data from large language models. In 30th USENIX security symposium (USENIX Security 21) ,pages 2633–2650, 2021. [8] Sungmin Cha, Sungjun Cho, Dasol Hwang, Honglak Lee, Taesup Moon, and Moontae Lee. Learning to unlearn: Instance-wise unlearning for pre-trained classifiers. In Proceedings of the AAAI conference on artificial intelligence , volume 38, pages 11186–11194, 2024. [9] Min Chen, Weizhuo Gao, Gaoyang Liu, Kai Peng, and Chen Wang. Boundary unlearning: Rapid forgetting of deep networks via shifting the decision boundary. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 7766–7775, 2023. [10] Vikram S Chundawat, Ayush K Tarun, Murari Mandal, and Mohan Kankanhalli. Can bad teaching induce forgetting? unlearning in deep networks using an incompetent teacher. In 
+
+Proceedings of the AAAI Conference on Artificial Intelligence , volume 37, pages 7210–7217, 2023. [11] Kate Crawford and Trevor Paglen. Excavating ai: The politics of images in machine learning training sets. Ai & Society , 36(4):1105–1116, 2021. [12] Alexey Dosovitskiy. An image is worth 16x16 words: Transformers for image recognition at scale. arXiv preprint arXiv:2010.11929 , 2020. [13] Chongyu Fan, Jiancheng Liu, Yihua Zhang, Eric Wong, Dennis Wei, and Sijia Liu. Salun: Empowering machine unlearning via gradient-based weight saliency in both image classification and generation. arXiv preprint arXiv:2310.12508 , 2023. [14] Lixin Fan, Kam Woh Ng, and Chee Seng Chan. Rethinking deep neural network ownership verification: Embedding passports to defeat ambiguity attacks. Advances in neural information processing systems , 32, 2019. [15] Jack Foster, Stefan Schoepf, and Alexandra Brintrup. Fast machine unlearning without retraining through selective synaptic dampening. In Proceedings of the AAAI conference on artificial intelligence , volume 38, pages 12043–12051, 2024. [16] Rohit Gandikota, Joanna Materzynska, Jaden Fiotto-Kaufman, and David Bau. Erasing concepts from diffusion models. In Proceedings of the IEEE/CVF international conference on computer vision , pages 2426–2436, 2023. [17] Saeed Ghadimi and Guanghui Lan. Stochastic first-and zeroth-order methods for nonconvex stochastic programming. SIAM journal on optimization , 23(4):2341–2368, 2013. [18] Antonio Ginart, Melody Guan, Gregory Valiant, and James Y Zou. Making ai forget you: Data deletion in machine learning. Advances in neural information processing systems , 32, 2019. [19] Aditya Golatkar, Alessandro Achille, and Stefano Soatto. Forgetting outside the box: Scrub-bing deep networks of information accessible from input-output observations. In European Conference on Computer Vision , pages 383–398. Springer, 2020. [20] Laura Graves, Vineel Nagisetty, and Vijay Ganesh. Amnesiac machine learning. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 35, pages 11516–11524, 2021. [21] Chuan Guo, Tom Goldstein, Awni Hannun, and Laurens Van Der Maaten. Certified data removal from machine learning models. arXiv preprint arXiv:1911.03030 , 2019. [22] David Ha, Andrew M. Dai, and Quoc V. Le. Hypernetworks. In International Conference on Learning Representations , 2017. URL https://openreview.net/forum?id=rkpACe1lx .[23] Rutger Hendrix, Giovanni Patanè, Leonardo G. Russo, Simone Carnemolla, Federica Proi-etto Salanitri, Giovanni Bellitto, Concetto Spampinato, and Matteo Pennisi. Pre-forgettable models: Prompt learning as a native mechanism for unlearning. In ACM International Confer-ence on Multimedia (ACM MM) , Dublin, Ireland, 2025. doi: 10.1145/3746027.3758171. 11 [24] Geoffrey Hinton, Oriol Vinyals, and Jeff Dean. Distilling the knowledge in a neural network. In 
+
+arXiv preprint arXiv:1503.02531 , 2015. [25] Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, Weizhu Chen, et al. Lora: Low-rank adaptation of large language models. ICLR , 1 (2):3, 2022. [26] Gabriel Ilharco, Marco Tulio Ribeiro, Mitchell Wortsman, Suchin Gururangan, Ludwig Schmidt, Hannaneh Hajishirzi, and Ali Farhadi. Editing models with task arithmetic. arXiv preprint arXiv:2212.04089 , 2022. [27] Bo Liu, Xingchao Liu, Xiaojie Jin, Peter Stone, and Qiang Liu. Conflict-averse gradient descent for multi-task learning. Advances in neural information processing systems , 34:18878–18890, 2021. [28] Rabeeh Karimi Mahabadi, Sebastian Ruder, Mostafa Dehghani, and James Henderson. Parameter-efficient multi-task fine-tuning for transformers via shared hypernetworks. In Pro-ceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing (Volume 1: Long Papers) ,pages 565–576, 2021. [29] Ananth Mahadevan and Michael Mathioudakis. Certifiable machine unlearning for linear models. arXiv preprint arXiv:2106.15093 , 2021. [30] Seth Neel, Aaron Roth, and Saeed Sharifi-Malvajerdi. Descent-to-delete: Gradient-based methods for machine unlearning. In Algorithmic Learning Theory , pages 931–962. PMLR, 2021. [31] Thanh Tam Nguyen, Thanh Trung Huynh, Zhao Ren, Phi Le Nguyen, Alan Wee-Chung Liew, Hongzhi Yin, and Quoc Viet Hung Nguyen. A survey of machine unlearning. ACM Transactions on Intelligent Systems and Technology , 16(5):1–46, 2025. [32] Giyeong Oh, Saejin Kim, Woohyun Cho, Sangkyu Lee, Jiwan Chung, Dokyung Song, and Youngjae Yu. Seal: Entangled white-box watermarks on low-rank adaptation. arXiv preprint arXiv:2501.09284 , 2025. [33] Patrick Schramowski, Manuel Brack, Björn Deiseroth, and Kristian Kersting. Safe latent diffusion: Mitigating inappropriate degeneration in diffusion models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 22522–22531, 2023. [34] Christoph Schuhmann, Romain Beaumont, Richard Vencu, Cade Gordon, Ross Wightman, Mehdi Cherti, Theo Coombes, Aarush Katta, Clayton Mullis, Mitchell Wortsman, et al. Laion-5b: An open large-scale dataset for training next generation image-text models. Advances in neural information processing systems , 35:25278–25294, 2022. [35] Ozan Sener and Vladlen Koltun. Multi-task learning as multi-objective optimization. Advances in neural information processing systems , 31, 2018. [36] Shawn Shan, Jenna Cryan, Emily Wenger, Haitao Zheng, Rana Hanocka, and Ben Y Zhao. Glaze: Protecting artists from style mimicry by {Text-to-Image } models. In 32nd USENIX Security Symposium (USENIX Security 23) , pages 2187–2204, 2023. [37] Reza Shokri, Marco Stronati, Congzheng Song, and Vitaly Shmatikov. Membership inference attacks against machine learning models. In 2017 IEEE symposium on security and privacy (SP) , pages 3–18. IEEE, 2017. [38] Ayush K Tarun, Vikram S Chundawat, Murari Mandal, and Mohan Kankanhalli. Fast yet effective machine unlearning. IEEE transactions on neural networks and learning systems , 35 (9):13046–13055, 2023. [39] Anvith Thudi, Gabriel Deza, Varun Chandrasekaran, and Nicolas Papernot. Unrolling sgd: Understanding factors influencing machine unlearning. In 2022 IEEE 7th European Symposium on Security and Privacy (EuroS&P) , pages 303–319. IEEE, 2022. 12 [40] Yinjun Wu, Edgar Dobriban, and Susan Davidson. Deltagrad: Rapid retraining of machine learning models. In International Conference on Machine Learning , pages 10355–10366. PMLR, 2020. [41] Prateek Yadav, Derek Tam, Leshem Choshen, Colin A Raffel, and Mohit Bansal. Ties-merging: Resolving interference when merging models. Advances in neural information processing systems , 36:7093–7115, 2023. [42] Tianhe Yu, Saurabh Kumar, Abhishek Gupta, Sergey Levine, Karol Hausman, and Chelsea Finn. Gradient surgery for multi-task learning. Advances in neural information processing systems ,33:5824–5836, 2020. [43] Yu Zhou, Dian Zheng, Qijie Mo, Renjie Lu, Kun-Yu Lin, and Wei-Shi Zheng. Decoupled distillation to erase: A general unlearning method for any class-centric tasks. In Proceedings of the Computer Vision and Pattern Recognition Conference , pages 20350–20359, 2025. 13 Appendix for TrustErase A Experimental Setup 
+
+A.1 Training details and configurations Architectures. Unless otherwise specified, experiments are conducted using Vision Transformers (ViT), specifically the ViT-Tiny, ViT-Small, and ViT-Base variants. All models share a depth of 12 layers and a patch size of 16 × 16 . The architectures differ in their embedding dimensions ( d)and number of attention heads ( h): ViT-Tiny ( d = 192 , h = 3 ), ViT-Small ( d = 384 , h = 6 ), and ViT-Base ( d = 768 , h = 12 ). While the proposed framework is architecture-agnostic and can be applied to other backbones (e.g., CNNs), we report ViT results in the main paper for consistency with prior work; additional experiments on alternative architectures are provided in the Appendix D. 
+
+Training During training, the low-rank matrices A and B are shared across all tasks, while task-specific passports Ck remain fixed. A hypernetwork variant of TrustErase is trained once after all atomic passports are obtained, enabling the synthesis of composite passports for arbitrary class combinations without retraining. Both stages use AdamW with weight decay 1 × 10 −4 and cosine annealing learning rate scheduler, with a learning rate of 1 × 10 −3 for base training and 1 × 10 −4
+
+for the hypernetwork, each for 10 epochs. Training uses an effective batch size of 96 via gradient accumulation. LoRA modules of rank 8, 32, and 64 are applied to the query and value projection matrices. For competing methods requiring both learning and unlearning phases, 10 unlearning epochs are applied to ensure fair comparison. 
+
+A.2 Hyperparameter Search for Competitors 
+
+To ensure a fair evaluation, all competing unlearning methods underwent a hyperparameter search. For all methods, we searched learning rates in the range [10 −6, 10 −2], considering only multiples of 10, and used the configuration that achieved the best performance on CIFAR-10. For SSD and UNSIR, we searched α in the range [10 −1, 10 2] and λ in the range [10 −1, 5] . All competitor methods were trained using AdamW with weight decay 1 × 10 −4 and cosine annealing for 10 epochs, matching our setup. 
+
+A.3 Hypernetwork Architecture 
+
+The hypernetwork Hϕ is implemented as a task-conditioned Transformer encoder that aggregates multiple atomic passports into a single, unified representation. Given a set of N atomic passports, the module synthesizes a multi-task passport Ptask by integrating components selected via a task-specific mask. Each vectorized atomic passport Pi ∈ Rr2
+
+is projected into a shared latent space using a linear layer 
+
+We ∈ Rr2×768 . A learnable [CLS ] token is prepended to serve as a global aggregator, and positional embeddings are added to preserve the identity of the component. The resulting input sequence Z0 is 
+
+Z0 = [ zCLS ; ( WeP1 + P E 1); ( WeP2 + P E 2); . . . ; ( WePN + P E N )] .
+
+The fusion logic is controlled by a binary task descriptor m ∈ { 0, 1}N . We utilize this descriptor to generate a padding mask M applied within the Multi-Head Self-Attention (MSA) layers. For an attention head with query Q, key K, and value V , the attention weights are computed as Attention (Q, K, V ) = softmax 
+
+ QK T
+
+√dk
+
++ M
+
+
+
+V. 
+
+Here Mij = −∞ for all indices j where mj = 0 . This ensures that the [CLS ] token only inte-grates information from the passports designated by the mask, preventing interference from inactive components. The backbone consists of 4 encoder layers with 8 attention heads and a feed-forward expansion ratio of 4. We utilize the final hidden state of the [CLS ] token, hCLS ∈ R768 , as a task-conditioned 14 bottleneck. This state is mapped back to the parameter space through a linear projection followed by a reshape operation 
+
+Ptask = Reshape (WphCLS + bp) ∈ Rr×r,
+
+recovering the passport matrix and distilling inter-task dependencies into a compact latent vector, enabling the synthesis of a unified parameterization that scales efficiently with the number of atomic components. 
+
+## B Parameter Dimensionality and Scaling Behavior 
+
+B.1 Lemma Class-independent parameter dimensionality. Let W0 be a pretrained backbone and let A ∈
+
+Rr×k and B ∈ Rd×r denote the LoRA parameters with fixed rank r. Consider a classification problem with C classes, where each class (or unlearning task) is associated with a fixed passport matrix Ck ∈ Rr×r. The model prediction and training objective are 
+
+f (x; A, B) = ( W0 + BC y A) x, (15) 
+
+L(A, B) = E(x,y )
+
+ℓ(f (x; A, B), y ), (16) where ℓ is a smooth and lower-bounded loss function. Then stochastic gradient descent (SGD) converges to an ε-stationary point at rate O(1 /√T ), with constants independent of the number of classes C.
+
+Proof. 
+
+Proof. The only trainable parameters are (A, B), whose dimension is O(r(d + k)) and therefore does not depend on C. Since the passport matrices Ck are fixed and the loss ℓ is smooth, the objective 
+
+L has bounded-variance stochastic gradients with constants independent of C. Standard results for non-convex stochastic optimization [17] therefore yield 
+
+E ∥∇ L(AT , BT )∥2  ≤ O (1 /√T ), (17) which establishes convergence independently of the number of classes. 
+
+B.2 Implications and Scaling Limits 
+
+The lemma establishes that the parameter dimensionality of the optimization problem does not grow with the number of unlearning tasks K. Per-step compute, however, scales linearly as O(K) via the per-task loss aggregation (Equation 12). The lemma’s smoothness assumption, combined with the gauge freedom of the passport-LoRA parameterization, means that for moderate K the shared low-rank subspace has sufficient capacity to express K near-orthogonal unlearning behaviors without optimization difficulty. This regime is well-behaved within our scope. At K ≥ 1000 , the per-task gradients {∇ (A,B)Lk}
+
+increasingly compete for the same low-rank capacity, and the multi-task objective develops destructive interference. Concretely, when the rank-r subspace cannot simultaneously accommodate K task gradients, the pairwise gradients ∇ALk and ∇ALj for k̸ = j become non-orthogonal, and a fraction of pairs acquire negative cosine similarity. Under the aggregated update 
+
+∇A,BLtotal = 1
+
+K
+
+> K
+
+X
+
+> k=1
+
+∇A,BLk, (18) the conflicting components cancel while the redundant components dilute the per-task signal, so SGD progresses suboptimally on individual Lk even when Ltotal continues to decrease. This is the gradient-conflict phenomenon studied in the multi-task optimization literature [ 35 , 42 , 27 ], and a related form of interference has been documented post-hoc when combining independently trained task-specific parameter updates [41]. Two mitigation strategies are natural extensions in this regime: gradient surgery, which projects per-task gradients onto mutually orthogonal subspaces before aggregation [ 42 ], and task grouping, 15 which clusters passports by gradient similarity and trains each cluster against an independent (A, B)
+
+pair. Both restore the bounded-gradient-variance condition that underlies the lemma’s convergence guarantee: gradient surgery by removing destructive cross-task components, task grouping by reducing the effective K per parameter pair so that the rank-r subspace regains sufficient capacity. We leave a full empirical study to future work. 
+
+## C Extensions to Already-Trained Models 
+
+TrustErase as presented requires the passport library and the shared LoRA factors (A, B) to be jointly trained. For deployments where the target model already exists, two extension routes are possible depending on where the target knowledge resides. 
+
+Backbone knowledge: passport-augmented LoRA finetuning. If the unlearning target is encoded in the backbone itself, a passport-augmented LoRA module can be naturally attached on top of the frozen backbone and finetuned with the multi-task objective (Equation 12), with the target classes included in the per-task losses {Lk}.
+
+LoRA-encoded knowledge: passport distillation. If the target knowledge already lives in an existing LoRA adapter (Asrc , Bsrc ), that adapter can be distilled into a passport-augmented LoRA via supervised passport distillation. Concretely, a fresh passport library {Ck} and shared factors 
+
+(A, B) are trained to match the source adapter’s outputs on the retain set, while applying the masked forgetting loss (Equation 9) on the forget set. Both routes inherit the pre-commitment requirement: the atomic forget targets must be specified at finetune or distillation time. Empirical evaluation of these extensions is left to future work. 
+
+## D Class Unlearning 
+
+Cifar20 evaluation. Here we extend our evaluation to CIFAR-20. Under the setup of competing methods, Table 6 demonstrates that our approach achieves perfect forgetting in single-class scenarios while preserving strong retain performance and privacy guarantees close to retraining baselines. Table 7 further shows that, under a uniform-distribution forgetting objective, we achieve on-par forget accuracy compared to Pre-Forgettable methods while exhibiting substantially smaller worst-case forgetting gaps, indicating more consistent and reliable forgetting behavior. Class metric Original Model Retrain Finetune Bad Teacher UNSIR Amnesiac SSD Ours Veh2 Dr 95.73 ±0.00 94.85 ±0.13 87.75 ±1.64 93.59 ±0.3 93.56 ±0.32 93.88 ±0.15 93.12 ±0.00 94.99 ±0.08                                          
+
+> Df95.22 ±0.00 0.00 ±0.00 0.04 ±0.12 4.88 ±4.12 70.31 ±5.03 0.00 ±0.00 0.00 ±0.00 0.00 ±0.00 MIA 84.04 ±0.00 22.96 ±0.03 38.15 ±0.08 0.02 ±0.00 48.98 ±0.07 1.20 ±0.00 7.04 ±0.00 23.74 ±11.36 veg Dr95.59 ±0.00 94.54 ±0.21 87.09 ±1.24 92.92 ±0.51 93.25 ±0.35 93.29 ±0.41 95.71 ±0.00 94.78 ±0.14
+> Df97.57 ±0.00 0.00 ±0.00 0.30 ±0.29 8.28 ±6.79 89.02 ±2.41 0.02 ±0.07 0.00 ±0.00 0.00 ±0.00 MIA 91.32 ±0.00 4.41 ±0.01 14.72 ±0.05 0.02 ±0.00 58.67 ±0.04 1.02 ±0.00 1.88 ±0.00 3.08 ±1.37
+
+Table 6: Class unlearning results on CIFAR-20 using ViT-Base Rank 32 , evaluating simultaneous forgetting of two classes from a single trained model. Results for baseline methods are reported from SSD [15]. 
+
+Convolutional Neural Network evaluation. Although our method builds on LoRA, originally introduced for Transformers, it is not inherently Transformer-specific and can be extended to CNN’s. To demonstrate backbone agnosticism, we evaluate TrustErase on a VGG16 by inserting a 128 rank LoRA into the last 2 layers before the head and train for 10 epochs. As shown in Table 8 the top competitor DELETE exhibits unstable retention below 80% and residual memorization, while TrustErase maintains high retention (88.11%) and achieves perfect forgetting without a trace. These results confirm that the mechanism transfers effectively beyond Transformers. 
+
+## E Instance-Level unlearning 
+
+We additionally demonstrate our framework in the challenging instance-level unlearning setting, where the goal is to selectively forget a small subset of the training data while retaining performance 16 Table 7: Comparison with Pre-Forgettable Models on CIFAR-20 under the uniform-distribution forgetting objective. All methods employ LoRA (ranks 32/64) with ViT-Small and ViT-Base backbones. Atomic passports are trained once, with one passport per class, and the reported results are averaged over all classes. 
+
+Method Acc rt ↑ Acc f t ↓ GAP f t ↓ GAP max  
+
+> f
+
+↓
+
+ViT-Small 
+
+Pre-Fgt-R32 94.46 ± 0.19 6.85 ± 4.14 1.85 12.00 Pre-Fgt-R64 94.56 ± 0.17 5.70 ± 2.74 0.70 5.00 Ours-R32 75.59 ± 2.93 1.90 ± 1.57 3.10 5.00 Ours-R64 83.93 ± 0.86 2.10 ± 1.37 2.90 4.60 
+
+ViT-Base 
+
+Pre-Fgt-R32 95.41 ± 0.16 7.03 ± 4.67 2.03 14.20 Pre-Fgt-R64 95.65 ± 0.12 5.34 ± 5.46 0.34 21.00 Ours-R32 87.68 ± 1.33 5.29 ± 3.01 0.29 11.20 Ours-R64 92.25 ± 0.44 6.09 ± 1.99 1.09 5.20 
+
+Table 8: Single-class unlearning performance on CIFAR-10 using VGG-16.                                           
+
+> Method Acc f t ↓Acc rt ↑MIA ↓
+> Original Model 90.20 90.63 0.914
+> Retrain 0.00 90.92 0.298 Finetune 75.90 90.76 0.204 Random Labels 4.50 60.20 0.082 Gradient Ascent 23.20 48.36 0.516 Delete 0.80 79.96 0.017 Bad Teacher 3.80 63.82 0.062 Boundary Expand 19.90 52.91 0.240 Boundary Shrink 0.00 42.74 0.928 SalUn 26.80 63.62 0.400 L2UL 0.00 11.11 0.000
+> Ours 0.00 88.11 0.000
+
+on the remaining samples. For this, we construct a forget set by randomly selecting 1% of the training data from each class of CIFAR-10 and MNIST. These samples are assigned to a dedicated ‘forget’ passport, which is trained jointly with the retain-all passport, following our main training setup. To encourage the model to actively diverge from the forgotten instances while preserving structure in the retained feature space, we introduce a prototype-inspired divergence loss. Let f (x) ∈ RD
+
+denote the backbone features of an input x, and let Dretain be the set of retained samples in a batch. We compute class prototypes 
+
+pc = 1
+
+|D (c)
+
+> retain
+
+|
+
+X
+
+> xi∈D (c)
+> retain
+
+f (xi)
+
+∥f (xi)∥2
+
+, (19) where D(c) 
+
+> retain
+
+denotes retained samples of class c. For each feature from the forget set f (xj ), we apply a prototype repulsion objective that encourages its representation to deviate from the class prototypes: 
+
+Ldiv = 1
+
+|D forget |
+
+X 
+
+> xj∈D forget
+
+exp 
+
+
+
+− 1
+
+τ min  
+
+> c
+
+∥f (xj ) − pc∥22
+
+
+
+, (20) where τ is a temperature hyperparameter. This loss softly repels forgotten samples from all class prototypes, thereby promoting instance-level forgetting in the feature space. Table 9 reports the instance-level forgetting performance on CIFAR-10 and MNIST using ViT-small rank 64. All metrics indicate effective forgetting while preserving accuracy on the remaining data. 
+
+## F Backbone Statistics Unlearning 
+
+Beyond masked and uniform output objectives, we also demonstrate that the proposed method can be adapted to other unlearning objectives, such as those derived from backbone statistics. Specifically, we minimize the KL divergence between the model’s outputs and those produced by the frozen backbone 17 Table 9: Instance-level forgetting results on CIFAR-10 and MNIST. 
+
+Dataset Acc f t ↓ Acc rt ↑ MIA ↓
+
+CIFAR-10 0.00 ± 0.00 94 .65 ± 0.00 0.233 
+
+MNIST 0.00 ± 0.00 94 .94 ± 0.00 0.439 
+
+combined with a randomly initialized classifier, effectively approximating the pre-learning state. Table 10 summarizes the results obtained using these backbone-based statistics. Here, the unlearning gap is defined as the distance to the pre-learning classifier accuracy, rather than the chance level, as used previously for the uniform objective. The consistently small accuracy gaps across varying forgetting scenarios indicate that the backbone statistics objective provides a reliable and predictable unlearning target. By anchoring to the original backbone’s feature space, this approach preserves useful representations from the pretrained model. Overall, this method provides a practical and stable alternative to uniform objectives and demonstrates our framework’s capability to accommodate diverse unlearning objectives. Table 10: Single-class unlearning performance using backbone statistics with LoRA ranks R8 and R32 on MNIST and CIFAR-10 across various ViT backbones. Atomic passports are trained once, with one passport per class, and the reported results are averaged over all classes.                                                                
+
+> Method MNIST CIFAR10
+> Acc rt ↑Acc f t ↓GAP f t ↓GAP max
+> f↓Acc rt ↑Acc f t ↓GAP f t ↓GAP max
+> f↓
+> ViT-Tiny
+> Ours-R8 98.52 ±0.20 7.74 ±12 .46 1.46 5.04 88.29 ±2.02 8.36 ±12 .65 1.14 3.80 Ours-R32 99.24 ±0.08 8.13 ±13 .31 1.08 3.40 92.87 ±0.34 8.63 ±13 .05 1.53 3.20
+> ViT-Small
+> Ours-R8 99.07 ±0.13 1.08 ±25 .03 1.64 6.00 94.46 ±1.15 7.95 ±20 .95 1.93 9.90 Ours-R32 99.38 ±0.09 10.57 ±25 .04 1.89 6.14 95.58 ±0.33 7.93 ±21 .33 2.35 12.10
+
+## G Inference and Training Time Analysis 
+
+All runtime measurements were conducted on a NVIDIA H100 GPU for CIFAR-10 single-class unlearning. Across all competing unlearning methods, the average total unlearning time is 18.9 minutes, with a standard deviation of 8.7 minutes. The two slowest competitors are L2UL (32.1 minutes) and Finetune (26.7 minutes). For a realistic comparison, we consider TrustErase trained for 11 initial tasks (one for each class, plus an all-learning task). The total training time for our method is 62.53 minutes, which is about 32 minutes slower on average than the total training and unlearning time of competing methods. However, in return, our approach provides instant unlearning for predefined forget sets without requiring access to the training data or additional training time. If a forget set is not included in the predefined collection, the second hypernetwork training phase, which in the worst case learns all possible atomic-passport combinations, takes at most 1 day. This phase can be carried out after initial model deployment. 
+
+## H Reconstruction Attack Analysis 
+
+We examine whether the shared LoRA bottleneck C can be reconstructed from publicly released decomposed adapters. The setting assumes a frozen ViT backbone instrumented with LoRA adapters on all Q/V projections. For each layer ℓ, the victim applies a low-rank update 
+
+∆Wℓ = αr BℓCA ℓ, (21) where the per-layer matrices {Aℓ, B ℓ} and the shared C ∈ Rr×r are private. Before release, the victim deterministically decomposes C = C1C2 and publishes 
+
+A′ 
+
+> ℓ
+
+= C2Aℓ, B′ 
+
+> ℓ
+
+= BℓC1, (22) 18 so that the public adapter appears as a standard LoRA update ∆Wℓ = αr B′
+
+> ℓ
+
+A′
+
+> ℓ
+
+.The attacker instantiates its own factors { ˆAℓ, ˆBℓ} and a shared ˆC, inducing 
+
+∆ ˆWℓ = αr ˆBℓ ˆC ˆAℓ. (23) To remain consistent with the public decomposition, ˆC is factored as ˆC = ˆC1 ˆC2, defining ˆA′ 
+
+> ℓ
+
+= ˆC2 ˆAℓ
+
+and ˆB′ 
+
+> ℓ
+
+= ˆBℓ ˆC1. The attacker optimizes a combined objective 
+
+Ltot = Lcls + λL rec , (24) where the supervised loss is 
+
+Lcls = 1
+
+|D|
+
+X
+
+> (x,y )∈D
+
+CE  f (x; Wℓ + ∆ ˆWℓ), y , (25) and the reconstruction loss enforces agreement with the released public factors: 
+
+Lrec = X
+
+> ℓ
+
+
+
+∥ ˆA′ 
+
+> ℓ
+
+− A′
+
+> ℓ
+
+∥2 
+
+> F
+
++ ∥ ˆB′ 
+
+> ℓ
+
+− B′
+
+> ℓ
+
+∥2
+
+> F
+
+
+
+. (26) Because the LoRA parameterization admits an r × r gauge freedom (basis changes in ˆC that can be absorbed by ˆAℓ and ˆBℓ without altering ∆ ˆWℓ) the inverse problem is highly underdetermined. As a consequence, many attacker optima match the public factors only loosely while remaining incompatible with the victim’s private {Aℓ, B ℓ}.Evaluation uses both parameter-level and function-level metrics. Factor reconstruction errors (FR-A, FR-B) and update-agreement error E∆W quantify alignment with public factors, while functional fidelity is measured by substituting ˆC into the victim model and comparing predictions, accuracy, and logit similarity with the true-C model. We optimized the attack objective for 20 epochs using AdamW with a learning rate of 10 −3, weight decay of 10 −4, and a cosine annealing scheduler. Despite this configuration, empirically, recon-struction fails. Errors remain large (FR-A ≈ 0.976 , FR-B ≈ 0.952 , E∆W ≈ 0.947 ), indicating poor alignment with the released factors. More critically, transplanting ˆC into the victim collapses performance: Acc ( ˆC) = 0 .0955 versus Acc (C) = 0 .8712 , with negative logit cosine similarity and 
+
+KL ≈ 3.70 . Although the attacker achieves low loss on its own model, optimization exploits gauge degrees of freedom rather than recovering the true bottleneck. Under this reconstruction threat model, the shared LoRA bottleneck C is not identifiable. The decomposition-based release reveals insufficient structure, and the attacker’s optimization converges to degenerate solutions that fail both in parameter space and in function space. The passport matrix 
+
+C therefore remains unrecoverable. 
+
+## I Audit Protocol and Use Cases 
+
+To guarantee the integrity of the unlearning process and foster trust in deployed models, we design an audit protocol. The objective of this protocol is to provide users with a formal assurance that the model they receive from a service provider correctly incorporates the specific unlearning task they requested. The protocol operates under a ‘trust-but-verify’ paradigm, as illustrated in Figure 4, involving three main entities: • Verification Authority (VA): The central entity that performs the initial training and secret distribution. It acts as the root of trust for certifying compliance. • Trusted Providers: Entities initially entrusted with all secrets (base matrices and passports) to handle model serving. They are assumed to be honest-but-verifiable. • Users: Clients who request specific unlearning tasks (e.g., forgetting a specific class) and verify the outcomes through the VA. 19 Beyond verifying the correctness of the unlearning operation itself, the protocol ensures that the resulting model exhibits functional behavior consistent with the intended task. Thus, verification encompasses both structural validation , checking that the correct passport was used, and functional validation , which assesses whether the produced model behaves similarly to one built with the user’s original task specification. 
+
+Secrets Distribution. After central training, the VA provisions the base LoRA matrices A, B 
+
+together with the full set of original passports {Ck} to a set of Trusted Providers. Each user Ui is securely issued their ground-truth passport Ci, which serves as a non-transferable receipt for task i.Providers are assumed to be honest-but-verifiable: they store the secrets and serve models, but the VA remains responsible for certifying that the correct unlearning configuration has been applied. 
+
+Figure 4: Overview of the proposed verification protocol for auditable unlearning. The protocol follows a trust-but-verify paradigm involving three entities: a Verification Authority (VA) that con-ducts initial training and distributes secrets, trusted providers that perform model serving using desig-nated passports, and users who request specific un-learning tasks. The VA validates both the structural correctness of the passport used and the functional behavior of the resulting model, ensuring that the delivered model faithfully reflects the user’s in-tended unlearning request. 
+
+Verification Workflow. The verification pro-cess is initiated by the User. After receiving the unlearned model for task i, the user con-tacts the VA and submits both the received model parameters (specifically the decomposed adapters A′
+
+> i
+
+, B ′
+
+> i
+
+) and their ground-truth passport 
+
+Ci. Upon receipt, the VA independently audits the submitted model. Leveraging the private base matrices A and B (which are retained se-curely by the VA), it extracts the effective pass-port ˆCi embedded within the model weights via pseudo-inverse reconstruction: 
+
+ˆCi = B†B′
+
+> i
+
+A′
+
+> i
+
+A†. (4) Simultaneously, the VA instantiates the refer-ence ‘honest’ model by combining the secure base matrices with the user’s verified ground-truth passport Ci. The VA now holds two dis-tinct objects: the ideal passport Ci and the pass-port ˆCi extracted from the deployed model. Ver-ification consists of checking whether ˆCi is a faithful approximation of Ci within a predefined tolerance: 
+
+∥ψ( bCi) − ψ(Ci)∥ < ϵ T , (14) where ψ(·) denotes an arbitrary feature mapping and ϵT is a predefined tolerance accounting for numerical imprecision. If the condition holds, the VA certifies that the provider has correctly applied the requested unlearning task. As discussed in Section H, structural similarity alone may not suffice; adversarial reconstruc-tion attacks can exploit small deviations. There-fore, the VA complements the structural check with a functional verification step, comparing the behavior of the served model (W0 + B ˆCiA)
+
+against a reference built with Ci. Agreement in logits or activations within ϵT ensures that the unlearning task has been faithfully executed. 
+
+Use Cases. This protocol supports multiple de-ployment scenarios: (i) regulatory audits, where third parties require verifiable evidence of com-pliance with ‘right-to-be-forgotten’ requests; (ii) multi-tenant services, where different users demand distinct unlearning configurations; and (iii) adversarial settings, where providers must prove that 20 no unauthorized passport substitution has occurred. In all cases, the combination of structural and functional verification provides lightweight yet auditable guarantees of trustworthy unlearning. 21

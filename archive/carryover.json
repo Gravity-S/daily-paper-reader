@@ -1,28 +1,28 @@
 {
-  "generated_at": "2026-06-16T23:11:05.396631+00:00",
-  "updated_date": "20260616",
+  "generated_at": "2026-06-18T22:37:36.951808+00:00",
+  "updated_date": "20260618",
   "carryover_days": 9,
   "tag_states": {
     "agent-safety": {
-      "updated_date": "20260616",
+      "updated_date": "20260618",
       "carryover_days": 9,
       "items": [
         {
-          "id": "2606.16326v1",
+          "id": "2606.19242v1",
           "source": "arxiv",
-          "title": "Gaming-Resistant Insurance Contracts for Autonomous AI Agents: Strategy-Proof Toll Mechanism Design",
-          "abstract": "Paper A defines a time-consistent actuarial runtime that prices each side-effect-bearing action against a contractually fixed safe default and gates execution against a reserve budget. It treats the operator as passive. This paper makes the operator strategic. We characterise a five-attack space for autonomous AI-agent insurance contracts and prove when the actuarial runtime is gaming-resistant. Two attack surfaces -- post-toll safe-default selection and within-boundary action splitting -- are closed by Paper A's minimal-authority and no-splitting clauses. The remaining three require new contract clauses. First, common-control aggregation prevents cross-boundary re-routing from reducing toll below the boundary potential applied to total exposure. Second, interface failures such as invalid JSON are contract-relevant events, not safety wins: treating them as zero-toll safe defaults can reward unreliable models, while escalation fees reverse the incentive. We validate this interface-compliance theorem on committed cross-model traces from the companion empirical paper. Third, a model-identity menu with a componentwise-minimum penalty schedule makes truthful reporting of the deployed model weakly dominant. We then compose these clauses with Paper A's runtime guarantees to obtain joint incentive compatibility over the five-attack space. Finally, a two-parameter premium family discharges operator individual rationality and weak budget balance at the truthful equilibrium. The result is an incentive-compatibility layer for actuarial control of autonomous-agent side effects.",
+          "title": "Runtime Compliance Verification for AI Agents",
+          "abstract": "AI agents now handle personal data through tool use, function calls, and multi turn dialogue, which can create obligations under the General Data Protection Regulation (GDPR). Current testing practices mainly rely on offline red teaming or static prompt review, but they do not guarantee at runtime that agent behavior follows regulatory rules. We propose C-Trace (Compliance Trace based Runtime Agent Conformance Enforcement), a verification framework that: (i) expresses a subset of GDPR requirements, including consent, purpose limitation, data minimization, and the right to erasure, as formal policy predicates over agent execution traces; (ii) uses a runtime monitor that intercepts every tool invocation and model output and rejects non-compliant actions; and (iii) tests the agent with attack dialogues, including DSPy generated prompts and verbatim prompts from red teaming corpora, that try to induce violations. We evaluate the framework on four case studies reframed to GDPR. Under 10 percent per-category extractor noise, including drop-out and over-typing, the monitor keeps the attack success rate at less than or equal to 12 percent, below the baselines we compare against, and false positives at less than or equal to 16 percent, and reaches 0 percent ASR under perfect extraction.",
           "authors": [
-            "Hao-Hsuan Chen"
+            "Nafiseh Kahani",
+            "Masoud Barati",
+            "Diana Addae"
           ],
-          "primary_category": "cs.GT",
+          "primary_category": "cs.SE",
           "categories": [
-            "cs.GT",
-            "cs.AI",
-            "q-fin.RM"
+            "cs.SE"
           ],
-          "published": "2026-06-15T07:31:21+00:00",
-          "link": "https://arxiv.org/pdf/2606.16326v1",
+          "published": "2026-06-17T16:22:34+00:00",
+          "link": "https://arxiv.org/pdf/2606.19242v1",
           "tags": [
             "keyword:agent-evolve",
             "keyword:agent-safety",
@@ -32,13 +32,59 @@
             "query:mas-security"
           ],
           "llm_score": 8.0,
-          "llm_evidence_en": "Strategy-proof insurance contracts for autonomous AI agent safety",
-          "llm_evidence_cn": "针对自主AI代理的博弈抵抗保险合同设计",
-          "llm_evidence": "针对自主AI代理的博弈抵抗保险合同设计",
-          "canonical_evidence": "针对自主AI代理的博弈抵抗保险合同设计",
-          "llm_tldr_en": "This paper designs gaming-resistant insurance contracts for autonomous AI agents, closing five attack surfaces and ensuring safe execution.",
-          "llm_tldr_cn": "自主AI代理的保险合同面临多种博弈攻击，现有方法忽视运营商策略行为。本文刻画了五维攻击空间，并提出新合同条款（如公共控制聚合和容量状态收费），证明在合理的假设下这些合同具有博弈抵抗性。该工作为自主AI代理的安全执行提供了形式化保障。",
-          "llm_tldr": "自主AI代理的保险合同面临多种博弈攻击，现有方法忽视运营商策略行为。本文刻画了五维攻击空间，并提出新合同条款（如公共控制聚合和容量状态收费），证明在合理的假设下这些合同具有博弈抵抗性。该工作为自主AI代理的安全执行提供了形式化保障。",
+          "llm_evidence_en": "runtime compliance verification for AI agents regarding GDPR privacy",
+          "llm_evidence_cn": "AI代理运行时GDPR隐私合规验证",
+          "llm_evidence": "AI代理运行时GDPR隐私合规验证",
+          "canonical_evidence": "AI代理运行时GDPR隐私合规验证",
+          "llm_tldr_en": "Proposes C-Trace, a runtime verification framework that enforces GDPR requirements (consent, data minimization, etc.) on AI agents by monitoring tool calls and model outputs.",
+          "llm_tldr_cn": "针对AI代理处理个人数据可能违反GDPR法规的问题，提出C-Trace运行时验证框架。将GDPR要求（如同意、目的限制、数据最小化）形式化为策略谓词，通过运行时监控拦截每个工具调用和模型输出，拒绝不合规行为。实验证明该框架能有效保证代理行为的法规合规性，为代理隐私保护提供了可证实的方案。",
+          "llm_tldr": "针对AI代理处理个人数据可能违反GDPR法规的问题，提出C-Trace运行时验证框架。将GDPR要求（如同意、目的限制、数据最小化）形式化为策略谓词，通过运行时监控拦截每个工具调用和模型输出，拒绝不合规行为。实验证明该框架能有效保证代理行为的法规合规性，为代理隐私保护提供了可证实的方案。",
+          "llm_tags": [
+            "query:agent-safety"
+          ],
+          "matched_query_tag": "query:agent-safety",
+          "matched_query_text": "privacy issues in AI agents",
+          "matched_requirement_id": "req-2",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.19242v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.19267v1",
+          "source": "arxiv",
+          "title": "A Mixed-Reality Testbed for Autonomous Vehicles",
+          "abstract": "We propose a mixed-reality, hardware-in-the-loop (HIL) testbed for autonomous vehicles that seamlessly integrates a physical testbed of mobile robots with a high-fidelity simulation environment. The virtual simulation enables the creation of diverse, safety-critical driving scenarios to validate state-of-the-art perception, planning, and control algorithms, while augmenting simulations with physical robots equipped with multimodal sensors in photorealistic virtual environments further facilitating rigorous validation. Our testbed also features vehicular connectivity using wireless communication and can accommodate a large number of agents through the combination of physical robots and virtual simulated agents, supporting research on multi-agent systems including Connected and Autonomous Vehicles (CAVs). Finally, we present a safety-guaranteed framework combining perception, planning and a novel online learning-based controller using Control Barrier Functions (CBFs) for CAVs. Experiments using the proposed framework are used to validate and demonstrate the key functionalities and the overall utility of the testbed to bridge the gap between simulation and real-world hardware deployment.",
+          "authors": [
+            "H. M. Sabbir Ahmad",
+            "Ehsan Sabouni",
+            "Emrullah Celik",
+            "Zean Wan",
+            "Damola Ajeyemi",
+            "Christos G. Cassandras",
+            "Wenchao Li"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO",
+            "eess.SY"
+          ],
+          "published": "2026-06-17T16:43:33+00:00",
+          "link": "https://arxiv.org/pdf/2606.19267v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "mixed-reality testbed for safety-critical autonomous vehicle scenarios",
+          "llm_evidence_cn": "面向自动驾驶安全关键场景的混合现实测试平台",
+          "llm_evidence": "面向自动驾驶安全关键场景的混合现实测试平台",
+          "canonical_evidence": "面向自动驾驶安全关键场景的混合现实测试平台",
+          "llm_tldr_en": "Proposes a mixed-reality hardware-in-the-loop testbed for autonomous vehicles, enabling diverse safety-critical scenario validation with physical robots and high-fidelity simulation.",
+          "llm_tldr_cn": "自动驾驶汽车的安全验证需要覆盖大量关键场景，但纯仿真或纯物理测试各有局限。本文提出混合现实硬件在环测试平台，集成物理移动机器人和高保真仿真环境，可生成多样化的安全关键驾驶场景，验证感知、规划与控制算法。该平台支持多智能体包含车联网，为自动驾驶系统提供了全面的安全性验证手段。",
+          "llm_tldr": "自动驾驶汽车的安全验证需要覆盖大量关键场景，但纯仿真或纯物理测试各有局限。本文提出混合现实硬件在环测试平台，集成物理移动机器人和高保真仿真环境，可生成多样化的安全关键驾驶场景，验证感知、规划与控制算法。该平台支持多智能体包含车联网，为自动驾驶系统提供了全面的安全性验证手段。",
           "llm_tags": [
             "query:agent-safety"
           ],
@@ -46,65 +92,20 @@
           "matched_query_text": "safety of autonomous intelligent agents",
           "matched_requirement_id": "req-5",
           "selection_source": "carryover_cache",
-          "paper_id": "2606.16326v1",
+          "paper_id": "2606.19267v1",
           "carry_days": 1
         }
       ]
     },
     "agent-evolve": {
-      "updated_date": "20260616",
+      "updated_date": "20260618",
       "carryover_days": 9,
       "items": []
     },
     "mas-security": {
-      "updated_date": "20260616",
+      "updated_date": "20260618",
       "carryover_days": 9,
-      "items": [
-        {
-          "id": "2606.16710v1",
-          "source": "arxiv",
-          "title": "Misinformation Propagation in Benign Multi-Agent Systems",
-          "abstract": "Multi-agent systems, in which multiple large language model agents solve problems through turn-based interaction, are increasingly deployed in high-stakes settings such as medical diagnosis, legal analysis, and forensic decision-making. Their reliability can be at risk when single agents reason from incorrect or misleading context, e.g., from tool calls, since errors may propagate through agent interactions. This work studies this risk by injecting intent-based misinformation into benign single-agent and multi-agent systems across reasoning, knowledge, and alignment tasks. We find that misinformation can degrade single-agent performance and persists across multi-agent debate, with agents often retaining answers introduced by misinformed peers. Nevertheless, multi-agent debate reduces the resulting performance degradation compared to single-agent prompting, especially when most agents are not exposed to misinformation. Robustness depends on group composition and decision protocol. Consensus can be more stable than voting under peer pressure, while majorities can often steer misinformed agents back toward correct answers. Our results show that misinformation robustness in multi-agent systems depends on the underlying model and also on how agents exchange information and aggregate decisions.",
-          "authors": [
-            "Jonas Becker",
-            "Jan Philip Wahle",
-            "Terry Ruas",
-            "Bela Gipp"
-          ],
-          "primary_category": "cs.MA",
-          "categories": [
-            "cs.MA",
-            "cs.CL"
-          ],
-          "published": "2026-06-15T13:40:01+00:00",
-          "link": "https://arxiv.org/pdf/2606.16710v1",
-          "tags": [
-            "keyword:agent-evolve",
-            "keyword:agent-safety",
-            "keyword:mas-security",
-            "query:agent-evolve",
-            "query:agent-safety",
-            "query:mas-security"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "Studies misinformation propagation as a safety risk in benign multi-agent systems",
-          "llm_evidence_cn": "研究良性多智能体系统中错误信息传播的安全风险",
-          "llm_evidence": "研究良性多智能体系统中错误信息传播的安全风险",
-          "canonical_evidence": "研究良性多智能体系统中错误信息传播的安全风险",
-          "llm_tldr_en": "Investigates how intent-based misinformation injected into benign multi-agent systems can degrade performance and persist through agent interactions, posing safety risks.",
-          "llm_tldr_cn": "针对多智能体系统在高风险场景（如医疗诊断）中的可靠性问题，研究意图性错误信息在良性多智能体系统中的传播。实验表明，错误信息会降低单智能体性能，并在多智能体辩论中持续存在，智能体常保留来自错误同伴的答案。该工作揭示了多智能体系统新的安全漏洞，并强调需要设计更鲁棒的交互机制。",
-          "llm_tldr": "针对多智能体系统在高风险场景（如医疗诊断）中的可靠性问题，研究意图性错误信息在良性多智能体系统中的传播。实验表明，错误信息会降低单智能体性能，并在多智能体辩论中持续存在，智能体常保留来自错误同伴的答案。该工作揭示了多智能体系统新的安全漏洞，并强调需要设计更鲁棒的交互机制。",
-          "llm_tags": [
-            "query:mas-security"
-          ],
-          "matched_query_tag": "query:mas-security",
-          "matched_query_text": "safety of multi-agent systems",
-          "matched_requirement_id": "req-21",
-          "selection_source": "carryover_cache",
-          "paper_id": "2606.16710v1",
-          "carry_days": 1
-        }
-      ]
+      "items": []
     }
   }
 }
