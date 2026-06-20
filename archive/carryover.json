@@ -1,28 +1,31 @@
 {
-  "generated_at": "2026-06-18T22:37:36.951808+00:00",
-  "updated_date": "20260618",
+  "generated_at": "2026-06-20T21:40:43.143759+00:00",
+  "updated_date": "20260620",
   "carryover_days": 9,
   "tag_states": {
     "agent-safety": {
-      "updated_date": "20260618",
+      "updated_date": "20260620",
       "carryover_days": 9,
       "items": [
         {
-          "id": "2606.19242v1",
+          "id": "2606.20510v1",
           "source": "arxiv",
-          "title": "Runtime Compliance Verification for AI Agents",
-          "abstract": "AI agents now handle personal data through tool use, function calls, and multi turn dialogue, which can create obligations under the General Data Protection Regulation (GDPR). Current testing practices mainly rely on offline red teaming or static prompt review, but they do not guarantee at runtime that agent behavior follows regulatory rules. We propose C-Trace (Compliance Trace based Runtime Agent Conformance Enforcement), a verification framework that: (i) expresses a subset of GDPR requirements, including consent, purpose limitation, data minimization, and the right to erasure, as formal policy predicates over agent execution traces; (ii) uses a runtime monitor that intercepts every tool invocation and model output and rejects non-compliant actions; and (iii) tests the agent with attack dialogues, including DSPy generated prompts and verbatim prompts from red teaming corpora, that try to induce violations. We evaluate the framework on four case studies reframed to GDPR. Under 10 percent per-category extractor noise, including drop-out and over-typing, the monitor keeps the attack success rate at less than or equal to 12 percent, below the baselines we compare against, and false positives at less than or equal to 16 percent, and reaches 0 percent ASR under perfect extraction.",
+          "title": "Efficient and Sound Probabilistic Verification for AI Agents",
+          "abstract": "Securing AI agents that operate in complex digital environments has become a critical need, and runtime monitoring approaches that formulate and enforce policies expressed in a formal language like Datalog offer a promising solution. However, existing approaches are restricted to deterministic policies. In many practical applications of AI agents, there is a need to enforce security policies in the face of ambiguity, leading to probabilistic predicates or state transitions (for example, a declassifier or Personally Identifiable Information (PII) detector that has some failure probability on each invocation). Furthermore, in many such applications, one cannot easily make the independence assumptions necessary to invoke prior work on probabilistic inference in Datalog. We address this by introducing a sound and efficient framework for such verification based on distributionally robust optimization, computing sound upper bounds on the probability of policy violation regardless of possible correlations between predicates. On standard benchmarks for terminal and tool calling agents, we demonstrate that our approach outperforms prior art and improves the security-utility trade-off while ensuring rigorous bounds on the probability of policy violation.",
           "authors": [
-            "Nafiseh Kahani",
-            "Masoud Barati",
-            "Diana Addae"
+            "Alaia Solko-Breslin",
+            "Pramod Kaushik Mudrakarta",
+            "Mihai Christodorescu",
+            "Somesh Jha",
+            "Krishnamurthy Dj Dvijotham"
           ],
-          "primary_category": "cs.SE",
+          "primary_category": "cs.CR",
           "categories": [
-            "cs.SE"
+            "cs.CR",
+            "cs.AI"
           ],
-          "published": "2026-06-17T16:22:34+00:00",
-          "link": "https://arxiv.org/pdf/2606.19242v1",
+          "published": "2026-06-18T17:27:59+00:00",
+          "link": "https://arxiv.org/pdf/2606.20510v1",
           "tags": [
             "keyword:agent-evolve",
             "keyword:agent-safety",
@@ -32,78 +35,32 @@
             "query:mas-security"
           ],
           "llm_score": 8.0,
-          "llm_evidence_en": "runtime compliance verification for AI agents regarding GDPR privacy",
-          "llm_evidence_cn": "AI代理运行时GDPR隐私合规验证",
-          "llm_evidence": "AI代理运行时GDPR隐私合规验证",
-          "canonical_evidence": "AI代理运行时GDPR隐私合规验证",
-          "llm_tldr_en": "Proposes C-Trace, a runtime verification framework that enforces GDPR requirements (consent, data minimization, etc.) on AI agents by monitoring tool calls and model outputs.",
-          "llm_tldr_cn": "针对AI代理处理个人数据可能违反GDPR法规的问题，提出C-Trace运行时验证框架。将GDPR要求（如同意、目的限制、数据最小化）形式化为策略谓词，通过运行时监控拦截每个工具调用和模型输出，拒绝不合规行为。实验证明该框架能有效保证代理行为的法规合规性，为代理隐私保护提供了可证实的方案。",
-          "llm_tldr": "针对AI代理处理个人数据可能违反GDPR法规的问题，提出C-Trace运行时验证框架。将GDPR要求（如同意、目的限制、数据最小化）形式化为策略谓词，通过运行时监控拦截每个工具调用和模型输出，拒绝不合规行为。实验证明该框架能有效保证代理行为的法规合规性，为代理隐私保护提供了可证实的方案。",
+          "llm_evidence_en": "probabilistic verification for security policies of AI agents",
+          "llm_evidence_cn": "AI智能体安全策略的概率性验证",
+          "llm_evidence": "AI智能体安全策略的概率性验证",
+          "canonical_evidence": "AI智能体安全策略的概率性验证",
+          "llm_tldr_en": "Efficient and sound probabilistic verification for AI agents, enabling security policy enforcement under uncertainty with probabilistic predicates and state transitions.",
+          "llm_tldr_cn": "该论文针对AI智能体的安全策略强制执行中的概率性断言和状态转换，提出了一种高效且完备的概率性验证方法，扩展了现有Datalog策略形式化，支持在不确定性下进行安全监控。",
+          "llm_tldr": "该论文针对AI智能体的安全策略强制执行中的概率性断言和状态转换，提出了一种高效且完备的概率性验证方法，扩展了现有Datalog策略形式化，支持在不确定性下进行安全监控。",
           "llm_tags": [
             "query:agent-safety"
           ],
           "matched_query_tag": "query:agent-safety",
-          "matched_query_text": "privacy issues in AI agents",
-          "matched_requirement_id": "req-2",
+          "matched_query_text": "safety concerns in AI agents",
+          "matched_requirement_id": "req-1",
           "selection_source": "carryover_cache",
-          "paper_id": "2606.19242v1",
-          "carry_days": 1
-        },
-        {
-          "id": "2606.19267v1",
-          "source": "arxiv",
-          "title": "A Mixed-Reality Testbed for Autonomous Vehicles",
-          "abstract": "We propose a mixed-reality, hardware-in-the-loop (HIL) testbed for autonomous vehicles that seamlessly integrates a physical testbed of mobile robots with a high-fidelity simulation environment. The virtual simulation enables the creation of diverse, safety-critical driving scenarios to validate state-of-the-art perception, planning, and control algorithms, while augmenting simulations with physical robots equipped with multimodal sensors in photorealistic virtual environments further facilitating rigorous validation. Our testbed also features vehicular connectivity using wireless communication and can accommodate a large number of agents through the combination of physical robots and virtual simulated agents, supporting research on multi-agent systems including Connected and Autonomous Vehicles (CAVs). Finally, we present a safety-guaranteed framework combining perception, planning and a novel online learning-based controller using Control Barrier Functions (CBFs) for CAVs. Experiments using the proposed framework are used to validate and demonstrate the key functionalities and the overall utility of the testbed to bridge the gap between simulation and real-world hardware deployment.",
-          "authors": [
-            "H. M. Sabbir Ahmad",
-            "Ehsan Sabouni",
-            "Emrullah Celik",
-            "Zean Wan",
-            "Damola Ajeyemi",
-            "Christos G. Cassandras",
-            "Wenchao Li"
-          ],
-          "primary_category": "cs.RO",
-          "categories": [
-            "cs.RO",
-            "eess.SY"
-          ],
-          "published": "2026-06-17T16:43:33+00:00",
-          "link": "https://arxiv.org/pdf/2606.19267v1",
-          "tags": [
-            "keyword:agent-evolve",
-            "keyword:agent-safety",
-            "keyword:mas-security",
-            "query:agent-safety",
-            "query:mas-security"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "mixed-reality testbed for safety-critical autonomous vehicle scenarios",
-          "llm_evidence_cn": "面向自动驾驶安全关键场景的混合现实测试平台",
-          "llm_evidence": "面向自动驾驶安全关键场景的混合现实测试平台",
-          "canonical_evidence": "面向自动驾驶安全关键场景的混合现实测试平台",
-          "llm_tldr_en": "Proposes a mixed-reality hardware-in-the-loop testbed for autonomous vehicles, enabling diverse safety-critical scenario validation with physical robots and high-fidelity simulation.",
-          "llm_tldr_cn": "自动驾驶汽车的安全验证需要覆盖大量关键场景，但纯仿真或纯物理测试各有局限。本文提出混合现实硬件在环测试平台，集成物理移动机器人和高保真仿真环境，可生成多样化的安全关键驾驶场景，验证感知、规划与控制算法。该平台支持多智能体包含车联网，为自动驾驶系统提供了全面的安全性验证手段。",
-          "llm_tldr": "自动驾驶汽车的安全验证需要覆盖大量关键场景，但纯仿真或纯物理测试各有局限。本文提出混合现实硬件在环测试平台，集成物理移动机器人和高保真仿真环境，可生成多样化的安全关键驾驶场景，验证感知、规划与控制算法。该平台支持多智能体包含车联网，为自动驾驶系统提供了全面的安全性验证手段。",
-          "llm_tags": [
-            "query:agent-safety"
-          ],
-          "matched_query_tag": "query:agent-safety",
-          "matched_query_text": "safety of autonomous intelligent agents",
-          "matched_requirement_id": "req-5",
-          "selection_source": "carryover_cache",
-          "paper_id": "2606.19267v1",
+          "paper_id": "2606.20510v1",
           "carry_days": 1
         }
       ]
     },
     "agent-evolve": {
-      "updated_date": "20260618",
+      "updated_date": "20260620",
       "carryover_days": 9,
       "items": []
     },
     "mas-security": {
-      "updated_date": "20260618",
+      "updated_date": "20260620",
       "carryover_days": 9,
       "items": []
     }

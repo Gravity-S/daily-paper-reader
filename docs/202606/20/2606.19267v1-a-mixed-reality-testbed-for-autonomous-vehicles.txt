@@ -1,0 +1,413 @@
+Title: A Mixed-Reality Testbed for Autonomous Vehicles
+
+URL Source: https://arxiv.org/pdf/2606.19267v1
+
+Published Time: Thu, 18 Jun 2026 01:21:00 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+# A Mixed-Reality Testbed for Autonomous Vehicles 
+
+H. M. Sabbir Ahmad 1, Ehsan Sabouni 1, Emrullah Celik 1, Zean Wan 2, Damola Ajeyemi 1,Christos G. Cassandras 1,2, and Wenchao Li 1,21 Division of Systems Engineering, Boston University  
+
+> 2
+
+Department of Electrical and Computer Engineering, Boston University 
+
+Abstract — We propose a mixed-reality, hardware-in-the-loop (HIL) testbed for autonomous vehicles that seamlessly integrates a physical testbed of mobile robots with a high-fidelity simulation environment. The virtual simulation enables the creation of diverse, safety-critical driving scenarios to validate state-of-the-art perception, planning, and control algorithms, while augmenting simulations with physical robots equipped with multimodal sensors in photorealistic virtual environments further facilitating rigorous validation. Our testbed also features vehicular connectivity using wireless communication and can accommodate a large number of agents through the combination of physical robots and virtual simulated agents, supporting research on multi-agent systems including Connected and Autonomous Vehicles (CAVs). Finally, we present a safety-guaranteed framework combining perception, planning and a novel online learning-based controller using Control Barrier Functions (CBFs) for CAVs. Experiments using the proposed framework are used to validate and demonstrate the key functionalities and the overall utility of the testbed to bridge the gap between simulation and real-world hardware deployment. 
+
+I. I NTRODUCTION 
+
+Autonomous Vehicles (AVs) enhance transportation by reducing human error, improving safety, and increasing passenger comfort, while Connected Autonomous Vehicles (CAVs) further amplify these benefits through real-time V2X communication that enables cooperative maneuvers such as platooning and coordinated intersection crossing, thereby improving traffic throughput, reducing congestion, and lowering emissions. Despite these promises, there remains a gap between algorithmic development in simulation and real-world deployment for AVs. Existing simulators such as CARLA [ 1] offer high-fidelity urban environments for algorithm validation. And, to mitigate the “sim-to-real” gap, physical testbeds [2], [ 3], [ 4] are often employed which offer controlled environments for implementing and testing algorithms. Scaled testbeds such as Duckietown [5] and the Robotarium [ 6] have greatly advanced autonomy education and swarm coordination, but they are limited in scalability and do not support validation of the full autonomy stack of perception, planning, control, and communication required for AV research. Platforms tailored to CAVs, such as the CPM Lab [ 7], 
+
+Cambridge Minicar [8] and scaled smart city testbeds [ 3], en-able evaluation of coordination and mixed-traffic interactions, while sensor-focused testbeds [ 9] emphasize the robustness of perception under adverse conditions. Despite their utility, these systems typically lack tightly integrated simulation environments which provide scalable virtual environments with diverse weather, lighting, and traffic conditions or scaling experiments beyond the physical limitations of available hardware. Such testbeds are also constrained by the number of robots that can be accommodated. Recent sim-to-real approaches [ 10 ] attempt to bridge this gap via digital twins, yet they remain primarily confined to robotic manipulation tasks. Finally, many of these testbeds are not publicly accessible, limiting broader support for AV/CAV research. In contrast, our mixed-reality Hardware-In-the-Loop (HIL) smart city testbed unifies simulation and real robots, supports multimodal sensing and V2X communication, and enables research across perception, planning, control, and traffic network control and optimization. It combines the scenario diversity of simulation with the realism of physical hardware. Additionally, in our testbed, physical and simulated robots operate in a shared environment, allowing us to test algorithms with a large number of agents. Our goal is to make the testbed 
+
+open and remote-accessible following the review process to facilitate safe AV/CAV research particularly towards bridging the gap between simulation and hardware . We present the primary contributions of our paper below:  
+
+> •
+
+A mixed-reality HIL testbed that unifies a CARLA-based virtual simulator with physical mobile robots to bridge the gap between simulation and deployment. Our testbed provides several key features: scalability through mixed-reality integration, multimodal sensing (LiDAR, Cameras, IMU, etc.), real-time communication, and systematic data acquisition for learning-based methods. These capabilities support all aspects of AV research, including communication, perception, planning, and control, as well as research on multi-agent CAV systems.  
+
+> •
+
+As a second major contribution, we propose and imple-ment a novel end-to-end online self-supervised learning control framework for multi-agent systems including CAVs using Control Barrier Functions (CBF). The controller is implemented in a decentralized manner and validated within our mixed-reality testbed, showcasing the capabilities of the testbed and its ability to bridge the Sim2Real gap. The use of CBFs guarantees satisfac-tion of all safety constraints during both training and deployment. With the public release of the testbed, this framework enables the safe integration and evaluation of state-of-the-art (SOTA) autonomous vehicle (AV) algorithms by enforcing safety using our CBF controller. The paper is organized as follows. Section II details the 
+
+> arXiv:2606.19267v1 [cs.RO] 17 Jun 2026
+
+design of our HIL testbed. Next, section III presents the proposed end-to-end safety-guaranteed framework and its inte-gration with the CARLA simulator. The experimental results are presented and discussed in Section IV, demonstrating and validating the capabilities of our testbed. Finally, Section V concludes the paper and outlines future directions. II. T ESTBED DESIGN 
+
+At first, we outline the key design considerations, followed by a detailed description of the implementation. 
+
+A. Design Considerations 
+
+Mixed-Reality Simulation. We require combining the simulator’s scalable, diverse scenario generation capability (e.g., CARLA) with physical robots to capture real-world uncertainties; this allows bridging the sim-to-real gap in autonomous driving (AD) research. 
+
+Multimodal Sensing. We integrate various sensor modali-ties including cameras, LiDAR, and radar to reflect modern AV perception stacks facilitating SOTA research. 
+
+Real-Time Communication. Our testbed facilitates V2V and V2I communication required for research on traffic network optimization and the challenges associated with AV communication network technologies. 
+
+Data Acquisition and Storage. Our design facilitates the storage of both multimodal sensor data as well as trajectory data to facilitate research on SOTA algorithms for AVs/CAVs. 
+
+Motion planning and control (single and multi-agent systems). We design our testbed infrastructure to support research and evaluation of both centralized and decentralized coordination/planning algorithms for AVs and CAVs. 
+
+Scalability. As mentioned, we aim to facilitate all aspects of AV research, including multi-agent CAV systems. To allow scalability, we adopt a mixed-reality testbed that scales efficiently by incorporating both virtual agents and physical ones. 
+
+B. Testbed Implementation 
+
+Guided by the design considerations outlined above, we have implemented our testbed using the architecture illustrated in Fig. 1. 
+
+Map Design. We implemented our mixed-reality testbed using the CARLA simulator as shown in Fig. 1. The smart city environment in CARLA was designed using custom scenes in MathWorks RoadRunner [ 11 ]. It comprises of a diverse set of road network configurations such as merging lanes, intersections, and highway arteries — representative of typical urban traffic environments. The road network including lanes, intersections, and curbs was drafted in RoadRunner and enriched with markings, signals, landscaping, and buildings. In contrast to CARLA’s preconfigured maps, the custom map was scaled to align with a physical testbed layout as illustrated in Fig. 1. The scene was exported as OpenDRIVE (.xodr) with Unreal Engine assets using RoadRunner’s CARLA plug-in, and then converted with CARLA’s Python tools into a map ( *.pak ) containing spawn points, waypoints and traffic scenarios. This workflow also supports real-world replication by importing GIS and elevation data (e.g., OpenStreetMap). 
+
+Mixed Reality Simulation. Our testbed consists of three main components: a Road-Side coordinator Unit (RSU), the physical testbed with robots, and the CARLA simulator. The simulator and the RSU are hosted on the same PC, as illustrated in Fig. 1. We employ AgileX Limo robots [ 12 ]featuring Ackermann steering, making them suitable for autonomous vehicle (AV) research. CARLA operates under a client–server architecture, within which we instantiate two types of clients: (i) virtual vehicles (shown in green on the right side of Fig. 1), and (ii) digital twins (shown in red in Fig. 1), which are virtual projections of the physical robots in the CARLA environment. The digital twins are virtual vehicles with their internal physics disabled in CARLA and states continuously synchronized with the real robots. This design enables a mixed-reality simulation that seamlessly integrates physical robots with virtual vehicles. 
+
+Multimodal Sensing. The AgileX Limo robots are equipped with LiDAR, RGB–Depth cameras, and IMU sensors. The CARLA simulator supports a wide range of sensing modalities, including LiDAR, RGB–Depth cameras, IMU, and radar. Compared to the physical platform, CARLA provides richer and more diverse visual scenes, making it particularly suitable for vision-based AD research. By combining CARLA’s virtual sensors with the planning and control stack running on physical robots, our framework enables realistic validation of full autonomy pipelines within a controlled laboratory environment. For the digital twins, we instantiate exteroceptive sensors—LiDAR and cameras—to perceive the surrounding environment for planning and decision-making, while proprioceptive sensors, such as the IMU, are used to estimate the robots’ internal states. Both the digital twins and the virtual vehicles access their respective sensor data via API calls to the CARLA server, as illustrated in Fig. 2. 
+
+Real-time communication. Traffic coordination between physical robots and CARLA-simulated vehicles is managed by the RSU through the ROS framework. Our testbed supports both ROS 1 and ROS 2, enabled by a ROS 1–ROS 2 bridge for seamless interoperability. Vehicle-to-Infrastructure (V2I) communication is implemented via ROS topics, allowing both the physical robots and virtual vehicles to exchange information with the RSU, as illustrated in Figs. 1 and 2 respectively. In addition, MOtion CAPture (MOCAP) cameras provide real-time position and attitude estimates of the robots, which are published using ROS topics for robots to subscribe to them. The V2I messaging infrastructure operates over the lab’s private LAN, where the MOCAP workstation and the CARLA/RSU computer share the same routable subnet on a dedicated Wi-Fi network. This setup ensures low-latency, bidirectional ROS communication essential for real-time coordination and control. 
+
+Scalability and Multi-Agent Simulation. The RSU coordinates the robots, their digital twins, and virtual vehicles to enable cooperative multi-agent maneuvers. Each robot runs an onboard ROS node, as shown in Fig. 1. Similarly, each Fig. 1: Overview of the mixed-reality HIL testbed using the CARLA simulator and physical mobile robots. The testbed comprises a physical arena with robots and a virtual simulator (CARLA) that spawns virtual agents and projects/“teleports” the physical robots into the digital scene to create mixed-reality simulations. A centralized roadside unit (RSU) facilitates V2I communication and coordinates traffic in the network. CARLA supports high-fidelity, multimodal sensor simulation (e.g., LiDAR, RGB cameras, depth cameras, and IMUs), enabling the physical robots to be augmented with photorealistic, real-world-like perception during mixed-reality experiments. 
+
+Fig. 2: Data flow of the mixed-reality testbed. virtual vehicle and digital twin runs an individual ROS node on the same PC that hosts the RSU and the CARLA server. Both the physical robots and the CARLA agents continuously publish their state information—such as position, velocity, and attitude—to the RSU. Based on the coordination policy, the RSU disseminates relevant information about surrounding agents to each robot and virtual vehicle. The robots also receive exteroceptive sensor data from their corresponding digital twins through the RSU. By using the exteroceptive and onboard sensor data with the information received from the RSU, each robot computes and updates its control commands locally, as illustrated in Fig. 2. Meanwhile, each virtual vehicle uses their simulated sensor data from the CARLA server, combined with the RSU messages, computes and sends control inputs back to the CARLA environment. The digital twins subscribe to the RSU to receive their corresponding robots’ state information and update their poses in CARLA server which suppresses their physical dynamics and continuously teleports them to synchronize with the robots motion. This design ensures synchronization between the physical and virtual domains, allowing the robots and virtual vehicles to coexist in a mixed-reality environment. 
+
+Data Acquisition and Storage. In our testbed, robot data are stored by their corresponding digital twin ROS nodes, while CARLA vehicle data are stored by their respective ROS nodes in the database, as illustrated in Fig. 2. Each digital twin and virtual agent logs its state information along with the states of cooperating vehicles received via the RSU as time-series data in .pkl format. Besides that, each agent stores their sensors data including image, LiDAR and IMU data. Images are saved in .jpeg format, LiDAR data are projected using the cylindrical projection method of [ 13 ] and stored in .ply format, and IMU data are stored in .pkl 
+
+format. The decentralized architecture also allows additional fields to be incorporated into the agents’ data structures to log further information as per necessity. 
+
+Web based Remote Access. We have created a web application to allow remote access to the testbed. The interface allows users to configure the runs by (i) selecting the number of robots and CARLA virtual vehicles, (ii) specifying the origin, destination, and paths for each agent, and (iii) upload-ing the algorithm to run onboard both the robots and virtual vehicles. The web-interface allows for remote visualization of the mixed-reality simulation using the CARLA simulation window and the lab cameras. After each run, the interface enables downloading the logged data—including sensor measurements and agent trajectories—from the database. III. P ERCEPTION , P LANNING & CONTROL FRAMEWORK 
+
+In this section, we present the decentralized end-to-end control pipeline comprising of perception, sensor fusion, state estimation and CBF-based control. The CBF-based design ensures inherent safety during both the training and validation phases. It is noteworthy that the testbed can be run with any algorithm that can generate reference for our CBF controller to ensure safety during testing. A. Multi-Agent Planning and Control 
+
+Firstly, we present the novel online learning-based multi-agent CBF based control framework that involves centralized coordination and decentralized control. We consider N
+
+CAVs/agents with a corresponding index set defined as 
+
+N = {1, . . . , N }. As shown in Fig. 1, the road network has a set of conflict points (red circles) where multiple roads meet, (i.e., lateral collision is possible); we call these Merging Points (MPs) . Therefore, at any given time, only one vehicle can traverse any particular MP. The set of MPs is denoted by 
+
+M = {1, 2, . . . , m }, where m depends on the scene/traffic network layout. The state space and action space of any agent i are denoted by Xi ⊂ Rn and Ui ⊂ Rm respectively. Therefore, the joint state space of the agents is denoted by X = Q Xi and U = Q Ui respectively. Each agent is considered to have an observation space Oi which includes the information from the sensors: LiDAR, Camera and IMU sensors. We denote Ti as time taken by CAV i to arrive at its destination. The state dynamics are defined as follows: 
+
+˙si = vi cos( μi + βi)1 − diκ(si) , ˙di = vi sin( μi + βi)˙μi = vi
+
+lr
+
+sin βi − κ(si) · vi cos( μi + βi)1 − diκ(si)˙vi = ai, ˙δi = ωi
+
+where si(t) is the distance traveled by agent i along its trajectory, di(t) the signed lateral deviation from the centerline (positive left, negative right), μi(t) the heading error, vi(t)
+
+the linear speed, and δi(t) the steering angle. The control inputs are the longitudinal acceleration ai and steering rate 
+
+ωi, bounded as ui, min = [ai, min , ω i, min ] and ui, max =[ai, max , ω i, max ], giving Ui = {ui ∈ R2 : ui, min ≤ ui ≤
+
+ui, max } where the vector inequalities are applied component-wise. The slip angle is βi(t) = arctan 
+
+ lr  
+
+> lr+lf
+
+tan δi(t)
+
+
+
+,where lr , l f are distances from the vehicle center to the rear and front axles, and κ(si) denotes the curvature of the reference trajectory at position si.We define the cost over a single time step for agent i
+
+as li(xi, ui), reflecting its performance and goal attainment (energy, fuel, and travel time). In the cooperative setting, the total cost is L(x, u) = P 
+
+> i∈N
+
+li(xi, ui). Each agent i ∈N is further associated with functions {bji (xi, xj )}j∈N i(x),where xj ∈ X \ X i and Ni(x) is a finite set depending on the global state X corresponding to safety specifications expressed formally as shown next. 
+
+Road Boundaries: The road boundary constraint broad (xi) = 
+
+dmax − | di| can be equivalently expressed using two inequali-ties: 
+
+−dmax ≤ di(t) ≤ dmax , ∀t ∈ [0 , T i] (1) 
+
+Rear-End Safety Constraint : Let ∆( xip , xi) be a differen-tiable (up to the order of the least actuator/input) distance metric between agent i and its preceding vehicle ip. This metric makes the constraints agnostic to the road layout. As an example, in a straight road, the constraint takes the commonly adopted simple form sip (t) − si(t) − ϕv i(t) − δ ≥ 0, where 
+
+ϕ is a typical response time and δ is a minimum distance between the centers of i and ip. Then, the rear end safety constraint for CAV i can be expressed as: 
+
+∆( xip (t), xi(t)) ≥ 0, ∀t ∈ [0 , T i] (2) 
+
+Safe Merging Constraint: Let ∆( xj , xi) be a differentiable distance metric (up to the order of the least actuator/input) between agent i and a preceding merging vehicle j. Same as above, this is agnostic to road geometry and the constraint for CAV i at a merging point can be expressed as : 
+
+∆( xj (t), xi(t)) ≥ 0, ∀t ∈ [tji , t mi ] (3) where tji is the time the constraint is first imposed when it arrives at a merging point and tmi is the time it is removed. For straight road it can be: sj (t) − si(t) − ϕv i(t) − δ ≥ 0.In our fully cooperative setting containing CAVs, a roadside unit (RSU) coordinates the traffic. They communicate their states, origin and destination information to the RSU which uses this information to coordinate traffic by identifying the order CAVs traverse through each merging point in their path to their destination. Observe that a CAV can have at most two merging constraints, which happens while traveling through an intersection. Therefore, there are at most three cooperating CAVs for each CAV i, i.e., max t |N i(x)| = 3 :(i, i p) for the rear end safety constraint (2) and ( i, i j ) for the safe merging constraint (3) ). The coordinator communicates the information of these vehicles to CAV i. We leverage CBF theory [ 14 ] to replace state constraints b(x) ≥ 0 with CBF constraints. This results in a trade-off between guaranteed safety and some performance loss. The OCP with CBF-based Fig. 3: End-to-end framework comprising of multimodal sensing, sensor fusion, state estimation and CBF-based controller. constraints for agent i is as follows: 
+
+min 
+
+> ui(·),T i
+
+Z Ti
+
+> 0
+
+li(xi(t), ui(t)) dt (4) s.t. ˙xi(t) = fi(xi(t), ui(t)) 
+
+Lmf bji (x) + Lg Lm−1 
+
+> f
+
+bji (x)u + S(bji (x)) + αm(ζm−1(x)) ≥ 0, ∀j ∈ N i(x), ∀t ∈ [0 , T i]
+
+xi(0) = xi, 0, xi(Ti) = xi,T i , ui(t) ∈ U i, ∀t ∈ [0 , T i]
+
+where Ti is a decision variable corresponding to the minimal time required to reach the terminal state xi(Ti) = xi,T i , Lf b
+
+and Lg b are Lie derivatives of the function b(x) along the vector field f and g respectively. Here we have used High Order CBFs (HOCBF) in which the term S(bji (x)) is the sum of lower than m order Lie derivatives and ζm(x) is: 
+
+ζi(x) = ˙ζi−1(x)+ αi(ζi−1(x, )) , i ∈ { 1, . . . , m }, (5) where ζ0(x) = b(x). The coordination policy which deter-mines the index j in (3) can be implemented in several ways based on relative distance from the MP or the order of arrival of CAVs or based on the traffic density at the incoming roads, to name a few; details may be found in [14]. The transformed OCP above benefits from the linear in the control structure of the safety constraints and is typically solved (see [ 14 ], [ 15 ]) by discretizing time and solving a sequence of Quadratic Programs (QPs), one at each time step. We parameterize the QP to adapt the controller against uncertainties and for balancing the tradeoff between safety and conservativeness. In particular, at each time step CAV i
+
+solves the following parametric CBF-QP to compute a safe control input: 
+
+u∗ 
+
+> i
+
+(xi, ˜xi; θc) = (6) 
+
+arg min 
+
+> ui∈U i
+
+|| ui − uref  
+
+> i
+
+(xi, ˜xi; θu)|| 2  
+
+> W(xi,˜xi;θW)
+
+s.t. Lmf bji (xi, xj ) + Lg Lm−1 
+
+> f
+
+bji (xi, xj ) ui+
+
+S(bji (xi, xj ); θi,j ) + αm(ζm−1(xi, xj ); θi,j ) ≥ 0,
+
+∀j ∈N i(x), ∀t ∈ [0 , T i]
+
+where ˜xi = [ xip , xj ], ∀j ∈ N i(x) is the stacked vector of all the states of the CAVs that CAV i cooperate with and 
+
+uref  
+
+> i
+
+(xi, ˜xi; θu) ∈ U i is a nominal state feedback control input computed as a parameterized function of θu, while the weight factor W (xi, ˜xi; θW ) is parameterized by θW .Finally, the class-K function αm(ζm−1(xi, xj ); θi,j ) is also parameterized by θi,j . Therefore, the control parameter vector is θc = [ θu, θW , θi, 1, . . . , θi, |N i|]. Next, we present an online self-supervised learning approach to learn these parameters. 
+
+1) Online learning of the Controller: We consider sta-tionary (i.e., time-invariant, state-dependent) coordination policies and define the set of feasible policies for the given coordination scheme based on ˜xi as ˜Πi. Thereafter, we formulate the learning problem as follows: 
+
+J(θc) = min 
+
+> θc
+
+E˜πi∈ ˜Πi [Exi∼du∗(·;θc),˜xi∼d˜π [wlli
+
+ xi, u∗(xi, ˜xi
+
+; θ) − X
+
+> j∈N i(x)
+
+wjb min(0 , b ji (xi, xj )]] (7) 
+
+= min 
+
+> θc
+
+E˜πi∈ ˜Πi [Exi∼du∗(·;θc),˜xi∼d˜π [˜li(xi, ˜xi, u∗(xi, ˜xi, θc))]] 
+
+where du∗(.;θc)(xi) and d˜π ( ˜ xi) are stationary state distribu-tions of the ego CAV i and CAVs in Ni(xi) respectively and wl, w jb ∈ R>0 are constant weights. We aim to learn the parameters that optimize the objective in (7) as a function of the states of the ego vehicle and other vehicles, i.e., 
+
+θc = θc(xi, ˜xi; ϕ), where ϕ are the parameters of a NN. Let u⋆ be the optimal control and λ⋆ the optimal dual variables of trainable HOCBF constraints. The gradients of the objective with respect to the QP parameters θc can be computed following [16] using the chain rule: 
+
+∇H ˜l = 12
+
+ duu⋆⊤ + u⋆d⊤
+
+> u
+
+ ∇F ˜l = du,
+
+∇G˜l = D(λ⋆) dλu⋆⊤ + λ⋆d⊤
+
+> u
+
+, ∇h˜l = − D(λ⋆)dλ
+
+∇W ˜l = 2 ∇H ˜l − 2 ∇F ˜l uT 
+
+> ref
+
+, ∇uref 
+
+˜l = − 2 W⊤ ∇F ˜l
+
+(8) Setting G and h as concatenated vectors with j ∈ N i(x):Gjb = − Lg Lm−1 
+
+> f
+
+b ji (xi, xj ),hjb = Lmf bji (xi, xj ) + Ω  bji (xi, xj ); ϕi,j b
+
+
+
++ αm
+
+ ζm−1(xi, xj ); ϕi,j b
+
+
+
+and using the diagonalizing operator D(v) = diag( v), du
+
+and dλ can be computed by solving the linear system of equations: "H G⊤D(λ⋆)
+
+G D Gu⋆ − h#du
+
+dλ
+
+
+
+=
+
+1m
+
+0
+
+
+
+(9) The controller parameters can be learned online by collecting driving data in a self-supervised manner without requiring a reward signal/labeled data. The corresponding learning algorithm is provided in Algorithm 1. where it is noteworthy that the CBF constraints are enforced throughout, hence the training process is guaranteed to be safe. 
+
+Algorithm 1 Self-Supervised Online Learning Framework 
+
+Input: Initial controller default parameters θc
+
+Output: Learned optimal controller parameters θ∗
+
+> c
+
+Data Collection: Run episode by using u∗(xi, ˜xi) as action for the ego CAV i and sample actions for other CAVs using some policy ˜ui ∼ ˜πi and collect data D =   x(t) 
+
+> i
+
+, ˜x(t)
+
+> i
+
+ Nt=1 .
+
+Initialize reference control, objective weights, and hyper-parameters pertaining to CBF constraints by initializing parameter θc, the learning rate γ, and the number of Epochs, 
+
+while k ≤ K do 
+
+Sample a mini-batch of size B from D.Estimate the objective gradient: 
+
+∇θc J(θc) ← 1
+
+B
+
+> B
+
+X
+
+> b=1
+
+∇θc
+
+˜li
+
+
+
+x(b) 
+
+> i
+
+, u ∗(x(b) 
+
+> i
+
+, ˜x(b) 
+
+> i
+
+; θ)
+
+
+
+Update parameters: θc ← θc − γ ∇θc J(θc)
+
+k ← k + 1 
+
+end while 
+
+B. Sensor-Fusion based State Estimation 
+
+Next, we present the details of the multimodal sensor fusion algorithm used for state estimation. Many modern AD algo-rithms are implemented end-to-end using multimodal sensor data. Our pipeline thus serves as a means to demonstrate and validate the capability of our testbed to facilitate SOTA AD research. We use the sensor fusion pipeline proposed in [ 17 ] to learn the state estimates for the controller from the sensor observations. The overall pipeline is illustrated in Fig. 3. The fusion module provides state estimates for both the ego vehicle and the states of the nearby vehicle. Specifically, we estimate the state of the nearby vehicle that is in our line of motion. The states of the ego vehicle include: the lateral deviation ˆdi, and velocity ˆvi. The estimated states of the nearby vehicle include its velocity ˆvip and the relative distance to it from the ego vehicle ˆsip − ˆsi. In addition, we train a classifier to determine/classify if the vehicle is in the path of the motion of the ego vehicle. Overall, the pipeline contains RGB and LiDAR encoders with a fusion network followed by the estimation head. Subsequently, the estimated states are used to incorporate additional constraints on the controller namely the rear-end constraint (2) involving the vehicle in the line of motion and lane keeping constraint (3) based on the lateral deviation. The end-to-end CBF controller acts as a safety layer for arbitrary AV/CAV algorithms by taking the control input generated by the algorithm as uref in (6) and projecting it onto the admissible control set defined by the CBF constraints. IV. E XPERIMENTAL RESULTS 
+
+This section presents the experimental results that validate the functionalities of the testbed. 
+
+A. Online Self-Supervised Learning Framework 
+
+At first, we present the results of our online self-supervised learning framework. Training is set up to optimize the online control loss corresponding to the optimization problem in (7) . The training phase is initiated using a stable nominal controller that commands a fixed reference acceleration in (6) . Note that, although no explicit velocity constraints are imposed at the high level, they are implicitly enforced by the low-level control loops of the physical robots and by the native vehicle models. We first train the controller in simulation using CARLA with virtual vehicles and subsequently fine tune it with robot data collected using the testbed. To improve training performance, we adopt a curriculum learning approach similar to [ 18 ] varying traffic densities. For each curriculum, data from all vehicles – assumed homogeneous – is aggregated and used to train and update the controller. We run three different curricula comprising of five, ten and twelve vehicles, and use the collected data to train and update the controller. This process is repeated twice per curriculum in an on-policy fashion. Fig. 4 shows the training results of our proposed algorithm. Each curriculum uses the learned model from the previous curriculum i.e., traffic density. As can be seen, the training loss in equation (7) converges within a few iterations, requiring only two policy updates for each curriculum, even with a small number of CAVs. The discrete jumps observed in the figure are caused due to jump in traffic density. However, within each curriculum, the loss decreases consistently within a few iterations and the policy converges after two updates. 
+
+B. Sensor-Fusion based State Estimation 
+
+Next, we present the training and validation results for the sensor fusion network. We collect data using the learned con-troller in simulation in CARLA and train the fusion pipeline by freezing the controller to minimize the state estimation loss and the classifier loss in Fig. 3. The training result shown in Fig. 5 demonstrates that the loss is successfully minimized within few iterations. To validate the perception system, we introduced synthetic communication noise by uniformly sampling perturbations in the ranges [0, 5]m for GPS measurements and [0, 2]rad/s for IMU velocity readings. Fig. 4: Online self-supervised algorithm training result in a multi-agent setting. The agents are considered to be homogeneous. Data from all agents are collected and used to train and update the controller across all agents. Experiments were carried out across multiple traffic densities and the results are presented in Fig. 5. As observed, this led to an increase in collisions and a corresponding reduction in success rate, an issue that was mitigated through the incorporation of the perception component, thereby validating its effectiveness. These results underscore an important capability of our mixed-reality testbed: the ability to simulate photorealistic environmental conditions for the development and validation of perception to planning algorithms using real hardware. A further outcome of this setup is the availability of paired real actions and virtual sensor data, which can be leveraged to develop vision–action models that interact with a rich virtual world while remaining grounded in physical execution. 
+
+Fig. 5: Training and validation results for Sensor Fusion. 
+
+C. End-to-End Controller 
+
+Finally, we present the result of the end-to-end controller with the sensor fusion network and the online learned controller. The process leverages all the core capabilities of the testbed, and, therefore, serves to validate our design and implementation. In order to bridge the sim to reality gap, we implement the end-to-end controller on the robots and fine-tune it w.r.t the online control loss given by (7) using the collected real-world state–action trajectories. This fine-tuning step is intended to compensate for modeling errors and unmodeled dynamics present in the real system. We collected real-world data by deploying the trained controller from simulation data on a fleet of 12 vehicles, including 5 physical robots. We updated the policy twice whereby for each update we ran the CAVs (robots and virtual vehicles) for only one episode. Presented in Fig. 6 is the plot of the loss in (7) . The red line corresponds to the training loss achieved upon convergence in simulation. It can be noticed that fine-tuning decreases the loss and the policy achieves similar loss to the simulation loss within two policy updates and few (∼ 1500) training iterations. This illustrates the ability of our testbed to allow for bridging the sim-to-real gap through fine-tuning. Next, to evaluate the effectiveness of our method, 
+
+Fig. 6: Plot of training loss with robot data for 5 seeds. With fine-tuning, there is virtually no gap between simulation loss (red line) and the loss with the robots. we compare it against baselines using three metrics:  
+
+> •
+
+Success rate : the proportion of vehicles that reach their destination without collisions.  
+
+> •
+
+Success-rate-weighted fuel consumption : the average fuel usage of successful agents divided by the success rate.  
+
+> •
+
+Success-rate-weighted travel time : the average travel time of successful agents divided by the success rate. Weighting ensures fair comparisons and avoids misleading results, such as when a single vehicle completes the task while the others crash, which could otherwise suggest unrealistically low energy and fuel usage. To construct the baseline, we tune the controller by selecting the nominal control input uref and the CBF constraints under conservative and aggressive modes. The distinction lies in the magnitude of uref and the rate/limits on the derivatives of the CBF constraints by adjusting the class-K function parameters. The conservative mode uses smaller acceleration and sublinear class-K function for the CBF constraints, while the aggressive mode employs larger reference acceleration and superlinear class-K functions. In addition, we include the Intelligent Driver Model (IDM) 
+
+baseline [ 19 ] a widely used microscopic traffic model where the longitudinal acceleration is defined as 
+
+˙v = a 1 −
+
+ vv0
+
+δ
+
+−
+
+ s∗(v, ∆v)
+
+s
+
+2!
+
+, (10) with desired velocity v0, maximum acceleration a, and safe distance function s∗(v, ∆v).We evaluate our end-to-end framework against the afore-mentioned baseline approaches. The results of this evaluation are summarized in Table I. We used a range of traffic scenarios with varying densities, in which more than 50% of the agents were physical robots. Data were collected from both CARLA vehicles and physical robots to compute all evaluation metrics. As shown, our method achieves superior performance across all metrics and traffic densities when compared to the manually tuned baseline controller and IDM, validating the effectiveness of our approach. Notably, our trained controller consistently outperformed all baseline methods across multiple metrics and traffic conditions. These results demonstrate both the effectiveness of the proposed control framework and the fidelity of the HIL testbed in enabling reliable sim-to-real transfer. TABLE I: Summary of results for various controller parameter choices with hardware-in-the-loop.                                         
+
+> Cars Method Success Fuel Time 5Cons. 0.67 ±0.25 621 .07 ±150 .08 50 .97 ±14 .90
+> Aggr. 0.70 ±0.10 562 .03 ±1.75 36 .23 ±1.44
+> IDM 0.67 ±0.09 588 .88 ±48 .71 34 .8±0.92
+> Ours 1.00 ±0.00 409 .80 ±24 .62 37 .60 ±3.34
+> 10 Cons. 0.77 ±0.21 535 .09 ±343 .93 43 .86 ±14 .15
+> Aggr. 0.63 ±0.12 543 .31 ±38 .80 52 .90 ±18 .75
+> IDM 0.73 ±0.11 485 .82 ±36 .70 45 .32 ±1.06
+> Ours 1.00 ±0.00 378 .39 ±35 .98 39 .52 ±1.57
+> 12 Cons. 0.585 ±0.120 536 .88 ±113 .58 67 .21 ±0.47
+> Aggr. 0.50 ±0.00 636 .47 ±45 .35 89 .83 ±0.32
+> IDM 0.53 ±0.03 533 .46 ±37 .33 57 .17 ±0.75
+> Ours 1.00 ±0.00 392 .60 ±1.07 44 .29 ±0.03
+
+To further assess the robustness of the proposed end-to-end framework, we evaluate its performance under diverse weather conditions simulated in CARLA, as illustrated in Fig. 1. The corresponding results are presented in Fig. 7. The framework maintains consistently high performance across all tested conditions, demonstrating strong generalization capability and achieving near-perfect success rates even in visually challenging scenarios. 
+
+Fig. 7: Success rate under different weather conditions V. C ONCLUSION 
+
+We present a mixed-reality, hardware-in-the-loop testbed in-tegrating the CARLA simulator with physical robots offering scalability. The testbed leverages ROS as a middleware and incorporates vehicle-to-vehicle (V2V) connectivity, enabling mult-agent research using CAVs. The perception, planning, and control results demonstrate that the testbed enables end-to-end evaluation of AD algorithms under realistic sensing and environmental conditions. Moreover, the built-in data acquisition pipeline supports online learning and fine-tuning of AV systems, while the multi-agent configuration with synchronized virtual and physical vehicles provides a realistic framework for CAV research. Experimental results validate the efficacy of the proposed algorithm and the capabilities of the HIL platform, demonstrating its ability to bridge the gap between simulation and real-world deployment. Finally, our presented end-to-end control framework with CBFs provides a platform for safely testing and evaluating AV/CAV algorithms using the testbed. In the future, we aim to make our testbed public and remotely accessible for research on AVs, CAVs and mixed traffic involving HDVs. A major open challenge in this setting is accurately capturing the complex and often uncertain interactions between HDVs and CAVs, while still guaranteeing that all safety specifications are satisfied. REFERENCES [1] A. Dosovitskiy, G. Ros, F. Codevilla, A. Lopez, and V. Koltun, “Carla: An open urban driving simulator,” in Proceedings of the 1st Annual Conference on Robot Learning . PMLR, 2017, pp. 1–16. [2] A. Mokhtarian, J. Xu, P. Scheffe, M. Kloock, S. Schäfer, H. Bang, V.-A. Le, S. Ulhas, J. Betz, S. Wilson, S. Berman, L. Paull, A. Prorok, and B. Alrifaee, “A survey on small-scale testbeds for connected and auto-mated vehicles and robot swarms,” arXiv preprint arXiv:2408.14199 ,2024. [3] A. Stager, L. Bhan, A. Malikopoulos, and L. Zhao, “A scaled smart city for experimental validation of connected and automated vehicles,” 
+
+IFAC-PapersOnLine , vol. 51, no. 9, pp. 130–135, 2018. [4] B. Chalaki, L. E. Beaver, A. M. I. Mahbub, H. Bang, and A. A. Malikopoulos, “A research and educational robotic testbed for real-time control of emerging mobility systems: From theory to scaled experiments,” arXiv preprint arXiv:2109.05370 , 2021. [5] L. Paull, J. Tani, H. Ahn, J. Alonso-Mora, L. Carlone, M. Cap, C. De Wagter, A. Dosovitskiy, R. Dubé, V. Espinoza et al. , “Duckietown: an open, inexpensive and flexible platform for autonomy education and research,” 2017 IEEE International Conference on Robotics and Automation (ICRA) , pp. 1497–1504, 2017. [6] D. Pickem, P. Glotfelter, L. Wang, M. Mote, A. D. Ames, E. Feron, and M. Egerstedt, “The robotarium: A remotely accessible swarm robotics research testbed,” 2017 IEEE International Conference on Robotics and Automation (ICRA) , pp. 1699–1706, 2017. [7] P. Scheffe and B. Alrifaee, “A scaled experiment platform to study interactions between humans and cavs,” in 2018 IEEE Intelligent Vehicles Symposium (IV) . IEEE, 2018, pp. 1939–1944. [8] N. Hyldmar, Y. He, and A. Prorok, “A fleet of miniature cars for experiments in cooperative driving,” in 2019 IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2019, pp. 3238–3244. [9] J. M. Vargas, S. Alsweiss, M. Jernigan, A. B. Amin, M. Brinkmann, J. Santos, and R. Razdan, “Development of sensors testbed for autonomous vehicles,” in 2019 IEEE 9th Annual Computing and Communication Workshop and Conference (CCWC) . IEEE, 2019, pp. 0574–0579. [10] J. Abou-Chakra, L. Sun, K. Rana, B. May, K. Schmeckpeper, M. V. Minniti, and L. Herlant, “Real-is-sim: Bridging the sim-to-real gap with a dynamic digital twin for real-world robot policy evaluation,” 
+
+arXiv preprint arXiv:2504.03597 , 2025. [11] I. MathWorks, “RoadRunner: Design 3D Scenes for Automated Driv-ing Simulation,” https://www.mathworks.com/products/roadrunner.html, 2025, accessed: Sep. 11, 2025. [12] A. Robotics, “LIMO PRO: ROS / Gazebo Mobile Robot Platform with NVIDIA Orin Nano, T-mini Pro LiDAR, Orbbec Dabai Depth Camera,” https://global.agilex.ai/products/limo-pro, 2025, accessed: Sep. 11, 2025. [13] X. Chen, H. Ma, J. Wan, B. Li, and T. Xia, “Multi-view 3d object detection network for autonomous driving.” [14] W. Xiao, C. G. Cassandras, and C. Belta, Safe autonomy with control barrier functions: theory and applications . Springer, 2023. [15] A. D. Ames, K. Galloway, and J. W. Grizzle, “Control lyapunov functions and hybrid zero dynamics,” in 2012 IEEE 51st IEEE Conference on Decision and Control (CDC) , 2012, pp. 6837–6842. [16] B. Amos and J. Z. Kolter, “OptNet: Differentiable optimization as a layer in neural networks,” in Proceedings of the 34th International Conference on Machine Learning , ser. Proceedings of Machine Learning Research, vol. 70. PMLR, 06–11 Aug 2017, pp. 136–145. [17] C. Chen, S. Rosa, Y. Miao, C. X. Lu, W. Wu, A. Markham, and N. Trigoni, “Selective sensor fusion for neural visual-inertial odometry,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2019, pp. 10 542–10 551. [18] H. M. S. Ahmad, E. Sabouni, A. Wasilkoff, P. Budhraja, Z. Guo, S. Zhang, C. Fan, C. G. Cassandras, and W. Li, “Hmarl-cbf: Hierarchical multi-agent reinforcement learning with control barrier functions for safety-critical autonomous systems,” in Advances in Neural Information Processing Systems , 2025. [19] M. Treiber, A. Hennecke, and D. Helbing, “Congested traffic states in empirical observations and microscopic simulations,” Physical review E, vol. 62, no. 2, p. 1805, 2000.
