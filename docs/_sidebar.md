@@ -1,6 +1,9 @@
 * <a class="dpr-sidebar-root-link" href="#/">首页</a>
 * <a class="dpr-sidebar-root-link dpr-sidebar-noactive-link" href="javascript:void(0)" data-dpr-hash="#/tutorial/README">使用教程</a>
 * Daily Papers
+  * 2026-06-21 <!--dpr-date:20260621-->
+    * 精读区
+      * <a class="dpr-sidebar-item-link dpr-sidebar-item-structured" href="#/202606/21/2606.20510v1-efficient-and-sound-probabilistic-verification-for-ai-agents" data-sidebar-item="{&quot;title&quot;: &quot;Efficient and Sound Probabilistic Verification for AI Agents&quot;, &quot;link&quot;: &quot;https://arxiv.org/abs/2606.20510v1-efficient-and-sound-probabilistic-verification-for-ai-agents&quot;, &quot;score&quot;: &quot;8.0&quot;, &quot;tags&quot;: [{&quot;kind&quot;: &quot;query&quot;, &quot;label&quot;: &quot;agent-safety&quot;}], &quot;evidence&quot;: &quot;AI智能体安全策略的概率性验证&quot;}">Efficient and Sound Probabilistic Verification for AI Agents</a>
   * 2026-06-20 <!--dpr-date:20260620-->
     * 精读区
       * <a class="dpr-sidebar-item-link dpr-sidebar-item-structured" href="#/202606/20/2606.14027v2-same-origin-policy-for-agentic-browsers" data-sidebar-item="{&quot;title&quot;: &quot;Same-Origin Policy for Agentic Browsers&quot;, &quot;link&quot;: &quot;https://arxiv.org/abs/2606.14027v2-same-origin-policy-for-agentic-browsers&quot;, &quot;score&quot;: &quot;9.0&quot;, &quot;tags&quot;: [{&quot;kind&quot;: &quot;query&quot;, &quot;label&quot;: &quot;agent-safety&quot;}], &quot;evidence&quot;: &quot;评估Agentic浏览器中的同源策略违反，涉及安全与隐私&quot;}">Same-Origin Policy for Agentic Browsers</a>
