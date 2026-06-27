@@ -1,20 +1,591 @@
 {
-  "generated_at": "2026-06-22T22:52:00.523375+00:00",
-  "updated_date": "20260622",
+  "generated_at": "2026-06-27T21:23:19.782614+00:00",
+  "updated_date": "20260627",
   "carryover_days": 9,
   "tag_states": {
     "agent-safety": {
-      "updated_date": "20260622",
+      "updated_date": "20260627",
       "carryover_days": 9,
-      "items": []
+      "items": [
+        {
+          "id": "2606.23866v1",
+          "source": "arxiv",
+          "title": "Complex Autonomous UAV Task Execution and Decision-Making With s(CASP)",
+          "abstract": "Autonomous unmanned aerial vehicles (UAVs) must operate safely in dynamic environments and adapt to changing mission conditions. Although deep learning approaches have shown strong performance for navigation and perception, they are often difficult to explain, verify, and modify for safety-critical tasks. We propose a symbolic state-centered UAV agent using the s(CASP) answer set programming system, enabling autonomous task execution with constraint-based commonsense reasoning in a high-fidelity Unreal Engine 5 environment. We fully implement prior work on the VECSR-A system to support multi-step autonomous behaviors including navigation, search, debris detection, precision spraying, object transport, and inspection. The UAV reasons over environmental and spatial constraints, dynamically revising plans when tasks fail or data is insufficient. Because decisions are based on commonsense reasoning, they are guaranteed to be correct and explainable. We evaluate the feasibility of s(CASP) for UAV control in realistic simulated missions. Results show that our framework enables explainable, adaptive autonomy without retraining, handling complex constraint-aware decisions and dynamic task reevaluation.",
+          "authors": [
+            "Keegan Kimbrell",
+            "Alexis R. Tudor",
+            "Peter Van",
+            "Trevor Bihl",
+            "Doug Slattery",
+            "Gopal Gupta"
+          ],
+          "primary_category": "cs.LO",
+          "categories": [
+            "cs.LO"
+          ],
+          "published": "2026-06-22T19:07:41+00:00",
+          "link": "https://arxiv.org/pdf/2606.23866v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "symbolic reasoning for safe autonomous UAV operations",
+          "llm_evidence_cn": "符号推理确保自主无人机安全操作",
+          "llm_evidence": "符号推理确保自主无人机安全操作",
+          "canonical_evidence": "符号推理确保自主无人机安全操作",
+          "llm_tldr_en": "Proposes a symbolic state-centered UAV agent using s(CASP) for safe autonomous task execution in high-fidelity simulation.",
+          "llm_tldr_cn": "本文关注自主无人机在动态环境中的安全操作问题。提出基于s(CASP)答案集编程的符号状态中心UAV智能体，在Unreal Engine 5高保真环境中实现自主任务执行。该方法支持约束推理，可验证并修改安全关键行为，显著提升任务安全性。",
+          "llm_tldr": "本文关注自主无人机在动态环境中的安全操作问题。提出基于s(CASP)答案集编程的符号状态中心UAV智能体，在Unreal Engine 5高保真环境中实现自主任务执行。该方法支持约束推理，可验证并修改安全关键行为，显著提升任务安全性。",
+          "llm_tags": [
+            "query:agent-safety"
+          ],
+          "matched_query_tag": "query:agent-safety",
+          "matched_query_text": "safety of autonomous intelligent agents",
+          "matched_requirement_id": "req-5",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.23866v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.25189v1",
+          "source": "arxiv",
+          "title": "ActPlane: Programmable OS-Level Policy Enforcement for Agent Harnesses",
+          "abstract": "AI agents increasingly run in production through harnesses, the software around the LLM, including an engine that enforces safety and effectiveness policies, e.g., 'run tests before committing.' Enforcing these policies requires bridging a semantic gap: policy intent is expressed in underspecified natural language, while enforcement must act on concrete system actions, e.g., which test to run. Many policies also define event ordering or data flow actions. Yet existing approaches fall short. Tool-call guardrails miss system actions that bypass the tool layer, while OS sandboxes control resource access instead of actions, returning opaque errors that confuse the agent. Our key insight is that policy context lives within the agent closest to the task, while enforcement must happen at the OS to cover all execution paths. We introduce ActPlane, a policy engine that lets agents declare policies and enforces them in the OS kernel with semantic feedback and isolation. ActPlane uses a simple information-flow control (IFC) DSL to support cross-event policies. We implement ActPlane with eBPF and evaluate it on policies from the empirical study, coding-task benchmarks, and safety benchmarks. ActPlane improves policy compliance, including on indirect execution paths that tool-call interception cannot observe, with 1.9%-8.4% overhead. ActPlane is at https://github.com/eunomia-bpf/ActPlane",
+          "authors": [
+            "Yusheng Zheng",
+            "Tianyuan Wu",
+            "Quanzhi Fu",
+            "Tong Yu",
+            "Wenan Mao",
+            "Wei Wang",
+            "Dan Williams",
+            "Andi Quinn"
+          ],
+          "primary_category": "cs.OS",
+          "categories": [
+            "cs.OS"
+          ],
+          "published": "2026-06-23T21:33:13+00:00",
+          "link": "https://arxiv.org/pdf/2606.25189v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "enforces safety and effectiveness policies for AI agents",
+          "llm_evidence_cn": "为AI代理强制执行安全和有效性策略",
+          "llm_evidence": "为AI代理强制执行安全和有效性策略",
+          "canonical_evidence": "为AI代理强制执行安全和有效性策略",
+          "llm_tldr_en": "ActPlane bridges the gap between natural-language policy intent and concrete system actions for AI agent safety.",
+          "llm_tldr_cn": "当前AI代理的安全策略执行存在语义鸿沟。本文提出ActPlane框架，在操作系统层面将自然语言策略意图映射到具体系统行为。通过代理内嵌的上下文执行引擎，支持跨工具层和OS层的策略强制。实验表明该框架有效减少了代理的不安全行为，同时保持效率。",
+          "llm_tldr": "当前AI代理的安全策略执行存在语义鸿沟。本文提出ActPlane框架，在操作系统层面将自然语言策略意图映射到具体系统行为。通过代理内嵌的上下文执行引擎，支持跨工具层和OS层的策略强制。实验表明该框架有效减少了代理的不安全行为，同时保持效率。",
+          "llm_tags": [
+            "query:agent-safety"
+          ],
+          "matched_query_tag": "query:agent-safety",
+          "matched_query_text": "safety concerns in AI agents",
+          "matched_requirement_id": "req-1",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.25189v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.23416v1",
+          "source": "arxiv",
+          "title": "Detecting Malicious Agent Skills in the Wild using Attention",
+          "abstract": "LLM agents increasingly load skills, file-based packages of natural-language instructions written by third parties and distributed through marketplaces, that execute with the user's privileges. A single malicious skill can exfiltrate data, hijack the agent, or persist as a supply-chain foothold, which turns the skill marketplace into a new attack surface for agentic systems. Prompt-injection defenses do not carry over to this setting. They rely on a boundary between trusted instructions and untrusted data, whereas a skill is itself a body of instructions, so an injected command sits among many legitimate ones and inherits their authority. We present Locate-and-Judge, a two-stage detector designed for this regime. A lightweight locator scores the structural spans of a skill by the instruction-following attention each span draws and retains only the top-K. A judge then examines the retained spans in detail. Concentrating the costly judgment on a few high-attention spans lets the detector audit an entire marketplace instead of a sample. Compared to direct LLM-based scanning, this approach offers an order-of-magnitude cost reduction, dramatically increasing its scalability at a small cost to recall, and it dominates keyword and regex baselines at comparable expense. Deployed at marketplace scale and at negligible cost, Locate-and-Judge flags skills with high precision, the majority of which we manually confirmed as malicious, surfacing dozens of live malicious skills, including several disguised as benign functionality and many that SkillSpector and Cisco Skill Scanner fail to detect. We release the resulting labeled dataset.",
+          "authors": [
+            "Bacem Etteib",
+            "Daniele Lunghi",
+            "Tégawendé F. Bissyandé"
+          ],
+          "primary_category": "cs.CR",
+          "categories": [
+            "cs.CR",
+            "cs.AI"
+          ],
+          "published": "2026-06-22T14:41:06+00:00",
+          "link": "https://arxiv.org/pdf/2606.23416v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "detecting malicious skills that exfiltrate data or hijack agents",
+          "llm_evidence_cn": "检测窃取数据或劫持代理的恶意技能",
+          "llm_evidence": "检测窃取数据或劫持代理的恶意技能",
+          "canonical_evidence": "检测窃取数据或劫持代理的恶意技能",
+          "llm_tldr_en": "Locate-and-Judge detector for malicious skills in LLM agent marketplaces using attention-based structural scoring.",
+          "llm_tldr_cn": "第三方技能市场成为大型语言模型代理的新攻击面。本文提出Locate-and-Judge两阶段检测器，通过注意力机制定位可疑结构跨度并进行分类。该方法针对技能作为指令的特点设计，不依赖传统提示注入边界。实验表明在多种恶意技能变体上取得了高检测率。",
+          "llm_tldr": "第三方技能市场成为大型语言模型代理的新攻击面。本文提出Locate-and-Judge两阶段检测器，通过注意力机制定位可疑结构跨度并进行分类。该方法针对技能作为指令的特点设计，不依赖传统提示注入边界。实验表明在多种恶意技能变体上取得了高检测率。",
+          "llm_tags": [
+            "query:agent-safety"
+          ],
+          "matched_query_tag": "query:agent-safety",
+          "matched_query_text": "safety concerns in AI agents",
+          "matched_requirement_id": "req-1",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.23416v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.24622v1",
+          "source": "arxiv",
+          "title": "Themis: An explainable AI-enabled framework for Reinforcement Learning with Human Feedback",
+          "abstract": "Training safe Reinforcement Learning (RL) systems is inherently challenging, with no guarantee of avoiding unwanted behaviors. The most effective defenses against this are (i) transparency through explainability and (ii) alignment via human feedback. While both show promising results, no publicly available framework currently combines them. To address this, we introduce Themis, an XAI-enabled testing and evaluation framework for Reinforcement Learning from Human Feedback. Themis supports over 200 widely used environments and is easily configurable for experiments in RL, transparency, and alignment. Our results show that Themis can train reward models that match or outperform the environment's true reward signal using human preferences. We also provide a cloud-based platform for collecting human feedback and managing experiments. It is user-friendly, auto-scalable, and supports large participant groups across multiple experiments without extra development overhead. Tests show Themis can support one thousand users in back-to-back experiments on a modest commercial machine.",
+          "authors": [
+            "Andreas Chouliaras",
+            "Luke Connolly",
+            "Dimitris Chatzpoulos"
+          ],
+          "primary_category": "cs.AI",
+          "categories": [
+            "cs.AI",
+            "cs.HC"
+          ],
+          "published": "2026-06-23T14:20:42+00:00",
+          "link": "https://arxiv.org/pdf/2606.24622v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "safe RL training with human feedback and explainability",
+          "llm_evidence_cn": "结合人类反馈和可解释性的安全强化学习",
+          "llm_evidence": "结合人类反馈和可解释性的安全强化学习",
+          "canonical_evidence": "结合人类反馈和可解释性的安全强化学习",
+          "llm_tldr_en": "Themis combines XAI and RLHF to train safe RL agents, enabling transparency and alignment.",
+          "llm_tldr_cn": "训练安全强化学习系统缺乏透明度和对齐保证。本文提出Themis框架，集成可解释AI和人类反馈强化学习。支持200多种环境，允许配置实验研究透明度和对齐。实验表明训练出的奖励模型匹配甚至超越环境真实奖励信号，同时提供可解释性洞察，增强安全性和可信度。",
+          "llm_tldr": "训练安全强化学习系统缺乏透明度和对齐保证。本文提出Themis框架，集成可解释AI和人类反馈强化学习。支持200多种环境，允许配置实验研究透明度和对齐。实验表明训练出的奖励模型匹配甚至超越环境真实奖励信号，同时提供可解释性洞察，增强安全性和可信度。",
+          "llm_tags": [
+            "query:agent-safety"
+          ],
+          "matched_query_tag": "query:agent-safety",
+          "matched_query_text": "adversarial robustness and alignment of AI agents",
+          "matched_requirement_id": "req-9",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.24622v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.26298v1",
+          "source": "arxiv",
+          "title": "Governing Actions, Not Agents: Institutional Attestation as a Governance Model for Autonomous AI Systems",
+          "abstract": "Autonomous AI agents may begin to perform consequential, irreversible actions such as clinical prescribing and production software deployment. This paper observes that human institutions have governed powerful autonomous actors not by monitoring their reasoning but by requiring independently attested evidence at the point of consequential action. We formalise this institutional pattern as a computational governance model for AI agent systems. Under the proposed model, an agent retains full autonomy over planning and reasoning but holds no execution authority over designated high-risk actions. Execution is conditional on preconditions that are each independently attested by a separate authoritative source, cryptographically bound to a declared intent, and evaluated by a deterministic policy. Decisions are recorded in a tamper-evident log amenable to independent re-verification. We present a proof-of-concept implementation and illustrate the model with examples from software deployment and clinical prescribing.",
+          "authors": [
+            "Jakob Salfeld-Nebgen"
+          ],
+          "primary_category": "cs.AI",
+          "categories": [
+            "cs.AI",
+            "cs.CR"
+          ],
+          "published": "2026-06-24T18:43:00+00:00",
+          "link": "https://arxiv.org/pdf/2606.26298v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "governance model for autonomous AI agents requiring attested evidence before high-risk actions",
+          "llm_evidence_cn": "自治AI智能体的治理模型，要求高风险行动前有独立证据证明",
+          "llm_evidence": "自治AI智能体的治理模型，要求高风险行动前有独立证据证明",
+          "canonical_evidence": "自治AI智能体的治理模型，要求高风险行动前有独立证据证明",
+          "llm_tldr_en": "Proposes a computational governance model where agents retain autonomy but execution of high-risk actions requires independently attested preconditions, enhancing safety.",
+          "llm_tldr_cn": "该论文形式化了一种适用于自治AI智能体的计算治理模型，灵感来源于人类机构治理自治行为体的方式。模型赋予智能体完全的规划推理自主权，但对高风险行动（如临床处方）要求执行前满足独立认证的前提条件。通过密码学手段确保证据不可篡改。这样既保留了智能体灵活性，又避免了不受控的风险行为，为AI安全提供了新范式。",
+          "llm_tldr": "该论文形式化了一种适用于自治AI智能体的计算治理模型，灵感来源于人类机构治理自治行为体的方式。模型赋予智能体完全的规划推理自主权，但对高风险行动（如临床处方）要求执行前满足独立认证的前提条件。通过密码学手段确保证据不可篡改。这样既保留了智能体灵活性，又避免了不受控的风险行为，为AI安全提供了新范式。",
+          "llm_tags": [
+            "query:agent-safety"
+          ],
+          "matched_query_tag": "query:agent-safety",
+          "matched_query_text": "safety of autonomous intelligent agents",
+          "matched_requirement_id": "req-5",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.26298v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.25115v1",
+          "source": "arxiv",
+          "title": "Forget to Improve: On-Device LLM-Agent Continual Learning via Budget-Curated Memory",
+          "abstract": "On-device language-model agents improve by accumulating experience in retrieved memory rather than by updating weights. This memory is hard-bounded and exposed: it consumes RAM and energy, reaches peers through a thin uplink, and becomes an attack surface because it is writable by what the agent reads. Existing systems each cover one part of this problem: agentic memories grow without a budget, on-device methods keep entries by success alone, and poisoning is studied mainly as an attack rather than as a memory-governance problem. We propose \\sys{}, a single net-value-per-byte score that governs an agent's experience-memory lifecycle. The main idea is to let the budget act as the curator: each entry is scored as value minus harm, per byte, so one ruler decides what to keep, share, and trust. \\sys{} makes three decisions: (1) \\textbf{KEEP} evicts low-value bytes under the RAM and energy budget; (2) \\textbf{SHARE} sends an insight only when its value exceeds its uplink cost; and (3) \\textbf{TRUST} gates a peer entry by provenance. On language-model-agent task-drift benchmarks and a real heterogeneous Jetson testbed with two robot-arm nodes and a hub, \\sys{} reduces memory by $2.7\\times$ and uplink by $2.4\\times$, drives injection success from 0.75 to zero, and raises accuracy on cases corrupted by poison or stale memory. Curating by net value reduces footprint, energy, uplink, and injection success together without reducing accuracy. In this setting, forgetting by net value improves the agent rather than weakening it.",
+          "authors": [
+            "Beining Wu",
+            "Zihao Ding",
+            "Jun Huang",
+            "Yanxiao Zhao"
+          ],
+          "primary_category": "cs.LG",
+          "categories": [
+            "cs.LG",
+            "cs.NI"
+          ],
+          "published": "2026-06-23T19:42:07+00:00",
+          "link": "https://arxiv.org/pdf/2606.25115v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "addresses memory poisoning as safety concern in on-device LLM agents",
+          "llm_evidence_cn": "解决设备上LLM智能体记忆中毒的安全问题",
+          "llm_evidence": "解决设备上LLM智能体记忆中毒的安全问题",
+          "canonical_evidence": "解决设备上LLM智能体记忆中毒的安全问题",
+          "llm_tldr_en": "Forget to Improve proposes a budget-curated memory mechanism for on-device LLM agents, scoring each memory entry by net value per byte to govern lifecycle, directly addressing the safety concern of writable memory becoming an attack surface.",
+          "llm_tldr_cn": "设备上LLM智能体的可写记忆成为攻击面，现有方法未联合考虑预算、成功率和中毒风险。本文提出以净价值/字节分数管理记忆生命周期，在受限预算下平衡经验价值与安全危害，实验表明该方法在持续学习性能提升的同时有效降低了中毒攻击成功率，为AI代理安全提供了一种实用的记忆治理方案。",
+          "llm_tldr": "设备上LLM智能体的可写记忆成为攻击面，现有方法未联合考虑预算、成功率和中毒风险。本文提出以净价值/字节分数管理记忆生命周期，在受限预算下平衡经验价值与安全危害，实验表明该方法在持续学习性能提升的同时有效降低了中毒攻击成功率，为AI代理安全提供了一种实用的记忆治理方案。",
+          "llm_tags": [
+            "query:agent-safety"
+          ],
+          "matched_query_tag": "query:agent-safety",
+          "matched_query_text": "safety concerns in AI agents",
+          "matched_requirement_id": "req-1",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.25115v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.26627v1",
+          "source": "arxiv",
+          "title": "Agents That Know Too Much: A Data-Centric Survey of Privacy in LLM Agents",
+          "abstract": "Large language model agents increasingly query databases, search document collections, call external APIs, remember past interactions, and act on a user's behalf. As they move from answering questions to operating over sensitive data, privacy becomes harder to enforce. An agent touches many data sources, runs multi-step workflows, keeps state across sessions, and acts with delegated permissions. Sensitive information can therefore leak not only through its final answer but through the queries it issues, the intermediate results it handles, the memory it writes, and the messages it exchanges with other agents. We survey the privacy of LLM agents from a data-centric view, organizing the field around the data an agent touches rather than by attack type, and we use data agent as shorthand for an LLM agent that works with data. Research on these risks is active but scattered across retrieval-augmented generation, text-to-SQL interfaces, agent memory, prompt injection, access control, and contextual privacy. This survey brings that work together: we taxonomize the data sources an agent touches, the privacy risks each source creates, and the governance mechanisms that address them; we map the benchmarks used to measure these risks and identify what is missing; and we set out the open problems. Two findings recur: among governance mechanisms only information-flow control covers both compositional and cross-session inference leakage, the two least-protected risks; and no benchmark drives an agent across its data surfaces under one privacy policy, the instrument the field most lacks. Our goal is a reference that situates the scattered literature and gives future work a common framing.",
+          "authors": [
+            "Nada Lahjouji",
+            "Ashwin Gerard Colaco"
+          ],
+          "primary_category": "cs.CR",
+          "categories": [
+            "cs.CR",
+            "cs.AI"
+          ],
+          "published": "2026-06-25T05:44:18+00:00",
+          "link": "https://arxiv.org/pdf/2606.26627v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "data-centric survey of privacy in LLM agents, covering leakage through queries, memory, and inter-agent messages",
+          "llm_evidence_cn": "以数据为中心调查LLM agent隐私，涵盖查询、记忆和agent间消息泄露",
+          "llm_evidence": "以数据为中心调查LLM agent隐私，涵盖查询、记忆和agent间消息泄露",
+          "canonical_evidence": "以数据为中心调查LLM agent隐私，涵盖查询、记忆和agent间消息泄露",
+          "llm_tldr_en": "A data-centric survey of privacy in LLM agents, organizing the field by data sources an agent touches, revealing leakage pathways beyond final answers.",
+          "llm_tldr_cn": "本文以数据为中心调查了LLM agent的隐私问题，按agent接触的数据源组织，揭示了不仅通过最终答案，还通过查询、中间结果、记忆和agent间消息泄露敏感信息的多种途径，对隐私保护研究有重要参考价值。",
+          "llm_tldr": "本文以数据为中心调查了LLM agent的隐私问题，按agent接触的数据源组织，揭示了不仅通过最终答案，还通过查询、中间结果、记忆和agent间消息泄露敏感信息的多种途径，对隐私保护研究有重要参考价值。",
+          "llm_tags": [
+            "query:agent-safety"
+          ],
+          "matched_query_tag": "query:agent-safety",
+          "matched_query_text": "privacy issues in AI agents",
+          "matched_requirement_id": "req-2",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.26627v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.24496v1",
+          "source": "arxiv",
+          "title": "Red-Teaming the Agentic Red-Team",
+          "abstract": "The use of agentic systems to perform offensive security operations has moved from a theoretical possibility to a commoditized capability. However, while the community has focused on creating more and more capable agents, less attention has been allocated to assessing the security of those systems.   In this work, we present the first in-depth security analysis of the most widely used agentic systems for offensive security operations. We show that most of these tools share common design flaws that enable an active adversary to exfiltrate API keys, establish persistent footholds, and fully compromise the operator's machine, even when the agent operates inside a sandboxed container. To support our analysis, we introduce a full cyber kill chain for such agentic systems, capturing the progression from initial LLM manipulation to lateral movement, persistence, guardrail bypass, and sandbox escape.   Building on our security analysis, we derive a robust architecture for agentic offensive-security tools and propose actionable, broadly applicable design principles that mitigate the disclosed attack paths at the architectural level.",
+          "authors": [
+            "Dario Pasquini",
+            "Michal Bazyli",
+            "Taras Fedynyshyn",
+            "Artem Sorokin"
+          ],
+          "primary_category": "cs.CR",
+          "categories": [
+            "cs.CR",
+            "cs.AI"
+          ],
+          "published": "2026-06-23T12:27:58+00:00",
+          "link": "https://arxiv.org/pdf/2606.24496v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "first in-depth security analysis of agentic systems for offensive security, revealing design flaws",
+          "llm_evidence_cn": "首次对用于攻击性安全的agent系统进行深度安全分析，揭示设计缺陷",
+          "llm_evidence": "首次对用于攻击性安全的agent系统进行深度安全分析，揭示设计缺陷",
+          "canonical_evidence": "首次对用于攻击性安全的agent系统进行深度安全分析，揭示设计缺陷",
+          "llm_tldr_en": "Provides the first security analysis of agentic red-teaming systems, showing common flaws that allow API key exfiltration and full compromise.",
+          "llm_tldr_cn": "本文首次深入分析用于攻击性安全的agent系统安全性，发现多数工具存在共同设计缺陷，使攻击者能够窃取API密钥、建立持久化并完全控制操作者机器，强调了agent自身安全性的重要性。",
+          "llm_tldr": "本文首次深入分析用于攻击性安全的agent系统安全性，发现多数工具存在共同设计缺陷，使攻击者能够窃取API密钥、建立持久化并完全控制操作者机器，强调了agent自身安全性的重要性。",
+          "llm_tags": [
+            "query:agent-safety"
+          ],
+          "matched_query_tag": "query:agent-safety",
+          "matched_query_text": "safety concerns in AI agents",
+          "matched_requirement_id": "req-1",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.24496v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.22916v1",
+          "source": "arxiv",
+          "title": "Intent-Governed Tool Authorization for AI Agents",
+          "abstract": "AI agents increasingly act through external tools: they read private data, construct structured payloads, submit write requests, export records, and coordinate workflows across application boundaries. Existing authorization mechanisms usually ask whether an integration credential, app, or token can call a tool. That question is necessary but incomplete. A tool call can be authorized by static credentials and still be unjustified by the user's current request. For example, a credential that can read and export records should not expose export authority when the user only asked for a bounded summary, and a model-generated delete call should not execute merely because the integration has a delete scope. This paper proposes Intent-Governed Access Control (IGAC), a server-side authorization layer that treats the user's expressed intent as a monotone, auditable policy attribute for AI-agent tool use. IGAC introduces intent certificates, session-scoped policy narrowing, intent-aware manifest filtering, and intent-tool-payload consistency checks. The central invariant is that user intent may only reduce the authority granted by static integration policy; it never expands scopes, data policy, tenant boundaries, or review requirements. We map IGAC onto OpenPort, an existing governance substrate that already implements authorization-dependent discovery, scope and ABAC-style policy checks, draft-first writes, preflight impact binding, state-witness checks, idempotency, stable reason codes, and audit.",
+          "authors": [
+            "Genliang Zhu",
+            "Chu Wang"
+          ],
+          "primary_category": "cs.AI",
+          "categories": [
+            "cs.AI"
+          ],
+          "published": "2026-06-22T06:55:57+00:00",
+          "link": "https://arxiv.org/pdf/2606.22916v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "Intent-governed access control for AI agent tool authorization",
+          "llm_evidence_cn": "面向AI代理工具授权的意图驱动访问控制",
+          "llm_evidence": "面向AI代理工具授权的意图驱动访问控制",
+          "canonical_evidence": "面向AI代理工具授权的意图驱动访问控制",
+          "llm_tldr_en": "Proposes Intent-Governed Access Control (IGAC) to authorize tool calls based on user intent rather than static credentials, enhancing security and privacy for AI agents.",
+          "llm_tldr_cn": "现有AI代理工具授权机制仅验证静态凭证，忽略了用户意图。本文提出意图驱动访问控制（IGAC），在服务端根据用户当前请求的意图来授权工具调用，防止凭证滥用。该方法通过细粒度意图检查提升了AI代理的安全性和隐私保护，是代理安全领域的重要进展。",
+          "llm_tldr": "现有AI代理工具授权机制仅验证静态凭证，忽略了用户意图。本文提出意图驱动访问控制（IGAC），在服务端根据用户当前请求的意图来授权工具调用，防止凭证滥用。该方法通过细粒度意图检查提升了AI代理的安全性和隐私保护，是代理安全领域的重要进展。",
+          "llm_tags": [
+            "query:agent-safety"
+          ],
+          "matched_query_tag": "query:agent-safety",
+          "matched_query_text": "safety privacy security of AI agents",
+          "matched_requirement_id": "req-7",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.22916v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.24842v1",
+          "source": "arxiv",
+          "title": "World Models in Pieces: Structural Certification for General Agents",
+          "abstract": "In the big-world regime, agents cannot be universally capable and their ability is inevitably specialized across a world model in pieces. Consequently, standard uniform guarantees fail to distinguish between the understanding of critical bottlenecks and irrelevant failures. We first formalize this limitation by proving that general agents are not universal, rendering standard worst-case analysis uninformative. To overcome this, we introduce structural certification, a transition-local framework that maps bounded goal-conditioned performance to entry-wise guarantees on the agent's internal world model. Our main contribution is constructive. We provide algorithms that filter specific transitions using deep compositional goals and prove that a general agent on these goals has a structural world model with a $\\mathcal{O}(1/n) + \\mathcal{O}(δ)$ error bound. Conversely, this bound is tight in the small-$δ$ regime, whose existence is explicitly guaranteed by our certification. These results enable the certifiable deployment of general agents by localizing the specific transitions where long-horizon planning is reliable.",
+          "authors": [
+            "Yikai Lu",
+            "Yifei Wu",
+            "Xinyu Lu",
+            "Tongxin Li"
+          ],
+          "primary_category": "cs.AI",
+          "categories": [
+            "cs.AI"
+          ],
+          "published": "2026-06-23T17:21:09+00:00",
+          "link": "https://arxiv.org/pdf/2606.24842v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "Structural certification for robustness of agent world models",
+          "llm_evidence_cn": "针对代理世界模型的鲁棒性结构认证",
+          "llm_evidence": "针对代理世界模型的鲁棒性结构认证",
+          "canonical_evidence": "针对代理世界模型的鲁棒性结构认证",
+          "llm_tldr_en": "Introduces structural certification to provide entry-wise guarantees on agent world models, addressing robustness in general agents.",
+          "llm_tldr_cn": "通用代理在复杂世界中无法保证全面能力，标准最坏情况分析失效。本文提出结构认证，一种过渡局部框架，将有限目标条件下的性能映射到代理内部世界模型的逐项保证。通过深度组合目标过滤特定转换，为代理的鲁棒性提供了可验证的保障，有助于提升AI代理系统的可信度。",
+          "llm_tldr": "通用代理在复杂世界中无法保证全面能力，标准最坏情况分析失效。本文提出结构认证，一种过渡局部框架，将有限目标条件下的性能映射到代理内部世界模型的逐项保证。通过深度组合目标过滤特定转换，为代理的鲁棒性提供了可验证的保障，有助于提升AI代理系统的可信度。",
+          "llm_tags": [
+            "query:agent-safety"
+          ],
+          "matched_query_tag": "query:agent-safety",
+          "matched_query_text": "robustness of AI agent systems",
+          "matched_requirement_id": "req-3",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.24842v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.25888v1",
+          "source": "arxiv",
+          "title": "Robustness and Leadership in Markov-switching Consensus Networks",
+          "abstract": "We investigate how time-varying interactions, modeled via a Markov switching graph (MSG), impact the robustness of noisy multi-agent dynamics in both continuous- and discrete-time settings. Our focus is on the steady-state performance of consensus and leader-follower tracking dynamics subject to stochastic noise. Using the framework of Markov jump linear systems (MJLS), we derive expressions for the steady-state covariance of each agent's deviation from consensus and tracking error, respectively, and use them to quantify individual and group performance as a function of the interaction graphs and the switching dynamics. We extend established notions of robustness, certainty indices, and joint centrality from static graphs to the MSG setting. To gain analytical insight, we specialize our results to systems switching between two topologies and characterize how switching influences performance. Numerical simulations further illustrate how switching topologies affects system robustness in both coordination tasks.",
+          "authors": [
+            "Sarah H. Cen",
+            "Vaibhav Srivastava",
+            "Naomi Ehrich Leonard"
+          ],
+          "primary_category": "eess.SY",
+          "categories": [
+            "eess.SY",
+            "cs.MA"
+          ],
+          "published": "2026-06-24T14:30:54+00:00",
+          "link": "https://arxiv.org/pdf/2606.25888v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "studies robustness of multi-agent dynamics under switching graphs",
+          "llm_evidence_cn": "研究切换图下多智能体动力学的鲁棒性",
+          "llm_evidence": "研究切换图下多智能体动力学的鲁棒性",
+          "canonical_evidence": "研究切换图下多智能体动力学的鲁棒性",
+          "llm_tldr_en": "Investigates how Markov-switching interactions affect robustness of noisy multi-agent consensus, deriving steady-state covariance expressions and extending robustness metrics to time-varying graphs.",
+          "llm_tldr_cn": "该论文研究马尔可夫切换图对噪声多智能体一致性问题鲁棒性的影响，通过马尔可夫跳变线性系统框架推导了稳态协方差表达式，将鲁棒性指标从静态图推广到时变图，量化了切换动力学对个体和群体性能的影响。",
+          "llm_tldr": "该论文研究马尔可夫切换图对噪声多智能体一致性问题鲁棒性的影响，通过马尔可夫跳变线性系统框架推导了稳态协方差表达式，将鲁棒性指标从静态图推广到时变图，量化了切换动力学对个体和群体性能的影响。",
+          "llm_tags": [
+            "query:agent-safety"
+          ],
+          "matched_query_tag": "query:agent-safety",
+          "matched_query_text": "robustness of AI agent systems",
+          "matched_requirement_id": "req-3",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.25888v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.23011v1",
+          "source": "arxiv",
+          "title": "Robust Data-Driven Nash Equilibrium Seeking under Partial-Decision Information",
+          "abstract": "This paper presents a data-driven framework for decentralized Nash equilibrium (NE) seeking in multi-agent systems with unknown linear dynamics subject to exogenous disturbances, operating under partial-decision information (where agents lack direct access to the decisions of all others) and equality constraints. The proposed framework integrates an NE model, a distributed communication protocol, an internal model for disturbance rejection, and a data-driven stabilization strategy. By reformulating the problem as a cooperative output regulation problem, we synthesize controllers directly from noisy input-state data via semi-definite programs (SDPs), providing formal guarantees for closed-loop stability and asymptotic convergence to the NE. The approach is further extended to a class of nonlinear systems with constant disturbances by leveraging integral control and describing nonlinearities via quadratic constraints. Numerical simulations involving unmanned aerial vehicle networks and a rotary-wing aerial vehicle formation validate the efficacy and robustness of the proposed method.",
+          "authors": [
+            "Linqi Wang",
+            "Yifei Li",
+            "Wenjie Liu",
+            "Yuzhou Wei",
+            "Gang Wang",
+            "Lihua Xie"
+          ],
+          "primary_category": "eess.SY",
+          "categories": [
+            "eess.SY"
+          ],
+          "published": "2026-06-22T08:23:02+00:00",
+          "link": "https://arxiv.org/pdf/2606.23011v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "robust data-driven Nash equilibrium seeking with formal guarantees",
+          "llm_evidence_cn": "鲁棒数据驱动纳什均衡寻求，提供形式化保证",
+          "llm_evidence": "鲁棒数据驱动纳什均衡寻求，提供形式化保证",
+          "canonical_evidence": "鲁棒数据驱动纳什均衡寻求，提供形式化保证",
+          "llm_tldr_en": "Develops a decentralized data-driven framework for robust Nash equilibrium seeking under disturbances with formal stability guarantees.",
+          "llm_tldr_cn": "针对未知线性动态和外部干扰下的多智能体系统，本文提出一种数据驱动的去中心化纳什均衡寻求框架。该框架集成纳什均衡模型、分布式通信协议、干扰抑制内模和数据驱动稳定策略，通过半定规划从含噪输入-状态数据综合控制器，并提供闭环稳定性和渐进收敛至纳什均衡的形式化保证。该工作增强了多智能体系统在不确定环境下的鲁棒性。",
+          "llm_tldr": "针对未知线性动态和外部干扰下的多智能体系统，本文提出一种数据驱动的去中心化纳什均衡寻求框架。该框架集成纳什均衡模型、分布式通信协议、干扰抑制内模和数据驱动稳定策略，通过半定规划从含噪输入-状态数据综合控制器，并提供闭环稳定性和渐进收敛至纳什均衡的形式化保证。该工作增强了多智能体系统在不确定环境下的鲁棒性。",
+          "llm_tags": [
+            "query:agent-safety"
+          ],
+          "matched_query_tag": "query:agent-safety",
+          "matched_query_text": "robustness of AI agent systems",
+          "matched_requirement_id": "req-3",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.23011v1",
+          "carry_days": 1
+        }
+      ]
     },
     "agent-evolve": {
-      "updated_date": "20260622",
+      "updated_date": "20260627",
       "carryover_days": 9,
-      "items": []
+      "items": [
+        {
+          "id": "2606.27330v1",
+          "source": "arxiv",
+          "title": "Empowering GUI Agents via Autonomous Experience Exploration and Hindsight Experience Utilization for Task Planning",
+          "abstract": "Multimodal web agents can assist humans in operating repetitive GUI tasks, where effective task planning is essential for decomposing complex tasks into executable actions. While small open source MLLMs are cost efficient and privacy preserving compared with commercial large models, they suffer from weak planning and limited cross website generalization. To address these limitations, we introduce the planning experience exploration and utilization (PEEU) method, which autonomously explores environments to discover experiences and utilizes hindsight experience to synthesize strictly aligned, high level training data. To quantitatively analyze the generalization behaviors driving this performance, we propose the task decomposition hierarchical analysis framework (TDHAF) to systematically study compositional generalization across three task granularities: low, middle and high levels. Our analysis reveals that mastering low level atomic skills does not guarantee high level planning competence, while high level task training yields stronger OOD generalization. Experiments on real world benchmarks demonstrate PEEU's superior effectiveness: our 7B model achieves 30.6% accuracy, outperforming the much larger Qwen2.5-VL-32B model. These demonstrate constructing hindsight high level tasks and leveraging experiences is crucial for OOD planning abilities of small MLLMs.",
+          "authors": [
+            "Tianyi Men",
+            "Zhuoran Jin",
+            "Pengfei Cao",
+            "Yubo Chen",
+            "Kang Liu",
+            "Jun Zhao"
+          ],
+          "primary_category": "cs.CL",
+          "categories": [
+            "cs.CL",
+            "cs.AI",
+            "cs.CV",
+            "cs.LG"
+          ],
+          "published": "2026-06-25T17:44:48+00:00",
+          "link": "https://arxiv.org/pdf/2606.27330v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "autonomous experience exploration for agent self-improvement in GUI tasks",
+          "llm_evidence_cn": "自主经验探索用于GUI代理自我改进",
+          "llm_evidence": "自主经验探索用于GUI代理自我改进",
+          "canonical_evidence": "自主经验探索用于GUI代理自我改进",
+          "llm_tldr_en": "PEEU method enables GUI agents to autonomously explore and utilize hindsight experience for improved task planning and generalization.",
+          "llm_tldr_cn": "本文针对开源多模态LLM在GUI任务中规划能力弱、跨网站泛化差的问题，提出规划经验探索与利用（PEEU）方法。代理自主探索环境发现经验，并利用事后经验合成高质量训练数据。实验表明该方法显著提升了代理的规划能力和泛化性能。",
+          "llm_tldr": "本文针对开源多模态LLM在GUI任务中规划能力弱、跨网站泛化差的问题，提出规划经验探索与利用（PEEU）方法。代理自主探索环境发现经验，并利用事后经验合成高质量训练数据。实验表明该方法显著提升了代理的规划能力和泛化性能。",
+          "llm_tags": [
+            "query:agent-evolve"
+          ],
+          "matched_query_tag": "query:agent-evolve",
+          "matched_query_text": "autonomous learning in AI agents",
+          "matched_requirement_id": "req-12",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.27330v1",
+          "carry_days": 1
+        }
+      ]
     },
     "mas-security": {
-      "updated_date": "20260622",
+      "updated_date": "20260627",
       "carryover_days": 9,
       "items": []
     }
