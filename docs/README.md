@@ -6,159 +6,97 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-27
-- 运行时间：2026-06-27 21:51:08 UTC
+- 最新运行日期：2026-06-28
+- 运行时间：2026-06-28 21:46:56 UTC
 - 运行状态：成功
-- 本次总论文数：45
-- 精读区：32
+- 本次总论文数：25
+- 精读区：12
 - 速读区：13
 
 ### 今日简报（AI）
-今日精读32篇，聚焦LLM系统安全与无线智能终端延伸两大满分方向。
-
-最值得关注：LLM Agent系统的安全威胁放大与案例研究，以及无线智能从网络到终端的个人代理扩展。
-
-建议优先阅读两篇10分精读论文，并留意Honeyquest等速读论文中针对AI攻击者的新型欺骗策略。
-- 详情：[/202606/27/README](/202606/27/README)
+今日精读25篇论文，聚焦AI Agent安全与自主决策，其中两篇高分研究引发关注。  
+最值得精读的是《Intent-Governed Tool Authorization》与《Safety in Self-Evolving LLM Agent Systems》，均获9.0分，前者探讨意图驱动的工具授权机制，后者揭示自演化代理系统的安全威胁与放大效应。  
+建议普通读者优先关注AI Agent的工具使用权限控制与自演化风险，这两方向直接关系到未来智能系统的可靠部署。
+- 详情：[/202606/28/README](/202606/28/README)
 
 ### 精读区论文标签
-1. [Safety in Self-Evolving LLM Agent Systems: Threats, Amplification, and Case Studies](/202606/27/2606.23075v1-safety-in-self-evolving-llm-agent-systems-threats-amplification-and-case-studies)  
-   标签：评分：10.0/10、query:agent-evolve
-   evidence：自进化LLM代理系统的系统安全与隐私分析
-2. [Wireless Personal Agent: Extending Wireless Intelligence from Networks to Terminals](/202606/27/2606.23255v1-wireless-personal-agent-extending-wireless-intelligence-from-networks-to-terminals)  
-   标签：评分：10.0/10、query:agent-evolve
-   evidence：自演化个人智能体用于终端资源管理
-3. [RIFT-Bench: Dynamic Red-teaming For Agentic AI Systems](/202606/27/2606.23927v1-rift-bench-dynamic-red-teaming-for-agentic-ai-systems)  
-   标签：评分：10.0/10、query:agent-safety
-   evidence：面向智能体AI系统的动态红队测试安全评估
-4. [AutoSpec: Safety Rule Evolution for LLM Agents via Inductive Logic Programming](/202606/27/2606.24245v2-autospec-safety-rule-evolution-for-llm-agents-via-inductive-logic-programming)  
-   标签：评分：10.0/10、query:agent-safety
-   evidence：直接聚焦LLM智能体安全规则演化
-5. [Poisoned Playbooks: Demystifying Knowledge Poisoning Effects on AI Security Agents](/202606/27/2606.24402v1-poisoned-playbooks-demystifying-knowledge-poisoning-effects-on-ai-security-agents)  
-   标签：评分：10.0/10、query:agent-safety
-   evidence：知识中毒对AI安全智能体的影响
-6. [The Unfireable Safety Kernel: Execution-Time AI Alignment for AI Agents and Other Escapable AI Systems](/202606/27/2606.26057v1-the-unfireable-safety-kernel-execution-time-ai-alignment-for-ai-agents-and-other-escapable-ai-systems)  
-   标签：评分：10.0/10、query:agent-safety
-   evidence：AI代理的执行时对齐与安全
-7. [Autoformalization of Agent Instructions into Policy-as-Code](/202606/27/2606.26649v1-autoformalization-of-agent-instructions-into-policy-as-code)  
-   标签：评分：10.0/10、query:agent-safety
-   evidence：自动形式化代理策略以强制执行安全性
-8. [AgentX: Towards Agent-Driven Self-Iteration of Industrial Recommender Systems](/202606/27/2606.26859v1-agentx-towards-agent-driven-self-iteration-of-industrial-recommender-systems)  
-   标签：评分：10.0/10、query:agent-evolve
-   evidence：AgentX自主生成、实现、评估和学习推荐模型，实现自进化
-9. [AgenticOS: An Intent-Oriented Secure Operating System Architecture for Autonomous AI Agents](/202606/27/2606.21129v1-agenticos-an-intent-oriented-secure-operating-system-architecture-for-autonomous-ai-agents)  
+1. [Intent-Governed Tool Authorization for AI Agents](/202606/28/2606.22916v1-intent-governed-tool-authorization-for-ai-agents)  
    标签：评分：9.0/10、query:agent-safety
-   evidence：面向自主AI代理的意图导向安全操作系统
-10. [AutoRAS: Learning Robust Agentic Systems with Primitive Representations](/202606/27/2606.21445v1-autoras-learning-robust-agentic-systems-with-primitive-representations)  
+   evidence：意图驱动的工具访问控制解决AI代理的隐私与授权问题
+2. [Safety in Self-Evolving LLM Agent Systems: Threats, Amplification, and Case Studies](/202606/28/2606.23075v1-safety-in-self-evolving-llm-agent-systems-threats-amplification-and-case-studies)  
    标签：评分：9.0/10、query:agent-safety
-   evidence：使用安全信号和流式目标自动设计鲁棒的智能体系统
-11. [PrivacyAlign: Contextual Privacy Alignment for LLM Agents](/202606/27/2606.21710v1-privacyalign-contextual-privacy-alignment-for-llm-agents)  
+   evidence：对自进化智能体系统进行系统性安全与隐私分析
+3. [GIF: Locally Sound Geometric Information Flow Control for LLMs](/202606/28/2606.23277v1-gif-locally-sound-geometric-information-flow-control-for-llms)  
    标签：评分：9.0/10、query:agent-safety
-   evidence：直接解决LLM agent中的隐私对齐问题，使用人工标注
-12. [Safe to Check, Unsafe to Use: Relinking at the Compression Boundary of LLM Agents](/202606/27/2606.21732v1-safe-to-check-unsafe-to-use-relinking-at-the-compression-boundary-of-llm-agents)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：LLM代理压缩边界的安全漏洞
-13. [AgentRiskBOM: A Risk-Scoping Security Bill of Materials for Agentic AI Systems](/202606/27/2606.21877v1-agentriskbom-a-risk-scoping-security-bill-of-materials-for-agentic-ai-systems)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：为代理型AI系统提供安全物料清单
-14. [Governance Decay: How Context Compaction Silently Erases Safety Constraints in Long-Horizon LLM Agents](/202606/27/2606.22528v1-governance-decay-how-context-compaction-silently-erases-safety-constraints-in-long-horizon-llm-agents)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：上下文压缩导致安全约束被删除并引发违规行为
-15. [AgentLens: Interpretable Safety Steering via Mechanistic Subspaces for Multi-Turn Coding Agent](/202606/27/2606.22673v1-agentlens-interpretable-safety-steering-via-mechanistic-subspaces-for-multi-turn-coding-agent)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：多轮编码代理的安全内部机制
-16. [Self-Evolution for Multi-Turn Tool-Calling Agents via Divergence-Point Preference Learning](/202606/27/2606.23112v1-self-evolution-for-multi-turn-tool-calling-agents-via-divergence-point-preference-learning)  
+   evidence：面向LLM智能体系统的信息流控制，保障隐私和安全
+4. [Superhuman AI for Generals.io Using Self-Play Reinforcement Learning](/202606/28/2606.23348v1-superhuman-ai-for-generalsio-using-self-play-reinforcement-learning)  
    标签：评分：9.0/10、query:agent-evolve
-   evidence：多轮工具调用代理的自我进化
-17. [Capable but Careless: Do Computer-Use Agents Follow Contextual Integrity?](/202606/27/2606.23189v1-capable-but-careless-do-computer-use-agents-follow-contextual-integrity)  
+   evidence：使用自对弈强化学习训练超人类AI代理
+5. [Detecting Malicious Agent Skills in the Wild using Attention](/202606/28/2606.23416v1-detecting-malicious-agent-skills-in-the-wild-using-attention)  
    标签：评分：9.0/10、query:agent-safety
-   evidence：计算机使用代理的隐私风险
-18. [MuPPET: A Benchmark for Contextual Privacy of LLM Assistants in Multi-Party Conversations](/202606/27/2606.23217v1-muppet-a-benchmark-for-contextual-privacy-of-llm-assistants-in-multi-party-conversations)  
-   标签：评分：9.0/10、query:mas-security
-   evidence：多轮对话中LLM智能体上下文隐私的基准测试
-19. [AOHP: An Open-Source OS-Level Agent Harness for Personalized, Efficient and Secure Interaction](/202606/27/2606.23449v1-aohp-an-open-source-os-level-agent-harness-for-personalized-efficient-and-secure-interaction)  
+   evidence：检测恶意智能体技能以保障安全
+6. [Securing LLM-Agent Long-Term Memory Against Poisoning: Non-Malleable, Origin-Bound Authority with Machine-Checked Guarantees](/202606/28/2606.24322v1-securing-llm-agent-long-term-memory-against-poisoning-non-malleable-origin-bound-authority-with-machine-checked-guarantees)  
    标签：评分：9.0/10、query:agent-safety
-   evidence：操作系统级智能体框架实现安全交互
-20. [Cryptographic certificates of validity for trustworthy AI](/202606/27/2606.23768v1-cryptographic-certificates-of-validity-for-trustworthy-ai)  
+   evidence：保护LLM智能体长期记忆免受投毒攻击
+7. [Yuvion VL: A Multimodal Foundation Model for Adversarial Content and AI Safety](/202606/28/2606.25034v1-yuvion-vl-a-multimodal-foundation-model-for-adversarial-content-and-ai-safety)  
    标签：评分：9.0/10、query:agent-safety
-   evidence：可信AI代理的加密证书
-21. [Safe and Generalizable Hierarchical Multi-Agent RL via Constraint Manifold Control](/202606/27/2606.24010v1-safe-and-generalizable-hierarchical-multi-agent-rl-via-constraint-manifold-control)  
-   标签：评分：9.0/10、query:mas-security
-   evidence：通过约束流形实现多智能体系统安全
-22. [Metis: Bridging Text and Code Memory for Self-Evolving Agents](/202606/27/2606.24151v1-metis-bridging-text-and-code-memory-for-self-evolving-agents)  
+   evidence：面向对抗内容和AI安全的多模态基础模型
+8. [ActPlane: Programmable OS-Level Policy Enforcement for Agent Harnesses](/202606/28/2606.25189v1-actplane-programmable-os-level-policy-enforcement-for-agent-harnesses)  
+   标签：评分：9.0/10、query:agent-safety
+   evidence：操作系统级别的策略执行保障AI智能体安全
+9. [SoK: AI Secure Code Generation: Progress, Pitfalls, and Paths Forward](/202606/28/2606.25195v1-sok-ai-secure-code-generation-progress-pitfalls-and-paths-forward)  
+   标签：评分：9.0/10、query:agent-safety
+   evidence：系统化研究AI代码生成安全，包括编码代理
+10. [The Red Queen Gödel Machine: Co-Evolving Agents and Their Evaluators](/202606/28/2606.26294v1-the-red-queen-gdel-machine-co-evolving-agents-and-their-evaluators)  
    标签：评分：9.0/10、query:agent-evolve
-   evidence：自我演化代理的文本和代码记忆
-23. [SkyChain Intelligence: A Blockchain-Secured Multi-Agent DRL Framework for Low-Altitude Embodied Artificial Intelligence](/202606/27/2606.24193v1-skychain-intelligence-a-blockchain-secured-multi-agent-drl-framework-for-low-altitude-embodied-artificial-intelligence)  
-   标签：评分：9.0/10、query:mas-security
-   evidence：区块链安全的多智能体深度强化学习框架，解决安全、信任和效率三重困境
-24. [AutoSpec: Safety Rule Evolution for LLM Agents via Inductive Logic Programming](/202606/27/2606.24245v1-autospec-safety-rule-evolution-for-llm-agents-via-inductive-logic-programming)  
+   evidence：自进化智能体与评估者共同演化框架
+11. [Governing Actions, Not Agents: Institutional Attestation as a Governance Model for Autonomous AI Systems](/202606/28/2606.26298v1-governing-actions-not-agents-institutional-attestation-as-a-governance-model-for-autonomous-ai-systems)  
    标签：评分：9.0/10、query:agent-safety
-   evidence：通过归纳逻辑编程演化LLM智能体的安全规则
-25. [Escaping the Self-Confirmation Trap: An Execute-Distill-Verify Paradigm for Agentic Experience Learning](/202606/27/2606.24428v1-escaping-the-self-confirmation-trap-an-execute-distill-verify-paradigm-for-agentic-experience-learning)  
-   标签：评分：9.0/10、query:agent-evolve
-   evidence：通过经验学习实现LLM智能体的自进化
-26. [Privacy-Preserving RAG via Multi-Agent Semantic Rewriting: Achieving Confidentiality Without Compromising Contextual Fidelity](/202606/27/2606.24623v1-privacy-preserving-rag-via-multi-agent-semantic-rewriting-achieving-confidentiality-without-compromising-contextual-fidelity)  
-   标签：评分：9.0/10、query:mas-security
-   evidence：基于多智能体语义重写的隐私保护检索增强生成框架
-27. [TRUSTMEM: Learning Trustworthy Memory Consolidation for LLM Agents with Long-Term Memory](/202606/27/2606.25161v1-trustmem-learning-trustworthy-memory-consolidation-for-llm-agents-with-long-term-memory)  
+   evidence：要求自主AI智能体在高风险动作前由独立权威证明的治理模型
+12. [Agents That Know Too Much: A Data-Centric Survey of Privacy in LLM Agents](/202606/28/2606.26627v1-agents-that-know-too-much-a-data-centric-survey-of-privacy-in-llm-agents)  
    标签：评分：9.0/10、query:agent-safety
-   evidence：提升LLM智能体记忆巩固的可信度框架
-28. [AI Snitches Get Glitches: Towards Evading Agentic Surveillance](/202606/27/2606.25836v1-ai-snitches-get-glitches-towards-evading-agentic-surveillance)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：形式化智能体监控并评估隐私风险
-29. [The Red Queen Gödel Machine: Co-Evolving Agents and Their Evaluators](/202606/27/2606.26294v1-the-red-queen-gdel-machine-co-evolving-agents-and-their-evaluators)  
-   标签：评分：9.0/10、query:agent-evolve
-   evidence：代理与评估者共同进化实现递归自我改进
-30. [EVOM: Agentic Meta-Evolution of Actor-Critic Architectures for Reinforcement Learning](/202606/27/2606.26327v1-evom-agentic-meta-evolution-of-actor-critic-architectures-for-reinforcement-learning)  
-   标签：评分：9.0/10、query:agent-evolve
-   evidence：智能体元进化框架用于actor-critic架构
-31. [VIGIL: Runtime Enforcement of Behavioral Specifications in AI Agent Skills](/202606/27/2606.26524v1-vigil-runtime-enforcement-of-behavioral-specifications-in-ai-agent-skills)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：对AI智能体技能的安全和信任规范进行运行时执行
-32. [MIRROR: Novelty-Constrained Memory-Guided MCTS Red-Teaming for Agentic RAG](/202606/27/2606.26793v1-mirror-novelty-constrained-memory-guided-mcts-red-teaming-for-agentic-rag)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：针对智能体RAG安全的红队测试覆盖多种攻击面
+   evidence：LLM智能体隐私的数据中心综述
 
 ### 速读区论文标签
-1. [Honeyquest for LLMs: Rethinking Cyber Deception for AI Attackers](/202606/27/2606.21037v1-honeyquest-for-llms-rethinking-cyber-deception-for-ai-attackers)  
+1. [Measuring What Persists: Conditioning Mechanisms and a Geometric Framework for AI Agent Identity](/202606/28/2606.21843v1-measuring-what-persists-conditioning-mechanisms-and-a-geometric-framework-for-ai-agent-identity)  
    标签：评分：8.0/10、query:agent-safety
-   evidence：评估AI攻击者的行为，涉及网络欺骗和安全
-2. [PulseCX: Breaking the Closed-World Assumption in Real-Time CX](/202606/27/2606.21124v1-pulsecx-breaking-the-closed-world-assumption-in-real-time-cx)  
-   标签：评分：8.0/10、query:agent-evolve
-   evidence：基于强化-衰减动力学的自演化记忆用于对话AI智能体
-3. [Local Conformity-Based Evolutionary Game Modeling of UAV Swarm Under Byzantine Attack](/202606/27/2606.21206v1-local-conformity-based-evolutionary-game-modeling-of-uav-swarm-under-byzantine-attack)  
-   标签：评分：8.0/10、query:mas-security
-   evidence：拜占庭攻击下多智能体无人机群的网络安全
-4. [CalVerT: Augmenting Agents with Calibrated Verifier Telemetry Improves Action and Learning in Knowledge-Intensive Tasks](/202606/27/2606.21777v1-calvert-augmenting-agents-with-calibrated-verifier-telemetry-improves-action-and-learning-in-knowledge-intensive-tasks)  
+   evidence：几何框架测量AI智能体身份漂移，揭示安全盆地聚类
+2. [Imagine to Ensure Safety in Hierarchical Reinforcement Learning](/202606/28/2606.22509v1-imagine-to-ensure-safety-in-hierarchical-reinforcement-learning)  
    标签：评分：8.0/10、query:agent-safety
-   evidence：校准验证遥测增强智能体可信赖性
-5. [Harness-MU: A Safe, Governed, and Effective Harness for Multi-User LLM Agents](/202606/27/2606.21856v1-harness-mu-a-safe-governed-and-effective-harness-for-multi-user-llm-agents)  
+   evidence：分层强化学习中的安全性确保方法
+3. [Complex Autonomous UAV Task Execution and Decision-Making With s(CASP)](/202606/28/2606.23866v1-complex-autonomous-uav-task-execution-and-decision-making-with-scasp)  
    标签：评分：8.0/10、query:agent-safety
-   evidence：多用户LLM智能体的安全约束，执行访问权限并防止未授权数据泄露
-6. [Sim2O: Efficient Offline-to-Online MARL via Joint Action Composition](/202606/27/2606.21085v1-sim2o-efficient-offline-to-online-marl-via-joint-action-composition)  
-   标签：评分：7.0/10、query:agent-evolve
-   evidence：面向自改进强化学习智能体的离线到在线多智能体强化学习
-7. [Mind the Noise: Sensitivity of Transformer-based Interaction-Aware Trajectory Prediction Models to Noisy Data](/202606/27/2606.21344v1-mind-the-noise-sensitivity-of-transformer-based-interaction-aware-trajectory-prediction-models-to-noisy-data)  
-   标签：评分：7.0/10、query:agent-safety
-   evidence：自动驾驶轨迹预测模型的鲁棒性
-8. [Composing Verifiable Conceptual Models via Building Blocks: Towards Design-Time Verification of Agentic AI Workflows](/202606/27/2606.21565v1-composing-verifiable-conceptual-models-via-building-blocks-towards-design-time-verification-of-agentic-ai-workflows)  
-   标签：评分：7.0/10、query:agent-safety
-   evidence：代理工作流设计时验证提升安全性
-9. [Hallucination as Context Drift: Synchronization Protocols for Multi-Agent LLM Systems](/202606/27/2606.21666v1-hallucination-as-context-drift-synchronization-protocols-for-multi-agent-llm-systems)  
+   evidence：安全自主无人机代理与符号推理
+4. [Red-Teaming the Agentic Red-Team](/202606/28/2606.24496v1-red-teaming-the-agentic-red-team)  
+   标签：评分：8.0/10、query:agent-safety
+   evidence：对用于攻击操作的智能体系统进行安全分析
+5. [Forget to Improve: On-Device LLM-Agent Continual Learning via Budget-Curated Memory](/202606/28/2606.25115v1-forget-to-improve-on-device-llm-agent-continual-learning-via-budget-curated-memory)  
+   标签：评分：8.0/10、query:agent-safety
+   evidence：解决设备端LLM代理的记忆中毒攻击面，关乎安全性
+6. [SHACR: A Graph-Augmented Semi-Autonomous Framework for Multi-Class Conflict Resolution in Smart Home IoT Automation](/202606/28/2606.22312v1-shacr-a-graph-augmented-semi-autonomous-framework-for-multi-class-conflict-resolution-in-smart-home-iot-automation)  
    标签：评分：7.0/10、query:mas-security
-   evidence：多代理系统中针对幻觉的同步协议
-10. [Rising From the Ashes: How Agentic AI is Unblocking Challenges in Cybersecurity](/202606/27/2606.23138v1-rising-from-the-ashes-how-agentic-ai-is-unblocking-challenges-in-cybersecurity)  
+   evidence：解决智能家居多智能体系统中不安全及隐私冲突
+7. [Grounded Scaling: Why Agentic AI Needs Deterministic Environments](/202606/28/2606.22495v1-grounded-scaling-why-agentic-ai-needs-deterministic-environments)  
+   标签：评分：7.0/10、query:agent-safety
+   evidence：智能体AI鲁棒性的确定性与效率边界
+8. [Risk-Aware Information Theory](/202606/28/2606.22524v1-risk-aware-information-theory)  
+   标签：评分：7.0/10、query:agent-safety
+   evidence：为安全自主系统奠定基础
+9. [RigorBench: Benchmarking Engineering Process Discipline in Autonomous AI Coding Agents](/202606/28/2606.22678v1-rigorbench-benchmarking-engineering-process-discipline-in-autonomous-ai-coding-agents)  
+   标签：评分：7.0/10、query:agent-safety
+   evidence：代理过程纪律与可靠性基准
+10. [Risk-Aware Information Theory](/202606/28/2606.22524v2-risk-aware-information-theory)  
    标签：评分：6.0/10、query:agent-safety
-   evidence：代理AI应对网络安全挑战
-11. [Critique of Agent Model](/202606/27/2606.23991v1-critique-of-agent-model)  
+   evidence：为风险感知通信和自主系统安全奠定基础
+11. [ENVS: Environment-Native Verified Search for Long-Horizon GUI Agents](/202606/28/2606.22948v1-envs-environment-native-verified-search-for-long-horizon-gui-agents)  
    标签：评分：6.0/10、query:agent-safety
-   evidence：对代理模型的批判性分析，讨论自主性和可信性
-12. [Are We Ready For An Agent-Native Memory System?](/202606/27/2606.24775v1-are-we-ready-for-an-agent-native-memory-system)  
+   evidence：针对GUI智能体在真实干扰下的鲁棒性评估
+12. [Robust Data-Driven Nash Equilibrium Seeking under Partial-Decision Information](/202606/28/2606.23011v1-robust-data-driven-nash-equilibrium-seeking-under-partial-decision-information)  
    标签：评分：6.0/10、query:agent-safety
-   evidence：智能体记忆系统在动态知识更新下的鲁棒性研究
-13. [Diagnosing and Mitigating Compounding Failures in Agentic Persuasion via Taxonomic Strategy Retrieval](/202606/27/2606.24976v1-diagnosing-and-mitigating-compounding-failures-in-agentic-persuasion-via-taxonomic-strategy-retrieval)  
+   evidence：针对扰动下多代理系统的鲁棒数据驱动纳什均衡搜索
+13. [Rising From the Ashes: How Agentic AI is Unblocking Challenges in Cybersecurity](/202606/28/2606.23138v1-rising-from-the-ashes-how-agentic-ai-is-unblocking-challenges-in-cybersecurity)  
    标签：评分：6.0/10、query:agent-safety
-   evidence：通过分类策略检索诊断和缓解智能体说服中的复合错误
+   evidence：智能体AI在网络安全中的应用，涉及安全与防护
 
 
 <div class="dpr-home-promo-card">
