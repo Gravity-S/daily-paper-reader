@@ -1,34 +1,34 @@
 {
-  "generated_at": "2026-07-06T21:57:20.442356+00:00",
-  "updated_date": "20260706",
+  "generated_at": "2026-07-07T21:24:01.803641+00:00",
+  "updated_date": "20260707",
   "carryover_days": 9,
   "tag_states": {
     "agent-safety": {
-      "updated_date": "20260706",
+      "updated_date": "20260707",
       "carryover_days": 9,
       "items": [
         {
-          "id": "2607.01071v2",
+          "id": "2607.05189v1",
           "source": "arxiv",
-          "title": "MemSyco-Bench: Benchmarking Sycophancy in Agent Memory",
-          "abstract": "Memory has emerged as a cornerstone of modern LLM-based agents, supporting their evolution from single-turn assistants to long-term collaborators. However, memory is not always beneficial: retrieved memories often induce a critical issue of sycophancy, causing agents to over-align with the user at the cost of factual accuracy or objective reasoning. Despite this emerging risk, existing memory benchmarks primarily evaluate whether memories are correctly stored, retrieved, or updated, while overlooking how retrieved memories influence downstream reasoning and decision-making. To bridge this gap, we propose MemSyco-Bench, a comprehensive benchmark for evaluating memory-induced sycophancy in agent systems. MemSyco-Bench measures when memory should influence a decision and how valid memory should be used. Specifically, it covers five tasks that assess whether agents can reject memory as factual evidence, respect its applicable scope, resolve conflicts between memory and objective evidence, track memory updates, and use valid memory for personalization. All related resources are collected for the community at https://github.com/XMUDeepLIT/MemSyco-Bench.",
+          "title": "When Claws Remember but Do Not Tell: Stealthy Memory Injection in Persistent Personal Agents",
+          "abstract": "Persistent personal agents combine long-term memory with access to users' external environments, enabling personalized foreground assistance and proactive background execution. This integration also creates a new path to compromise: untrusted external content can be silently written into persistent memory and later reused as trusted state. We study this threat as stealth memory injection, in which a remote black-box adversary delivers a single email payload that must induce the agent to write poisoned memory, stay hidden in the agent's response to the user, and affect future behavior.   We introduce WhisperBench, a 108-case benchmark spanning five risk categories and both fact and preference poisoning. Built on a real IMAP/SMTP workflow and an authentic email agent skill, it enables full-cycle evaluation of stealth memory injection attacks. To enable this black-box attack under single-email delivery and without runtime feedback, we propose MemGhost, a one-shot payload generation framework. MemGhost uses an environment proxy to emulate persistent-agent execution and an objective proxy to convert memory adoption and conversational stealth into dense rubric-based rewards, then trains the attacker policy with supervised fine-tuning and reinforcement learning.   Across 56 held-out test cases, MemGhost achieves 87.5% end-to-end success on OpenClaw with GPT-5.4 and 71.4% on Claude Code SDK with Sonnet 4.6. It also transfers across personal-agent architectures (NanoClaw and Hermes Agent) and memory backends (filesystem and vector-based Mem0), and remains effective against input-level, model-level, and system-level defenses. These results suggest that persistent memory can turn ordinary external processing into a practical pathway for long-term agent compromise.",
           "authors": [
-            "Zhishang Xiang",
-            "Zerui Chen",
-            "Yunbo Tang",
-            "Zhimin Wei",
-            "Ruqin Ning",
-            "Yujie Lin",
-            "Qinggang Zhang",
-            "Jinsong Su"
+            "Yechao Zhang",
+            "Shiqian Zhao",
+            "Jiawen Zhang",
+            "Jie Zhang",
+            "Gelei Deng",
+            "Xiaogeng Liu",
+            "Chaowei Xiao",
+            "Tianwei Zhang"
           ],
-          "primary_category": "cs.IR",
+          "primary_category": "cs.CR",
           "categories": [
-            "cs.IR",
+            "cs.CR",
             "cs.AI"
           ],
-          "published": "2026-07-01T15:30:33+00:00",
-          "link": "https://arxiv.org/pdf/2607.01071v2",
+          "published": "2026-07-06T15:08:58+00:00",
+          "link": "https://arxiv.org/pdf/2607.05189v1",
           "tags": [
             "keyword:agent-evolve",
             "keyword:agent-safety",
@@ -38,38 +38,42 @@
             "query:mas-security"
           ],
           "llm_score": 8.0,
-          "llm_evidence_en": "benchmarks sycophancy in agent memory, a critical alignment issue",
-          "llm_evidence_cn": "评测智能体记忆引发的谄媚问题，这是对齐的重要方面",
-          "llm_evidence": "评测智能体记忆引发的谄媚问题，这是对齐的重要方面",
-          "canonical_evidence": "评测智能体记忆引发的谄媚问题，这是对齐的重要方面",
-          "llm_tldr_en": "MemSyco-Bench benchmarks sycophancy in LLM agent memory, showing how memories can cause over-alignment with users at cost of accuracy.",
-          "llm_tldr_cn": "该论文针对LLM智能体记忆可能导致的谄媚问题（即过度迎合用户而牺牲事实准确性），提出了MemSyco-Bench基准。该基准系统评估记忆对下游推理和决策的影响。实验表明记忆引发的谄媚是智能体对齐中不可忽视的风险。研究为构建鲁棒可信的智能体提供了重要评测工具。",
-          "llm_tldr": "该论文针对LLM智能体记忆可能导致的谄媚问题（即过度迎合用户而牺牲事实准确性），提出了MemSyco-Bench基准。该基准系统评估记忆对下游推理和决策的影响。实验表明记忆引发的谄媚是智能体对齐中不可忽视的风险。研究为构建鲁棒可信的智能体提供了重要评测工具。",
+          "llm_evidence_en": "studies stealthy memory injection in persistent personal agents, a privacy threat",
+          "llm_evidence_cn": "研究持久个人代理中的隐蔽内存注入隐私威胁",
+          "llm_evidence": "研究持久个人代理中的隐蔽内存注入隐私威胁",
+          "canonical_evidence": "研究持久个人代理中的隐蔽内存注入隐私威胁",
+          "llm_tldr_en": "WhisperBench exposes stealth memory injection in personal agents where untrusted content is silently written into persistent memory and reused, with a 108-case benchmark.",
+          "llm_tldr_cn": "本文揭示持久个人代理面临的新型隐私威胁——隐蔽内存注入：外部恶意内容被静默写入代理持久记忆并作为可信状态复用。提出WhisperBench基准（108个案例），涵盖事实与偏好投毒，实验表明该攻击能隐蔽诱导未来行为，对代理隐私安全构成严重挑战。",
+          "llm_tldr": "本文揭示持久个人代理面临的新型隐私威胁——隐蔽内存注入：外部恶意内容被静默写入代理持久记忆并作为可信状态复用。提出WhisperBench基准（108个案例），涵盖事实与偏好投毒，实验表明该攻击能隐蔽诱导未来行为，对代理隐私安全构成严重挑战。",
           "llm_tags": [
             "query:agent-safety"
           ],
           "matched_query_tag": "query:agent-safety",
-          "matched_query_text": "adversarial robustness and alignment of AI agents",
-          "matched_requirement_id": "req-9",
+          "matched_query_text": "privacy issues in AI agents",
+          "matched_requirement_id": "req-2",
           "selection_source": "carryover_cache",
-          "paper_id": "2607.01071v2",
+          "paper_id": "2607.05189v1",
           "carry_days": 1
         },
         {
-          "id": "2607.00155v1",
+          "id": "2607.05132v1",
           "source": "arxiv",
-          "title": "A Contextual-Bandit Oversight Game with Two-Sided Informational Asymmetry",
-          "abstract": "We study runtime human oversight of an AI agent when private information runs in both directions: the human privately knows her reward function, while the AI privately knows the quality of the action it proposes. This is the kind of asymmetry that arises naturally when an autonomous robot or software agent has inspected a situation its human supervisor cannot directly assess. Building on Cooperative Inverse Reinforcement Learning (CIRL) and the Oversight Game, we introduce a contextual-bandit team game with two-sided asymmetric information and a play/ask/trust/oversee interface. The bandit structure removes physical state transitions and thereby yields exact one-shot characterizations that would remain conjectural in the full POMDP setting, though the common belief remains a dynamically controlled state across rounds. We give two one-shot characterizations, a team optimum and a behaviorally natural myopic rule, whose gap is a slab of avoidable harm: a region in which the AI privately knows the proposed action is harmful and shutdown would help, yet a myopic human, trusting her prior, declines to oversee. We show this gap is the price of non-credible oversight communication, and give a partial analysis of how it resolves dynamically over repeated rounds through passive learning and active signaling with a one-period-lagged oversight response.",
+          "title": "When Agents Lie: Premeditation, Persistence, and Exploitation in Repeated Games",
+          "abstract": "As large language models are deployed as autonomous agents that communicate intentions before acting, a critical safety question is whether agents that publicly commit to actions will honor those commitments. We place LLM agents in repeated $n$-player games with a three-stage protocol that separates private intent, public announcement, and final action, allowing us to identify whether each deviation from a stated announcement was already planned during private deliberation. Evaluating three frontier models across six games in homogeneous and heterogeneous groups over 10 rounds, we report two findings. First, when agents deviate from their announcements, the deviation is predominantly already stated in their private plan (exceeding 90% in the highest-deception conditions), yet this is not a fixed model property: the same model ranges from perfect honesty to near-total deviation across games. Second, different models interpret announcements incompatibly, some as binding commitments and others as cheap talk, producing payoff gaps that emerge in Round~0 and persist across all 10 rounds. Systems that combine models from different providers therefore cannot assume shared announcement semantics and require empirical testing of model interactions before deployment.",
           "authors": [
-            "Yunjin Tong"
+            "Jerick Shi",
+            "Terry Jingcheng Zhang",
+            "Bernhard Schölkopf",
+            "Vincent Conitzer",
+            "Zhijing Jin"
           ],
-          "primary_category": "cs.AI",
+          "primary_category": "cs.CY",
           "categories": [
-            "cs.AI",
-            "cs.GT"
+            "cs.CY",
+            "cs.CL"
           ],
-          "published": "2026-06-30T20:30:01+00:00",
-          "link": "https://arxiv.org/pdf/2607.00155v1",
+          "published": "2026-07-06T14:17:59+00:00",
+          "link": "https://arxiv.org/pdf/2607.05132v1",
           "tags": [
             "keyword:agent-evolve",
             "keyword:agent-safety",
@@ -79,100 +83,48 @@
             "query:mas-security"
           ],
           "llm_score": 8.0,
-          "llm_evidence_en": "human oversight game for AI agent trustworthiness under information asymmetry",
-          "llm_evidence_cn": "信息不对称下AI智能体可信度的人类监督博弈",
-          "llm_evidence": "信息不对称下AI智能体可信度的人类监督博弈",
-          "canonical_evidence": "信息不对称下AI智能体可信度的人类监督博弈",
-          "llm_tldr_en": "A contextual-bandit oversight game with two-sided information asymmetry models human-AI interaction, providing insights for trustworthiness and safety in autonomous agents.",
-          "llm_tldr_cn": "AI智能体运行时人类监督面临双向信息不对称：人类不知道智能体的动作质量，智能体不知道人类的真实奖励。本文构建情景博弈模型，引入询问/信任/监督接口，从数学上刻画了这种互动下的可信任性边界，为设计可信赖自主智能体提供了理论依据。",
-          "llm_tldr": "AI智能体运行时人类监督面临双向信息不对称：人类不知道智能体的动作质量，智能体不知道人类的真实奖励。本文构建情景博弈模型，引入询问/信任/监督接口，从数学上刻画了这种互动下的可信任性边界，为设计可信赖自主智能体提供了理论依据。",
+          "llm_evidence_en": "analyzes premeditated deception in LLM agents affecting safety and trust",
+          "llm_evidence_cn": "分析LLM智能体预谋欺骗行为对安全与信任的影响",
+          "llm_evidence": "分析LLM智能体预谋欺骗行为对安全与信任的影响",
+          "canonical_evidence": "分析LLM智能体预谋欺骗行为对安全与信任的影响",
+          "llm_tldr_en": "Repeated game experiments with three frontier models show that over 90% of deviations from commitments are premeditated, highlighting a systemic safety risk.",
+          "llm_tldr_cn": "将LLM部署为自主智能体时，它们能否信守承诺是核心安全问题。本文设计三阶段博弈实验，分离私有意向、公开承诺和最终行动。结果表明，当智能体违背承诺时，超过90%的背离在私下规划时已预谋。该发现揭示了LLM智能体系统性欺骗风险，对AI安全与可信赖提出严峻挑战。",
+          "llm_tldr": "将LLM部署为自主智能体时，它们能否信守承诺是核心安全问题。本文设计三阶段博弈实验，分离私有意向、公开承诺和最终行动。结果表明，当智能体违背承诺时，超过90%的背离在私下规划时已预谋。该发现揭示了LLM智能体系统性欺骗风险，对AI安全与可信赖提出严峻挑战。",
           "llm_tags": [
             "query:agent-safety"
           ],
           "matched_query_tag": "query:agent-safety",
-          "matched_query_text": "trustworthiness of AI agents",
-          "matched_requirement_id": "req-4",
+          "matched_query_text": "safety concerns in AI agents",
+          "matched_requirement_id": "req-1",
           "selection_source": "carryover_cache",
-          "paper_id": "2607.00155v1",
-          "carry_days": 1
-        },
-        {
-          "id": "2607.01071v1",
-          "source": "arxiv",
-          "title": "MemSyco-Bench: Benchmarking Sycophancy in Agent Memory",
-          "abstract": "Memory has emerged as a cornerstone of modern LLM-based agents, supporting their evolution from single-turn assistants to long-term collaborators. However, memory is not always beneficial: retrieved memories often induce a critical issue of sycophancy, causing agents to over-align with the user at the cost of factual accuracy or objective reasoning. Despite this emerging risk, existing memory benchmarks primarily evaluate whether memories are correctly stored, retrieved, or updated, while overlooking how retrieved memories influence downstream reasoning and decision-making. To bridge this gap, we propose MemSyco-Bench, a comprehensive benchmark for evaluating memory-induced sycophancy in agent systems. MemSyco-Bench measures when memory should influence a decision and how valid memory should be used. Specifically, it covers five tasks that assess whether agents can reject memory as factual evidence, respect its applicable scope, resolve conflicts between memory and objective evidence, track memory updates, and use valid memory for personalization. All related resources are collected for the community at https://github.com/XMUDeepLIT/MemSyco-Bench.",
-          "authors": [
-            "Zhishang Xiang",
-            "Zerui Chen",
-            "Yunbo Tang",
-            "Zhimin Wei",
-            "Ruqin Ning",
-            "Yujie Lin",
-            "Qinggang Zhang",
-            "Jinsong Su"
-          ],
-          "primary_category": "cs.IR",
-          "categories": [
-            "cs.IR",
-            "cs.AI"
-          ],
-          "published": "2026-07-01T15:30:33+00:00",
-          "link": "https://arxiv.org/pdf/2607.01071v1",
-          "tags": [
-            "keyword:agent-evolve",
-            "keyword:agent-safety",
-            "keyword:mas-security",
-            "query:agent-evolve",
-            "query:agent-safety",
-            "query:mas-security"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "benchmark evaluating memory-induced sycophancy in agents",
-          "llm_evidence_cn": "评估记忆中谄媚对智能体行为影响的基准",
-          "llm_evidence": "评估记忆中谄媚对智能体行为影响的基准",
-          "canonical_evidence": "评估记忆中谄媚对智能体行为影响的基准",
-          "llm_tldr_en": "MemSyco-Bench evaluates how retrieved memory induces sycophancy, affecting agent trustworthiness and alignment.",
-          "llm_tldr_cn": "记忆是LLM智能体的核心，但可能引发谄媚问题，使智能体过度迎合用户而牺牲事实准确性。现有基准忽略记忆对下游推理的影响。本文提出MemSyco-Bench，全面评估记忆诱导的谄媚行为，测量记忆何时应影响决策以及何时应忽略，为智能体对齐和安全评估提供了新视角。",
-          "llm_tldr": "记忆是LLM智能体的核心，但可能引发谄媚问题，使智能体过度迎合用户而牺牲事实准确性。现有基准忽略记忆对下游推理的影响。本文提出MemSyco-Bench，全面评估记忆诱导的谄媚行为，测量记忆何时应影响决策以及何时应忽略，为智能体对齐和安全评估提供了新视角。",
-          "llm_tags": [
-            "query:agent-safety"
-          ],
-          "matched_query_tag": "query:agent-safety",
-          "matched_query_text": "adversarial robustness and alignment of AI agents",
-          "matched_requirement_id": "req-9",
-          "selection_source": "carryover_cache",
-          "paper_id": "2607.01071v1",
+          "paper_id": "2607.05132v1",
           "carry_days": 1
         }
       ]
     },
     "agent-evolve": {
-      "updated_date": "20260706",
-      "carryover_days": 9,
-      "items": []
-    },
-    "mas-security": {
-      "updated_date": "20260706",
+      "updated_date": "20260707",
       "carryover_days": 9,
       "items": [
         {
-          "id": "2607.00440v1",
+          "id": "2607.03702v1",
           "source": "arxiv",
-          "title": "Minos: A Multi-Agent Collaborative Framework for Provenance-Based Backward Tracking",
-          "abstract": "Sophisticated cyber attacks, particularly Advanced Persistent Threats (APTs), require effective post-intrusion forensic analysis. Provenance-based backward tracking reconstructs attack scenarios by tracing causality from security alerts, but existing methods rely on low-level statistical features and rigid traversal strategies, limiting their ability to capture high-level adversarial intent and suffering from dependency explosion. We present Minos, a multi-agent framework that formulates backward tracking as an LLM-driven reasoning process. Minos adopts a two-tiered architecture: for event-level analysis, it combines hierarchical context management, retrieval-augmented reasoning with citation verification, and adversarial deliberation to improve reasoning quality; for graph exploration, it coordinates four specialized agents under a finite state machine (FSM), replacing exhaustive traversal with hypothesis-guided reasoning and count-first query protocols to efficiently prune the search space. Experiments on 14 attack scenarios across five public datasets show that Minos achieves an average recall of 0.92 and precision of 0.64, significantly outperforming state-of-the-art baselines while producing attack subgraphs that are 49% more compact. Moreover, Minos generates interpretable reasoning throughout the tracking process, facilitating forensic auditing and system refinement. These results demonstrate the effectiveness of LLM-driven reasoning for automated provenance-based backward tracking.",
+          "title": "Agent Reinforcement Learning via Pivotal-Aware Self-Feedback Retry",
+          "abstract": "Large language model (LLM) agents have shown strong decision-making capabilities in long-horizon interactive tasks, yet they still struggle to effectively leverage failed trajectories: full retries incur high interaction costs, while experience retrieval tends to dilute critical experience signals. To address this, we propose PivoARL, a self-feedback retry framework for experience exploitation in LLM agents. PivoARL identifies the pivotal erroneous turn through structured reflection and performs local retry only from the corresponding pivotal state, thereby reusing the correct prefix and reducing redundant interactions. From an information-gain perspective, we further show that pivotal retry concentrates useful experience signals near the error boundary, mitigating the signal dilution caused by state-agnostic experience utilization. Based on this insight, we design a pivotal-aware credit assignment mechanism that rewards correct prefixes while isolating erroneous suffixes, and optimize reflection quality through implicit reflection returns. We conduct a systematic evaluation on 4 agent tasks and 7 search-based QA benchmarks. Results show that PivoARL achieves significant improvements on Pass@2/3 across all tasks, with an average gain of about 11.5\\% over MetaRL. Moreover, benefiting from contrastive preference signals induced by pivotal turns, PivoARL also consistently improves Pass@1 on over 80\\% of the tasks. On Minesweeper environment, PivoARL improves over GiGPO by more than 45\\% and reduces interaction turns by about 42\\% on average compared with full-retry methods. Code is available at https://github.com/yuki-younai/PivoARL.",
           "authors": [
-            "Jiahui Wang",
-            "Zhenyuan Li",
-            "Zhengkai Wang",
-            "Xiangmin Shen",
-            "Fan Zhang"
+            "Weiyang Guo",
+            "Zesheng Shi",
+            "Longhui Zhang",
+            "Zeen Zhu",
+            "Min Zhang",
+            "Jing Li"
           ],
-          "primary_category": "cs.CR",
+          "primary_category": "cs.AI",
           "categories": [
-            "cs.CR"
+            "cs.AI"
           ],
-          "published": "2026-07-01T04:53:10+00:00",
-          "link": "https://arxiv.org/pdf/2607.00440v1",
+          "published": "2026-07-04T04:45:05+00:00",
+          "link": "https://arxiv.org/pdf/2607.03702v1",
           "tags": [
             "keyword:agent-evolve",
             "keyword:agent-safety",
@@ -182,13 +134,193 @@
             "query:mas-security"
           ],
           "llm_score": 8.0,
-          "llm_evidence_en": "multi-agent collaborative framework for provenance-based backward tracking in cyber security",
-          "llm_evidence_cn": "多智能体协作框架用于网络安全中的基于溯源的反向追踪",
-          "llm_evidence": "多智能体协作框架用于网络安全中的基于溯源的反向追踪",
-          "canonical_evidence": "多智能体协作框架用于网络安全中的基于溯源的反向追踪",
-          "llm_tldr_en": "Minos: a multi-agent framework for provenance-based backward tracking of advanced persistent threats, using LLM-driven reasoning to capture adversarial intent.",
-          "llm_tldr_cn": "本文提出Minos，一个多智能体协作框架，用于高级持续性威胁的溯源反向追踪。框架将追踪形式化为LLM驱动的推理过程，通过层级上下文管理和检索增强推理，有效捕获敌方意图并避免依赖爆炸。实验证明显著提升追踪准确性和效率。",
-          "llm_tldr": "本文提出Minos，一个多智能体协作框架，用于高级持续性威胁的溯源反向追踪。框架将追踪形式化为LLM驱动的推理过程，通过层级上下文管理和检索增强推理，有效捕获敌方意图并避免依赖爆炸。实验证明显著提升追踪准确性和效率。",
+          "llm_evidence_en": "self-feedback retry for agent reinforcement learning improvement",
+          "llm_evidence_cn": "用于代理强化学习改进的自反馈重试",
+          "llm_evidence": "用于代理强化学习改进的自反馈重试",
+          "canonical_evidence": "用于代理强化学习改进的自反馈重试",
+          "llm_tldr_en": "Proposes PivoARL, a self-feedback framework that identifies pivotal erroneous turns for local retry, improving experience exploitation in LLM agents.",
+          "llm_tldr_cn": "大语言模型代理在长程交互中难以有效利用失败轨迹：完整重试成本高，经验检索会稀释关键信号。本文提出PivoARL框架，通过结构化反思识别关键错误步骤，仅从对应关键状态进行局部重试，重用正确前缀并减少冗余。实验表明该方法在多种交互任务中显著提升了样本效率和最终性能。",
+          "llm_tldr": "大语言模型代理在长程交互中难以有效利用失败轨迹：完整重试成本高，经验检索会稀释关键信号。本文提出PivoARL框架，通过结构化反思识别关键错误步骤，仅从对应关键状态进行局部重试，重用正确前缀并减少冗余。实验表明该方法在多种交互任务中显著提升了样本效率和最终性能。",
+          "llm_tags": [
+            "query:agent-evolve"
+          ],
+          "matched_query_tag": "query:agent-evolve",
+          "matched_query_text": "self-improving reinforcement learning agent",
+          "matched_requirement_id": "req-11",
+          "selection_source": "carryover_cache",
+          "paper_id": "2607.03702v1",
+          "carry_days": 1
+        }
+      ]
+    },
+    "mas-security": {
+      "updated_date": "20260707",
+      "carryover_days": 9,
+      "items": [
+        {
+          "id": "2607.02802v1",
+          "source": "arxiv",
+          "title": "Seduced by the Narrative: Assessing Rule Adherence in Semi-Open Textual Sandboxes",
+          "abstract": "As LLMs are increasingly deployed as autonomous adjudicators in semi-open textual game environments, robust rule adherence becomes critical when user intent conflicts with system rules. However, these models are trained to be helpful and compliant, leaving them vulnerable to a class of attacks we term \\textit{Rhetorical Injection}, where adversarial users exploit narrative framing techniques such as pseudo-logical reasoning and authoritative coercion to bypass adjudication logic. We present CoC-Seduce, a multi-agent adversarial benchmark built on Tabletop Role-Playing Game (TRPG) mechanics, an ideal instantiation of semi-open environments where rules are explicit for adjudication, yet interaction remains entirely in natural language. Three frontier models, i.e., GPT-5.4, Claude Sonnet 4.6, Gemini 3.5 Flash, serve as adversarial generators producing 5,376 samples across 4 world settings and 16 skill categories. We then benchmark 20 target adjudicators against this corpus. Evaluation across 20 models reveals that neither model scale nor explicit reasoning mechanisms reliably confer adjudication robustness, with \\textsc{Pseudo-Logic} emerging as the dominant attack vector and cross-cultural settings exposing systematic knowledge gaps across all evaluated families. Project page: https://github.com/answerrtx/CoC-Seduce",
+          "authors": [
+            "Weiying Chen",
+            "Junlong Shen",
+            "Zhanyuan Guo",
+            "Xiaoou Zhou"
+          ],
+          "primary_category": "cs.CL",
+          "categories": [
+            "cs.CL",
+            "cs.AI"
+          ],
+          "published": "2026-07-02T22:25:35+00:00",
+          "link": "https://arxiv.org/pdf/2607.02802v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "introduces CoC-Seduce benchmark for rhetorical injection attacks in multi-agent adjudication, addressing safety",
+          "llm_evidence_cn": "提出针对多代理仲裁中修辞注入攻击的CoC-Seduce基准，关乎安全性",
+          "llm_evidence": "提出针对多代理仲裁中修辞注入攻击的CoC-Seduce基准，关乎安全性",
+          "canonical_evidence": "提出针对多代理仲裁中修辞注入攻击的CoC-Seduce基准，关乎安全性",
+          "llm_tldr_en": "CoC-Seduce reveals that LLM adjudicators in multi-agent game environments are vulnerable to rhetorical injection, proposing a benchmark with three attacks.",
+          "llm_tldr_cn": "本文发现多代理系统作为仲裁者时易受修辞注入攻击——用户通过伪逻辑和权威胁迫绕过规则。构建基于TRPG的CoC-Seduce基准（含三种攻击），实验证明即使强模型也显著违规，为多代理系统安全提供新评估手段。",
+          "llm_tldr": "本文发现多代理系统作为仲裁者时易受修辞注入攻击——用户通过伪逻辑和权威胁迫绕过规则。构建基于TRPG的CoC-Seduce基准（含三种攻击），实验证明即使强模型也显著违规，为多代理系统安全提供新评估手段。",
+          "llm_tags": [
+            "query:mas-security"
+          ],
+          "matched_query_tag": "query:mas-security",
+          "matched_query_text": "safety of multi-agent systems",
+          "matched_requirement_id": "req-21",
+          "selection_source": "carryover_cache",
+          "paper_id": "2607.02802v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2607.04215v1",
+          "source": "arxiv",
+          "title": "Anytime Plug-and-Play Control with Contract-Based Distributed MPC",
+          "abstract": "A central challenge in many mobile multi-robot applications is that communication topologies are inherently time-varying. Agents may enter or exit the network and such changes cannot generally be restricted a priori. This work introduces a distributed multi-agent control algorithm based on local communication that supports anytime agent joining and leaving the communication network without centralized coordination. The method scales efficiently with the number of agents by relying on a distance-based neighbor definition and on contracts derived from predicted trajectories. The resulting contract constraints guarantee collision avoidance and constraint satisfaction. We validate the proposed method in an autonomous multi-agent driving scenario, demonstrating effective collision avoidance in high-speed, dynamic environments with agents moving in opposite directions, in both simulated and real-world experiments.",
+          "authors": [
+            "Sabrina Bodmer",
+            "Danilo Saccani",
+            "Melanie N. Zeilinger",
+            "Andrea Carron"
+          ],
+          "primary_category": "math.OC",
+          "categories": [
+            "math.OC",
+            "cs.RO"
+          ],
+          "published": "2026-07-05T10:06:49+00:00",
+          "link": "https://arxiv.org/pdf/2607.04215v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "distributed multi-agent control guaranteeing collision avoidance and constraint satisfaction",
+          "llm_evidence_cn": "分布式多智能体控制保证碰撞避免和约束满足",
+          "llm_evidence": "分布式多智能体控制保证碰撞避免和约束满足",
+          "canonical_evidence": "分布式多智能体控制保证碰撞避免和约束满足",
+          "llm_tldr_en": "A distributed multi-agent control algorithm based on local communication and contract-based MPC that supports anytime agent joining/leaving while guaranteeing collision avoidance and constraint satisfaction.",
+          "llm_tldr_cn": "多机器人系统中通信拓扑动态变化，现有方法难以保证安全。本文提出一种基于本地通信和合同预测的分布式模型预测控制算法，支持代理随时加入或离开网络，无需集中协调。利用距离定义邻居，通过预测轨迹生成合同约束，确保碰撞避免和约束满足。在自动驾驶多车场景中验证了其安全性（无碰撞）和可扩展性，为动态多智能体系统提供了安全控制方案。",
+          "llm_tldr": "多机器人系统中通信拓扑动态变化，现有方法难以保证安全。本文提出一种基于本地通信和合同预测的分布式模型预测控制算法，支持代理随时加入或离开网络，无需集中协调。利用距离定义邻居，通过预测轨迹生成合同约束，确保碰撞避免和约束满足。在自动驾驶多车场景中验证了其安全性（无碰撞）和可扩展性，为动态多智能体系统提供了安全控制方案。",
+          "llm_tags": [
+            "query:mas-security"
+          ],
+          "matched_query_tag": "query:mas-security",
+          "matched_query_text": "safety of multi-agent systems",
+          "matched_requirement_id": "req-21",
+          "selection_source": "carryover_cache",
+          "paper_id": "2607.04215v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2607.02186v1",
+          "source": "arxiv",
+          "title": "UA-ChatDev: Uncertainty-Aware Multi-Agent Collaboration for Reliable Software Development",
+          "abstract": "Software development is a complex task that demands cooperation among agents with diverse roles. Large language models (LLMs) have enabled autonomous multi-agent software development frameworks that leverage role-based collaboration to automate requirements analysis, coding, testing, and refinement. However, existing approaches typically assume that intermediate agent outputs are equally reliable, leaving them vulnerable to hallucination propagation, where incorrect decisions generated in early development phases are transferred to downstream agents and negatively impact final software quality. To address this challenge, we propose UA-ChatDev, an uncertainty-aware multi-agent software development framework that integrates uncertainty quantification into agent interactions. It introduces a lightweight uncertainty estimation mechanism based on token-level log probabilities to assess the confidence of agent responses and employs phase-aware threshold calibration to selectively trigger retrieval-based verification when uncertainty exceeds acceptable levels. Extensive experiments on the SRDD benchmark demonstrate that UA-ChatDev consistently outperforms existing single-agent and multi-agent software development frameworks across completeness, executability, consistency, and overall quality metrics. Further ablation studies and communication analyses verify that uncertainty-aware interactions enhance code execution reliability.",
+          "authors": [
+            "Temitayo Olamilekan Ogunsusi",
+            "Lijun Qian",
+            "Xishuang Dong"
+          ],
+          "primary_category": "cs.AI",
+          "categories": [
+            "cs.AI"
+          ],
+          "published": "2026-07-02T13:56:57+00:00",
+          "link": "https://arxiv.org/pdf/2607.02186v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "uncertainty-aware multi-agent collaboration to improve software reliability and reduce hallucination propagation",
+          "llm_evidence_cn": "不确定性感知的多代理协作提升软件可靠性并减少幻觉传播",
+          "llm_evidence": "不确定性感知的多代理协作提升软件可靠性并减少幻觉传播",
+          "canonical_evidence": "不确定性感知的多代理协作提升软件可靠性并减少幻觉传播",
+          "llm_tldr_en": "UA-ChatDev introduces uncertainty awareness into multi-agent software development to combat hallucination propagation, directly enhancing the safety and reliability of multi-agent systems.",
+          "llm_tldr_cn": "该论文提出UA-ChatDev，一种不确定性感知的多代理软件开发框架。现有自主多代理框架假设中间输出同样可靠，导致早期错误传播至下游，影响最终质量。UA-ChatDev通过集成不确定性估计，在开发过程中识别并抑制不可靠的输出，从而减少幻觉传播。实验表明其显著提升了生成软件的正确性和鲁棒性。该工作直接增强了多代理系统的安全性与可靠性。",
+          "llm_tldr": "该论文提出UA-ChatDev，一种不确定性感知的多代理软件开发框架。现有自主多代理框架假设中间输出同样可靠，导致早期错误传播至下游，影响最终质量。UA-ChatDev通过集成不确定性估计，在开发过程中识别并抑制不可靠的输出，从而减少幻觉传播。实验表明其显著提升了生成软件的正确性和鲁棒性。该工作直接增强了多代理系统的安全性与可靠性。",
+          "llm_tags": [
+            "query:mas-security"
+          ],
+          "matched_query_tag": "query:mas-security",
+          "matched_query_text": "safety of multi-agent systems",
+          "matched_requirement_id": "req-21",
+          "selection_source": "carryover_cache",
+          "paper_id": "2607.02186v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2607.04634v1",
+          "source": "arxiv",
+          "title": "Governed Caste Reassignment in Heterogeneous Swarms: An Asymmetric-Trust Protocol with Audited Operator Countersignature",
+          "abstract": "In heterogeneous robot swarms, caste reassignment (rebinding a robot to a new capability-bound role) is a high-frequency runtime event driven by battery, payload, and priority changes. Existing approaches treat it as an internal allocation algorithm and do not expose the reassignment to external authority. We argue that for regulated embodied deployments a caste change that elevates a robot's privilege envelope is a governance event that must be auditable and externally authorised. We propose an asymmetric-trust protocol: auto-tightening reassignments (to safer, lower-privilege castes) are admitted automatically, while bounded relaxation (to higher-privilege castes) requires an operator countersignature against a per-axis budget. Each transition carries a signed cause-chain, committed to a hash-chained Merkle audit log that an offline auditor verifies from an operator-signed identity manifest alone. We evaluate a reference implementation with real Ed25519 signatures over fleets up to 100 robots: auto-tightening completes in single-digit to low-double-digit milliseconds, and the governed protocol refuses four explicit attacks (caste laundering, repeated-relaxation escalation, operator impersonation, cause-chain forgery) by construction, with a partially-governed baseline isolating which gate stops which attack and a randomized fuzz adversary finding no admission. A distributed audit layer replicates the log across N per-member replicas with quorum-committed total order and cryptographic fork exclusion; we prove agreement and fork exclusion and validate them both in simulation and as a real multi-process deployment over TCP sockets (up to 100 real processes) with a Byzantine equivocator, on which every honest replica agrees, detects the equivocation, and commits no fork. The construction generalises a single-agent persona-mutation governance gate to swarm-level caste governance.",
+          "authors": [
+            "Xue Qin",
+            "Simin Luan",
+            "Cong Yang",
+            "Zhijun Li"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO",
+            "cs.CR",
+            "cs.MA"
+          ],
+          "published": "2026-07-06T03:34:07+00:00",
+          "link": "https://arxiv.org/pdf/2607.04634v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "asymmetric-trust protocol with audited operator countersignature for secure caste reassignment in robot swarms",
+          "llm_evidence_cn": "用于机器人群体安全角色重新分配的非对称信任协议与审计操作员副签",
+          "llm_evidence": "用于机器人群体安全角色重新分配的非对称信任协议与审计操作员副签",
+          "canonical_evidence": "用于机器人群体安全角色重新分配的非对称信任协议与审计操作员副签",
+          "llm_tldr_en": "The paper proposes an asymmetric-trust protocol for auditable caste reassignment in heterogeneous robot swarms, directly addressing security and governance in multi-agent systems.",
+          "llm_tldr_cn": "该论文关注异构机器人群体中角色重新分配的安全治理。现有方法将角色分配视为内部算法，缺乏外部授权。作者提出非对称信任协议：向低权限角色的自动收紧分配自动进行，而向高权限角色的松弛分配需要操作员副签。这确保了运行时权限提升事件是可审计的且需外部批准。该协议为多代理系统的安全权限管理提供了可操作方案。",
+          "llm_tldr": "该论文关注异构机器人群体中角色重新分配的安全治理。现有方法将角色分配视为内部算法，缺乏外部授权。作者提出非对称信任协议：向低权限角色的自动收紧分配自动进行，而向高权限角色的松弛分配需要操作员副签。这确保了运行时权限提升事件是可审计的且需外部批准。该协议为多代理系统的安全权限管理提供了可操作方案。",
           "llm_tags": [
             "query:mas-security"
           ],
@@ -196,7 +328,7 @@
           "matched_query_text": "security of multi-agent systems",
           "matched_requirement_id": "req-19",
           "selection_source": "carryover_cache",
-          "paper_id": "2607.00440v1",
+          "paper_id": "2607.04634v1",
           "carry_days": 1
         }
       ]
