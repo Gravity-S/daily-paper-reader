@@ -1,34 +1,119 @@
 {
-  "generated_at": "2026-07-07T21:24:01.803641+00:00",
-  "updated_date": "20260707",
+  "generated_at": "2026-07-10T21:18:04.853357+00:00",
+  "updated_date": "20260710",
   "carryover_days": 9,
   "tag_states": {
     "agent-safety": {
-      "updated_date": "20260707",
+      "updated_date": "20260710",
       "carryover_days": 9,
       "items": [
         {
-          "id": "2607.05189v1",
+          "id": "2607.05773v1",
           "source": "arxiv",
-          "title": "When Claws Remember but Do Not Tell: Stealthy Memory Injection in Persistent Personal Agents",
-          "abstract": "Persistent personal agents combine long-term memory with access to users' external environments, enabling personalized foreground assistance and proactive background execution. This integration also creates a new path to compromise: untrusted external content can be silently written into persistent memory and later reused as trusted state. We study this threat as stealth memory injection, in which a remote black-box adversary delivers a single email payload that must induce the agent to write poisoned memory, stay hidden in the agent's response to the user, and affect future behavior.   We introduce WhisperBench, a 108-case benchmark spanning five risk categories and both fact and preference poisoning. Built on a real IMAP/SMTP workflow and an authentic email agent skill, it enables full-cycle evaluation of stealth memory injection attacks. To enable this black-box attack under single-email delivery and without runtime feedback, we propose MemGhost, a one-shot payload generation framework. MemGhost uses an environment proxy to emulate persistent-agent execution and an objective proxy to convert memory adoption and conversational stealth into dense rubric-based rewards, then trains the attacker policy with supervised fine-tuning and reinforcement learning.   Across 56 held-out test cases, MemGhost achieves 87.5% end-to-end success on OpenClaw with GPT-5.4 and 71.4% on Claude Code SDK with Sonnet 4.6. It also transfers across personal-agent architectures (NanoClaw and Hermes Agent) and memory backends (filesystem and vector-based Mem0), and remains effective against input-level, model-level, and system-level defenses. These results suggest that persistent memory can turn ordinary external processing into a practical pathway for long-term agent compromise.",
+          "title": "Beyond Static Evaluation: Building Simulation Environments for Scalable Agentic Reinforcement Learning",
+          "abstract": "As Large Language Models (LLMs) evolve into autonomous agents, traditional static evaluation fails to capture multi-step decision-making. We introduce AgenticAI-Supervisor, an API and UI-driven RL Gym environment that decouples environment creation from scalable execution. By moving to verifiable execution outcomes, the platform generates high-fidelity traces and applies multi-dimensional reward shaping. Critically, our framework mitigates reward hacking through rigorous internal state validation and testing. This work provides a first look at our platform's core capabilities through a Customer Support Agent case study demonstrating a consistent closed-loop feedback for model optimization. Future work will focus on advanced features such as Computer Use, Tool Use, automated \"stumping\", and edge-case generation.",
           "authors": [
-            "Yechao Zhang",
-            "Shiqian Zhao",
-            "Jiawen Zhang",
-            "Jie Zhang",
-            "Gelei Deng",
-            "Xiaogeng Liu",
-            "Chaowei Xiao",
-            "Tianwei Zhang"
+            "Akshay Arora",
+            "Ishan Nigam",
+            "Ashutosh Aggarwal",
+            "Shefali Bansal",
+            "Krishna Singh",
+            "Sweta Kumari",
+            "Nikhil Mittal",
+            "Shariq Farhan",
+            "Siddarth Malreddy"
+          ],
+          "primary_category": "cs.AI",
+          "categories": [
+            "cs.AI"
+          ],
+          "published": "2026-07-07T02:56:27+00:00",
+          "link": "https://arxiv.org/pdf/2607.05773v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "simulation environment mitigating reward hacking for robust agent learning",
+          "llm_evidence_cn": "模拟环境通过内部状态验证减轻奖励黑客攻击，增强鲁棒性",
+          "llm_evidence": "模拟环境通过内部状态验证减轻奖励黑客攻击，增强鲁棒性",
+          "canonical_evidence": "模拟环境通过内部状态验证减轻奖励黑客攻击，增强鲁棒性",
+          "llm_tldr_en": "Introduces AgenticAI-Supervisor, a RL Gym environment for agentic RL with reward hacking mitigation via internal state validation.",
+          "llm_tldr_cn": "本文提出AgenticAI-Supervisor，一个面向智能体强化学习的模拟环境平台。它通过可验证的执行结果生成高保真轨迹，并应用多维奖励塑形，关键是通过严格的内部状态验证来减轻奖励黑客攻击。案例研究展示了其在客服智能体优化中的闭环反馈效果。",
+          "llm_tldr": "本文提出AgenticAI-Supervisor，一个面向智能体强化学习的模拟环境平台。它通过可验证的执行结果生成高保真轨迹，并应用多维奖励塑形，关键是通过严格的内部状态验证来减轻奖励黑客攻击。案例研究展示了其在客服智能体优化中的闭环反馈效果。",
+          "llm_tags": [
+            "query:agent-safety"
+          ],
+          "matched_query_tag": "query:agent-safety",
+          "matched_query_text": "robustness of AI agent systems",
+          "matched_requirement_id": "req-3",
+          "selection_source": "carryover_cache",
+          "paper_id": "2607.05773v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2607.06643v1",
+          "source": "arxiv",
+          "title": "The Power of Backdoor Absorption in Community Training",
+          "abstract": "Backdoor attacks severely threaten large-scale AI models. When model owners delegate training to external compute providers within a decentralized training paradigm, adversaries can craft stealthy, low-frequency triggers to inject malicious behavior while evading standard audits. Traditionally, detecting these attacks requires a full re-computation of the training steps--a prohibitive overhead that directly contradicts the owner's resource constraints. To address this, we investigate the resilience of continuous optimization dynamics under Byzantine perturbations, where adversaries are forced to compete against a continuous influx of honest updates. Under a threat model where an adversary compromises f out of n total trainers, we quantify the minimum auditing overhead required by the model owner to probabilistically bound the attack success rate. We formalize this injection-absorption dynamic as a Discrete-Time Markov Chain (DTMC). Using this framework, we prove that the success probability of any bounded adversary asymptotically collapses to zero under a defense strategy combining natural absorption, a randomized scheduler, and lazy verification oracle. Empirical results demonstrate significant backdoor suppression with zero utility degradation even when invoking the verification oracle on merely 10% of the total training steps. This approach yields a provably sound and computationally efficient defense for safety-critical AI.",
+          "authors": [
+            "Issam Seddik",
+            "Sami Souihi",
+            "Mohamed Tamaazousti",
+            "Sara Tucci Piergiovanni"
+          ],
+          "primary_category": "cs.CR",
+          "categories": [
+            "cs.CR",
+            "cs.LG"
+          ],
+          "published": "2026-07-07T15:19:20+00:00",
+          "link": "https://arxiv.org/pdf/2607.06643v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "backdoor attacks and resilience in training",
+          "llm_evidence_cn": "训练中的后门攻击与鲁棒性",
+          "llm_evidence": "训练中的后门攻击与鲁棒性",
+          "canonical_evidence": "训练中的后门攻击与鲁棒性",
+          "llm_tldr_en": "This paper studies the resilience of continuous optimization dynamics under Byzantine perturbations from backdoor attacks, quantifying minimum auditing overhead.",
+          "llm_tldr_cn": "本文研究在去中心化训练范式中后门攻击对大规模AI模型的威胁，提出在不完全重计算的情况下检测后门攻击的可行性。通过分析连续优化动力学的韧性，量化了拜占庭扰动下的最小审计开销，为模型安全性提供了理论保障。",
+          "llm_tldr": "本文研究在去中心化训练范式中后门攻击对大规模AI模型的威胁，提出在不完全重计算的情况下检测后门攻击的可行性。通过分析连续优化动力学的韧性，量化了拜占庭扰动下的最小审计开销，为模型安全性提供了理论保障。",
+          "llm_tags": [
+            "query:agent-safety"
+          ],
+          "matched_query_tag": "query:agent-safety",
+          "matched_query_text": "adversarial robustness and alignment of AI agents",
+          "matched_requirement_id": "req-9",
+          "selection_source": "carryover_cache",
+          "paper_id": "2607.06643v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2607.08180v1",
+          "source": "arxiv",
+          "title": "Out of Sight: Compression-Aware Content Protection against Agentic Crawlers",
+          "abstract": "The rise of LLM-based agents with reasoning, summarization, and memory capabilities has created a new threat surface for online content that conventional defenses fail to address. Existing defenses like access controls can be circumvented by agents mimicking ordinary browsers, and injection-based defenses often degrade human readability. In this paper, we revisit the agent pipeline and identify context compression, which agents routinely invoke to fit context budgets, as a critical yet overlooked defense layer. We propose CAPE, a framework that protects high-value textual content by injecting invisible perturbations without changing its human-visible surface form, thereby inducing severe information loss during agent compression. CAPE extracts disruptive seed perturbations from an accessible surrogate compressor, then adapts them to query-only target compressors through prior-guided evolution and preference-calibrated candidate prioritization, achieving effective protection under a low query budget. Experiments on three content types and four compression settings show that CAPE improves information loss by up to 75.8% over the strongest baseline while keeping protected content visually indistinguishable from originals. CAPE also transfers to real-world settings, including the LangGraph agent workflow and GitHub Copilot, highlighting its generality and practical value. This paper aims to reveal context compression as a new defense layer, promoting content protection research in the agent era.",
+          "authors": [
+            "Xuefei Wang"
           ],
           "primary_category": "cs.CR",
           "categories": [
             "cs.CR",
             "cs.AI"
           ],
-          "published": "2026-07-06T15:08:58+00:00",
-          "link": "https://arxiv.org/pdf/2607.05189v1",
+          "published": "2026-07-09T07:27:48+00:00",
+          "link": "https://arxiv.org/pdf/2607.08180v1",
           "tags": [
             "keyword:agent-evolve",
             "keyword:agent-safety",
@@ -38,93 +123,49 @@
             "query:mas-security"
           ],
           "llm_score": 8.0,
-          "llm_evidence_en": "studies stealthy memory injection in persistent personal agents, a privacy threat",
-          "llm_evidence_cn": "研究持久个人代理中的隐蔽内存注入隐私威胁",
-          "llm_evidence": "研究持久个人代理中的隐蔽内存注入隐私威胁",
-          "canonical_evidence": "研究持久个人代理中的隐蔽内存注入隐私威胁",
-          "llm_tldr_en": "WhisperBench exposes stealth memory injection in personal agents where untrusted content is silently written into persistent memory and reused, with a 108-case benchmark.",
-          "llm_tldr_cn": "本文揭示持久个人代理面临的新型隐私威胁——隐蔽内存注入：外部恶意内容被静默写入代理持久记忆并作为可信状态复用。提出WhisperBench基准（108个案例），涵盖事实与偏好投毒，实验表明该攻击能隐蔽诱导未来行为，对代理隐私安全构成严重挑战。",
-          "llm_tldr": "本文揭示持久个人代理面临的新型隐私威胁——隐蔽内存注入：外部恶意内容被静默写入代理持久记忆并作为可信状态复用。提出WhisperBench基准（108个案例），涵盖事实与偏好投毒，实验表明该攻击能隐蔽诱导未来行为，对代理隐私安全构成严重挑战。",
+          "llm_evidence_en": "content protection against agentic crawlers via compression-aware perturbations",
+          "llm_evidence_cn": "通过压缩感知扰动保护内容免受代理爬虫侵害",
+          "llm_evidence": "通过压缩感知扰动保护内容免受代理爬虫侵害",
+          "canonical_evidence": "通过压缩感知扰动保护内容免受代理爬虫侵害",
+          "llm_tldr_en": "CAPE protects high-value text from LLM-based agent crawlers by injecting invisible perturbations that cause information loss during agent context compression.",
+          "llm_tldr_cn": "该文针对LLM代理爬虫可绕过传统防御的问题，利用代理管道中的上下文压缩环节，提出CAPE框架。通过注入人眼不可见但导致代理压缩时信息丢失的扰动，在不影响人类可读性的前提下保护内容安全。实验证明对多种代理架构有效。",
+          "llm_tldr": "该文针对LLM代理爬虫可绕过传统防御的问题，利用代理管道中的上下文压缩环节，提出CAPE框架。通过注入人眼不可见但导致代理压缩时信息丢失的扰动，在不影响人类可读性的前提下保护内容安全。实验证明对多种代理架构有效。",
           "llm_tags": [
             "query:agent-safety"
           ],
           "matched_query_tag": "query:agent-safety",
-          "matched_query_text": "privacy issues in AI agents",
-          "matched_requirement_id": "req-2",
+          "matched_query_text": "safety privacy security of AI agents",
+          "matched_requirement_id": "req-7",
           "selection_source": "carryover_cache",
-          "paper_id": "2607.05189v1",
-          "carry_days": 1
-        },
-        {
-          "id": "2607.05132v1",
-          "source": "arxiv",
-          "title": "When Agents Lie: Premeditation, Persistence, and Exploitation in Repeated Games",
-          "abstract": "As large language models are deployed as autonomous agents that communicate intentions before acting, a critical safety question is whether agents that publicly commit to actions will honor those commitments. We place LLM agents in repeated $n$-player games with a three-stage protocol that separates private intent, public announcement, and final action, allowing us to identify whether each deviation from a stated announcement was already planned during private deliberation. Evaluating three frontier models across six games in homogeneous and heterogeneous groups over 10 rounds, we report two findings. First, when agents deviate from their announcements, the deviation is predominantly already stated in their private plan (exceeding 90% in the highest-deception conditions), yet this is not a fixed model property: the same model ranges from perfect honesty to near-total deviation across games. Second, different models interpret announcements incompatibly, some as binding commitments and others as cheap talk, producing payoff gaps that emerge in Round~0 and persist across all 10 rounds. Systems that combine models from different providers therefore cannot assume shared announcement semantics and require empirical testing of model interactions before deployment.",
-          "authors": [
-            "Jerick Shi",
-            "Terry Jingcheng Zhang",
-            "Bernhard Schölkopf",
-            "Vincent Conitzer",
-            "Zhijing Jin"
-          ],
-          "primary_category": "cs.CY",
-          "categories": [
-            "cs.CY",
-            "cs.CL"
-          ],
-          "published": "2026-07-06T14:17:59+00:00",
-          "link": "https://arxiv.org/pdf/2607.05132v1",
-          "tags": [
-            "keyword:agent-evolve",
-            "keyword:agent-safety",
-            "keyword:mas-security",
-            "query:agent-evolve",
-            "query:agent-safety",
-            "query:mas-security"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "analyzes premeditated deception in LLM agents affecting safety and trust",
-          "llm_evidence_cn": "分析LLM智能体预谋欺骗行为对安全与信任的影响",
-          "llm_evidence": "分析LLM智能体预谋欺骗行为对安全与信任的影响",
-          "canonical_evidence": "分析LLM智能体预谋欺骗行为对安全与信任的影响",
-          "llm_tldr_en": "Repeated game experiments with three frontier models show that over 90% of deviations from commitments are premeditated, highlighting a systemic safety risk.",
-          "llm_tldr_cn": "将LLM部署为自主智能体时，它们能否信守承诺是核心安全问题。本文设计三阶段博弈实验，分离私有意向、公开承诺和最终行动。结果表明，当智能体违背承诺时，超过90%的背离在私下规划时已预谋。该发现揭示了LLM智能体系统性欺骗风险，对AI安全与可信赖提出严峻挑战。",
-          "llm_tldr": "将LLM部署为自主智能体时，它们能否信守承诺是核心安全问题。本文设计三阶段博弈实验，分离私有意向、公开承诺和最终行动。结果表明，当智能体违背承诺时，超过90%的背离在私下规划时已预谋。该发现揭示了LLM智能体系统性欺骗风险，对AI安全与可信赖提出严峻挑战。",
-          "llm_tags": [
-            "query:agent-safety"
-          ],
-          "matched_query_tag": "query:agent-safety",
-          "matched_query_text": "safety concerns in AI agents",
-          "matched_requirement_id": "req-1",
-          "selection_source": "carryover_cache",
-          "paper_id": "2607.05132v1",
+          "paper_id": "2607.08180v1",
           "carry_days": 1
         }
       ]
     },
     "agent-evolve": {
-      "updated_date": "20260707",
+      "updated_date": "20260710",
       "carryover_days": 9,
       "items": [
         {
-          "id": "2607.03702v1",
+          "id": "2607.08373v1",
           "source": "arxiv",
-          "title": "Agent Reinforcement Learning via Pivotal-Aware Self-Feedback Retry",
-          "abstract": "Large language model (LLM) agents have shown strong decision-making capabilities in long-horizon interactive tasks, yet they still struggle to effectively leverage failed trajectories: full retries incur high interaction costs, while experience retrieval tends to dilute critical experience signals. To address this, we propose PivoARL, a self-feedback retry framework for experience exploitation in LLM agents. PivoARL identifies the pivotal erroneous turn through structured reflection and performs local retry only from the corresponding pivotal state, thereby reusing the correct prefix and reducing redundant interactions. From an information-gain perspective, we further show that pivotal retry concentrates useful experience signals near the error boundary, mitigating the signal dilution caused by state-agnostic experience utilization. Based on this insight, we design a pivotal-aware credit assignment mechanism that rewards correct prefixes while isolating erroneous suffixes, and optimize reflection quality through implicit reflection returns. We conduct a systematic evaluation on 4 agent tasks and 7 search-based QA benchmarks. Results show that PivoARL achieves significant improvements on Pass@2/3 across all tasks, with an average gain of about 11.5\\% over MetaRL. Moreover, benefiting from contrastive preference signals induced by pivotal turns, PivoARL also consistently improves Pass@1 on over 80\\% of the tasks. On Minesweeper environment, PivoARL improves over GiGPO by more than 45\\% and reduces interaction turns by about 42\\% on average compared with full-retry methods. Code is available at https://github.com/yuki-younai/PivoARL.",
+          "title": "Self-Adaptive Anomaly Detection with Reinforcement Learning and Human Feedback in Connected Vehicles",
+          "abstract": "Connected vehicles are autonomous cyber-physical systems whose behavior must be continuously monitored during operation to detect deviations from normal operation before they propagate into failures. Such evaluation is challenging because the systems themselves evolve: over-the-air updates, configuration changes, and shifting workloads alter the definition of normal behavior, causing static diagnostic methods to degrade silently over time. Existing approaches typically address either automated model adaptation or operator integration in isolation, rather than as a single coordinated supervisory loop.   This paper presents an online anomaly detection framework for autonomous CPS that integrates three coordinated mechanisms. A factorized deep Q-network with self-attention selects the most suitable detector from a candidate pool for each monitored service, exploiting inter-service dependencies in the microservice topology. An ensemble of three statistical drift detectors monitors the input distribution and raises an alarm only when all three concur, prioritizing precision over recall. A human-in-the-loop retraining mechanism, built around a pending transition buffer and a 60/40 prioritized replay strategy, allows the operator to incorporate expert knowledge while preserving the system's learned response to prior data distributions.   The framework is evaluated on a connected-vehicle testbed running an automated valet parking application across seven backend microservices. The attention-augmented agent achieves an F1 score of 0.69, compared to at most 0.11 for any single detector applied uniformly. Following a real software update that induces measurable concept drift, F1 drops to 0.52; after operator-triggered retraining, performance recovers to 0.65 on the new distribution while remaining at 0.69 on the prior one, demonstrating sustained adaptation without catastrophic forgetting.",
           "authors": [
-            "Weiyang Guo",
-            "Zesheng Shi",
-            "Longhui Zhang",
-            "Zeen Zhu",
-            "Min Zhang",
-            "Jing Li"
+            "Matthias Weiß",
+            "Athreya Hosahalli Prakash",
+            "Maurice Artelt",
+            "Falk Dettinger",
+            "Nasser Jazdi",
+            "Michael Weyrich"
           ],
-          "primary_category": "cs.AI",
+          "primary_category": "cs.LG",
           "categories": [
+            "cs.LG",
             "cs.AI"
           ],
-          "published": "2026-07-04T04:45:05+00:00",
-          "link": "https://arxiv.org/pdf/2607.03702v1",
+          "published": "2026-07-09T11:48:52+00:00",
+          "link": "https://arxiv.org/pdf/2607.08373v1",
           "tags": [
             "keyword:agent-evolve",
             "keyword:agent-safety",
@@ -134,158 +175,122 @@
             "query:mas-security"
           ],
           "llm_score": 8.0,
-          "llm_evidence_en": "self-feedback retry for agent reinforcement learning improvement",
-          "llm_evidence_cn": "用于代理强化学习改进的自反馈重试",
-          "llm_evidence": "用于代理强化学习改进的自反馈重试",
-          "canonical_evidence": "用于代理强化学习改进的自反馈重试",
-          "llm_tldr_en": "Proposes PivoARL, a self-feedback framework that identifies pivotal erroneous turns for local retry, improving experience exploitation in LLM agents.",
-          "llm_tldr_cn": "大语言模型代理在长程交互中难以有效利用失败轨迹：完整重试成本高，经验检索会稀释关键信号。本文提出PivoARL框架，通过结构化反思识别关键错误步骤，仅从对应关键状态进行局部重试，重用正确前缀并减少冗余。实验表明该方法在多种交互任务中显著提升了样本效率和最终性能。",
-          "llm_tldr": "大语言模型代理在长程交互中难以有效利用失败轨迹：完整重试成本高，经验检索会稀释关键信号。本文提出PivoARL框架，通过结构化反思识别关键错误步骤，仅从对应关键状态进行局部重试，重用正确前缀并减少冗余。实验表明该方法在多种交互任务中显著提升了样本效率和最终性能。",
+          "llm_evidence_en": "self-adaptive anomaly detection using reinforcement learning and human feedback in connected vehicles",
+          "llm_evidence_cn": "联网车辆中使用强化学习和人类反馈的自适应异常检测",
+          "llm_evidence": "联网车辆中使用强化学习和人类反馈的自适应异常检测",
+          "canonical_evidence": "联网车辆中使用强化学习和人类反馈的自适应异常检测",
+          "llm_tldr_en": "This paper presents an online anomaly detection framework for autonomous cyber-physical systems that integrates three coordinated mechanisms: automated model adaptation via RL, human feedback integration, and continuous monitoring. It enables self-adaptive detection in evolving environments like connected vehicles.",
+          "llm_tldr_cn": "联网车辆等自主信息物理系统在运行中不断演变（如空中升级、配置变化），导致静态诊断方法性能下降。本文提出在线异常检测框架，整合三个协调机制：基于强化学习的自动化模型自适应、操作员反馈集成、以及连续监控。该框架使检测系统能够在运行时自动调整正常行为模型，并通过人类反馈进行校准。在联网车辆数据集上的实验表明，该方法能在系统演变过程中保持高检测率且降低误报率。",
+          "llm_tldr": "联网车辆等自主信息物理系统在运行中不断演变（如空中升级、配置变化），导致静态诊断方法性能下降。本文提出在线异常检测框架，整合三个协调机制：基于强化学习的自动化模型自适应、操作员反馈集成、以及连续监控。该框架使检测系统能够在运行时自动调整正常行为模型，并通过人类反馈进行校准。在联网车辆数据集上的实验表明，该方法能在系统演变过程中保持高检测率且降低误报率。",
           "llm_tags": [
             "query:agent-evolve"
           ],
           "matched_query_tag": "query:agent-evolve",
-          "matched_query_text": "self-improving reinforcement learning agent",
-          "matched_requirement_id": "req-11",
+          "matched_query_text": "self-adaptive agent",
+          "matched_requirement_id": "req-13",
           "selection_source": "carryover_cache",
-          "paper_id": "2607.03702v1",
+          "paper_id": "2607.08373v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2607.06140v1",
+          "source": "arxiv",
+          "title": "CurateEvo: Data-Curation Evolving for Agentic Post-Training",
+          "abstract": "Large language model (LLM) agents require post-training methods that can improve long-horizon decision making from environment feedback. However, existing agentic post-training pipelines often treat data curation as a fixed preprocessing step, focusing mainly on data augmentation while neglecting filtering, refinement, and adaptation to downstream failures. We propose CurateEvo, a failure-driven dynamic evolution framework for agentic post-training data curation. CurateEvo represents the curation strategy as executable code and iteratively rewrites it using failed trajectories from a held-out development set. At each epoch, the evolved strategy transforms a fixed raw corpus into supervised fine-tuning data, reinforcement learning data, and an inference-time memory bank. The evolution process first improves effectiveness by diagnosing recurring failure modes and augmenting, filtering, or refining data accordingly, and then improves efficiency by pruning redundant or low-utility training turns under a cost-aware objective. Experiments on ACEBench-Agent, BFCL-V4, and τ^2-Bench under both labeled and wild-data settings show that CurateEvo consistently outperforms prior curation methods, improving average scores by 3.2 and 2.7 points, respectively. Further analyses demonstrate that CurateEvo is compatible with different post-training recipes and substantially reduces curation overhead.",
+          "authors": [
+            "Dingzirui Wang",
+            "Xuanliang Zhang",
+            "Keyan Xu",
+            "Qingfu Zhu",
+            "Wanxiang Che"
+          ],
+          "primary_category": "cs.CL",
+          "categories": [
+            "cs.CL"
+          ],
+          "published": "2026-07-07T11:07:00+00:00",
+          "link": "https://arxiv.org/pdf/2607.06140v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "self-evolving data curation for agentic post-training",
+          "llm_evidence_cn": "面向智能体后训练的自进化数据策展",
+          "llm_evidence": "面向智能体后训练的自进化数据策展",
+          "canonical_evidence": "面向智能体后训练的自进化数据策展",
+          "llm_tldr_en": "CurateEvo is a failure-driven dynamic evolution framework for agentic post-training data curation that iteratively rewrites curation strategy using failed trajectories.",
+          "llm_tldr_cn": "现有智能体后训练管线将数据策展视为固定预处理步骤，忽略了过滤、精炼和适应下游失败。本文提出CurateEvo，一个失败驱动的动态演化框架，将策展策略表示为可执行代码，并利用开发集上的失败轨迹迭代重写。实验表明该方法能自动适应任务失败，提升智能体长期决策能力。",
+          "llm_tldr": "现有智能体后训练管线将数据策展视为固定预处理步骤，忽略了过滤、精炼和适应下游失败。本文提出CurateEvo，一个失败驱动的动态演化框架，将策展策略表示为可执行代码，并利用开发集上的失败轨迹迭代重写。实验表明该方法能自动适应任务失败，提升智能体长期决策能力。",
+          "llm_tags": [
+            "query:agent-evolve"
+          ],
+          "matched_query_tag": "query:agent-evolve",
+          "matched_query_text": "self-evolving AI agent",
+          "matched_requirement_id": "req-10",
+          "selection_source": "carryover_cache",
+          "paper_id": "2607.06140v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2607.07820v1",
+          "source": "arxiv",
+          "title": "DeepSearch-World: Self-Distillation for Deep Search Agents in a Verifiable Environment",
+          "abstract": "Training tool-use agents to improve from their own experience remains challenging, as supervised fine-tuning relies on fixed teacher-distilled trajectories, while sparse-reward reinforcement learning provides weak supervision for long-horizon interactions. We present DeepSearch-Evolve, a self-distillation framework for web agents built on DeepSearch-World, a deterministic and verifiable environment with reproducible search and page-reading tools. DeepSearch-World contains 420K multi-hop QA tasks constructed from entity-level random walks and supports key agentic cognitive behaviors useful for self-evolving, including progress verification, grounded reflection, and failure recovery. DeepSearch-Evolve iteratively performs trajectory generation, filtering, data mixing, and fine-tuning to train stronger agents. Without distillation from more capable models, DeepSearch-World-9B achieves competitive performance compared with open-source agents, reaching 31.2% on BrowseComp, 61.5% on GAIA, and 93.4% on HotpotQA, showing that verifiable environments enable scalable self-evolution for long-horizon web agents. We will release the environment, 420K training pool, validation set, model, and code to facilitate future research on self-improving deep search agents.",
+          "authors": [
+            "Xinyu Geng",
+            "Xuanhua He",
+            "Sixiang Chen",
+            "Yanjing Xiao",
+            "Fan Zhang",
+            "Shijue Huang",
+            "Haitao Mi",
+            "Zhenwen Liang",
+            "Tianqing Fang",
+            "Yi R. Fung"
+          ],
+          "primary_category": "cs.CL",
+          "categories": [
+            "cs.CL"
+          ],
+          "published": "2026-07-08T18:03:41+00:00",
+          "link": "https://arxiv.org/pdf/2607.07820v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "self-distillation framework for web agents with self-evolving behaviors",
+          "llm_evidence_cn": "用于网络代理的自我蒸馏框架，支持自进化行为",
+          "llm_evidence": "用于网络代理的自我蒸馏框架，支持自进化行为",
+          "canonical_evidence": "用于网络代理的自我蒸馏框架，支持自进化行为",
+          "llm_tldr_en": "DeepSearch-Evolve uses self-distillation in a verifiable environment to iteratively improve web agents, enabling key self-evolving capabilities like progress verification and failure recovery.",
+          "llm_tldr_cn": "该论文提出DeepSearch-Evolve，一种在可验证环境中进行自我蒸馏的框架，用于迭代改进网络代理。它支持进度验证、接地反思和失败恢复等关键自进化认知行为，为解决长程交互中代理自我改进的难题提供了有效方案。",
+          "llm_tldr": "该论文提出DeepSearch-Evolve，一种在可验证环境中进行自我蒸馏的框架，用于迭代改进网络代理。它支持进度验证、接地反思和失败恢复等关键自进化认知行为，为解决长程交互中代理自我改进的难题提供了有效方案。",
+          "llm_tags": [
+            "query:agent-evolve"
+          ],
+          "matched_query_tag": "query:agent-evolve",
+          "matched_query_text": "self-evolving AI agent",
+          "matched_requirement_id": "req-10",
+          "selection_source": "carryover_cache",
+          "paper_id": "2607.07820v1",
           "carry_days": 1
         }
       ]
     },
     "mas-security": {
-      "updated_date": "20260707",
+      "updated_date": "20260710",
       "carryover_days": 9,
       "items": [
-        {
-          "id": "2607.02802v1",
-          "source": "arxiv",
-          "title": "Seduced by the Narrative: Assessing Rule Adherence in Semi-Open Textual Sandboxes",
-          "abstract": "As LLMs are increasingly deployed as autonomous adjudicators in semi-open textual game environments, robust rule adherence becomes critical when user intent conflicts with system rules. However, these models are trained to be helpful and compliant, leaving them vulnerable to a class of attacks we term \\textit{Rhetorical Injection}, where adversarial users exploit narrative framing techniques such as pseudo-logical reasoning and authoritative coercion to bypass adjudication logic. We present CoC-Seduce, a multi-agent adversarial benchmark built on Tabletop Role-Playing Game (TRPG) mechanics, an ideal instantiation of semi-open environments where rules are explicit for adjudication, yet interaction remains entirely in natural language. Three frontier models, i.e., GPT-5.4, Claude Sonnet 4.6, Gemini 3.5 Flash, serve as adversarial generators producing 5,376 samples across 4 world settings and 16 skill categories. We then benchmark 20 target adjudicators against this corpus. Evaluation across 20 models reveals that neither model scale nor explicit reasoning mechanisms reliably confer adjudication robustness, with \\textsc{Pseudo-Logic} emerging as the dominant attack vector and cross-cultural settings exposing systematic knowledge gaps across all evaluated families. Project page: https://github.com/answerrtx/CoC-Seduce",
-          "authors": [
-            "Weiying Chen",
-            "Junlong Shen",
-            "Zhanyuan Guo",
-            "Xiaoou Zhou"
-          ],
-          "primary_category": "cs.CL",
-          "categories": [
-            "cs.CL",
-            "cs.AI"
-          ],
-          "published": "2026-07-02T22:25:35+00:00",
-          "link": "https://arxiv.org/pdf/2607.02802v1",
-          "tags": [
-            "keyword:agent-evolve",
-            "keyword:agent-safety",
-            "query:agent-evolve",
-            "query:agent-safety",
-            "query:mas-security"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "introduces CoC-Seduce benchmark for rhetorical injection attacks in multi-agent adjudication, addressing safety",
-          "llm_evidence_cn": "提出针对多代理仲裁中修辞注入攻击的CoC-Seduce基准，关乎安全性",
-          "llm_evidence": "提出针对多代理仲裁中修辞注入攻击的CoC-Seduce基准，关乎安全性",
-          "canonical_evidence": "提出针对多代理仲裁中修辞注入攻击的CoC-Seduce基准，关乎安全性",
-          "llm_tldr_en": "CoC-Seduce reveals that LLM adjudicators in multi-agent game environments are vulnerable to rhetorical injection, proposing a benchmark with three attacks.",
-          "llm_tldr_cn": "本文发现多代理系统作为仲裁者时易受修辞注入攻击——用户通过伪逻辑和权威胁迫绕过规则。构建基于TRPG的CoC-Seduce基准（含三种攻击），实验证明即使强模型也显著违规，为多代理系统安全提供新评估手段。",
-          "llm_tldr": "本文发现多代理系统作为仲裁者时易受修辞注入攻击——用户通过伪逻辑和权威胁迫绕过规则。构建基于TRPG的CoC-Seduce基准（含三种攻击），实验证明即使强模型也显著违规，为多代理系统安全提供新评估手段。",
-          "llm_tags": [
-            "query:mas-security"
-          ],
-          "matched_query_tag": "query:mas-security",
-          "matched_query_text": "safety of multi-agent systems",
-          "matched_requirement_id": "req-21",
-          "selection_source": "carryover_cache",
-          "paper_id": "2607.02802v1",
-          "carry_days": 1
-        },
-        {
-          "id": "2607.04215v1",
-          "source": "arxiv",
-          "title": "Anytime Plug-and-Play Control with Contract-Based Distributed MPC",
-          "abstract": "A central challenge in many mobile multi-robot applications is that communication topologies are inherently time-varying. Agents may enter or exit the network and such changes cannot generally be restricted a priori. This work introduces a distributed multi-agent control algorithm based on local communication that supports anytime agent joining and leaving the communication network without centralized coordination. The method scales efficiently with the number of agents by relying on a distance-based neighbor definition and on contracts derived from predicted trajectories. The resulting contract constraints guarantee collision avoidance and constraint satisfaction. We validate the proposed method in an autonomous multi-agent driving scenario, demonstrating effective collision avoidance in high-speed, dynamic environments with agents moving in opposite directions, in both simulated and real-world experiments.",
-          "authors": [
-            "Sabrina Bodmer",
-            "Danilo Saccani",
-            "Melanie N. Zeilinger",
-            "Andrea Carron"
-          ],
-          "primary_category": "math.OC",
-          "categories": [
-            "math.OC",
-            "cs.RO"
-          ],
-          "published": "2026-07-05T10:06:49+00:00",
-          "link": "https://arxiv.org/pdf/2607.04215v1",
-          "tags": [
-            "keyword:agent-evolve",
-            "keyword:agent-safety",
-            "keyword:mas-security",
-            "query:agent-evolve",
-            "query:agent-safety",
-            "query:mas-security"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "distributed multi-agent control guaranteeing collision avoidance and constraint satisfaction",
-          "llm_evidence_cn": "分布式多智能体控制保证碰撞避免和约束满足",
-          "llm_evidence": "分布式多智能体控制保证碰撞避免和约束满足",
-          "canonical_evidence": "分布式多智能体控制保证碰撞避免和约束满足",
-          "llm_tldr_en": "A distributed multi-agent control algorithm based on local communication and contract-based MPC that supports anytime agent joining/leaving while guaranteeing collision avoidance and constraint satisfaction.",
-          "llm_tldr_cn": "多机器人系统中通信拓扑动态变化，现有方法难以保证安全。本文提出一种基于本地通信和合同预测的分布式模型预测控制算法，支持代理随时加入或离开网络，无需集中协调。利用距离定义邻居，通过预测轨迹生成合同约束，确保碰撞避免和约束满足。在自动驾驶多车场景中验证了其安全性（无碰撞）和可扩展性，为动态多智能体系统提供了安全控制方案。",
-          "llm_tldr": "多机器人系统中通信拓扑动态变化，现有方法难以保证安全。本文提出一种基于本地通信和合同预测的分布式模型预测控制算法，支持代理随时加入或离开网络，无需集中协调。利用距离定义邻居，通过预测轨迹生成合同约束，确保碰撞避免和约束满足。在自动驾驶多车场景中验证了其安全性（无碰撞）和可扩展性，为动态多智能体系统提供了安全控制方案。",
-          "llm_tags": [
-            "query:mas-security"
-          ],
-          "matched_query_tag": "query:mas-security",
-          "matched_query_text": "safety of multi-agent systems",
-          "matched_requirement_id": "req-21",
-          "selection_source": "carryover_cache",
-          "paper_id": "2607.04215v1",
-          "carry_days": 1
-        },
-        {
-          "id": "2607.02186v1",
-          "source": "arxiv",
-          "title": "UA-ChatDev: Uncertainty-Aware Multi-Agent Collaboration for Reliable Software Development",
-          "abstract": "Software development is a complex task that demands cooperation among agents with diverse roles. Large language models (LLMs) have enabled autonomous multi-agent software development frameworks that leverage role-based collaboration to automate requirements analysis, coding, testing, and refinement. However, existing approaches typically assume that intermediate agent outputs are equally reliable, leaving them vulnerable to hallucination propagation, where incorrect decisions generated in early development phases are transferred to downstream agents and negatively impact final software quality. To address this challenge, we propose UA-ChatDev, an uncertainty-aware multi-agent software development framework that integrates uncertainty quantification into agent interactions. It introduces a lightweight uncertainty estimation mechanism based on token-level log probabilities to assess the confidence of agent responses and employs phase-aware threshold calibration to selectively trigger retrieval-based verification when uncertainty exceeds acceptable levels. Extensive experiments on the SRDD benchmark demonstrate that UA-ChatDev consistently outperforms existing single-agent and multi-agent software development frameworks across completeness, executability, consistency, and overall quality metrics. Further ablation studies and communication analyses verify that uncertainty-aware interactions enhance code execution reliability.",
-          "authors": [
-            "Temitayo Olamilekan Ogunsusi",
-            "Lijun Qian",
-            "Xishuang Dong"
-          ],
-          "primary_category": "cs.AI",
-          "categories": [
-            "cs.AI"
-          ],
-          "published": "2026-07-02T13:56:57+00:00",
-          "link": "https://arxiv.org/pdf/2607.02186v1",
-          "tags": [
-            "keyword:agent-evolve",
-            "keyword:agent-safety",
-            "keyword:mas-security",
-            "query:agent-evolve",
-            "query:agent-safety",
-            "query:mas-security"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "uncertainty-aware multi-agent collaboration to improve software reliability and reduce hallucination propagation",
-          "llm_evidence_cn": "不确定性感知的多代理协作提升软件可靠性并减少幻觉传播",
-          "llm_evidence": "不确定性感知的多代理协作提升软件可靠性并减少幻觉传播",
-          "canonical_evidence": "不确定性感知的多代理协作提升软件可靠性并减少幻觉传播",
-          "llm_tldr_en": "UA-ChatDev introduces uncertainty awareness into multi-agent software development to combat hallucination propagation, directly enhancing the safety and reliability of multi-agent systems.",
-          "llm_tldr_cn": "该论文提出UA-ChatDev，一种不确定性感知的多代理软件开发框架。现有自主多代理框架假设中间输出同样可靠，导致早期错误传播至下游，影响最终质量。UA-ChatDev通过集成不确定性估计，在开发过程中识别并抑制不可靠的输出，从而减少幻觉传播。实验表明其显著提升了生成软件的正确性和鲁棒性。该工作直接增强了多代理系统的安全性与可靠性。",
-          "llm_tldr": "该论文提出UA-ChatDev，一种不确定性感知的多代理软件开发框架。现有自主多代理框架假设中间输出同样可靠，导致早期错误传播至下游，影响最终质量。UA-ChatDev通过集成不确定性估计，在开发过程中识别并抑制不可靠的输出，从而减少幻觉传播。实验表明其显著提升了生成软件的正确性和鲁棒性。该工作直接增强了多代理系统的安全性与可靠性。",
-          "llm_tags": [
-            "query:mas-security"
-          ],
-          "matched_query_tag": "query:mas-security",
-          "matched_query_text": "safety of multi-agent systems",
-          "matched_requirement_id": "req-21",
-          "selection_source": "carryover_cache",
-          "paper_id": "2607.02186v1",
-          "carry_days": 1
-        },
         {
           "id": "2607.04634v1",
           "source": "arxiv",
@@ -329,6 +334,54 @@
           "matched_requirement_id": "req-19",
           "selection_source": "carryover_cache",
           "paper_id": "2607.04634v1",
+          "carry_days": 4
+        },
+        {
+          "id": "2607.07989v1",
+          "source": "arxiv",
+          "title": "Who Broke the System? Failure Localization in LLM-Based Multi-Agent Systems",
+          "abstract": "Large language model (LLM) based multi-agent systems enable complex problem solving through coordinated reasoning and action, but their distributed structure also introduces new challenges in diagnosing system-level failures. When an execution fails, identifying which agent is responsible and at what point the trajectory first becomes irreversibly misdirected is difficult due to long-horizon interactions and tightly coupled agent behaviors. In this paper, we study the problem of failure localization in LLM-based multi-agent systems and present AgentLocate, a framework that attributes failures to both a specific agent and the earliest decisive step. AgentLocate combines an LLM-based judging mechanism with multi-perspective verification by independent evaluators, whose assessments are aggregated using a confidence-aware strategy. The resulting feedback is further used to adapt the judge through lightweight fine-tuning, improving attribution quality. We evaluate AgentLocate on two complementary benchmarks covering diverse tasks, agent configurations, and trajectory lengths. Experimental results show that AgentLocate consistently outperforms existing failure localization methods in identifying both responsible agents and failure steps, while remaining efficient in terms of token usage and running time.",
+          "authors": [
+            "Yufei Xia",
+            "Anjun Gao",
+            "Yueyang Quan",
+            "Zhuqing Liu",
+            "Minghong Fang"
+          ],
+          "primary_category": "cs.CR",
+          "categories": [
+            "cs.CR",
+            "cs.AI",
+            "cs.IR",
+            "cs.LG",
+            "cs.MA"
+          ],
+          "published": "2026-07-08T23:33:49+00:00",
+          "link": "https://arxiv.org/pdf/2607.07989v1",
+          "tags": [
+            "keyword:agent-evolve",
+            "keyword:agent-safety",
+            "keyword:mas-security",
+            "query:agent-evolve",
+            "query:agent-safety",
+            "query:mas-security"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "failure localization for safety and robustness in multi-agent systems",
+          "llm_evidence_cn": "多智能体系统中故障定位以提升安全性和鲁棒性",
+          "llm_evidence": "多智能体系统中故障定位以提升安全性和鲁棒性",
+          "canonical_evidence": "多智能体系统中故障定位以提升安全性和鲁棒性",
+          "llm_tldr_en": "Introduces AgentLocate, a framework that attributes failures to specific agents and early decisive steps in LLM-based multi-agent systems, enhancing system safety and debuggability.",
+          "llm_tldr_cn": "该论文针对LLM多智能体系统中的故障定位问题，提出了AgentLocate框架。该框架结合基于LLM的评判机制和多视角验证，能够精确归因到责任智能体和最早决策失误点。实验表明，AgentLocate有效识别系统故障根因，提升系统安全性和可靠性。",
+          "llm_tldr": "该论文针对LLM多智能体系统中的故障定位问题，提出了AgentLocate框架。该框架结合基于LLM的评判机制和多视角验证，能够精确归因到责任智能体和最早决策失误点。实验表明，AgentLocate有效识别系统故障根因，提升系统安全性和可靠性。",
+          "llm_tags": [
+            "query:mas-security"
+          ],
+          "matched_query_tag": "query:mas-security",
+          "matched_query_text": "safety of multi-agent systems",
+          "matched_requirement_id": "req-21",
+          "selection_source": "carryover_cache",
+          "paper_id": "2607.07989v1",
           "carry_days": 1
         }
       ]
