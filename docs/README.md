@@ -6,137 +6,94 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-07-10
-- 运行时间：2026-07-10 21:43:00 UTC
+- 最新运行日期：2026-07-12
+- 运行时间：2026-07-12 20:48:58 UTC
 - 运行状态：成功
-- 本次总论文数：39
-- 精读区：26
+- 本次总论文数：24
+- 精读区：11
 - 速读区：13
 
 ### 今日简报（AI）
-今日精读26篇，聚焦AI Agent安全测试与隐私挑战两大满分方向。最值得看的是Agent安全测试方法（从风险发现到证据验证）和Agent AI安全与隐私未来挑战。建议优先阅读两篇满分论文，把握Agent安全评估框架与隐私治理前沿。
-- 详情：[/202607/10/README](/202607/10/README)
+1) 今日共处理24篇论文，精读11篇，聚焦智能体自我进化与自指递归能力。  
+2) 最值得关注：EvoAgentBench 首次从能力迁移视角评估智能体自我进化（10分），以及 LLM 自指递归的“内省阈值”发现（9分）。  
+3) 建议优先精读这两篇，后续可结合速读中的工具规划失败分析，避免常见陷阱。
+- 详情：[/202607/12/README](/202607/12/README)
 
 ### 精读区论文标签
-1. [Safety Testing LLM Agents at Scale: From Risk Discovery to Evidence-Grounded Verification](/202607/10/2607.01793v2-safety-testing-llm-agents-at-scale-from-risk-discovery-to-evidence-grounded-verification)  
-   标签：评分：10.0/10、query:agent-safety
-   evidence：大规模LLM智能体安全测试框架
-2. [Security and Privacy in Agentic AI: Grand Challenges and Future Directions](/202607/10/2607.06608v1-security-and-privacy-in-agentic-ai-grand-challenges-and-future-directions)  
-   标签：评分：10.0/10、query:agent-safety
-   evidence：代理型AI安全与隐私的大挑战
-3. [Distributed Attacks in Persistent-State AI Control](/202607/10/2607.02514v2-distributed-attacks-in-persistent-state-ai-control)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：持久状态下AI智能体的分布式攻击研究，直接关注安全问题
-4. [Securing Multi-Tool AI Agent Chains With Dynamic, Real-Time Compositional Policies](/202607/10/2607.03423v1-securing-multi-tool-ai-agent-chains-with-dynamic-real-time-compositional-policies)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：通过组合策略保护多工具AI智能体链安全
-5. [When Agents Lie: Premeditation, Persistence, and Exploitation in Repeated Games](/202607/10/2607.05132v1-when-agents-lie-premeditation-persistence-and-exploitation-in-repeated-games)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：LLM代理的信任度和诚实性
-6. [When Agents Lie: Premeditation, Persistence, and Exploitation in Repeated Games](/202607/10/2607.05132v2-when-agents-lie-premeditation-persistence-and-exploitation-in-repeated-games)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：LLM代理的信任度和诚实性
-7. [When Claws Remember but Do Not Tell: Stealthy Memory Injection in Persistent Personal Agents](/202607/10/2607.05189v1-when-claws-remember-but-do-not-tell-stealthy-memory-injection-in-persistent-personal-agents)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：持久化个人智能体中的隐性记忆注入威胁，危害安全与隐私
-8. [EvoAgentBench: Benchmarking Agent Self-Evolution via Ability Transfer](/202607/10/2607.05202v1-evoagentbench-benchmarking-agent-self-evolution-via-ability-transfer)  
+1. [EvoAgentBench: Benchmarking Agent Self-Evolution via Ability Transfer](/202607/12/2607.05202v1-evoagentbench-benchmarking-agent-self-evolution-via-ability-transfer)  
+   标签：评分：10.0/10、query:agent-evolve
+   evidence：通过能力迁移进行智能体自我进化的基准
+2. [Self-Reference in Large Language Models: The Introspection Threshold for Recursive Self-Improvement](/202607/12/2607.04277v1-self-reference-in-large-language-models-the-introspection-threshold-for-recursive-self-improvement)  
    标签：评分：9.0/10、query:agent-evolve
-   evidence：通过能力迁移进行智能体自我进化基准测试
-9. [The Balkanization of Execution-Security Research for AI Coding Agents: Isolation, Access Control, and Time-of-Check-to-Time-of-Use Vulnerabilities](/202607/10/2607.05743v1-the-balkanization-of-execution-security-research-for-ai-coding-agents-isolation-access-control-and-time-of-check-to-time-of-use-vulnerabilities)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：AI编码智能体执行安全研究的系统化整理
-10. [Beyond the Leaderboard: A Synthesis of Tool-Use, Planning, and Reasoning Failures in Large Language Model Agents](/202607/10/2607.05775v1-beyond-the-leaderboard-a-synthesis-of-tool-use-planning-and-reasoning-failures-in-large-language-model-agents)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：综合了LLM智能体在多智能体协调、安全等方面的失败模式
-11. [When Agents Remember Too Much: Memory Poisoning Attacks on Large Language Model Agents](/202607/10/2607.06595v1-when-agents-remember-too-much-memory-poisoning-attacks-on-large-language-model-agents)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：针对LLM智能体的记忆中毒攻击，威胁隐私
-12. [CILC: Cryptographically-secure Inter-agent Loop Closure Candidate Detection for Multi-Agent Collaborative SLAM](/202607/10/2607.06700v1-cilc-cryptographically-secure-inter-agent-loop-closure-candidate-detection-for-multi-agent-collaborative-slam)  
+   evidence：探究LLM中递归自改进的内省阈值，直接关于自进化AI代理
+3. [Governed Caste Reassignment in Heterogeneous Swarms: An Asymmetric-Trust Protocol with Audited Operator Countersignature](/202607/12/2607.04634v1-governed-caste-reassignment-in-heterogeneous-swarms-an-asymmetric-trust-protocol-with-audited-operator-countersignature)  
    标签：评分：9.0/10、query:mas-security
-   evidence：多智能体SLAM中基于密码学安全的跨智能体回环检测方法，解决隐私和安全性
-13. [When Agents Go Rogue: Activation-Based Detection of Malicious Behaviors in Multi-Agent Systems](/202607/10/2607.06807v1-when-agents-go-rogue-activation-based-detection-of-malicious-behaviors-in-multi-agent-systems)  
+   evidence：机器人群体中用于安全的不对称信任协议
+4. [FORGE: Research-Trajectory Hijacking Attacks on Deep Research Agents](/202607/12/2607.04718v1-forge-research-trajectory-hijacking-attacks-on-deep-research-agents)  
+   标签：评分：9.0/10、query:agent-safety
+   evidence：针对深度研究智能体的对抗攻击，破坏规划与推理安全
+5. [Context-to-Execution Integrity for LLM Agents](/202607/12/2607.06000v1-context-to-execution-integrity-for-llm-agents)  
+   标签：评分：9.0/10、query:agent-safety
+   evidence：上下文到执行完整性用于对抗鲁棒性与对齐
+6. [CILC: Cryptographically-secure Inter-agent Loop Closure Candidate Detection for Multi-Agent Collaborative SLAM](/202607/12/2607.06700v1-cilc-cryptographically-secure-inter-agent-loop-closure-candidate-detection-for-multi-agent-collaborative-slam)  
    标签：评分：9.0/10、query:mas-security
-   evidence：利用激活分析检测多智能体系统中的恶意行为
-14. [Behavioral Privacy Leakage in Agentic Negotiation: Formalizing and Mitigating Inference Attacks via Randomized Policies](/202607/10/2607.06815v1-behavioral-privacy-leakage-in-agentic-negotiation-formalizing-and-mitigating-inference-attacks-via-randomized-policies)  
+   evidence：多智能体SLAM的密码学安全环路闭合检测
+7. [Agentic Data Environments](/202607/12/2607.07397v1-agentic-data-environments)  
    标签：评分：9.0/10、query:agent-safety
-   evidence：形式化并缓解自主协商智能体中的行为隐私泄露
-15. [From Atomic Actions to Standard Operating Procedures: Iterative Tool Optimization for Self-Evolving LLM Agents](/202607/10/2607.07321v1-from-atomic-actions-to-standard-operating-procedures-iterative-tool-optimization-for-self-evolving-llm-agents)  
-   标签：评分：9.0/10、query:agent-evolve
-   evidence：通过标准操作程序合成实现自进化
-16. [Multi-Agent AI Control: Distributed Attacks Hamper Per-Instance Monitors](/202607/10/2607.07368v1-multi-agent-ai-control-distributed-attacks-hamper-per-instance-monitors)  
+   evidence：关注智能体数据环境中的安全保障
+8. [Beyond Attack-Success Rate: Action-Graded Severity Scale for Tool-Using AI Agents](/202607/12/2607.07474v1-beyond-attack-success-rate-action-graded-severity-scale-for-tool-using-ai-agents)  
    标签：评分：9.0/10、query:agent-safety
-   evidence：多智能体安全，分布式攻击，监控
-17. [Beyond Attack-Success Rate: Action-Graded Severity Scale for Tool-Using AI Agents](/202607/10/2607.07474v1-beyond-attack-success-rate-action-graded-severity-scale-for-tool-using-ai-agents)  
+   evidence：面向工具使用智能体安全评估的动作分级严重性量表
+9. [Institutional Red-Teaming: Deployment Rules, Not Just Models, Causally Shape Multi-Agent AI Safety](/202607/12/2607.07695v1-institutional-red-teaming-deployment-rules-not-just-models-causally-shape-multi-agent-ai-safety)  
    标签：评分：9.0/10、query:agent-safety
-   evidence：工具使用AI代理的动作分级危害量表，超越二元攻击成功率
-18. [Recursive Self-Improvement in AI: From Bounded Self-Refinement to Autonomous Research Loops](/202607/10/2607.07663v1-recursive-self-improvement-in-ai-from-bounded-self-refinement-to-autonomous-research-loops)  
-   标签：评分：9.0/10、query:agent-evolve
-   evidence：关于自我改进的综述，涵盖自进化、自对弈和自精炼
-19. [Institutional Red-Teaming: Deployment Rules, Not Just Models, Causally Shape Multi-Agent AI Safety](/202607/10/2607.07695v1-institutional-red-teaming-deployment-rules-not-just-models-causally-shape-multi-agent-ai-safety)  
+   evidence：通过部署规则因果影响多智能体AI安全
+10. [Multi-Agent Firewall Architecture for Privacy Protection of Sensitive Data in Interactions with Language Models](/202607/12/2607.08282v1-multi-agent-firewall-architecture-for-privacy-protection-of-sensitive-data-in-interactions-with-language-models)  
+   标签：评分：9.0/10、query:agent-safety
+   evidence：通过多智能体防火墙保护LLM交互中的隐私
+11. [Formal Mechanisms for Market Stability in Self-Interested Agent Societies: A Marketplace Simulation Study](/202607/12/2607.08652v1-formal-mechanisms-for-market-stability-in-self-interested-agent-societies-a-marketplace-simulation-study)  
    标签：评分：9.0/10、query:mas-security
-   evidence：多智能体AI安全评估方法论，关注部署规则对集体安全的影响
-20. [Tool-Making and Self-Evolving LLM Agents in Low-Latency Systems](/202607/10/2607.08010v1-tool-making-and-self-evolving-llm-agents-in-low-latency-systems)  
-   标签：评分：9.0/10、query:agent-evolve
-   evidence：通过工具制造流水线实现自进化LLM智能体
-21. [Persuasion Attacks Can Decrease Effectiveness of CoT Monitoring](/202607/10/2607.08066v1-persuasion-attacks-can-decrease-effectiveness-of-cot-monitoring)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：说服攻击破坏AI智能体的思维链监控
-22. [Securing Autonomous Vehicle Systems via Twin-Aware Federated Reinforcement Learning](/202607/10/2607.08137v1-securing-autonomous-vehicle-systems-via-twin-aware-federated-reinforcement-learning)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：通过联邦强化学习保护自动驾驶系统免受投毒攻击
-23. [Prismata: Confining Cross-Site Prompt Injection in Web Agents](/202607/10/2607.08147v1-prismata-confining-cross-site-prompt-injection-in-web-agents)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：针对Web智能体跨站提示注入的安全防御
-24. [Multi-Agent Firewall Architecture for Privacy Protection of Sensitive Data in Interactions with Language Models](/202607/10/2607.08282v1-multi-agent-firewall-architecture-for-privacy-protection-of-sensitive-data-in-interactions-with-language-models)  
-   标签：评分：9.0/10、query:mas-security
-   evidence：用于语言模型交互隐私保护的多智能体防火墙架构
-25. [Token-Flow Firewall: Semantic Runtime Auditing for Persistent AI Agents](/202607/10/2607.08395v1-token-flow-firewall-semantic-runtime-auditing-for-persistent-ai-agents)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：通过语义流拦截对持久化AI代理进行运行时安全审计
-26. [SolarChain-Eval: A Physics-Constrained Benchmark for Trustworthy Economic Agents in Decentralized Energy Markets](/202607/10/2607.08681v1-solarchain-eval-a-physics-constrained-benchmark-for-trustworthy-economic-agents-in-decentralized-energy-markets)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：面向可信经济智能体的物理约束基准
+   evidence：研究多智能体市场模拟中的对抗攻击鲁棒性
 
 ### 速读区论文标签
-1. [ContextNest: Verifiable Context Governance for Autonomous AI Agent](/202607/10/2607.02116v1-contextnest-verifiable-context-governance-for-autonomous-ai-agent)  
+1. [SovereignPA-Bench: Evaluating User-Owned Personal Agents under Evolving Intent, Platform Mediation, and Consent Constraints](/202607/12/2607.05363v1-sovereignpa-bench-evaluating-user-owned-personal-agents-under-evolving-intent-platform-mediation-and-consent-constraints)  
    标签：评分：8.0/10、query:agent-safety
-   evidence：为自主AI智能体提供可验证的上下文治理
-2. [Seduced by the Narrative: Assessing Rule Adherence in Semi-Open Textual Sandboxes](/202607/10/2607.02802v1-seduced-by-the-narrative-assessing-rule-adherence-in-semi-open-textual-sandboxes)  
+   evidence：可信与隐私：评估用户自有个人智能体的隐私和同意约束
+2. [Governable Individuals: An Identity Layer for Embodied Agents That Keep Learning](/202607/12/2607.05463v1-governable-individuals-an-identity-layer-for-embodied-agents-that-keep-learning)  
    标签：评分：8.0/10、query:agent-safety
-   evidence：LLM智能体的对抗鲁棒性和规则遵守
-3. [Object-Centric Environment Modeling for Agentic Tasks](/202607/10/2607.02846v1-object-centric-environment-modeling-for-agentic-tasks)  
-   标签：评分：8.0/10、query:agent-evolve
-   evidence：对象中心环境建模使智能体自主学习成为可能
-4. [AGL-1: The Enterprise AI Governance Layer as a Control Plane for Trusted Enterprise Intelligence](/202607/10/2607.03516v1-agl-1-the-enterprise-ai-governance-layer-as-a-control-plane-for-trusted-enterprise-intelligence)  
+   evidence：自修改智能体的安全治理与身份层
+3. [Beyond the Leaderboard: A Synthesis of Tool-Use, Planning, and Reasoning Failures in Large Language Model Agents](/202607/12/2607.05775v1-beyond-the-leaderboard-a-synthesis-of-tool-use-planning-and-reasoning-failures-in-large-language-model-agents)  
    标签：评分：8.0/10、query:agent-safety
-   evidence：企业级AI治理层确保可信智能
-5. [Anytime Plug-and-Play Control with Contract-Based Distributed MPC](/202607/10/2607.04215v1-anytime-plug-and-play-control-with-contract-based-distributed-mpc)  
+   evidence：综合了LLM代理包括安全在内的失败模式
+4. [Collaborative Multi-Agent Testing for Emergent Failure Discovery in Autonomous Driving Systems](/202607/12/2607.06078v1-collaborative-multi-agent-testing-for-emergent-failure-discovery-in-autonomous-driving-systems)  
    标签：评分：8.0/10、query:mas-security
-   evidence：分布式多智能体控制保证碰撞避免和约束满足
-6. [UA-ChatDev: Uncertainty-Aware Multi-Agent Collaboration for Reliable Software Development](/202607/10/2607.02186v1-ua-chatdev-uncertainty-aware-multi-agent-collaboration-for-reliable-software-development)  
+   evidence：多智能体协作测试自动驾驶系统涌现故障
+5. [CurateEvo: Data-Curation Evolving for Agentic Post-Training](/202607/12/2607.06140v1-curateevo-data-curation-evolving-for-agentic-post-training)  
+   标签：评分：8.0/10、query:agent-evolve
+   evidence：数据策展进化框架用于智能体自我进化
+6. [Information Gain-based Rollout Policy Optimization: An Adaptive Tree-Structured Rollout Approach for Multi-Turn LLM Agents](/202607/12/2607.06223v1-information-gain-based-rollout-policy-optimization-an-adaptive-tree-structured-rollout-approach-for-multi-turn-llm-agents)  
+   标签：评分：8.0/10、query:agent-evolve
+   evidence：基于强化学习的LLM智能体自我改进
+7. [Biological Motifs for Agentic Control](/202607/12/2607.04240v1-biological-motifs-for-agentic-control)  
    标签：评分：7.0/10、query:agent-safety
-   evidence：不确定性感知的多智能体框架减少幻觉传播，提升可靠性
-7. [Agent Reinforcement Learning via Pivotal-Aware Self-Feedback Retry](/202607/10/2607.03702v1-agent-reinforcement-learning-via-pivotal-aware-self-feedback-retry)  
+   evidence：鲁棒性与安全：利用生物基元解决智能体控制的可靠性和注入攻击问题
+8. [ACE-Brain-0.5: A Unified Embodied Foundational Model for Physical Agentic AI](/202607/12/2607.04426v1-ace-brain-05-a-unified-embodied-foundational-model-for-physical-agentic-ai)  
    标签：评分：7.0/10、query:agent-evolve
-   evidence：用于强化学习代理经验利用的自我反馈重试框架
-8. [Progress- and Reliability-Oriented Group Policy Optimization for Agentic Reinforcement Learning](/202607/10/2607.04242v1-progress--and-reliability-oriented-group-policy-optimization-for-agentic-reinforcement-learning)  
+   evidence：具身AI代理中的自改进
+9. [Measuring Harness-Induced Belief Divergence in Multi-Step LLM Agents](/202607/12/2607.04528v1-measuring-harness-induced-belief-divergence-in-multi-step-llm-agents)  
    标签：评分：7.0/10、query:agent-safety
-   evidence：面向鲁棒性的智能体强化学习组策略优化
-9. [RoME: Robust Mixture of Low-Rank Experts against Multiple Adversarial Perturbations](/202607/10/2607.06109v1-rome-robust-mixture-of-low-rank-experts-against-multiple-adversarial-perturbations)  
-   标签：评分：7.0/10、query:agent-safety
-   evidence：针对多种对抗扰动的鲁棒性
-10. [STAPO: Selective Trajectory-Aware Policy Optimization for LLM Agent Training](/202607/10/2607.04963v1-stapo-selective-trajectory-aware-policy-optimization-for-llm-agent-training)  
-   标签：评分：6.0/10、query:agent-evolve
-   evidence：解决轨迹忽视的RL训练方法
-11. [Learning to Control LLM Agent Harnesses with Offline Reinforcement Learning](/202607/10/2607.05458v1-learning-to-control-llm-agent-harnesses-with-offline-reinforcement-learning)  
-   标签：评分：6.0/10、query:agent-evolve
-   evidence：通过离线强化学习改进智能体执行框架
-12. [StateFuse: Deterministic Conflict-Preserving Memory for Multi-Agent Systems](/202607/10/2607.05844v1-statefuse-deterministic-conflict-preserving-memory-for-multi-agent-systems)  
+   evidence：测量框架导致的信念分歧，关乎智能体鲁棒性和可靠性
+10. [Multi-Turn On-Policy Distillation with Prefix Replay](/202607/12/2607.04763v1-multi-turn-on-policy-distillation-with-prefix-replay)  
+   标签：评分：7.0/10、query:agent-evolve
+   evidence：面向多轮智能体任务的在策略蒸馏，利用教师轨迹实现高效自我改进
+11. [Collective Intelligence with Foundation Models](/202607/12/2607.07729v1-collective-intelligence-with-foundation-models)  
    标签：评分：6.0/10、query:mas-security
-   evidence：多智能体系统的冲突保持内存，通过正确性保障安全性
-13. [ORCAID: Oblique Rule-Based Continuous-Action Interpretation for Deep RL Policies](/202607/10/2607.07235v1-orcaid-oblique-rule-based-continuous-action-interpretation-for-deep-rl-policies)  
+   evidence：旨在更安全、更可靠AI的多智能体协作推理框架
+12. [Harness VLA: Steering Frozen VLAs into Reliable Manipulation Primitives via Memory-Guided Agents](/202607/12/2607.08448v1-harness-vla-steering-frozen-vlas-into-reliable-manipulation-primitives-via-memory-guided-agents)  
    标签：评分：6.0/10、query:agent-safety
-   evidence：可解释规则提取增强RL代理的可信度
+   evidence：增强基于VLA的操作代理在部署扰动下的鲁棒性
+13. [Multi-Modal, Multi-Environment Machine Teaching for Robust Reward Learning](/202607/12/2607.08647v1-multi-modal-multi-environment-machine-teaching-for-robust-reward-learning)  
+   标签：评分：6.0/10、query:agent-safety
+   evidence：跨环境的自主智能体鲁棒奖励学习
 
 
 <div class="dpr-home-promo-card">

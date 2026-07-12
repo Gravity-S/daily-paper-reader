@@ -1,0 +1,467 @@
+Title: Governed Caste Reassignment in Heterogeneous Swarms: An Asymmetric-Trust Protocol with Audited Operator Countersignature
+
+URL Source: https://arxiv.org/pdf/2607.04634v1
+
+Published Time: Tue, 07 Jul 2026 03:27:50 GMT
+
+Number of Pages: 28
+
+Markdown Content:
+# Governed Caste Reassignment in Heterogeneous Swarms: An Asymmetric-Trust Protocol with Audited Operator Countersignature 
+
+## Xue Qin 1, Simin Luan 2, Cong Yang 3* , Zhijun Li 2* 
+
+> 1*
+
+School of Software, Harbin Institute of Technology, Harbin, China. 
+
+> 2
+
+School of Computer Science and Technology, Harbin Institute of Technology, Harbin, China. 
+
+> 3
+
+School of Future Science and Engineering, Soochow University, Suzhou, China. *Corresponding author(s). E-mail(s): cong.yang@suda.edu.cn; lizhijunos@hit.edu.cn; Contributing authors: qinxue@me.com; luansiminiot@gmail.com; 
+
+Abstract 
+
+In heterogeneous robot swarms, caste reassignment is a high-frequency runtime event: battery depletion forces a logistics-caste robot into a low-power patrol caste; a payload limit forces a heavy-lift caste robot into an observation caste. Existing approaches treat reassignment as an internal allocation algorithm (auc-tion, consensus bundle, behaviour-tree) and do not expose the reassignment event to external authority. We argue that for regulated embodied deployments a caste change that elevates a robot’s privilege envelope is a governance event that must be auditable and externally authorised. We propose an asymmetric-trust pro-tocol in which auto-tightening reassignments (going to safer or lower-privilege castes) are admitted automatically while bounded relaxation (going to higher-privilege castes) requires operator countersignature. The protocol carries a signed cause-chain documenting why each reassignment was needed; the chain is a hash-chained, Merkle-committed audit log verifiable offline against the operator’s key. We evaluate a reference implementation with real Ed25519 signatures and a hash-chained Merkle audit log, in simulation over fleets up to 100 robots with a parameterized robot-class timing point at 10 robots (slower signatures, heavier wireless variance; not a hardware measurement): auto-tightening completes in single-digit to low-double-digit milliseconds and the audit gate adds single-digit to low-double-digit milliseconds over an ungoverned reassignment (growing with 
+
+1  
+
+> arXiv:2607.04634v1 [cs.RO] 6 Jul 2026 Privilege lattice (P,)
+> operator-only
+> bounded-relax
+> auto-tighten
+
+Proposed reassignment c c′
+
+> evaluated against the operator-signed lattice
+
+Mechanical Classifier 
+
+> local, no operator
+
+Auto-tighten 
+
+> permissionless
+> 1 round trip
+
+Bounded-relax 
+
+> operator countersig
+> per-axis budget B
+
+Operator-only           
+
+> explicit
+> certificate issuance
+> Cause-Chain Record obs ,hi,c,c′,t,class ,i,?
+> O,F
+> Fleet Audit Chain (operator-signed Merkle root per epoch)
+> External Regulator / Auditor
+
+Fig. 1 Governed caste reassignment, overview. A proposed caste transition c → c′ is classified locally and mechanically against the operator-declared privilege lattice ( P, ⪯) into one of three classes (auto-tighten, bounded-relax, operator-only). Each class is admitted through a different authorisation path: tightening is permissionless, bounded relaxation requires an operator countersignature against a per-axis bound Bα, and operator-only admission requires explicit certificate issuance. Every transition produces a cause-chain record carrying the triggering observation, the proposing robot’s identity hash, the source and target castes, the class, the robot signature, and the operator countersignature (if any), appended to the fleet-level audit chain whose per-epoch Merkle root the operator signs and which is presentable to an external regulator. 
+
+fleet size). The protocol refuses all four explicit attack patterns (caste laundering, repeated-relaxation privilege escalation, operator impersonation, and cause-chain forgery) by construction; a partially-governed baseline isolates which gate stops which attack, a real offline auditor reconstructs and verifies every record and rejects tampering, and forged tighten records never reach the Byzantine quorum. The construction generalises a single-agent persona-mutation governance gate to swarm-level caste governance. 
+
+Keywords: Multi-Agent Systems, Role Reassignment, Adjustable Autonomy, Operator Authority, Cryptographic Audit, Governed Heterogeneous Swarms, Asymmetric-Trust Protocol 
+
+# 1 Introduction 
+
+A heterogeneous robot swarm operating in a regulated environment (a hospital ward fleet, a factory cobot pool, a defence installation) must continuously reassign caste ,2our term for a role bound to a capability profile, as battery levels fall, payloads change, and operational priorities shift. We use “caste” and “role” interchangeably, preferring “caste” for its biological connotation of a capability-bound role. Multi-agent systems have a long tradition of treating reassignment as a first-class problem. Role allocation and reallocation were formalised by Nair, Tambe and Marsella [1] at AAMAS 2003 and surveyed comprehensively by Campbell and Wu [2]. Organisational MAS adds a deontic dimension binding permissions and obligations to roles, as in the MOISE+ family [3], and the broader organisational-paradigm landscape [4]. Coalition forma-tion [5] and market-based multi-robot coordination [6] offer algorithmic substrates, with the MRTA taxonomy [7] and its extension iTax [8] as canonical classifications. The closest analogue to our human-anchored authorisation is adjustable autonomy [9], which models when an agent transfers a decision to an external human authority via a Markov-decision-process-style transfer-of-control policy. Normative MAS [10] models roles and obligations as norms, with explicit monitoring and sanctioning. This paper argues that for regulated deployments a caste change that elevates a robot’s privilege envelope is a governance event that must be both auditable and exter-nally authorised, and that the existing constructions above do not jointly supply three properties our setting requires: (i) privilege monotonicity as a structural invariant (tightening is permissionless, relaxation is gated); (ii) cryptographic, offline-verifiable 
+
+auditability of every transition; and (iii) a per-axis bounded budget on relaxation that an external regulator can inspect without trusting any internal allocation algo-rithm. Adjustable autonomy supplies the transfer-of-control mechanism but not the cryptographic audit-chain anchoring, role reallocation supplies the algorithmic choice but not the asymmetric gating, and normative MAS supplies the norm-and-sanction vocabulary but not the privilege-lattice discipline. We propose an asymmetric-trust protocol pattern that ports a single-agent persona-mutation governance gate [11] into the swarm setting and anchors it in the fleet-level federation primitive of [12]. The construction sits within a programme of runtime governance for embodied agents that previously factored admission, policy enforcement, recovery, and human takeover out of the agent into a separable layer [13]; the present paper extends the same posture to caste change in heterogeneous fleets. The protocol classifies each proposed reassignment as auto-tighten, bounded-relax, or operator-only, and admits each class through a different authorisation path. The delta over prior MAS work is the combination of (i)–(iii) above, not the idea that role change should be externally governed. 
+
+Contributions. 
+
+This paper makes five contributions. 1. A caste reassignment taxonomy (§3.2) classifying every reassignment as one of three governance classes (auto-tighten, bounded-relax, operator-only), motivated by eusocial-insect caste-plasticity analogues [14, 15] but reframed as a software-pattern problem. 2. An asymmetric-trust protocol (§3.3) lifting a single-agent asymmetric-trust gate [11] to swarm-level caste reassignment. Tightening is permissionless; bounded relaxation 3requires operator countersignature; operator-only castes require explicit certificate issuance. Every transition is auditable. 3. A cause-chain construction (§3.4) documenting reassignment provenance, inte-grated with the fleet-level audit chain of the federation primitive of [12]. The chain supports forensic reconstruction of any reassignment from the audit chain alone. 4. An evaluation (§4) of a reference implementation with real Ed25519 signatures and a hash-chained Merkle audit log, in simulation over fleets up to 100 robots (with a parameterized robot-class timing point at 10 robots). It reports single-digit to low-double-digit millisecond tightening latency and a single-digit to low-double-digit millisecond governance overhead (growing with fleet size), and it isolates the gate each attack requires via a partially-governed baseline, exercises the offline auditor and the Byzantine quorum directly, and reports the measured cost of the governed decision. 5. A distributed audit layer (§3.5) that replicates the admitted audit records across N
+
+per-member logs with a quorum-committed total order, proves an agreement and fork-exclusion guarantee (Proposition 6), and is evaluated both in a property sim-ulation and as a real deployment of N separate processes over TCP sockets with a real Byzantine equivocator ( §4.6), on which every honest replica agrees and detects the equivocation and no fork commits. This is a safety layer over already-admitted records, not a new consensus protocol; it composes the standard quorum-certificate and audit-log primitives for the governed-caste setting. The agreement guarantee is a safety property for running nodes (the real run is single-host loopback, and crash-recovery durability and multi-host networking are future work). 
+
+Scope of the contribution. 
+
+We are precise about what this paper offers. The contribution is a governance pattern 
+
+for caste reassignment, together with a reference implementation that realises the full cryptographic substrate (per-principal Ed25519 keys, an operator-signed identity man-ifest, a hash-chained Merkle audit log with a persisted Byzantine-quorum certificate, an offline auditor, and a replicated N -member audit layer with quorum-committed total order and fork exclusion) and evaluates it in simulation. The novelty is the specific combination (i)–(iii) above, not any single primitive: role governance, access-control lattices, threshold signatures, and audit logs are all classical. The replicated-log layer with fork exclusion is implemented and evaluated directly, both in a property simu-lation at scale and as a real multi-process deployment over TCP sockets with a real Byzantine equivocator process ( §3.5, §4.6); what remains out of scope is a physical-robot deployment, a multi-host wide-area network, and the asynchronous-consensus concerns (network asynchrony, view changes, and liveness under asynchrony) that any production replication would layer beneath the safety property we establish ( §5). 42 Related Work 
+
+Multi-Robot Task Allocation. 
+
+The MRTA taxonomy [7] and its extension iTax of Korsah et al. [8] are the canon-ical references for the internal-allocation framing, with coalition formation [5] and market-based multi-robot coordination [6] as algorithmic substrates. Recent dynamic allocation extends the line with behaviour-tree capabilities [16] and global-games for-mulations [17], and the Swarmanoid [18] lineage demonstrates heterogeneous-swarm hardware. These constructions optimise an internal objective (throughput, makespan, energy budget) and treat reassignment as an algorithmic decision; none expose the reassignment event to external authority. Caste reassignment is orthogonal: the proto-col governs role change rather than coalition choice, and composes above any allocator that respects the privilege lattice. 
+
+Role Allocation and Reallocation. 
+
+The closest body of MAS work is role allocation and reallocation in agent teams. Nair, Tambe and Marsella [1] formalise role reallocation as conditions change, and provide the practical analysis that subsequent work builds on. Campbell and Wu [2] survey the field and articulate its open issues. More recent work brings a human into the reallocation loop: Al-Hussaini et al. [19] generate task-reallocation suggestions for a human supervisor to approve under contingencies. These constructions choose roles for agents under an objective (efficiency, makespan, robustness), and even when a human approves the choice they do not bind the role change to an offline-verifiable authori-sation record: the decision is the final word and leaves no cryptographic provenance. Our construction layers a governance gate above the choice, leaving the algorithm to propose and adding a cryptographic, privilege-monotone authorisation surface. 
+
+Organisational MAS and Reorganisation. 
+
+The deontic dimension of organisational MAS attaches permissions and obligations to roles. The MOISE+ model [3] specifies structural, functional, and deontic facets of agent organisations; the broader paradigm survey of Horling and Lesser [4] positions teams, coalitions, hierarchies, and federations. The privilege lattice of §3.2 can be read as a runtime, cryptographically enforceable instance of the permission facet of MOISE+’s deontic specification: it governs which actions a caste may perform, while the richer obligation relations of MOISE+ are out of scope. Closest to our framing of role change as a managed, authorised event is the MOISE+ reorganisation framework of H¨ ubner et al. [20], which treats organisational change as a first-class cooperative process; we add the asymmetric authorisation gate and the cryptographic audit record that reorganisation leaves unspecified. 
+
+Adjustable Autonomy and Human Supervisory Control. 
+
+The closest conceptual analogue to operator countersignature is adjustable autonomy. Scerri, Pynadath and Tambe [9] model the decision of when an agent transfers con-trol to an external human authority as an MDP-style policy choice, and the human supervisory control of multi-robot teams surveyed by Chen et al. [21] establishes the 5operator-in-the-loop setting our countersignature lives in. The bounded-relax path of §3.3 can be viewed as an asymmetric, privilege-monotone instance of transfer-of-control where the trigger is fixed (any relaxation along an operator-bounded axis), the authority is unambiguous (the operator’s signing key), and the act produces a cryp-tographically verifiable audit record. Our delta over MDP-style adjustable autonomy is the offline-verifiable cause-chain and the per-axis budget construction. 
+
+Normative MAS and Electronic Institutions. 
+
+Boella, van der Torre and Verhagen [10] introduce normative multi-agent systems and the norm-monitoring-and-sanctioning machinery that follows, and the electronic-institutions line [22], with its runtime norm enforcement [23], supplies the canonical framework for imposing external authority on agent interactions. Caste reassignment under operator countersignature is a regulative-norm instance: the norm constrains which transitions are admissible, and the operator signature is the monitoring author-ity. The cause-chain is the offline-verifiable monitoring and evidence record, not a sanction; what follows from a detected violation (the sanctioning step) is a deployment-policy decision we leave out of scope. Our contribution is the cryptographic realisation of this monitoring layer in a multi-robot setting. 
+
+Multi-Robot Authorisation Infrastructure and Blockchain Swarms. 
+
+SROS2 [24] provides per-node certificate issuance and signed transport, with attribute-based access control extensions [25] for per-robot authorisation, and the privilege lattice itself instantiates the lattice-based access-control tradition [26]. The blockchain-swarm literature [27, 28] addresses inter-robot trust under a flat-Byzantine assumption without operator anchor. Caste handling, where present in those constructions, sits inside internal allocation and is not exposed to external authority. Our construction operates above the SROS2 substrate and outside the blockchain-internal-trust posture, with operator-authority caste authorisation as its distinguishing axis. 
+
+Biological Caste Plasticity. 
+
+Eusocial insect colonies exhibit caste plasticity at the level of individual work-ers [14, 15, 29]: a worker bee progresses from nurse to forager as it ages (age polyethism) and may shift caste under colony-level demands. The biological process is homeo-static and developmental; we adopt the caste vocabulary and the empirical observation of frequent reassignment, but the authorisation construct is engineered rather than inherited. 
+
+Programme Context. 
+
+The protocol generalises a single-agent persona-mutation governance gate [11] from one robot to a fleet, and is anchored in the federation primitive of [12]. The broader runtime-governance posture the construction inherits (admission, policy, exception monitoring, recovery, and human takeover as a separable layer above the agent) is established in [13] at the single-agent level; the present paper extends that pos-ture to the multi-robot setting. To delineate what is reused from what is new: the 6single-agent asymmetric gate, the operator-signed identity manifest, and the BLS-aggregated Merkle audit chain are taken from [11, 12]; this paper contributes the lattice-structured per-axis relaxation budget anchored at the operator-reset baseline (Definition 1, Proposition 3), the swarm-quorum lift of the gate (Proposition 4), the caste-laundering containment argument, and the upstream-signature separation in the cause-chain record. The properties this paper proves are proved here against the model of §3.1, not inherited. 
+
+# 3 Method 
+
+We present the construction in four parts: a fleet and threat model, a privilege-lattice taxonomy of caste transitions, the three-path asymmetric-trust protocol, and the cause-chain record that makes every transition auditable. 
+
+## 3.1 Fleet and Threat Model 
+
+We consider a fleet of N robots communicating over authenticated, integrity-protected channels. The per-node certificates and signed transport of SROS2 [24] supply message authentication but not agreement, so the agreement layer is stated here rather than inherited. Among the N members at most f may be Byzantine, with the standard bound f = ⌊(N − 1) /3⌋; honest members follow the protocol and Byzantine members deviate arbitrarily. A tighten record is admitted only when a quorum of ⌈(N +f +1) /2⌉
+
+members acknowledge it, the classical authenticated-Byzantine quorum under which any two quorums intersect in at least one honest member [30]; bounded-relax and operator-only records are instead gated by the operator countersignature rather than a fleet quorum ( §3.3), and the reference implementation enforces the quorum on exactly the tighten path (Proposition 4). This quorum is a local admission rule that supplies honest endorsement of a tighten record; the replicated layer that extends it to a fork-free total order across the fleet, and its agreement and fork-exclusion guarantee, are given in §3.5 (Proposition 6) and evaluated in §4.6. An external operator holds a signing key whose public half every member knows; the operator is the sole authority for relaxation countersignatures and operator-only certificates. We use “asymmetric trust” in a structural, not reputational, sense: tightening is trusted to the fleet quorum, and relaxation is trusted only to the operator. This differs from the computational trust-and-reputation models surveyed by Pinyol and Sabater-Mir [31], which estimate peer trustworthiness from observed behaviour. Here trust placement is fixed by the privilege direction of the transition and does not depend on any peer’s history. 
+
+Threat model. 
+
+We assume an adversary attempting to misuse the caste construction in four explicit patterns: 1. Caste laundering. An adversary-controlled robot proposes a tighten (to a lower-privilege caste) and then, before the audit chain commits, proposes a relax of the same magnitude back to (or beyond) the original caste, hoping the net change appears null while the relaxation is unaudited. 72. Repeated-relaxation privilege escalation. An adversary-controlled robot repeatedly proposes small bounded relaxations within an operator-pre-committed envelope, each of which the operator countersigns under a fast path, but whose cumulative effect exceeds the operator’s intended envelope. 3. Operator impersonation. An adversary forges a countersignature on a relaxation request, hoping fleet members accept the forged signature as authoritative. 4. Cause-chain forgery. An unauthorized party (here a registered robot or the adver-sary, not the designated sensor) signs a cause record (e.g., “battery low at t”) and submits it as the triggering observation, hoping to justify an unwarranted tighten or relax. The protocol’s defence is provenance, not physical truth: it establishes that the triggering observation carries a valid signature from an authorized sensor , so a self-signed or adversary-signed cause is rejected. It does not certify that a correctly-signed observation is physically true, fresh, or unique; a compromised authorized sensor and stale-observation replay are separate threats outside the scope stated below. The four patterns above scope the admission-surface claims; audit-log equivoca-tion across replicas is handled separately by the distributed layer ( §3.5), which detects a Byzantine equivocator and excludes forks (evaluated in §4.6). Threats outside this combined set (signature replay, stale observations, operator-reset abuse, and a compro-mised but authorized sensor) are material for a full deployment but are not modelled or refuted here; we return to them in §5. The evaluation combines conformance and gate-removal ablations (RQ3) with a randomized fuzz adversary that mutates otherwise-valid records ( §4.4) and a distributed Byzantine-equivocation experiment (§4.6), so it is not purely a fixed-case conformance study. 
+
+Cryptographic substrate. 
+
+The construction is self-contained on standard primitives. Each principal (every robot, the operator, and each sensor) holds an Ed25519 signing key [32]; an operator-signed 
+
+identity manifest binds each robot to its public key and records the privilege lattice (§3.2). The audit chain is an append-only log, hash-chained for tamper evidence and committed per epoch to a Merkle root [33] that the operator signs; an inclusion proof binds any record to that root, and an external auditor verifies the chain, the proof, and every embedded signature using only public keys. The reference implementation ( §4) realises exactly this substrate. Where a fleet wishes to compress many acknowledge-ments into one, the federation primitive of [12] can aggregate signatures (for example via BLS [34]); we treat aggregation as an optional optimisation and do not depend on it for any property proved here. 
+
+## 3.2 Caste Reassignment Taxonomy 
+
+We first define the privilege lattice and its relaxation magnitude metric, then partition the space of caste transitions into three governance classes by their privilege effect. 
+
+Definition 1 (Privilege lattice) . Let Σ be a universe of actions a robot can request and A a finite set of named relaxation axes (e.g., battery budget, payload weight, 8mission risk). A privilege lattice is a triple L = ( P, ⪯, actions ) where P is the set of castes, ⪯ is a partial order on P , and actions : P → 2Σ is monotone in ⪯, i.e., 
+
+c ⪯ c′ implies actions (c) ⊆ actions (c′). For each axis α ∈ A the operator declares at deployment time a magnitude function ∆ α : P × P → R≥0 such that ∆ α(c, c ′) > 0 iff the transition c → c′ relaxes along axis α. The lattice and the magnitude functions together are part of the operator-signed identity manifest ( §3.1). The partial order ⪯ with monotone actions is the multi-robot, runtime instance of a lattice-based access-control model [26, 35]: a caste plays the role of a security label and tightening is a downgrade along the lattice. The magnitude ∆ α is the metric the operator bounds. At deployment the operator pre-commits an envelope E ⊆ A of relaxable axes and a per-axis bound Bα ∈ R≥0 for each α ∈ E; the triple ( E, {Bα}, ∆α)is the bounded-relax authorisation state used in Section 3.3. The bound caps the ele-vation of the target caste above the most recent operator-reset baseline c⋆: a target c′
+
+is admissible along axis α iff ∆ α(c⋆, c ′) ≤ Bα. This is a fixed envelope, not a deplet-ing counter; because it is charged from c⋆ rather than the robot’s current caste, no transient tighten can free headroom (Proposition 3) and no sequence of relaxations can exceed it (Proposition 2). A separate, genuinely depleting ratification token gov-erns only the fast path of the bounded-relax protocol and is defined in Section 3.3. For battery the operator might declare ∆ battery (c, c ′) = max(0 , busy( c′) − busy( c)) in expected watt-hours per shift; for payload it might be the additional maximum weight 
+
+c′ may carry. The protocol is agnostic to the units; it depends only on ∆ α being operator-signed and bounded. 
+
+Definition 2 (Caste reassignment classes) . Let O ⊆ P be the set of castes the operator has explicitly reserved for case-by-case authorisation. A caste transition c → c′ is classified, in this priority order, as: 
+
+• Operator-only if c′ ∈ O. Examples: medication-delivery caste in a hospital; weapons-bearing caste in defence; passenger-transport caste in a logistics fleet. 
+
+• Auto-tighten if c′ /∈ O and actions (c′) is a strict subset of actions (c) (every action 
+
+c′ can perform, c can perform; some actions c can perform, c′ cannot). Examples: logistics → patrol; manipulator → observer. 
+
+• Bounded-relax if c′ /∈ O, the transition is not a tighten, and every axis it relaxes along lies in the operator-pre-committed envelope E. Examples: patrol → logis-tics within the battery-budget threshold; observer → light manipulator within the payload-weight threshold. 
+
+• Operator-only (default) in every remaining case: a transition between incomparable castes, or one that relaxes along an axis outside E, falls here. This makes the classification total: the safe default for anything the operator did not pre-authorise is to route it through explicit operator admission. The privilege lattice is operator-declared at deployment time as part of the identity manifest [12]. Each caste is annotated with the action set it can perform and the axes along which it is relaxable. A pure relabel that changes neither the action set nor any relaxation axis is, by Definition 2, neither tighten nor bounded-relax and routes to 9operator-only by default; a privilege-neutral caste change therefore still produces an audited operator decision. The classification of a proposed transition is mechanical: a fleet member can compute it locally given the lattice and does not need to consult the operator to decide whether a transition is tighten, bounded-relax, or operator-only. What the operator countersignature gates is the relaxation (and not the classification), and what the operator certificate issues is the operator-only admission (and not the classification). The taxonomy is asymmetric. Tightening is structurally safer than relaxing, and the protocol exploits this asymmetry to keep the operator’s authorisation cadence tractable: tightening events do not consume operator attention, only relaxation does. 
+
+## 3.3 Asymmetric-Trust Protocol 
+
+The protocol has three paths corresponding to the three classes of Definition 2. Each path produces an auditable cause-chain record ( §3.4) anchored in the fleet-level audit chain. The protocol steps below describe the distributed form in which each member appends to a local replica. The latency and attack experiments (RQ1–RQ4) run this chain as a single logical append-only log with the same hash-chain and Merkle com-mitment; the fully replicated N -member form, with quorum-committed total order and fork exclusion, is specified in §3.5 and evaluated separately in §4.6. 
+
+Tighten path. 
+
+When a robot i proposes an auto-tighten transition c → c′, the protocol completes in one round trip among fleet members: 1. Robot i signs a tighten-request record: ⟨cause , c, c ′, t, σ i⟩.2. Each fleet member verifies that c → c′ is auto-tighten under the privilege lattice (Definition 2). 3. Members append the record to their local audit chain and return an acknowledge-ment. 4. Robot i adopts caste c′ on receiving a quorum of acknowledgements. Tightening does not require operator countersignature. The correctness property is that tighten is monotone in the privilege lattice: a sequence of tighten transitions never results in higher privilege than the starting caste. 
+
+Bounded-relax path. 
+
+When robot i proposes a bounded-relax transition c → c′ within an operator-pre-committed envelope, the protocol completes in two round trips: 1. Robot i signs a relax-request record carrying the triggering observation (e.g., battery state, payload measurement, time elapsed since last relaxation). 2. Each fleet member verifies that the request is within the envelope: every axis it relaxes along is on the operator’s pre-committed list, and the elevation of the 10 target caste above the operator-reset baseline is within the per-axis bound Bα
+
+(Definition 1). 3. The operator countersigns the record. This takes a short-circuit form when a pre-issued ratification token , a finite depleting headroom of relaxation magnitude, can cover the request; the token is then decremented. When the token cannot cover the request the countersignature takes a live form (an interactive operator signature) and the operator reissues the token. The token gates latency, not security: the envelope bound of step 2 holds on every admitted relaxation regardless of the token’s state. 4. Fleet members append the countersigned record to the audit chain; robot i adopts caste c′.The envelope check on step 2 is what prevents repeated-relaxation escalation (threat 2 of §3.1): because every admitted target must lie within Bα of the operator-reset baseline, no sequence of relaxations, however long, reaches a caste beyond the envelope, and only an operator reset moves the baseline. 
+
+Operator-only path. 
+
+When robot i requires admission into an operator-only caste c′, the protocol degenerates to an explicit operator issuance: 1. Robot i signs a request record naming the operator-only caste and the justification. 2. The operator inspects the request out of band and either issues a fresh operator-signed caste binding (an operator countersignature over the record) or denies the request. 3. If issued, the operator-signed binding supersedes the robot’s previous caste and is recorded in the audit chain. The robot adopts c′.No automatic admission path exists for operator-only castes. Their distinguish-ing engineering property is that the operator is in the synchronous critical path of admission. The reference implementation models the binding as this operator coun-tersignature; certificate expiry and revocation follow standard public-key practice and are out of scope. 
+
+Properties. 
+
+We now state and prove the protocol’s guarantees. 
+
+Proposition 1 (Tighten safety) . Any sequence of tighten transitions starting from caste c0 results in a caste ck such that actions (ck) ⊆ actions (c0).                  
+
+> Proof Each admitted tighten step cj−1→cjsatisfies actions (cj)⊊actions (cj−1) by Def-inition 2. Chaining the inclusions over j=1, . . . , k gives actions (ck)⊆actions (c0) by transitivity of ⊆.□
+
+Proposition 2 (Bounded-relax containment) . Fix an operator-reset baseline caste c⋆,an envelope E ⊆ A , and per-axis bounds {Bα}α∈E . The protocol admits the full k-step 
+
+11 (a) Authorisation paths as message round trips             
+
+> robot ifleet quorum operator
+> Auto-tighten (1 RT)
+> Bounded-relax (fleet RT + operator)
+> Operator-only (certificate)
+> signed request
+> quorum ack (q)
+> adopt c′
+> relax + obs
+> envelope check
+> countersig O
+> adopt c′
+> request
+> certificate
+> (b) Laundering fails: charge from reset baseline
+> envelope bound B
+> reset
+> baseline
+> relax charge from baseline
+> exceeds B
+> refused
+> transient tighten (frees no headroom)
+
+Fig. 2 Left (a): the three authorisation paths as message round trips. Auto-tighten completes in one fleet round trip and a quorum of ⌈(N +f +1) /2⌉ acknowledgements; bounded-relax adds an operator countersignature ( σO ); operator-only is an explicit certificate issuance. Right (b): the per-axis budget meter. The relax charge ∆ α is measured from the operator-reset baseline, so a transient tighten frees no headroom and a relax that would exceed Bα is refused. This is the mechanism behind Proposition 3. 
+
+sequence of relax transitions c⋆ = c0 → c1 → · · · → ck that relaxes only along axes in 
+
+E if and only if the per-axis prefix invariant ∆α(c⋆, c j ) ≤ Bα for every α ∈ E and every prefix j ≤ k
+
+holds. The per-axis bounds are independent: the bound Bα does not constrain Bβ
+
+for β̸ = α. The baseline c⋆ is the operator-declared baseline for the current epoch and is fixed throughout it; it changes only when the operator declares a new signed baseline (a reset ), which begins a new epoch with its own signed Merkle root against which that epoch’s records are audited. The bound is a fixed limit on elevation above 
+
+c⋆, not a counter that usage depletes. The reference implementation fixes one such baseline per envelope and audits each epoch against its declared baseline; dynamic in-log rebaselining within a single epoch is not separately modelled ( §5). 
+
+Proof (⇐) Suppose the prefix invariant holds. At step j, the admission check of the bounded-relax path ( §3.3, step 2) evaluates ∆ α(c⋆, c j ) ≤ Bα for each α ∈ E, which holds by assumption, so every step is admitted. ( ⇒) Suppose some prefix violates the invariant, and let j be the first such prefix, with ∆ β (c⋆, c j ) > B β for some axis β. The step-2 check at step 
+
+j evaluates exactly this quantity and rejects, so the sequence is not admitted past cj−1. Inde-pendence is immediate because each axis is checked against its own bound, and the charge ∆α(c⋆, ·) is measured from the fixed epoch baseline c⋆, changing only when the operator declares a new baseline for a subsequent epoch. □
+
+Proposition 3 (Caste-laundering prevention) . Let c⋆ be the operator-reset baseline. A tighten transition c⋆ → c′ (with actions (c′) ⊊ actions (c⋆)) followed by a relax c′ → c′′ 
+
+is charged ∆α(c⋆, c ′′ ) on every axis α, the same charge as a direct relax c⋆ → c′′ . The 
+
+12 intervening tighten therefore grants no budget headroom, and the relax is admitted only if ∆α(c⋆, c ′′ ) ≤ Bα for all α.            
+
+> Proof By Definition 1 the budget charge for reaching c′′ is ∆ α(c⋆, c ′′ ), computed from the reset baseline rather than from the current caste c′. This value is independent of the path taken to c′′ , so the tighten to c′leaves it unchanged. Admission then reduces to the prefix invariant of Proposition 2 evaluated at c′′ . Had the charge instead been measured from c′,the adversary could manufacture headroom by tightening far and relaxing back in budgeted steps; anchoring at c⋆removes exactly this freedom. □
+
+Proposition 4 (Tighten-path quorum) . Tightening proceeds without operator coun-tersignature but is not unilateral. Under the authenticated-Byzantine fleet model of 
+
+§3.1 (at most f = ⌊(N − 1) /3⌋ Byzantine members), a tighten record enters the audit chain only when at least ⌈(N + f + 1) /2⌉ members acknowledge it. No single rogue robot can then forge a tighten record without the endorsement of at least one honest peer.               
+
+> Proof A quorum of size q=⌈(N+f+ 1) /2⌉satisfies 2 q > N +f, so any two quorums share more than fmembers and therefore at least one honest member, the standard quorum-intersection argument [30]. Since each honest member acknowledges a record only after verifying it is a valid tighten under the lattice (Definition 2), an admitted record carries at least one honest endorsement. □
+
+Totally ordering conflicting bindings for the same robot (excluding a fork) addition-ally requires an append-only per-robot head-extension discipline over the hash-chained log of §3.1; we treat that ordering discipline as a deployment detail and do not rely on it for any property above. 
+
+Corollary 1 (By-construction attack resistance) . Under the model of §3.1, the pro-tocol admits none of the four threats of §3.1: caste laundering and repeated-relaxation escalation are refused by Propositions 2 and 3 (the per-axis prefix invariant charged from c⋆); operator impersonation is refused because a relax or operator-only admission requires a signature that verifies against the operator’s public key; and cause-chain forgery is refused because the triggering observation must carry a valid upstream signature ( §3.4). The empirical admission rates of §4 are consistent with these bounds. 
+
+## 3.4 Cause-Chain Construction 
+
+Every caste reassignment is associated with a cause-chain record (CCR), a tuple of signed fields that documents the event sufficient for an external auditor to reconstruct what happened and why. 
+
+Definition 3 (Cause-chain record) . A CCR for a proposed reassignment is 
+
+CCR = ⟨obs , h i, c, c ′, t, class , σ i, σ ?
+
+> O
+
+, π F ⟩
+
+where obs is the triggering observation, hi is the proposing robot’s identity hash from the operator-signed identity manifest, ( c, c ′) are the source and target castes, t is the 13 timestamp, class is one of {tighten, bounded-relax, operator-only }, σi is the proposing robot’s signature, and σ? 
+
+> O
+
+is the operator countersignature (present iff class is bounded-relax or operator-only). The robot signature σi covers obs , hi, ( c, c ′), and t; the class is derived from ( c, c ′) against the signed lattice and is recomputed by verifiers rather than signed. The stored payload comprises these signed fields plus the recorded class; the Merkle inclusion proof πF that binds a record to the audit chain’s epoch root is recomputed by an auditor from the log rather than carried inside the record. The triggering observation obs is structured: for battery-low events it is a signed sensor reading; for payload exceedance it is a signed force-torque measurement; for operational priority shift it is a signed operator directive. The signature on obs is by the originating sensor or actor, not by the proposing robot. This separation prevents threat 4 of §3.1 (cause-chain forgery by the proposing robot): a forged observation has no valid upstream signature and fails verification. 
+
+Forensic reconstruction. 
+
+The cause-chain record supports complete after-the-fact reconstruction of any reas-signment from the operator-signed material alone: the operator’s public key, the operator-signed identity manifest, and the audit chain. 
+
+Proposition 5 (Forensic reconstruction) . Given the operator’s public key, the operator-signed identity manifest (which binds every principal’s public key, the priv-ilege lattice, and the fleet roster of size N ), and the operator-signed audit chain, an external auditor can reconstruct and verify, for any reassignment event recorded in the chain, the full CCR including the triggering observation, the proposing robot’s iden-tity, the caste transition, the class, the countersignature path taken, and, for a tighten, the Byzantine-quorum certificate that endorsed it.                
+
+> Proof The auditor first verifies the operator’s signature over the identity manifest with the operator’s public key, and thereafter trusts only the manifest’s key bindings, lattice, and roster. The audit chain is an append-only, hash-chained log that stores each admitted CCR’s
+> full serialized payload (§3.1), so the record is recovered from the log itself, independent of which fleet members are still online. The auditor recomputes the entry hash and confirms the hash-chain link to detect tampering, verifies the Merkle inclusion proof πFagainst the operator-signed epoch root, and verifies the embedded signatures σi,σ?
+> O(when present), and the upstream signature on obs , using only the manifest’s public keys. For a tighten record it additionally verifies the persisted quorum certificate: at least q=⌈(N+f+1) /2⌉distinct signatures over the record core from members of the manifest’s roster, so a tighten cannot be attributed to a quorum that never endorsed it. If any check fails the record is rejected as forged; if all pass, the auditor has a verifiable account of who did what and why. The reference implementation ( §4) performs exactly this reconstruction and verification from the operator’s public key and the signed manifest. □
+
+## 3.5 Distributed Audit and Fork Exclusion 
+
+The forensic account above treats the audit chain as one logical log. In a deployed fleet the log is replicated: each member keeps its own copy, and the members must agree on a single ordered history despite up to f Byzantine members. We give the replicated 14 layer explicitly. Each member holds a local, hash-chained replica. A record is proposed for the next sequence position ; every honest member that accepts the record signs a 
+
+position-attestation ⟨p, H (rec ), σ m⟩ binding the position p to the record hash. An honest member signs at most one hash per position: it records the hash it signed at each position and refuses any request to sign a different hash there, so a malicious proposer cannot induce an honest member to equivocate. This is the one-signature-per-position invariant the agreement proof relies on, and the implementation enforces it for a running node rather than assuming it ( §4). The invariant is maintained in volatile per-node state, so the agreement guarantee is stated for the lifetime of a running node; making it survive a crash and restart requires durable signed-position storage, which we treat as out of scope ( §5). A member commits the record at position 
+
+p once it holds attestations from a quorum q = ⌈(N +f +1) /2⌉ of distinct members for the same hash, and it checks that the stored payload hashes to that certified hash, so a certificate for one record cannot admit another. An equivocating (faulty) member that signs two different hashes at one position emits two conflicting attestations, each individually valid under its key. This layer is a replication primitive: it sequences and replicates the cause-chain records that have already passed the governed-admission checks of §3.3 (the robot and sensor signatures, the envelope, and, for a tighten, the admission quorum). Its guarantee is agreement and fork exclusion over those admitted records, not a second admission gate; a deployment places it behind the admission checks rather than exposing the raw attest interface to arbitrary clients. 
+
+Proposition 6 (Agreement and fork exclusion) . Under reliable broadcast, at most f
+
+Byzantine members, and honest members that retain their signed-position state for the duration (no crash-restart that loses it), (i) at most one record commits at each posi-tion, so every honest replica commits an identical ordered log (a fork-free total order); and (ii) an equivocating member is detected by every honest member that receives both of its conflicting attestations, and neither forked record commits.                                  
+
+> Proof (i) Suppose two records with distinct hashes both committed at position p. Each commit required qdistinct attestations for its hash. Two sets of size q=⌈(N+f+1) /2⌉
+> intersect in at least N−2( N−q) = 2 q−N≥f+ 1 members, hence in at least one honest member. But an honest member attests at most one hash per position, so it cannot be in both sets: contradiction. Thus at most one record commits per position, and since every honest member applies the same commit rule to the same reliably-broadcast attestations, all honest replicas commit the same sequence. (ii) An equivocator’s two attestations ⟨p, H a, σ ⟩
+> and ⟨p, H b, σ ⟩with Ha̸=Hbboth verify under the member’s registered key, so any honest member holding both has a non-repudiable proof of equivocation. Neither Hanor Hbcan gather qhonest attestations (each honest member signs only its own single view), so by (i) no forked record commits. □
+
+Scope: this models reliable broadcast, one decree per position, and a static member-ship fixed for the epoch. Dynamic node join and leave (reconfiguration), view changes, leader election, and liveness under asynchrony are standard consensus concerns we do not re-derive: they are abstracted by the reliable-broadcast and static-membership assumptions, and a production deployment would layer a reconfiguration/view-change protocol (Paxos/Raft/PBFT-style epochs) beneath the safety property established 15 here. The claim here is that safety property (agreement and fork exclusion) that the governed audit chain requires, evaluated directly in §4.6. 
+
+# 4 Experiments 
+
+We evaluate the protocol on five properties: tightening latency (RQ1), bounded-relax gating behaviour (RQ2), mechanical prevention of the four threat patterns of §3.1 (RQ3), quorum admission and operator-key-only offline audit (RQ4), and the dis-tributed replicated-log layer with fork exclusion (RQ5). Evaluation is sim-primary supplemented by a robot-class timing anchor at N =10. 
+
+## 4.1 Setup 
+
+The protocol is realised as a genuine reference implementation (released with the paper): each principal holds a real Ed25519 key [32], signatures are produced and ver-ified with a standard cryptographic library, and the audit chain is a real SHA-256 hash-chained log with per-epoch Merkle roots and inclusion proofs [33]. Admission decisions are made by these cryptographic checks and by the security envelope, so the attack results below are produced by the mechanism rather than stipulated: a forged operator countersignature fails a real elliptic-curve verification, and a laundering sequence is charged against the real envelope. Latency is estimated by a discrete-event network model layered on the implementation: one-way message latency follows a log-normal (median 1 .8 ms, heavy tail) with a first-order contention term that grows with 
+
+N , and the operator round trip is a log-normal with median 85 ms modelling a sep-arate workstation. The per-signature verification cost in the model is not guessed: it is measured on the evaluation host (Ed25519 verify ≈ 0.09 ms, sign ≈ 0.03 ms) and used directly. The evaluation covers fleets of N ∈ { 10 , 50 , 100 } across three scenarios: hospital logistics , factory cell , and defence patrol , each with three castes and its own reassign-ment triggers (battery and human-presence; payload and queue depth; mission state). A reassignment is exercised at up to 0 .5 Hz per robot, well above the 0 .1 Hz floor of the target deployments, so it must complete far inside the 2 s inter-event budget. Every latency cell aggregates 6000 trials; the attack harness runs 500 trials per pat-tern per scenario. The whole evaluation is run under five seeds (20260611–20260615): every reported latency median moves by less than 0 .05 ms across seeds, and the attack trials are pooled (7500 per pattern) with Wilson 95% intervals. A robot-class timing operating point additionally models a ten-robot, TurtleBot4-class deployment over a wireless-inspired channel (heavier latency variance) with slower robot-class signature costs (sign/verify 0 .18 /0.32 ms) and the operator on a separate workstation; its median (12 .5 ms) sits inside the simulator’s N =50 to N =100 envelope. All numbers are from the reference implementation and its network model; a physical-robot campaign is future work ( §5), and the contention term is first-order and does not capture wireless broadcast-storm effects at large N .16 4.2 Tightening Latency (RQ1) 
+
+We measure end-to-end latency from the originating sensor event to the proposing robot’s adoption of the target caste, for auto-tighten transitions: the robot signs the request, waits for a quorum of ⌈(N +f +1) /2⌉ = q acknowledgements, and verifies those 
+
+q acknowledgement signatures before adopting. Median tightening latency stays in the single-digit to low-double-digit millisecond range and grows with N as the quorum size q, the shared-medium contention, and the proposer’s O(q) acknowledgement-verification cost all grow (Table 1, Figure 3(a)). It is essentially scenario-independent, as expected: the scenarios differ in what triggers a reassignment, not in the cost of admitting one, and the medians move by under 0 .05 ms across the five seeds. The robot-class timing point at N =10 has a median of 12 .5 ms, between the simulator’s 
+
+N =50 (11 .3 ms) and N =100 (17 .7 ms) points, with a heavier p99 tail (17 .3 ms) from the slower robot-class crypto and heavier wireless variance.        
+
+> Table 1 Median tightening latency (ms) by fleet size; 6000 trials per cell. Values are for the primary seed 20260611; every median moves by <0.05 ms across the five seeds (20260611–20260615). The latency includes the proposer’s O(q) verification of the quorum acknowledgements. Latency is scenario-independent, so a single governed row is reported; the governed p99 is 8 .1/12 .2/18 .3 ms at N=10 /50 /100. The robot-class timing point models a ten-robot wireless deployment ( p99 = 17 .3 ms).
+
+N =10 N =50 N =100 Governed protocol 6.0 11.3 17.7 Ungoverned (no audit gate) 2.1 3.4 4.8 Coordinator reallocation 4.5 6.9 9.9 Robot-class timing ( N =10) 12.5 — —
+
+Table 1 also reports two gate-removal ablations: an ungoverned reassignment (one broadcast, immediate adoption) and a coordinator-mediated reallocation with-out audit, in the lineage of [1]. Both are faster because they skip the audit quorum and its acknowledgement verification; the governance gate adds 3 .8/7.9/12 .9 ms over the ungoverned ablation at N =10 /50 /100, two orders of magnitude below the 2 s inter-event budget. 
+
+## 4.3 Bounded-Relax Gating (RQ2) 
+
+We drive a stream of bounded-relax requests through the real protocol, each consuming a random per-axis magnitude from a pre-issued ratification token that the operator reissues once it is exhausted. Whether a request short-circuits or goes live is decided by the actual token state inside propose() , not by a synthetic side calculation. Across the three scenarios and five seeds, 70–72% of requests complete via the short-circuit path (a local token check, no operator round trip) while the remaining 28–30% take the live path and incur the operator round trip (modelled at a median of 85 ms). The protocol thus reserves live operator attention for the token-exhausting minority and handles the majority of relaxations without an interactive signature, while the security envelope 17 holds on every admitted relaxation regardless of the token’s state (Proposition 2). The split tracks the token headroom as expected rather than being a fixed artefact: under headrooms of 0 .5, 1 .0, and 2 .0 on the same workload, the short-circuit fraction is 40%, 71%, and 87%. The measured quantity here is the short-circuit/live split; the 85 ms live-path figure is the model’s operator-round-trip parameter, not a measured bounded-relax latency. We are explicit about what the artifact does and does not exercise: both paths carry the same operator countersignature over the record, and the ratification token models the accounting of a pre-issued authorization (whether the request is covered without a live operator round trip). The artifact does not implement a distinct cryptographic fast-path object separate from a live signature; the 85 ms is applied externally to the token-live requests rather than emerging from two different signing primitives. 
+
+## 4.4 Attack Pattern Resistance (RQ3) 
+
+We run each of the four threats of §3.1 as a randomized adversarial test, not a sin-gle scripted case: each trial builds a fresh world with fresh keys and randomized observation values and crafts the genuinely-forged records the attack needs (a forged operator countersignature signed with the adversary’s key, an observation signed by a non-sensor, a tighten-then-relax sequence against the envelope). Refusal is decided by real Ed25519 verification and the envelope check, never by a branch keyed on the attack name. The same crafted records are run through three ablations of the governed protocol, not competing secure-MAS systems: an ungoverned variant with no gate; a reallocation variant that authenticates the requester but does not govern privilege; and an authorization-only variant that requires a valid operator countersig-nature for a relaxation but omits the per-axis envelope and the observation check. We report, pooled over the five seeds (7500 trials per pattern), the fraction admitted 
+
+(target 0) with its Wilson 95% upper bound and the measured per-attempt verifica-tion cost (Table 2, Figure 3(b)). The governed protocol admits zero of 7500 attempts for every pattern (Wilson upper bound 0 .0005). The measured cost of the governed protocol’s decisive propose() decision (its signature and envelope checks, timed in isolation from attack construction and the comparator baselines) is 0 .19–0 .30 ms per attempt across the four patterns (Table 2). The comparison is informative rather than trivial: the ungoverned and reallocation baselines admit every attack, but the authorization-only baseline admits caste laundering, repeated-relax escalation, and cause-chain forgery while refusing operator impersonation. This isolates which gate each attack requires: impersonation is stopped by the operator-signature check alone, whereas laundering and escalation need the per-axis envelope and forgery needs the upstream-observation check. Because the governed protocol refuses all four by con-struction (Corollary 1), its column is a conformance check that the real implementation realises the proven guarantee; the baseline gradient is the empirical content. The gate-free and authorization-only baselines are ablations that isolate the effect of removing a gate, not competitive secure-MAS systems. 18 Table 2 Attack admission rate (lower better; 7500 pooled trials per pattern over five seeds; Wilson 95% upper bound in brackets). “Gov.” is the governed protocol; “Auth.” is the authorization-only comparator (operator countersignature required, no envelope or observation check); “Gate-free” is the ungoverned and reallocation baselines, which both admit every attack. “Cost” is the measured wall-clock of the governed protocol’s decisive propose() decision for one attempt, excluding attack construction and the comparator baselines. 
+
+Pattern Gov. Auth. Gate-free Cost (ms) 
+
+Caste laundering 0 ( <0.001) 1.00 1.00 0.20 Repeated-relax escalation 0 ( <0.001) 1.00 1.00 0.19 Operator impersonation 0 ( <0.001) 0.00 1.00 0.30 Cause-chain forgery 0 ( <0.001) 1.00 1.00 0.20 N = 10 N = 50 N = 100       
+
+> 0.0
+> 2.5
+> 5.0
+> 7.5
+> 10.0
+> 12.5
+> 15.0
+> 17.5
+> 20.0
+> tighten latency (ms)
+> robot-class
+> 12.5 ms
+> (a) Tightening latency vs fleet size
+> Governed
+> Coord. reallocation
+> Ungoverned
+> Robot-class
+> laundering repeated
+> relax
+> operator
+> imperson.
+> cause-chain
+> forgery
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> 1.2
+> 1.4
+> attack admission rate
+> 00000
+> (b) Attack admission (lower better)
+> Governed (0/7500) Auth.-only Gate-free
+
+Fig. 3 (a) Median tightening latency versus fleet size for the governed protocol and the two gate-removal ablations (the governed bar carries a whisker to its p99), with the robot-class timing 
+
+N =10 point marked; the governance gate costs single-digit to low-double-digit milliseconds over an ungoverned reassignment, growing with fleet size. (b) Attack-admission rate per pattern: the governed protocol admits 0 /7500 (the Wilson 95% whisker is below the axis resolution); the authorization-only baseline admits all but operator impersonation; the gate-removal ablations admit every attack. 
+
+Randomized adversary (attack discovery). 
+
+The four patterns above are named threats. To probe the admission surface beyond them, we also run a randomized adversary that, on each of 2000 trials, draws a ran-dom mutation of an otherwise-valid record (a forged robot signature, an observation signed by a non-sensor, a corrupted identity hash, or a relaxation beyond the envelope with a forged operator countersignature) and one legitimate tighten as a control. The governed protocol admitted 0 of the mutations it was not meant to admit and every legitimate control, so no random malformation slipped through ( fuzz adversary in 
+
+results.json ). This is coverage over random inputs rather than a fixed script, and it found no admission the proofs do not already exclude. 19 4.5 Quorum and Offline Audit (RQ4) 
+
+Two further properties are exercised directly against the implementation. First, tighten admission is subject to the Byzantine quorum of §3.1, using real signed acknowledge-ments: each fleet member that accepts the record returns an Ed25519 signature over the record core, and the proposer admits only when at least q valid distinct member signatures verify. Over 1000 trials per fleet size, an honest tighten always reaches the quorum (1 .00) while a forged tighten (a bad robot signature) backed by all f Byzan-tine members never does (0 .00 at N =10 , 50 , 100), so no rogue coalition of size ≤ f
+
+produces an admitted tighten (Proposition 4). Second, the offline auditor of Propo-sition 5 reconstructs and verifies the log from the operator’s public key alone: given the operator-signed identity manifest (which binds every principal’s public key, the privilege lattice, and the fleet roster of size N ) and the operator-signed epoch root, it recovers every record from the log, verifies the hash-chain, the Merkle inclusion proofs, and every embedded signature, and rejects a log in which a single stored payload byte has been altered. Each tighten record also carries a persisted quorum certificate ,the set of distinct member acknowledgement signatures gathered at admission, so the auditor re-checks offline that the tighten was endorsed by at least q registered mem-bers; a tighten record whose certificate is stripped or forged is rejected offline, closing the gap between the admission-time quorum check and the forensic claim. Given the operator-declared envelope, the auditor also recomputes each record’s class and rejects a bounded-relax record whose target exceeds the per-axis bound of the reset baseline, so an out-of-envelope but validly countersigned record is caught offline. It further con-firms that each record’s identity hash hi is the one bound to the signer’s registered key, so a record cannot be attributed to a robot that did not sign it; a registered adversary that signs a valid tighten while embedding a victim’s identity hash is rejected both at admission and offline. 
+
+## 4.6 Distributed Audit and Fork Exclusion (RQ5) 
+
+The experiments above run the audit chain as one logical log. To evaluate the gen-uinely distributed layer, we replace that single log with N per-member replicas and a quorum-committed replication protocol ( §3.5): a record commits at a sequence posi-tion only when a quorum q of members sign a position-attestation binding (position, record hash). Because any two quorums share an honest member, and an honest mem-ber attests at most one hash per position, two conflicting records cannot both reach quorum at one position; every honest replica therefore commits the same ordered sequence. A Byzantine member that signs two different hashes at one position produces two conflicting, individually valid attestations: a cryptographic proof of equivocation that any honest member holding both extracts. We run this layer directly ( gcr/replication.py ) at N =10 /50 /100. Table 3 reports, for each fleet size, that all honest replicas converge on one total order (agree-ment), the distributed-commit latency (two broadcast rounds plus the proposer’s q
+
+attestation verifications), and the outcome of a Byzantine equivocation. Across 50 equivocation trials per fleet size, every honest replica detects the fork (1 .00) and 20 no forked record ever commits (0 .00): quorum intersection makes a conflicting com-mit impossible, and the equivocation proof is recovered on every honest node. The distributed-commit latency stays in the single-digit to low-double-digit millisecond range, roughly the cost of the single-round tighten plus a second broadcast round, so replication does not change the operating regime.       
+
+> Table 3 Distributed audit over Nreplicated per-member logs. “Agree” is 1 when every honest replica commits an identical ordered log; “Commit” is the median distributed-commit latency (with
+> p99); “Detect” is the fraction of Byzantine-equivocation trials detected on every honest replica; “Fork” is the fraction of trials in which any honest replica committed a forked record ( fis the tolerated Byzantine bound, qthe quorum).
+
+N (f , q) Agree Commit (ms) 
+
+p99 Detect Fork 10 (3, 7) 1.00 5.5 10 .1 1.00 0.00 50 (16, 34) 1.00 10 .7 15 .8 1.00 0.00 100 (33, 67) 1.00 17 .0 21 .7 1.00 0.00 
+
+Real multi-process deployment. 
+
+The table above uses the discrete-event network model to isolate the protocol’s own message and verification cost. To confirm the safety properties on a genuinely dis-tributed system rather than a model, we also run the layer as a real deployment :each of the N members is a separate operating-system process with its own TCP socket, its own Ed25519 key, and its own replicated log ( netnode.py ), and a driver runs the real two-round quorum-commit protocol over real sockets, with one member launched as a real Byzantine equivocator process ( net experiment.py ). We ran this at N =10 /50 /100 (up to 100 concurrent processes) on a 128-core Linux host. Table 4 reports the outcome: at every fleet size all honest processes agree on one ordered log, every honest process detects the Byzantine equivocation, and no forked record com-mits. We also run the harder malicious-proposer attack with zero Byzantine members: the proposer asks every honest process to sign two conflicting hashes at one position. Every honest process (all 9 /9, 49 /49, 99 /99) signs the first and refuses the second over the real socket, so the fork never gathers a quorum and no forked record com-mits: the one-signature-per-position invariant holds on the real deployment, not only in the proof. The commit latency here is measured end-to-end over real TCP and includes interpreter, loopback, and thread-pool overhead of an unoptimized single-host reference (hence its growth with N as the driver fans out to more sockets); it is a real-system measurement, not the protocol’s modelled cost. The point of this run is that the agreement, fork-exclusion, and detection guarantees hold unchanged on real processes over a real network, not that the reference driver is latency-optimal. 21 Table 4 Real distributed deployment: N fleet members as real OS processes communicating over real TCP sockets, with a real Byzantine equivocator process. “Agree”, “Detect”, and “Fork” are as in Table 3; “Commit” is the median (and p99) end-to-end commit latency measured over real sockets on a 128-core host (an unoptimized single-host reference, so it grows with the driver’s fan-out). 
+
+N (f , q) Agree Commit (ms) 
+
+p99 Detect Fork 10 (3, 7) 1.00 4.1 6.4 1.00 0.00 50 (16, 34) 1.00 30 .1 39 .2 1.00 0.00 100 (33, 67) 1.00 110 .4 193 .9 1.00 0.00 
+
+Summary. 
+
+The evaluation supports the five claims of §1: tightening completes in a single round trip without operator involvement at single-digit to low-double-digit millisec-ond latency; the audit gate adds single-digit to low-double-digit milliseconds over an ungoverned reassignment; bounded relaxation completes via the short-circuit path for the majority of requests while reserving live operator attention for the token-exhausting minority; the governed protocol refuses all four enumerated attacks by construction while a partially-governed baseline isolates the gate each attack requires; the offline auditor and the Byzantine quorum are exercised directly on the implemen-tation; and the distributed replicated-log layer commits a fork-free total order and detects every Byzantine equivocation. 
+
+## 4.7 Claim-to-Artifact Traceability 
+
+Each formal claim is realised by a named module of the reference implementation and checked by a named test; Table 5 maps them so a reviewer can locate the code and rerun the exact check ( pytest -q in the artifact runs all of them). The full reference implementation, tests, and evaluation data are publicly available at https: //github.com/s20sc/governed-caste-reassignment. 
+
+# 5 Discussion and Limitations 
+
+Operator Reachability. 
+
+The bounded-relax path admits a short-circuit form using a pre-issued ratification token bound to the operator’s envelope. When the operator network is partitioned or the operator is otherwise unreachable, the short-circuit form continues to admit requests within the most recent envelope, while requests requiring a live countersigna-ture stall. A time-bounded waiting policy admits requests within a configured deadline or auto-denies them; the safe fallback is to admit a tightening request that lowers the robot to a known-safe caste. The detailed policy is operator-configured and is part of the operator’s deployment-time commitment. 22 Table 5 Mapping from each formal claim to the implementing module and the test that exercises it. Module paths are under gcr/ ; the test names below are the test functions in    
+
+> tests/test gcr.py (the test prefix is omitted for space).
+
+Claim Module Test 
+
+Prop. 1 (tighten safety) classes.py honest transitions admitted 
+
+Prop. 2 (relax containment) budgets.py offline verifier ... (out-of-envelope) Prop. 3 (laundering prevention) protocol.py , attacks.py governed refuses all attacks ... 
+
+Prop. 4 (tighten quorum) quorum.py quorum rejects forged tighten ;
+
+propose tighten is quorum gated 
+
+Cor. 1 (all four refused) protocol.py , attacks.py governed refuses all attacks ... ;
+
+authorization only refuses only impersonation 
+
+Prop. 5 (forensic reconstruction) verify.py , manifest.py offline verifier reconstructs and detects tampering ;
+
+identity hash forgery rejected ;
+
+manifest offline audit and quorum certificate 
+
+Prop. 6 (agreement, fork exclusion) replication.py , netnode.py malicious proposer cannot fork honest nodes ;
+
+f colluding byzantine cannot fork ; byzantine equivocation detected and excluded ; real multiprocess deployment agrees and excludes forks 
+
+Operator Key Compromise. 
+
+If the operator’s signing key is compromised, the adversary can forge countersignatures and admit arbitrary relaxations. The construction relies on standard operator-key hygiene and does not add an internal defence; standard mitigations (hardware-bound keys, rotation, revocation) apply. 23 Pre-Committed Envelope Specification. 
+
+The bounded-relax path requires the operator to specify, at deployment time, the axes along which relaxation is allowed and the bound along each axis. Specifying these envelopes is a deployment-time engineering task; specifying them badly either admits unintended relaxations or blocks safe ones. We treat envelope specification as a configuration concern and leave its formalisation to future work. 
+
+Evaluation Scope. 
+
+The evaluation runs the real protocol: real Ed25519 signatures and a real hash-chained, Merkle-committed audit log, with the full cryptographic substrate (per-principal sign-ing keys, identity binding, the hash-chained Merkle log, offline verification from the operator-signed manifest, and quorum-signature verification). The latency and attack experiments (RQ1–RQ4) run the audit chain as a single logical log; the fully repli-cated N -member layer, with quorum-committed total order and fork exclusion, is implemented and evaluated directly in RQ5 ( §4.6), both in a property simulation and as a real deployment of N separate processes over TCP sockets with a real Byzantine equivocator, so cross-replica agreement and equivocation are measured on a real distributed system rather than assumed. Three things remain out of the deployment: the real run is a single-host reference (all processes on one machine over loopback, not a multi-host wide-area network); the one-signature-per-position state is held in volatile per-node memory, so the agreement guarantee is for the lifetime of a running node and a crash-restart that lost the state would need durable signed-position storage (a fork under crash-recovery is otherwise possible and is future work); and the replication layer assumes reliable broadcast and static membership, leav-ing asynchronous-consensus concerns (network asynchrony, view changes, and liveness under asynchrony) to a standard consensus substrate beneath the safety property we establish. The modelled-network experiments (RQ1–RQ4) also use a discrete-event latency model whose per-signature verification cost is measured on the host and whose contention term is first-order (it does not capture wireless broadcast-storm effects at large N ). The evaluation includes a parameterized robot-class timing point at ten robots but no measurements from physical robots. The governed attack results are zero-by-construction (Corollary 1) confirmed by running the real implementation, so the governed column verifies that the implementation realises the proven guaran-tee rather than discovering it empirically; the measured baselines, verification costs, randomized-fuzz outcomes, and distributed-equivocation outcomes are the empirical content. The admission-surface security claims are scoped to the four enumerated threats plus the randomized fuzz coverage; remaining threats (signature replay, stale observations, reset abuse, and a compromised authorized sensor) are future work. The artifact ships boundary tests ( tests/test scope boundaries.py ) that pin the implementation’s current behaviour at these out-of-scope points (for example, that a replayed signed record is still admitted and a stale-timestamp observation is not rejected), so the scope statement is checkable rather than only asserted. A physical-robot campaign on a TurtleBot4-class fleet and a richer contention model are the natural next steps. 24 Physical Compromise. 
+
+The protocol governs the cooperative surface of a reassignment: it constrains which caste bindings peers and the operator will endorse and audit, so a compromised robot cannot obtain an admitted, audited privilege elevation without the operator. It cannot, however, prevent a physically compromised robot from actuating its own motors or sensors unilaterally outside the protocol; cryptographic authorisation bounds what the fleet will recognise and record , not what a rogue body can physically attempt. Detecting and containing such physical deviation is orthogonal and out of scope. 
+
+Out-of-Scope. 
+
+We do not address cross-organisation federations with multiple mutually distrusting operators (deferred to the federation primitive’s future work [12]); physical capture attacks against individual robots; or real-time control safety properties orthogonal to caste-change authorisation. 
+
+# 6 Conclusion 
+
+A regulated embodied deployment cannot treat caste reassignment as an internal allocation decision: every privilege elevation must be attributable to a human sig-nature and verifiable from the audit chain. The protocol of this paper partitions caste changes into three classes (auto-tighten, bounded-relax, operator-only) admitted through three different authorisation paths, and produces a cause-chain record verifi-able offline against the operator’s public key. The construction extends a single-agent persona-mutation governance gate to the swarm setting and is anchored in the feder-ation primitive of [12]. Future work includes formalising the pre-committed envelope specification, addressing multi-operator federations, and extending the construction to a multi-operator certificate hierarchy with regulator-issued roots. 
+
+Data availability. The reference implementation, the regression tests, and the evaluation data that support the findings of this study are openly available at https://github.com/s20sc/governed-caste-reassignment. 
+
+# References 
+
+[1] Nair, R., Tambe, M., Marsella, S.: Role allocation and reallocation in multiagent teams: Towards a practical analysis. In: Proceedings of the Second International Joint Conference on Autonomous Agents and Multiagent Systems (AAMAS), pp. 552–559. ACM, ??? (2003). https://doi.org/10.1145/860575.860664 [2] Campbell, A., Wu, A.S.: Multi-agent role allocation: issues, approaches, and mul-tiple perspectives. Autonomous Agents and Multi-Agent Systems 22 (2), 317–355 (2011) https://doi.org/10.1007/s10458-010-9127-4 [3] H¨ ubner, J.F., Sichman, J.S., Boissier, O.: A model for the structural, functional, and deontic specification of organizations in multiagent systems. In: Advances in Artificial Intelligence (SBIA 2002). Lecture Notes in Computer Science, vol. 2507, pp. 118–128. Springer, ??? (2002). https://doi.org/10.1007/3-540-36127-8 12 25 [4] Horling, B., Lesser, V.: A survey of multi-agent organizational paradigms. The Knowledge Engineering Review 19 (4), 281–316 (2004) https://doi.org/10.1017/ S0269888905000317 [5] Shehory, O., Kraus, S.: Methods for task allocation via agent coalition forma-tion. Artificial Intelligence 101 (1–2), 165–200 (1998) https://doi.org/10.1016/ S0004-3702(98)00045-9 [6] Dias, M.B., Zlot, R., Kalra, N., Stentz, A.: Market-based multirobot coordination: A survey and analysis. Proceedings of the IEEE 94 (7), 1257–1270 (2006) https: //doi.org/10.1109/JPROC.2006.876939 [7] Gerkey, B.P., Matari´ c, M.J.: A formal analysis and taxonomy of task allocation in multi-robot systems. The International Journal of Robotics Research 23 (9), 939–954 (2004) https://doi.org/10.1177/0278364904045564 [8] Korsah, G.A., Stentz, A., Dias, M.B.: A comprehensive taxonomy for multi-robot task allocation. The International Journal of Robotics Research 32 (12), 1495– 1512 (2013) https://doi.org/10.1177/0278364913496484 [9] Scerri, P., Pynadath, D.V., Tambe, M.: Towards adjustable autonomy for the real world. Journal of Artificial Intelligence Research 17 , 171–228 (2002) https: //doi.org/10.1613/jair.1037 [10] Boella, G., Torre, L., Verhagen, H.: Introduction to normative multiagent systems. Computational & Mathematical Organization Theory 12 (2–3), 71–79 (2006) https://doi.org/10.1007/s10588-006-9537-7 [11] Qin, X., Luan, S., Yang, C., Li, Z.: Governed Maturation Under Frozen Identity: Operator-Signed Adaptive Persona. Preprint, under review (2026) [12] Qin, X., Luan, S., Yang, C., Li, Z.: Identity-Bearing Swarm Federation: Operator-Anchored Cryptographic Governance for Heterogeneous Multi-Robot Fleets. Preprint, under review (2026) [13] Qin, X., Luan, S., Yang, C., Li, Z.: Harnessing Embodied Agents: A Runtime Governance Layer for Admission, Policy, Exception Monitoring, Recovery, and Human Takeover. Preprint, under review (2026) [14] Wilson, E.O.: The Insect Societies. Belknap Press of Harvard University Press, Cambridge, Massachusetts (1971) [15] Robinson, G.E.: Regulation of division of labor in insect societies. Annual Review of Entomology 37 , 637–665 (1992) https://doi.org/10.1146/annurev.en. 37.010192.003225 [16] Heppner, G., Oberacker, D., Roennau, A., Dillmann, R.: Behavior Tree Capabili-ties for Dynamic Multi-Robot Task Allocation with Heterogeneous Robot Teams (2024) [17] Beaver, L.E.: A Global Games-Inspired Approach to Multi-Robot Task Allocation for Heterogeneous Teams (2025) [18] Dorigo, M., Floreano, D., Gambardella, L.M., et al. : Swarmanoid: A novel concept for the study of heterogeneous robotic swarms. IEEE Robotics & Automation Magazine 20 (4), 60–71 (2013) https://doi.org/10.1109/MRA.2013.2252996 26 [19] Al-Hussaini, S., Gregory, J.M., Gupta, S.K.: Generating task reallocation sugges-tions to handle contingencies in human-supervised multi-robot missions. IEEE Transactions on Automation Science and Engineering 21 (1), 367–381 (2024) https://doi.org/10.1109/TASE.2022.3227415 [20] H¨ ubner, J.F., Sichman, J.S., Boissier, O.: Using the MOISE+ for a cooperative framework of MAS reorganisation. In: Advances in Artificial Intelligence (SBIA 2004). Lecture Notes in Computer Science, pp. 506–515. Springer, ??? (2004). https://doi.org/10.1007/978-3-540-28645-5 51 [21] Chen, J.Y.C., Barnes, M.J., Harper-Sciarini, M.: Supervisory control of multiple robots: Human-performance issues and user-interface design. IEEE Transactions on Systems, Man, and Cybernetics, Part C (Applications and Reviews) 41 (4), 435–454 (2011) https://doi.org/10.1109/TSMCC.2010.2056682 [22] Esteva, M., Rodr´ ıguez-Aguilar, J.A., Sierra, C., Garcia, P., Arcos, J.L.: On the formal specification of electronic institutions. In: Agent Mediated Electronic Com-merce. Lecture Notes in Computer Science, pp. 126–147. Springer, ??? (2001). https://doi.org/10.1007/3-540-44682-6 8 [23] Garc´ ıa-Camino, A., Noriega, P., Rodr´ ıguez-Aguilar, J.A.: Implementing norms in electronic institutions. In: Proceedings of the Fourth International Joint Confer-ence on Autonomous Agents and Multiagent Systems (AAMAS), pp. 667–673. ACM, ??? (2005). https://doi.org/10.1145/1082473.1082575 [24] Mayoral-Vilches, V., White, R., Caiazza, G., Arguedas, M.: SROS2: Usable Cyber Security Tools for ROS 2 (2022) [25] Salimi, S., Keramat, F., Westerlund, T., Pe˜ na Queralta, J.: A Customizable Con-flict Resolution and Attribute-Based Access Control Framework for Multi-Robot Systems (2023) [26] Sandhu, R.S.: Lattice-based access control models. Computer 26 (11), 9–19 (1993) https://doi.org/10.1109/2.241422 [27] Strobel, V., Castell´ o Ferrer, E., Dorigo, M.: Blockchain technology secures robot swarms: A comparison of consensus protocols and their resilience to byzantine robots. Frontiers in Robotics and AI 7, 54 (2020) https://doi.org/10.3389/frobt. 2020.00054 [28] Dorigo, M., Pacheco, A., Reina, A., Strobel, V.: Blockchain technology for mobile multi-robot systems. Nature Reviews Electrical Engineering 1(4), 264–274 (2024) https://doi.org/10.1038/s44287-024-00034-9 [29] Bonabeau, E., Dorigo, M., Theraulaz, G.: Swarm Intelligence: From Natural to Artificial Systems. Oxford University Press, New York (1999) [30] Lamport, L., Shostak, R., Pease, M.: The Byzantine generals problem. ACM Transactions on Programming Languages and Systems 4(3), 382–401 (1982) https://doi.org/10.1145/357172.357176 [31] Pinyol, I., Sabater-Mir, J.: Computational trust and reputation models for open multi-agent systems: A review. Artificial Intelligence Review 40 (1), 1–25 (2013) https://doi.org/10.1007/s10462-011-9277-z 27 [32] Bernstein, D.J., Duif, N., Lange, T., Schwabe, P., Yang, B.-Y.: High-speed high-security signatures. Journal of Cryptographic Engineering 2(2), 77–89 (2012) https://doi.org/10.1007/s13389-012-0027-1 [33] Merkle, R.C.: A digital signature based on a conventional encryption function. In: Advances in Cryptology — CRYPTO ’87. Lecture Notes in Computer Science, pp. 369–378. Springer, ??? (1988). https://doi.org/10.1007/3-540-48184-2 32 [34] Boneh, D., Lynn, B., Shacham, H.: Short signatures from the Weil pairing. Journal of Cryptology 17 (4), 297–319 (2004) https://doi.org/10.1007/s00145-004-0314-9 [35] Sandhu, R.S., Coyne, E.J., Feinstein, H.L., Youman, C.E.: Role-based access control models. Computer 29 (2), 38–47 (1996) https://doi.org/10.1109/2.485845 28
