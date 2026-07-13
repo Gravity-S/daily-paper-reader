@@ -6,94 +6,87 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-07-12
-- 运行时间：2026-07-12 20:48:58 UTC
+- 最新运行日期：2026-07-13
+- 运行时间：2026-07-13 21:59:43 UTC
 - 运行状态：成功
-- 本次总论文数：24
-- 精读区：11
+- 本次总论文数：21
+- 精读区：8
 - 速读区：13
 
 ### 今日简报（AI）
-1) 今日共处理24篇论文，精读11篇，聚焦智能体自我进化与自指递归能力。  
-2) 最值得关注：EvoAgentBench 首次从能力迁移视角评估智能体自我进化（10分），以及 LLM 自指递归的“内省阈值”发现（9分）。  
-3) 建议优先精读这两篇，后续可结合速读中的工具规划失败分析，避免常见陷阱。
-- 详情：[/202607/12/README](/202607/12/README)
+今日推荐聚焦多智能体安全与具身基础模型，精读两篇高分研究。
+
+最值得看的方向：部署规则而非模型本身因果影响多智能体安全（10分）；ACE-Brain-0.5作为统一具身基础模型（9分）。
+
+建议读者优先精读这两篇，并速读三篇8分论文（黑盒测试、机载视觉语言控制、故障定位），以把握前沿热点。
+- 详情：[/202607/13/README](/202607/13/README)
 
 ### 精读区论文标签
-1. [EvoAgentBench: Benchmarking Agent Self-Evolution via Ability Transfer](/202607/12/2607.05202v1-evoagentbench-benchmarking-agent-self-evolution-via-ability-transfer)  
-   标签：评分：10.0/10、query:agent-evolve
-   evidence：通过能力迁移进行智能体自我进化的基准
-2. [Self-Reference in Large Language Models: The Introspection Threshold for Recursive Self-Improvement](/202607/12/2607.04277v1-self-reference-in-large-language-models-the-introspection-threshold-for-recursive-self-improvement)  
+1. [Institutional Red-Teaming: Deployment Rules, Not Just Models, Causally Shape Multi-Agent AI Safety](/202607/13/2607.07695v1-institutional-red-teaming-deployment-rules-not-just-models-causally-shape-multi-agent-ai-safety)  
+   标签：评分：10.0/10、query:agent-safety
+   evidence：通过制度红队测试评估多智能体安全
+2. [ACE-Brain-0.5: A Unified Embodied Foundational Model for Physical Agentic AI](/202607/13/2607.04426v1-ace-brain-05-a-unified-embodied-foundational-model-for-physical-agentic-ai)  
    标签：评分：9.0/10、query:agent-evolve
-   evidence：探究LLM中递归自改进的内省阈值，直接关于自进化AI代理
-3. [Governed Caste Reassignment in Heterogeneous Swarms: An Asymmetric-Trust Protocol with Audited Operator Countersignature](/202607/12/2607.04634v1-governed-caste-reassignment-in-heterogeneous-swarms-an-asymmetric-trust-protocol-with-audited-operator-countersignature)  
-   标签：评分：9.0/10、query:mas-security
-   evidence：机器人群体中用于安全的不对称信任协议
-4. [FORGE: Research-Trajectory Hijacking Attacks on Deep Research Agents](/202607/12/2607.04718v1-forge-research-trajectory-hijacking-attacks-on-deep-research-agents)  
+   evidence：提出ACE-Brain-0.5，具有自我监控和自我改进功能的具身代理
+3. [Safe Reinforcement Learning using Ideas from Model Predictive Control](/202607/13/2607.07252v1-safe-reinforcement-learning-using-ideas-from-model-predictive-control)  
    标签：评分：9.0/10、query:agent-safety
-   evidence：针对深度研究智能体的对抗攻击，破坏规划与推理安全
-5. [Context-to-Execution Integrity for LLM Agents](/202607/12/2607.06000v1-context-to-execution-integrity-for-llm-agents)  
+   evidence：自主智能体安全性，结合模型预测控制的安全强化学习
+4. [DeepSearch-World: Self-Distillation for Deep Search Agents in a Verifiable Environment](/202607/13/2607.07820v1-deepsearch-world-self-distillation-for-deep-search-agents-in-a-verifiable-environment)  
+   标签：评分：9.0/10、query:agent-evolve
+   evidence：用于网络智能体自我进化的自蒸馏框架
+5. [SLBench: Evaluating How LLM Agents Follow Logical Relations in Skills](/202607/13/2607.09016v1-slbench-evaluating-how-llm-agents-follow-logical-relations-in-skills)  
    标签：评分：9.0/10、query:agent-safety
-   evidence：上下文到执行完整性用于对抗鲁棒性与对齐
-6. [CILC: Cryptographically-secure Inter-agent Loop Closure Candidate Detection for Multi-Agent Collaborative SLAM](/202607/12/2607.06700v1-cilc-cryptographically-secure-inter-agent-loop-closure-candidate-detection-for-multi-agent-collaborative-slam)  
-   标签：评分：9.0/10、query:mas-security
-   evidence：多智能体SLAM的密码学安全环路闭合检测
-7. [Agentic Data Environments](/202607/12/2607.07397v1-agentic-data-environments)  
+   evidence：智能体技能的安全性依赖于解析逻辑关系
+6. [TrustX Agent Risk Classification Framework (ARC): Risk-Tiering Internally Created Agentic AI Systems](/202607/13/2607.09586v1-trustx-agent-risk-classification-framework-arc-risk-tiering-internally-created-agentic-ai-systems)  
    标签：评分：9.0/10、query:agent-safety
-   evidence：关注智能体数据环境中的安全保障
-8. [Beyond Attack-Success Rate: Action-Graded Severity Scale for Tool-Using AI Agents](/202607/12/2607.07474v1-beyond-attack-success-rate-action-graded-severity-scale-for-tool-using-ai-agents)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：面向工具使用智能体安全评估的动作分级严重性量表
-9. [Institutional Red-Teaming: Deployment Rules, Not Just Models, Causally Shape Multi-Agent AI Safety](/202607/12/2607.07695v1-institutional-red-teaming-deployment-rules-not-just-models-causally-shape-multi-agent-ai-safety)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：通过部署规则因果影响多智能体AI安全
-10. [Multi-Agent Firewall Architecture for Privacy Protection of Sensitive Data in Interactions with Language Models](/202607/12/2607.08282v1-multi-agent-firewall-architecture-for-privacy-protection-of-sensitive-data-in-interactions-with-language-models)  
-   标签：评分：9.0/10、query:agent-safety
-   evidence：通过多智能体防火墙保护LLM交互中的隐私
-11. [Formal Mechanisms for Market Stability in Self-Interested Agent Societies: A Marketplace Simulation Study](/202607/12/2607.08652v1-formal-mechanisms-for-market-stability-in-self-interested-agent-societies-a-marketplace-simulation-study)  
-   标签：评分：9.0/10、query:mas-security
-   evidence：研究多智能体市场模拟中的对抗攻击鲁棒性
+   evidence：智能体AI系统风险分类框架；可信度评估
+7. [From Application-Layer Simulation to Native Meta-Architecture: Structural Tension as an Endogenous Driver for Heterogeneous AI Evolution](/202607/13/2607.06269v2-from-application-layer-simulation-to-native-meta-architecture-structural-tension-as-an-endogenous-driver-for-heterogeneous-ai-evolution)  
+   标签：评分：8.0/10、query:agent-evolve
+   evidence：提出基于结构张力的原生元架构，驱动异构AI自我进化，直接面向自进化AI代理
+8. [The Power of Backdoor Absorption in Community Training](/202607/13/2607.06643v1-the-power-of-backdoor-absorption-in-community-training)  
+   标签：评分：8.0/10、query:agent-safety
+   evidence：社区训练中的后门攻击防御与AI智能体的对抗鲁棒性相关
 
 ### 速读区论文标签
-1. [SovereignPA-Bench: Evaluating User-Owned Personal Agents under Evolving Intent, Platform Mediation, and Consent Constraints](/202607/12/2607.05363v1-sovereignpa-bench-evaluating-user-owned-personal-agents-under-evolving-intent-platform-mediation-and-consent-constraints)  
+1. [Mining Workflow Graphs for Black-Box Boundary Testing of Conversational LLM Agents](/202607/13/2607.06873v1-mining-workflow-graphs-for-black-box-boundary-testing-of-conversational-llm-agents)  
    标签：评分：8.0/10、query:agent-safety
-   evidence：可信与隐私：评估用户自有个人智能体的隐私和同意约束
-2. [Governable Individuals: An Identity Layer for Embodied Agents That Keep Learning](/202607/12/2607.05463v1-governable-individuals-an-identity-layer-for-embodied-agents-that-keep-learning)  
+   evidence：对话智能体安全失效的黑盒边界测试
+2. [Multi-Agent Robotic Control with Onboard Vision-Language Models](/202607/13/2607.07403v1-multi-agent-robotic-control-with-onboard-vision-language-models)  
    标签：评分：8.0/10、query:agent-safety
-   evidence：自修改智能体的安全治理与身份层
-3. [Beyond the Leaderboard: A Synthesis of Tool-Use, Planning, and Reasoning Failures in Large Language Model Agents](/202607/12/2607.05775v1-beyond-the-leaderboard-a-synthesis-of-tool-use-planning-and-reasoning-failures-in-large-language-model-agents)  
-   标签：评分：8.0/10、query:agent-safety
-   evidence：综合了LLM代理包括安全在内的失败模式
-4. [Collaborative Multi-Agent Testing for Emergent Failure Discovery in Autonomous Driving Systems](/202607/12/2607.06078v1-collaborative-multi-agent-testing-for-emergent-failure-discovery-in-autonomous-driving-systems)  
+   evidence：涉及仓库安全巡检；多智能体自主系统
+3. [Who Broke the System? Failure Localization in LLM-Based Multi-Agent Systems](/202607/13/2607.07989v1-who-broke-the-system-failure-localization-in-llm-based-multi-agent-systems)  
    标签：评分：8.0/10、query:mas-security
-   evidence：多智能体协作测试自动驾驶系统涌现故障
-5. [CurateEvo: Data-Curation Evolving for Agentic Post-Training](/202607/12/2607.06140v1-curateevo-data-curation-evolving-for-agentic-post-training)  
-   标签：评分：8.0/10、query:agent-evolve
-   evidence：数据策展进化框架用于智能体自我进化
-6. [Information Gain-based Rollout Policy Optimization: An Adaptive Tree-Structured Rollout Approach for Multi-Turn LLM Agents](/202607/12/2607.06223v1-information-gain-based-rollout-policy-optimization-an-adaptive-tree-structured-rollout-approach-for-multi-turn-llm-agents)  
-   标签：评分：8.0/10、query:agent-evolve
-   evidence：基于强化学习的LLM智能体自我改进
-7. [Biological Motifs for Agentic Control](/202607/12/2607.04240v1-biological-motifs-for-agentic-control)  
-   标签：评分：7.0/10、query:agent-safety
-   evidence：鲁棒性与安全：利用生物基元解决智能体控制的可靠性和注入攻击问题
-8. [ACE-Brain-0.5: A Unified Embodied Foundational Model for Physical Agentic AI](/202607/12/2607.04426v1-ace-brain-05-a-unified-embodied-foundational-model-for-physical-agentic-ai)  
+   evidence：多智能体系统故障定位框架，提升系统安全性
+4. [Out of Sight: Compression-Aware Content Protection against Agentic Crawlers](/202607/13/2607.08180v1-out-of-sight-compression-aware-content-protection-against-agentic-crawlers)  
+   标签：评分：8.0/10、query:agent-safety
+   evidence：通过压缩感知扰动保护内容免受智能体爬虫侵害
+5. [Neuro-Agentic Control: A Deep Learning-based LLM-Powered Agentic AI Framework for Controlling Security Controls](/202607/13/2607.09076v1-neuro-agentic-control-a-deep-learning-based-llm-powered-agentic-ai-framework-for-controlling-security-controls)  
+   标签：评分：8.0/10、query:mas-security
+   evidence：神经-智能体控制框架，用于OT系统自主网络防御
+6. [VEXAIoT: Autonomous IoT Vulnerability EXploitation using AI Agents](/202607/13/2607.09653v1-vexaiot-autonomous-iot-vulnerability-exploitation-using-ai-agents)  
+   标签：评分：8.0/10、query:mas-security
+   evidence：自主多智能体框架用于物联网漏洞利用
+7. [GaP: A Graph-as-Policy Multi-Agent Self-Learning Harness For Variational Automation Tasks](/202607/13/2607.05369v1-gap-a-graph-as-policy-multi-agent-self-learning-harness-for-variational-automation-tasks)  
    标签：评分：7.0/10、query:agent-evolve
-   evidence：具身AI代理中的自改进
-9. [Measuring Harness-Induced Belief Divergence in Multi-Step LLM Agents](/202607/12/2607.04528v1-measuring-harness-induced-belief-divergence-in-multi-step-llm-agents)  
+   evidence：多智能体自学习在变异自动化任务中的应用
+8. [Beyond Static Evaluation: Building Simulation Environments for Scalable Agentic Reinforcement Learning](/202607/13/2607.05773v1-beyond-static-evaluation-building-simulation-environments-for-scalable-agentic-reinforcement-learning)  
    标签：评分：7.0/10、query:agent-safety
-   evidence：测量框架导致的信念分歧，关乎智能体鲁棒性和可靠性
-10. [Multi-Turn On-Policy Distillation with Prefix Replay](/202607/12/2607.04763v1-multi-turn-on-policy-distillation-with-prefix-replay)  
-   标签：评分：7.0/10、query:agent-evolve
-   evidence：面向多轮智能体任务的在策略蒸馏，利用教师轨迹实现高效自我改进
-11. [Collective Intelligence with Foundation Models](/202607/12/2607.07729v1-collective-intelligence-with-foundation-models)  
+   evidence：通过内部状态验证减少奖励伪造；提升鲁棒性
+9. [On Adversarial Vulnerability of Vision-Language Models through the Lens of Intermediate Spectral Subspaces](/202607/13/2607.07375v1-on-adversarial-vulnerability-of-vision-language-models-through-the-lens-of-intermediate-spectral-subspaces)  
+   标签：评分：7.0/10、query:agent-safety
+   evidence：通过谱子空间研究视觉语言模型的对抗脆弱性，与AI智能体的对抗鲁棒性相关
+10. [Towards Agentic AI Governance: A Preliminary Assessment](/202607/13/2607.07612v1-towards-agentic-ai-governance-a-preliminary-assessment)  
+   标签：评分：7.0/10、query:agent-safety
+   evidence：智能体AI治理与可信赖性的系统综述
+11. [Provably Optimal Learning Algorithms for Assistance Games](/202607/13/2607.08012v1-provably-optimal-learning-algorithms-for-assistance-games)  
+   标签：评分：7.0/10、query:agent-safety
+   evidence：为涉及人类-智能体信任和对齐的协助博弈提供可证明最优学习
+12. [TACTIC-KG: Toward Small Agent Teams for Cyber Threat Intelligence Knowledge Graph Construction](/202607/13/2607.05001v1-tactic-kg-toward-small-agent-teams-for-cyber-threat-intelligence-knowledge-graph-construction)  
    标签：评分：6.0/10、query:mas-security
-   evidence：旨在更安全、更可靠AI的多智能体协作推理框架
-12. [Harness VLA: Steering Frozen VLAs into Reliable Manipulation Primitives via Memory-Guided Agents](/202607/12/2607.08448v1-harness-vla-steering-frozen-vlas-into-reliable-manipulation-primitives-via-memory-guided-agents)  
+   evidence：用于网络威胁情报知识图谱构建的智能体框架，涉及多智能体系统安全
+13. [Unlearning to Protect: A Distilled Reinforcement Learning Framework with Privacy-Preserving Feature Unlearning and XAI for IoT Security](/202607/13/2607.07635v2-unlearning-to-protect-a-distilled-reinforcement-learning-framework-with-privacy-preserving-feature-unlearning-and-xai-for-iot-security)  
    标签：评分：6.0/10、query:agent-safety
-   evidence：增强基于VLA的操作代理在部署扰动下的鲁棒性
-13. [Multi-Modal, Multi-Environment Machine Teaching for Robust Reward Learning](/202607/12/2607.08647v1-multi-modal-multi-environment-machine-teaching-for-robust-reward-learning)  
-   标签：评分：6.0/10、query:agent-safety
-   evidence：跨环境的自主智能体鲁棒奖励学习
+   evidence：面向物联网安全的隐私保护特征遗忘；基于强化学习的框架
 
 
 <div class="dpr-home-promo-card">
