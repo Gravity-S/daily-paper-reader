@@ -1,0 +1,1495 @@
+Title: Innovation-Residual Auditing of Autonomous Analysis Agents: Localization, Detection Limits, Error Control, and Identifiability
+
+URL Source: https://arxiv.org/pdf/2608.05490v1
+
+Published Time: Fri, 07 Aug 2026 00:20:04 GMT
+
+Number of Pages: 33
+
+Markdown Content:
+# Innovation-Residual Auditing of Autonomous Analysis Agents: Localization, Detection Limits, Error Control, and Identifiability 
+
+Ahmed Hassoon Johns Hopkins University 
+
+ahassoo1@jhu.edu 
+
+Mark Dredze Johns Hopkins University 
+
+mdredze1@jh.edu 
+
+August 7, 2026 
+
+Abstract 
+
+Autonomous agents now carry out entire data analyses, selecting cohorts, joining tables, and fitting models with little step-by-step supervision. When such an analysis turns out to be wrong, someone must determine which operation caused it. A recent approach does this without any labelled mistakes, learning instead from analyses known to be sound and flagging operations that depart from what that model predicts; how reliable such audits are has not been studied. This paper supplies that analysis. The choice of score determines whether an error can be localized at all. If each operation is scored by how surprising it is given the operation immediately preceding it, then operations that merely inherit an earlier error are indistinguishable from correct ones, so one mistake produces one flag; scores computed against a longer reconstruction of the intended analysis instead spread a single mistake across many operations. We quantify how far they spread, and how to choose the comparison length when an error accumulates gradually rather than at once. We then give procedures that control the proportion of falsely flagged operations within a single audited analysis, requiring only that sound analyses be exchangeable rather than that the fitted model be correct, and we quantify how much the guarantees weaken when the model is imperfect or when the analysis was selected for review in a way that depends on its content. Finally we establish a limit on what any such audit can report: errors below a certain magnitude cannot be attributed at all, being indistinguishable from ordinary variation among sound analyses. This limit falls so slowly as more sound analyses are collected that at the representation sizes now in use a hundredfold increase reduces it by under two percent, so the dimension of the representation rather than the volume of training data is the binding constraint. 
+
+# 1 Introduction 
+
+Language-model agents are increasingly used to conduct data analysis end to end. Given a research question, such an agent formulates hypotheses, defines cohorts, joins tables across federated repositories, fits models, and reports conclusions, executing dozens of operations without human review of the intermediate steps. In biomedical settings the resulting analyses inform substantive claims, and the volume at which they can be produced exceeds what expert reviewers can check line by line. 1arXiv:2608.05490v1 [cs.AI] 6 Aug 2026 These analyses are not always sound. An agent may narrow a cohort with a filter that silently excludes a class of patients, join on a key that drops records, or fit a model omitting an adjustment the design requires. The result is a trajectory that terminates in a plausible-looking conclusion reached by invalid means. Detecting that a trajectory is unsound is one problem; the operative question for anyone who must act on the finding is a second one, namely which of its operations introduced the error. That determines what to re-run, what to correct, and whether the conclusion can be salvaged. Attributing a failure to specific operations is difficult for a reason intrinsic to sequential execution. An error early in a trajectory corrupts the state that every subsequent operation consumes, so later operations that are themselves executed correctly nonetheless appear anoma-lous relative to what the analysis should have been doing. Symptoms mask the source. The difficulty compounds when a trajectory contains more than one genuine error, when the tra-jectory reaching the auditor has already been selected by an upstream judgment that is itself a function of the whole trajectory, and when no examples of failure are available to learn from. Existing approaches divide on that last constraint. Supervised attribution methods learn from failure trajectories with annotated error steps, obtained by hand, by counterfactual re-play, or by programmatic fault injection (Zhang et al., 2025; Feng et al., 2026). The cost of producing such annotation is substantial, and the common assumption of a single decisive error per trajectory reflects it. Yeh et al. (2026) showed that the annotation requirement can be removed altogether, by training exclusively on successful trajectories and scoring each step of a failed one by its deviation from the learned dynamics of success. The present work adopts that formulation and develops its statistical theory. The statistical properties of attribution under this formulation have not yet been character-ized. An audit that reports a set of operations raises three questions that benchmark accuracy does not answer: what fraction of the reported operations should be expected to be spurious, how large an error must be before detection is possible at all, and what a report means when the fitted model of successful execution is itself approximate. For audits that inform decisions about scientific results, these properties matter alongside accuracy. This paper supplies that account. We analyze audits in which each operation is scored by the one-step innovation of a predictable predictive model fitted to successful trajectories. Localization is exact: conditional on its realized input state, an operation executed correctly after an earlier error has a null residual, so inherited corruption produces no signal and the masking problem above does not arise (Theorem 1). The result requires predictable condition-ing and a one-step score; Sections 3.2 and 6.1 characterize which scoring rules satisfy these conditions and what remains available when they do not. The prediction horizon governs a trade-off between localization and accumulation, so errors introduced gradually, which are in-visible to one-step scores, are recoverable at a matched horizon (Section 3.2). False discovery control over the flagged set is available under arbitrary within-trajectory dependence, in a form requiring only exchangeability across trajectories rather than correct specification of the fitted model, together with a sensitivity analysis reporting how much selection into the audit would be needed to remove each flag (Section 5). Three further results concern the deployed model and the population of trajectories. Cost-normalized time is predictable only under a joint model of execution cost and operation em-bedding, a factorization that additionally makes cost an auditable channel (Section 6.1), and explicit conditions on off-support variance inflation are what leave operations inheriting an ear-lier error conservatively null rather than uncontrolled (Section 7). Pooling recurrent operation 2types across many trajectories lowers the detectable perturbation by a factor √mc (Section 10). Finally, the estimand itself is untestable without a minimum-effect threshold, and with one the smallest attributable error is bounded below by a floor that additional calibration data does not remove (Section 11). Part I develops localization, score selection, and multiplicity control for arbitrary predictable one-step predictive families. Part II studies a Gaussian bridge implementation, including time normalization, terminal anchoring, and behavior outside the training support. Part III treats recurrence across trajectories, identifiability, and detection limits. Every result holds within stated modeling assumptions, and Section 5.6 prices deviations from them rather than treating specification as exact. 
+
+1.1 Related work 
+
+Zhang et al. (2025) formulated step-level failure attribution and released the Who&When benchmark, establishing the difficulty of the task: the best reported step-level accuracy was 14.2%. Subsequent studies used prompting pipelines or post-trained attribution models with step-level failure labels obtained by manual annotation, counterfactual replay, or programmatic fault injection. Feng et al. (2026) applied conformal prediction to produce contiguous prediction sets with finite-sample coverage. Zhang et al. (2026) formulated online auditing as detection of the earliest decisive error. These approaches assume a single decisive error per trajectory and require annotated failures. Yeh et al. (2026) remove the annotation requirement. They embed each operation as a hidden-state vector from the acting model, treat the sequence as irregular observations of a continuous latent path from the query representation to a terminal goal state, fit a neural controlled differential equation to successful trajectories under squared reconstruction loss, and score each step by ∥ht − ˆh(ut)∥22. Steps are flagged by selecting the top k scores or by thresh-olding at the (1 − α) quantile of pooled per-step scores from held-out successful trajectories. Four elements are adopted from that work: the one-class formulation, the continuous latent path between an initial query state and a terminal goal state, the pooled conformal threshold calibrated on successful trajectories, and the representation of the result as a set of contributing steps. Building on that formulation, the present work develops four elements of its theory. The first is a predictable time grid. Sequential conditioning requires the time index entering the predictive law to be measurable with respect to the past. Grids normalized by realized trajectory length, a natural choice when trajectories vary in length, are functions of the complete trajectory and do not have this property; neither does budget normalization on its own, since an operation’s cost is a property of that operation. Section 6.1 gives a construction that does, by modeling cost and embedding jointly, which additionally makes execution cost a second audit channel. The second is a characterization of the scoring rule. A reconstruction score computed against a path driven by an interpolant of the observed trajectory lies between the one-step innovation and the free-running rollout. Its effective prediction horizon is a property of the fitted vector field rather than a design parameter, because the control path allows the dynamics to track the audited trajectory; Proposition 1 shows that this localization window can be measured. Two properties of such scores bear on the guarantees developed here. Because the dynamics track the observed trajectory, a corruption partly predicts itself, attenuating its own score along with 3those downstream. And when the interpolant is bidirectional, as smoothing and natural cubic splines are, the value at ut depends on knots after t, so the score at a step is a function of later steps and is not predictable in the sense Theorem 1 requires. Implementations can be checked against both conditions directly. The third is error control over the reported set. A fixed quantile of pooled calibration scores controls a marginal false-positive rate for in-distribution steps. The fraction of false flags among the operations actually reported is a distinct quantity, and the two differ because flags within a trajectory are dependent through the shared calibration set and through the trajectory itself. Section 5 supplies the latter under that dependence, together with a sensitivity analysis for selection of trajectories into the audit population. The fourth is a set of limits: Sections 4 and 11 derive detection boundaries, minimum detectable perturbations, and identifiability results for this formulation, which bound what any procedure within it can report. The control path of Yeh et al. (2026) also resolves the multimodal endpoint problem of Section 8, and does so more directly than the construction developed here. A latent path determined only by its initial condition is a deterministic flow from query to endpoint and cannot represent two distinct valid conclusions, as formalized in Proposition 10. Conditioning the dynamics on the observed trajectory can represent multiple endpoints without the state sensitivity required by the predictable anchor in Proposition 11. However, tracking the audited trajectory may also absorb part of the anomaly. The relative importance of these effects depends on the fitted model and should be evaluated empirically. One-class and reconstruction-based anomaly detection has an extensive literature. The closest work in robotics detects failed executions from models trained on normal trajectories, but generally localizes failures at the trajectory rather than step level, as noted by Yeh et al. (2026). The relevant statistical foundations include innovations, model-based fault detection and isolation, conformal inference, and multiple testing; Sections 2.2 and 5 summarize these connections. 
+
+Part I: Innovation auditing for predictable sequential models 
+
+# 2 Setting 
+
+2.1 Trajectories, cost, and filtrations 
+
+A trajectory is a sequence of operations o1, . . . , o T issued in response to a research question embedded as x0 ∈ Rd. Each operation carries an embedding xt = ϕ(ot) ∈ Rd and an execution cost ct = cost( ot) > 0, both functions of the same object. The run operates under a cost budget 
+
+Cmax fixed before execution, and every operation costs at least cmin > 0, so 
+
+T ≤ Tmax := ⌊Cmax /c min ⌋
+
+deterministically. This bound is used in Section 5.3 and motivates normalization by a fixed budget. Two filtrations are required. Write 4Ft = σ(x0, . . . , x t, c 1, . . . , c t), Gt = Ft−1 ∨ σ(ct),
+
+so Gt is what is known immediately before the embedding of operation t is realized. Nor-malized time and its increment, 
+
+st = 1
+
+Cmax 
+
+X
+
+> i≤t
+
+ci, ∆t = ct
+
+Cmax 
+
+,
+
+are Gt-measurable but not Ft−1-measurable, because the cost of operation t is a property of that operation. All conditioning statements therefore use Gt. Section 6.1 specifies the joint model required for this conditioning. The termination time T is a stopping time for {F t}, and I ⊆ { 1, . . . , T } denotes the set of corrupted operations. Both are random. We require I to be predictable in the sense that 
+
+{t ∈ I} ∈ G t: whether operation t violates the mechanism is determined by the state entering that operation, not by its realized outcome. The results do not condition on the realized values of T or I. Conditioning on T can bias earlier innovations when the stopping decision depends on the observed history. 
+
+2.2 Predictive families and generalized residuals 
+
+The model M is a predictable family of conditional laws: for each t, a probability measure 
+
+Qt on Rd whose parameters are Gt-measurable, together with a conditional law Pt for ct given 
+
+Ft−1. Let Rt denote the Rosenblatt transform of Qt, that is, the vector of successive conditional distribution functions (Rosenblatt, 1952), and define the generalized residuals 
+
+ut = Rt(xt) ∈ [0 , 1] d, ϱt = Pt
+
+ (−∞ , c t] ∈ [0 , 1] .
+
+These are the generalized residuals of Cox and Snell (1968) in prequential form (Dawid, 1984). A score is any measurable S : [0 , 1] d → R, and the audit statistic is at = S(ut).The Gaussian bridge of Part II is the instance 
+
+Qt = N  μt, Σt
+
+, εt = Σ −1/2 
+
+> t
+
+(xt − μt), ut = Φ( εt), S(u) = ∥Φ−1(u)∥22,
+
+recovering at = ∥εt∥22. Part I does not depend on this Gaussian specification. The formula-tion in terms of predictive distributions also accommodates the multimodal predictive models required in Section 8. For a correctly specified sequential model, whitened one-step prediction errors are innova-tions and therefore form a white sequence (Kailath, 1968). Quadratic forms in Kalman innova-tions are standard tools for model-based fault detection and isolation (Willsky, 1976; Basseville and Nikiforov, 1993), and the distinction in Section 3.2 between one-step and accumulated residuals follows the structured-residual literature (Gertler, 1998). The present contribution combines these residuals with distribution-free calibration and trajectory-level error control. 
+
+2.3 Assumptions 
+
+Each is invoked only where stated. 5(A0) Cost non-degeneracy. ct ≥ cmin > 0, and L(xt | G t) is atomless. The second con-dition fails if cost determines the embedding, because conditioning on ∆t would then condition on a function of xt and the predictive law of xt given Gt would be degenerate. The assumption is plausible when ϕ is lossy and cost depends on data volume as well as operation semantics, but it must be assessed for the deployed representation. 
+
+(A1) Calibration exchangeability. Calibration trajectories are i.i.d. draws from the population of valid trajectories, and the benign steps of a suspect trajectory are drawn from the same population. 
+
+(A1 ∗) Calibration correctness. The population law is M. This assumption is strictly stronger than (A1) and is used only for pooling across steps within a trajectory and for the exact-null e-values in Section 5.4. 
+
+(A2a) On-support benign validity. For a benign step whose conditioning state lies in the training support, L(xt | G t) = Qt.
+
+(A2b) Off-support benign conservatism. For a benign step whose conditioning state lies outside the training support, the conditions of Theorem 7 hold. 
+
+(A3) Predictable corruption. {t ∈ I} ∈ G t.
+
+(A4) Regular drift. In the bridge instance, uθ(·, s, ·) is L-Lipschitz in its first argument uniformly in s. Used in Sections 3.2 and 8 only. 
+
+(A5) Uninformative selection. The event that a trajectory is submitted for audit is conditionally independent of the benign generalized residuals given x0 and the corrupted steps. Assumptions (A2a) and (A2b) distinguish on-support and off-support behavior. Requiring benign steps to follow M exactly after arbitrary corrupted states would require the fitted model to be correct at states absent from training. Exact validity is therefore assumed only on support; off-support benign steps are required to satisfy the conservative-tail conditions in Section 7. Assumption (A5) addresses selection into the audit sample. A prior process has already classified the trajectory as unsound, and that decision depends on the complete trajectory. Conditioning on selection can therefore alter the residual distribution. If selection is driven primarily by corrupted operations, (A5) may be a reasonable approximation. Section 5.2 treats settings in which selection also depends on benign residuals. 
+
+# 3 Localization 
+
+3.1 Exact localization 
+
+Corruption is modeled by replacing the predictive law: for t ∈ I, the conditional law of xt given 
+
+Gt is ˜Qt̸ = Qt, with predictable parameters. An additive Gaussian mean shift is the special case ˜Qt = N (μt + bt, Σt).
+
+Theorem 1 (localization). Assume (A0), (A2a), (A3), and that every Qt is atomless. (i) For each t and each bounded measurable f ,
+
+Ef (ut) 1{t ≤ T, t / ∈ I} = E[f (U )] P(t ≤ T, t / ∈ I), U ∼ Unif[0 , 1] d,
+
+and for any t1 < · · · < t r the analogous product identity holds on the event that all of t1, . . . , t r
+
+are benign and at most T . The benign generalized residuals are i.i.d. uniform on the event that they exist, whatever corrupted states precede them. 6(ii) For t ∈ I, conditionally on Gt the residual has law Rt# ˜Qt and the score has the corre-sponding pushforward law. No interaction between distinct corrupted steps arises. The proof is given in Appendix A.1. Exactness follows from specifying the model at the level of realized discrete transitions. The events {t ≤ T } and {t / ∈ I} belong to Gt, so the result accommodates both a stopping time and a random predictable corruption set. The identity is not conditioned on the realized value of T , because such conditioning can alter earlier innovation distributions. Conditional on its input state, a correctly executed operation after a corruption follows the null predictive law. Under the stated assumptions, signal is therefore confined to I. Theorem 1 does not impose a causal ordering on the elements of I.
+
+Corollary 1 (Gaussian mean shift). If ˜Qt = N (μt + bt, Σt) with bt being Gt-measurable, then writing νt = Σ −1/2 
+
+> t
+
+bt and λt = ∥νt∥22, conditionally on Gt we have at ∼ χ2
+
+> d
+
+(λt), with tail probability strictly increasing in λt (Johnson, Kotz and Balakrishnan, 1995). 
+
+Corollary 2 (dispersion shifts and two-sided scoring). If ˜Qt = N (μt, Σ1/2 
+
+> t
+
+(I +Γt)Σ 1/2 
+
+> t
+
+) with Γt ≻ − I having eigenvalues γt, 1, . . . , γ t,d , then at ∼ P
+
+> i
+
+(1 + γt,i )χ21. When Γt ≺ 0
+
+the score is stochastically smaller than χ2
+
+> d
+
+, and a one-sided upper-tail test has power below its level. Corollary 2 identifies a class of failures that an upper-tail score cannot detect. Reduced ex-ploration, including repeated templates or highly stereotyped analysis sequences, may produce residuals that are systematically smaller than the null distribution. A two-sided score addresses this alternative; Section 4.4 gives specific constructions. 
+
+3.2 Multi-horizon residuals 
+
+The natural competitor to one-step scoring reconstructs the trajectory from its start and scores each step by its distance to the rollout. In the bridge instance that comparison has an exact form. Consider the drift flow ˙z = (ˆ xT − z)/(1 − s) + uθ(z, s ) on [0 , ¯s], ¯s < 1, and two solutions whose states at s0 differ by b̸ = 0 .
+
+Theorem 2 (propagation envelope). Under (A4), the gap D(s) satisfies for all s ∈ [s0, ¯s]
+
+∥b∥ 1 − s
+
+1 − s0
+
+e−L(s−s0) ≤ ∥ D(s)∥ ≤ ∥ b∥ 1 − s
+
+1 − s0
+
+eL(s−s0).
+
+The proof (Appendix A.2) uses a two-sided comparison argument (Grönwall, 1919). If the diffusion is state-independent, synchronous coupling cancels the noise and the envelope holds pathwise for the stochastic dynamics. With state-dependent diffusion, the result applies only to the drift flow. The bounds imply decay toward the shared anchor only when L < 1/(1 − ¯s), in which case both envelopes decrease. For larger L, the lower envelope still decreases, but the upper envelope increases. The result then establishes only a range of possible behavior. For example, at L = 20 , s0 = 0 .5, and ¯s = 0 .9, the envelope is [6 .7 × 10 −5, 596] ∥b∥.The comparison with the innovation residual relies on the strictly positive lower envelope. Reconstruction from x0 assigns a nonzero deviation to every downstream operation, whereas a correctly specified one-step innovation is null after the corrupted transition. The two-sided bound does not determine whether the reconstruction deviation decreases, persists, or increases. Free-running reconstruction from x0 is only one member of a broader class of residuals. For 
+
+k ≥ 1, define the k-step predictive Q(k) 
+
+> t
+
+= LM(xt | F t−k, c t−k+1 , . . . , c t) and the corresponding 7residual u(k) 
+
+> t
+
+and score a(k) 
+
+> t
+
+. Theorem 1 does not apply verbatim to these residuals. Sliding windows overlap: u(k) 
+
+> t
+
+and u(k) 
+
+> t+1
+
+share k − 1 transitions, and u(k) 
+
+> t
+
+is not measurable with respect to the conditioning σ-field for u(k)
+
+> t+1
+
+. The peeling argument in Appendix A.1 therefore does not yield a product identity. Marginal uniformity and independence across sufficiently separated indices remain available under the conditions below. 
+
+Proposition 1 (width, validity, and dependence of the k-step channel). Fix k ≥ 1
+
+and let I = {t0}.(i) Width. a(k) 
+
+> t
+
+has its null law for every t ≥ t0 + k, and its law is affected by the corruption only for t0 ≤ t ≤ t0 + k − 1.(ii) Marginal validity. If {t ≤ T } ∈ F t−k, so that the agent commits to the complete window at its start, then u(k) 
+
+> t
+
+is marginally uniform on {t ≤ T, t / ∈ I} by the argument of Appendix A.1 applied to the coarser filtration. Without this condition, halting decisions within the window can depend on its innovations, and marginal uniformity does not follow from the model. (iii) Dependence. For indices t1 < · · · < t r with tj+1 − tj ≥ k, the residuals u(k) 
+
+> t1
+
+, . . . , u (k) 
+
+> tr
+
+are jointly independent uniform on the corresponding benign event. For overlapping indices they are dependent, and no joint law is claimed. For t ≥ t0 + k, the conditioning σ-field contains xt−k with t − k ≥ t0, so the corrupted state is conditioned on rather than predicted through. Reconstruction from x0 corresponds to k = t
+
+and affects the complete suffix; the one-step innovation corresponds to k = 1 and affects only the corrupted transition. Intermediate horizons yield intermediate localization widths. Parts (ii) and (iii) determine which error-control results apply to the horizon channel. Benjamini–Yekutieli and e-BH require marginal super-uniformity and therefore accept the hori-zon channel. Proposition 6 requires independent null p-values and does not apply to overlapping 
+
+k-step windows. It may be restricted to the one-step channel or evaluated on a non-overlapping subsequence t ∈ { t0, t 0 + k, t 0 + 2 k, . . . }, with a factor-k reduction in the effective number of tests. If the window-commitment condition in part (ii) fails, the horizon channel can instead be calibrated under the exchangeability regime of Lemma 1(ii), stratified by trajectory length. The wider localization window can increase power for temporally distributed perturbations. Let Σ ≡ σ2I be state-independent and let the drift be locally the identity over a window of k
+
+steps. 
+
+Proposition 2 (accumulation gain). Suppose a corruption of total displacement b is injected evenly across k consecutive steps, bt = b/k . The one-step score at each of those steps has noncentrality ∥b∥2/(k2σ2); the k-step score at the end of the window has noncentrality 
+
+∥b∥2/(kσ 2).Combining with the detection boundary of Proposition 3, the one-step channel detects such a corruption only when ∥b∥2 ≳ k2σ2√2d, while the k-step channel detects it when ∥b∥2 ≳
+
+kσ 2√2d. In the intervening range 
+
+k σ 2√2d ≲ ∥b∥2 < k 2σ2√2d
+
+the corruption is undetectable by one-step scoring but detectable by the k-step score. Thus, gradual perturbations are a limitation of the one-step horizon rather than of innovation scoring in general. A small set of horizons, such as k ∈ { 1, 4, 16 }, can recover these alternatives, with a corresponding increase in the number of hypotheses and localization width. Sequential accu-mulation methods derived from Page’s CUSUM (Page, 1954) remain appropriate for detecting 8the onset of an unbounded regime change; Section 12 distinguishes that problem from bounded gradual perturbations. 
+
+# 4 Choice of score 
+
+Because every measurable functional of the generalized residual is pivotal under Theorem 1, the score affects power but not null validity. This section compares power across score choices. 
+
+4.1 The detection boundary 
+
+In the Gaussian instance with a mean shift, per-step detection reduces to testing χ2 
+
+> d
+
+against 
+
+χ2
+
+> d
+
+(λ).
+
+Proposition 3 (chi-square detection boundary). Let χ2 
+
+> d, 1−α
+
+denote the (1 − α)-quantile of χ2 
+
+> d
+
+and a ∼ χ2
+
+> d
+
+(λd). As d → ∞ : if λd/√2d → 0 then P(a > χ 2
+
+> d, 1−α
+
+) → α; if 
+
+λd/√2d → c ∈ (0 , ∞) then the power tends to Φ( c − zα); if λd/√2d → ∞ the power tends to one. The quadratic score has asymptotically negligible power when the noncentrality is o(√d).A perturbation confined to a few coordinates can therefore be diluted in a high-dimensional embedding. 
+
+4.2 Sparse alternatives at finite dimension 
+
+Proposition 4 (asymptotic separation). Suppose ν has kd nonzero coordinates of common magnitude δd = p2(1 + η) log d for some η > 0, with kd = o(√d/ log d). The level-α Bonferroni test rejecting when max i |εi| > z α/ (2 d) has power tending to one, while the level-α chi-square test has power tending to α.The sparse-versus-dense dichotomy is classical in Gaussian sequence detection (Ingster and Suslina, 2003; Fan, 1996), and higher criticism interpolates between the regimes (Donoho and Jin, 2004). Proposition 4 describes an asymptotic regime. The table below reports exact requirements at α = 0 .01 and 80% power: λ∗ is the noncentrality required by the chi-square channel, and 
+
+λ∗ 
+
+> k
+
+= kδ 2 is the requirement for the maximum channel when the signal occupies k coordinates with common magnitude δ.
+
+d χ2
+
+> d, 0.99
+
+√2d λ∗ (dense) λ∗ 
+
+> k=1
+
+λ∗ 
+
+> k=3
+
+λ∗
+
+> k=10
+
+8 20.1 4.0 20.6 16.5 27.2 47.7 32 53.5 8.0 33.5 19.7 34.4 65.5 128 168.1 16.0 59.0 22.9 41.7 84.3 256 311.6 22.6 80.0 24.5 45.5 94.0 At d = 256 , the maximum channel requires 3.3-fold less noncentrality than the chi-square channel for a one-coordinate perturbation and 1.8-fold less for a three-coordinate perturbation, but requires more for a ten-coordinate perturbation. The largest sparsity for which the maxi-mum is more powerful is k∗ = 1 , 2, 5, 7 at d = 8 , 32 , 128 , 256 , respectively; at d = 256 , this is less than 3% of coordinates. Thus, the finite-dimensional advantage is moderate and restricted to highly sparse alternatives. Both channels should be evaluated at the deployed dimension rather than selected from the asymptotic result alone. 9Projection dimension affects power only when the projection preserves the perturbation. Suppose the corruption lies in a fixed subspace and the audit projects R256 onto m dimensions. A signal-preserving projection lowers the required noncentrality from 80.0 at m = 256 to 33.5 at m = 32 and 20.6 at m = 8 . A projection selected without reference to the perturbation retains an expected fraction m/d of the noncentrality; the required ambient noncentrality then increases as m decreases (80 at m = 256 , 118 at m = 128 , 268 at m = 32 , and 660 at 
+
+m = 8 ). Dimension reduction therefore improves power only when it preserves the alternatives of interest. Section 11.2 gives a stronger reason to reduce effective dimension: the smallest attributable corruption has a floor of order n−1/(d+2) , so dimension determines the rate at which calibration data improve attribution. 
+
+4.3 Sparsity in the whitened basis 
+
+Proposition 4 concerns sparsity of ν = Σ −1/2b, not of b.
+
+Proposition 5. For general Σ ≻ 0 there exist 1-sparse b with Σ−1/2b having d nonzero coordinates. If Σ is diagonal, the supports of b and Σ−1/2b coincide. Whitened-coordinate sparsity is not a generic consequence of semantic localization; it de-pends on the covariance parameterization. Constraining Σθ to be diagonal preserves coordinate support. Under a diagonal-plus-low-rank form Λ + U U ⊤, whitening mixes coordinates within the low-rank subspace, and the maximum channel should be evaluated in an appropriate co-variance eigenbasis. The deployed covariance structure should be reported. 
+
+4.4 Two-sided scores and channel combination 
+
+Corollary 2 requires attention to the lower tail. Define p+ 
+
+> t
+
+from the upper tail of the calibration scores and p− 
+
+> t
+
+from the lower, and use 2 min( p+ 
+
+> t
+
+, p − 
+
+> t
+
+); or score directly by a functional sensitive to both, such as the Anderson–Darling distance of the coordinates of ut from uniformity, which is pivotal by Theorem 1 like any other. Running several channels at level q and taking their union generally inflates the error rate. A single combined statistic can instead be formed by standardizing each channel on the calibration set, taking the maximum, and conformalizing that maximum. Theorem 1 then gives a single pivotal statistic and one family of p-values for Section 5. Higher criticism (Donoho and Jin, 2004) provides another single statistic that adapts across sparsity regimes. 
+
+4.5 Joint effect of the sensitivity parameters 
+
+Sensitivity is governed jointly by the embedding dimension d, the variance floor σ2min , and the off-support inflation rate γ of Section 7. These are not independent choices. Write 
+
+σ2eff (D) = max σ2min , σ 20 (1 + γD 2)
+
+for a step whose conditioning state lies at distance D from the training support. 
+
+Corollary 3 (minimum detectable perturbation). At level α and power 1 − β, a mean-shift corruption b is detectable by the chi-square channel only if 
+
+∥b∥22 ≥ σ2eff (D) √2d  zα + z1−β
+
+,
+
+10 and by the maximum channel only if 
+
+∥b∥∞ ≥ σeff (D)  zα/ (2 d) + z1−β
+
+.
+
+Increasing d raises the dense threshold on ∥b∥ at rate d1/4 and the sparse threshold at rate √log d. Increasing γ or σmin raises both thresholds linearly in σeff . Robustness choices involving these parameters should therefore be reported together with their effects on detection sensitivity. 
+
+# 5 Error control 
+
+5.1 Two calibration regimes 
+
+Under (A1 ∗), all calibration residuals across all calibration trajectories are i.i.d. uniform, so their scores form an i.i.d. sample Ω = {ω1, . . . , ω n} from the null score law. Pooling across steps and across trajectories is then exact by pivotality. For a suspect trajectory, 
+
+pt = 1 + # {j : ωj ≥ at}
+
+n + 1 .
+
+Lemma 1 (validity). (i) Under (A1 ∗), (A2a), (A3), and (A5), for each benign t, P(pt ≤
+
+u | t ≤ T, t / ∈ I) ≤ u for all u ∈ [0 , 1] (Vovk, Gammerman and Shafer, 2005). (ii) Under (A1) and (A5) alone, the same result holds for a stratified p-value in which Ω is restricted to calibration scores at the same step index as t, or to the same bin of st−1, provided the benign test step and calibration trajectories are exchangeable within that stratum. The two regimes impose different requirements on the fitted model. Pooling across steps within a trajectory requires correct specification, because pivotality makes scores at different po-sitions comparable. Pooling across trajectories at a matched index requires only exchangeability and stable application of the fitted model, even under systematic misspecification. The second regime has lower resolution: with B strata, the smallest attainable p-value is 1/(n/B +1) . With many strata and only several hundred calibration trajectories, this discreteness can materially affect Benjamini–Yekutieli thresholds. A small number of prespecified bins of st−1 provides a practical compromise, and the binning rule should be reported. 
+
+5.2 Selection of the audited trajectory 
+
+The audit is applied after a prior process has classified a trajectory as unsound. The calibration results are valid under this conditioning only if (A5) holds. When selection depends mainly on corrupted operations, the distribution of benign residuals may be approximately preserved. When selection depends on the overall atypicality of the trajectory, benign residuals in selected trajectories can be stochastically larger than those in the calibration population, making the p-values anti-conservative. Two approaches address selection. If the selection probability π(trajectory ) can be estimated from reviewer scores or from labeled selected and unselected trajectories, weighted conformal prediction reweights the calibration distribution by the selected-to-unselected likelihood ratio (Tibshirani, Barber, Candès and Ramdas, 2019). Alternatively, calibration trajectories can be sampled from the selected population and independently adjudicated as valid. The latter avoids assumption (A5) but may yield a smaller calibration set. Section 5.7 develops a sensitivity analysis that does not require estimating the selection model. 11 5.3 A p-value procedure with a fixed number of hypotheses 
+
+Within one trajectory the null p-values share the calibration set and are therefore dependent even though the underlying null scores are independent. Corrupted-step scores may depend on earlier benign residuals through the state, since corruption parameters are predictable. A second issue is that T is random. The procedures of Benjamini and Hochberg (1995) and Benjamini and Yekutieli (2001) are formulated for a fixed number of hypotheses. Because 
+
+T ≤ Tmax deterministically, the family can be padded to Tmax hypotheses by setting pt = 1 
+
+for t > T . The padded p-values are super-uniform and cannot be rejected, so the observed rejection set is unchanged and the number of hypotheses is fixed. 
+
+Theorem 3 (arbitrary dependence). Under (A1 ∗) or (A1) as appropriate, together with (A2a), (A3), (A5), applying the Benjamini–Yekutieli procedure to the padded family of 
+
+Tmax p-values at level q/H Tmax , where Hm = P 
+
+> k≤m
+
+1/k , controls the trajectory false discovery rate at q m 0/T max ≤ q under arbitrary joint dependence (Benjamini and Yekutieli, 2001). A stronger result at the nominal Benjamini–Hochberg level requires additional dependence conditions. In the present corruption model, corrupted-step scores may depend on earlier benign residuals through predictable corruption parameters, so joint independence generally fails. It does hold in controlled fault-injection benchmarks when the corruption is fixed conditional on x0. In that setting, the shared-calibration positive-dependence result of Bates, Candès, Lei, Romano and Sesia (2023) supports Benjamini–Hochberg at the nominal level. This result should therefore be stated as benchmark-specific rather than as a deployment-wide guarantee. 
+
+5.4 An e-value procedure 
+
+At Tmax = 40 , HTmax is approximately 4.3, so the Benjamini–Yekutieli adjustment substantially reduces the rejection threshold. An e-value procedure avoids this harmonic factor. Under (A1 ∗), the null score law is known exactly ( χ2 
+
+> d
+
+in the Gaussian instance), so likelihood-ratio e-values are available in closed form. For a mixing distribution π over noncentralities, 
+
+et =
+
+Z fd,λ (at)
+
+fd(at) π(dλ ), fd,λ (a)
+
+fd(a) = e−λ/ 2 Γ( d/ 2) 
+
+ √λa 
+
+> 2
+
+−(d/ 2−1) 
+
+Id/ 2−1
+
+ √λa ,
+
+where Iν is the modified Bessel function of the first kind. Each et has null expectation one because it is a likelihood ratio. Under exchangeability alone, conformal p-values can be converted to e-values with any decreasing calibrator f satisfying R 10 f = 1 ; for example, f (p) = 
+
+κp κ−1 with κ ∈ (0 , 1) (Vovk and Wang, 2021). 
+
+Theorem 4 (e-BH). Let e1, . . . , e Tmax be e-values for the padded family, valid for the nulls in the sense that E[et] ≤ 1. Order them as e(1) ≥ · · · ≥ e(Tmax ) and set k∗ = max {k : e(k) ≥
+
+Tmax /(qk )}. Rejecting the k∗ largest e-values controls the trajectory FDR at q m 0/T max ≤ q
+
+under arbitrary dependence (Wang and Ramdas, 2022). The absence of a harmonic factor does not imply uniformly greater power. A likelihood-ratio e-value requires a mixing distribution π, and power depends on its mass near the relevant alternatives; Corollary 3 identifies the corresponding detection scale. Converting conformal p-values to e-values also reduces efficiency. Relative power should therefore be evaluated for the intended trajectory length and alternative class. Boosting against a known null can recover part of this loss (Wang and Ramdas, 2022). 12 5.5 Per-report false discovery proportion 
+
+Trajectory-level false discovery rate is an expectation over an ensemble of audited trajectories. It is not a high-probability guarantee for the realized false discovery proportion in a single report. A high-probability statement for a single report requires a simultaneous bound on the realized false discovery proportion. Under (A1 ∗) and (A2a), the benign p-values from the one-step channel are i.i.d. uniform, so the Dvoretzky–Kiefer–Wolfowitz inequality with Massart’s constant applies (Dvoretzky, Kiefer and Wolfowitz, 1956; Massart, 1990). Independence is required: overlapping horizon scores in Section 3.2 and the anchor correction in Section 6.3 do not satisfy this condition. 
+
+Proposition 6 (simultaneous FDP bound, one-step channel). With probability at least 1 − δ, simultaneously over all thresholds s ∈ [0 , 1] ,
+
+FDP( s) ≤ T s + pT log(2 /δ )/21 ∨ R(s) ,
+
+where R(s) is the number of p-values at most s. Sharper simultaneous bounds tuned to BH-type threshold families are available (Katsevich and Ramdas, 2020). At δ = 0 .1, the additive term equals 3.9 flags at T = 10 , 5.5 at T = 20 , and 8.7 at 
+
+T = 50 . The bound is therefore uninformative unless the number of reported operations is large relative to typical trajectory length. At the trajectory lengths considered here, Sections 5.3 and 5.4 provide long-run FDR guarantees rather than report-specific probability statements. The trajectory remains the appropriate unit of multiplicity adjustment because the number of true errors may vary substantially across analyses, but the guarantee is an ensemble property. 
+
+5.6 Robustness to misspecification 
+
+Theorem 5 (total-variation robustness). Suppose corrupted steps have arbitrary pre-dictable kernels, and each benign step’s true conditional law given Gt is within total variation 
+
+δt of Qt, uniformly over histories. Let ψ be any flagging procedure, measurable in the scores and the calibration set, whose FDR is at most q when benign steps follow M. Then under the true dynamics FDR( ψ) ≤ q + P 
+
+> t / ∈I
+
+δt.The proof (Appendix A.7) is a sequential maximal coupling (Lindvall, 2002). Applying the same coupling argument to calibration misspecification yields an additive term 
+
+nϵ for n calibration points whose laws are each within ϵ of the model. This bound is gener-ally uninformative for realistic n. Validity depends on the calibration empirical distribution function, which permits a sharper concentration argument. 
+
+Proposition 7 (sharpened calibration term). Suppose each calibration score is drawn independently from a law G with ∥G − F ∥∞ ≤ ϵ, where F is the model null score law. Fix 
+
+δ ∈ (0 , 1) and set 
+
+η = ϵ +
+
+r log(2 /δ )2n + 1
+
+n + 1 .
+
+Then with probability at least 1 − δ the inflated p-values ˜pt = min(1 , p t + η) are super-uniform for benign t, so every guarantee of Sections 5.3 and 5.4 holds for ˜p with an additional δ added to the FDR. 13 The correction improves the bound from nϵ to ϵ + O(n−1/2) and is directly implementable by inflating each p-value by η. Estimation error requires no separate term because assumptions (A1), (A2a), and (A2b) concern the deployed kernels; discrepancies between the fitted model and the data-generating law are included in these assumptions. A remaining limitation is that total variation between transition kernels can be much larger than total variation between the induced score laws, although flagging depends on the trajectory only through the scores. A bound stated in terms of score laws would be sharper and estimable from held-out valid trajectories. Such a bound is not derived here because the sequential coupling requires equality of states, whereas equality of scores does not imply equality of states. Section 9 describes diagnostics that can be evaluated directly. 
+
+5.7 Sensitivity to the selection mechanism 
+
+The submission propensity is difficult to model because the dependence of the upstream judg-ment on benign operations is not directly observable. A sensitivity analysis can instead bound the propensity variation and report how much selection would be required to remove each flag. 
+
+Theorem 6 (selection sensitivity). Let S be the event that a trajectory is submitted for audit, π(τ ) = P(S | τ ) its propensity, and suppose that across valid trajectories the propensity odds vary by at most a factor Γ ≥ 1:
+
+Γ−1 ≤ π(τ )  1 − π(τ )
+
+π(τ ′)  1 − π(τ ′) ≤ Γ for all valid τ, τ ′.
+
+Then for every benign step, P(pt ≤ u | S) ≤ Γu for all u ∈ [0 , 1] , and Benjamini–Yekutieli or e-BH applied at level q/ Γ controls the trajectory false discovery rate at q within the selected population. The proof (Appendix A.11) follows because the odds bound implies π(τ ) ≤ Γπ(τ ′) pointwise, so selection can increase any benign-event probability by at most Γ. When Γ = 1 , submission is exchangeable and (A5) holds. A value Γ = 2 permits a twofold difference in submission probabilities and requires a corresponding twofold reduction in the operating level. For a Benjamini–Yekutieli rejection at rank k with p-value p(k), the largest propensity ratio under which the rejection remains is 
+
+Γ∗ = q k Tmax HTmax p(k)
+
+.
+
+Thus, each flag can be accompanied by the selection-strength value that would remove it. Larger values of Γ∗ indicate greater robustness to selection; values near one indicate substantial sensitivity. The quantity is available from the observed p-values and requires no fitted selection model. 
+
+Part II: The bridge instantiation 
+
+14 6 The bridge model 
+
+6.1 Time, cost, and predictability of the grid 
+
+Normalization by realized total cost, P 
+
+> i≤T
+
+ci, makes early time points depend on future oper-ation costs and is therefore incompatible with predictable conditioning. Budget normalization, 
+
+st = C−1max 
+
+P 
+
+> i≤t
+
+ci, removes this dependence. It also ensures sT < 1 on valid runs, so the bridge drift does not reach the 1/(1 − s) singularity, and gives the deterministic bound T ≤ Tmax used in Section 5.3. Budget normalization alone does not make the grid predictable. The increment ∆t =
+
+ct/C max and the embedding xt are both properties of operation t. A model that conditions the law of xt on ∆t therefore conditions on another feature of the same operation. Under (A0), this conditional law is well defined and non-degenerate, but the joint distribution must be factorized explicitly: 
+
+p(ct, x t | F t−1) = pψ(ct | F t−1)
+
+| {z }
+
+> cost model
+
+· pθ(xt | ct, Ft−1)
+
+| {z } 
+
+> embedding model, =Qt
+
+.
+
+The second factor is the Gaussian bridge transition defined below and is conditioned on Gt.The first factor is necessary unless operation cost is treated as exogenous. Execution cost provides an additional audit channel. An operation that processes substan-tially fewer records than predicted may indicate an unintended cohort restriction, whereas a substantially larger cost may indicate a join or keying error. The cost residual ϱt can be stan-dardized on the calibration set, combined with the embedding score before conformalization, and represented by one p-value per operation for the multiplicity procedures in Section 5. A deployment that does not model cost can set ∆t ≡ 1/T max and include realized cost only as a covariate of Σθ through Ft−1. This alternative is predictable but does not preserve the geometry of cost-normalized time. 
+
+6.2 Dynamics 
+
+Let ˆx(t) 
+
+> T
+
+= gη(x0, x t−1, s t−1) be a terminal anchor. For t = 1 , . . . , T ,
+
+xt = μt(xt−1) + Σ t(xt−1)1/2ξt, ξt ∼ N (0 , I d) i.i.d. ,μt(x) = x +
+
+"
+
+ˆx(t) 
+
+> T
+
+− x
+
+1 − st−1
+
++ uθ
+
+ x, s t−1, ˆx(t)
+
+> T
+
+#
+
+∆t, Σt(x) = Σ θ
+
+ x, s t−1, ∆t
+
+ ⪰ σ2min Id.
+
+Three aspects of this specification require comment. First, the anchor is re-estimated from the current state at each step rather than fixed at gη(x0). Because ˆx(t) 
+
+> T
+
+is Gt-measurable, the conditioning statements in Part I remain valid. The anchor head should be trained against held-out realized endpoints rather than through the trajectory likelihood; otherwise, the degenerate solution ˆx(t) 
+
+> T
+
+→ xt−1 can eliminate the bridge drift while increasing the likelihood. Second, the covariance is a free function of state and time rather than being proportional to 
+
+∆t. Proportionality would impose diffusive √∆t scaling, which can underweight operations that have low execution cost but large semantic effects, such as a restrictive cohort filter. Section 4.3 further motivates a diagonal or diagonal-plus-low-rank covariance so that sparse alternatives remain interpretable after whitening. 15 Third, the covariance floor prevents degeneracy of the heteroscedastic Gaussian likelihood when fitted variances collapse on interpolated observations (Seitzer et al., 2022). Corollary 3 also shows that the floor determines detection sensitivity and should be selected with reference to a minimum perturbation of scientific interest. The mean is an Euler discretization (Kloeden and Platen, 1992) of a bridge stochastic differential equation whose leading drift is the h-transform of Brownian motion pinned at the anchor (Doob, 1957; Rogers and Williams, 2000). The discrete recursion, rather than the continuous-time equation, is the statistical model. Its transition law is therefore exact by construction, whereas an exact transition density for the nonlinear stochastic differential equation is not assumed. 
+
+6.3 The anchor as a nuisance parameter 
+
+Anchor error affects every step through a known loading structure. If the fitted anchor is ˆx(t)
+
+> T
+
+but the trajectory is directed toward ˆx(t) 
+
+> T
+
++ g, the true conditional mean differs from μt by g w t,where 
+
+wt = ∆t
+
+1 − st−1
+
+is known. In the isotropic case Σt = σ2 
+
+> t
+
+I, define vt = wt/σ t and W = P 
+
+> t≤T
+
+v2 
+
+> t
+
+. Then 
+
+εt = ξt +vtg, which is a fixed-effect model with a vector parameter g and known scalar loadings. 
+
+Proposition 8 (anchor projection and induced contamination). For ϱ ≥ 0 let 
+
+ˆgϱ = ( W + ϱ)−1 P 
+
+> t
+
+vtεt, ˜εt = εt − vt ˆgϱ and ht = v2 
+
+> t
+
+/(W + ϱ), with P 
+
+> t
+
+ht = W/ (W + ϱ) ≤ 1.(i) If no step is corrupted then ˜at = ∥˜εt∥2/(1 − ht) is marginally χ2 
+
+> d
+
+for every g, but the corrected residuals are cross-correlated: Cov(˜ εt, ˜εs) = −vtvs(W + ϱ)−1Id for s̸ = t.(ii) A mean shift at a corrupted step t contributes noncentrality (1 − ht)λt at t and μs =
+
+hshtλt/(1 − hs) at every benign s̸ = t.Part (ii) concerns validity rather than only power. Because the anchor estimate uses all operations, a corruption at one step induces a nonzero mean at otherwise benign steps, so their null hypotheses in Theorems 3 and 4 no longer hold. The effect is largest near the end of the trajectory, where wt and leverage are greatest. For example, when hs = ht = 0 .3 and λt = 100 ,the induced noncentrality at step s is 12.9. The induced misspecification can be bounded. Since the total variation distance between 
+
+N (θ, I d) and N (0 , I d) is at most ∥θ∥/√2π, Theorem 5 gives 
+
+X
+
+> s̸=t
+
+δs ≤√htλt
+
+√2π
+
+X
+
+> s̸=t
+
+r hs
+
+1 − hs
+
+,
+
+which grows as √λt and is unbounded in the corruption magnitude. Shrinkage through ϱ
+
+changes the scale but does not remove this dependence. A bounded-influence estimator addresses this problem. Estimating g from {εt/v t} with a Huberized or trimmed procedure caps the influence of any one operation independently of λt,so the induced means and total-variation bound remain uniformly bounded. The corrected score then need not have an exact χ2 
+
+> d
+
+null distribution. Applying the same correction to calibration trajectories and using the exchangeability regime of Lemma 1(ii) avoids reliance on that parametric null. 16 Part (i) has two additional consequences. The induced cross-correlation invalidates Propo-sition 6, which requires independent nulls, but does not affect Benjamini–Yekutieli or e-BH. For non-isotropic Σt, the same construction uses Wt = wtΣ−1/2 
+
+> t
+
+and leverage matrices Ht, with corrected residual covariance I − Ht.Anchor correction is therefore most appropriate as a sensitivity analysis reported alongside the uncorrected scores and per-step leverage, rather than as the primary score. Because leverage is greatest near the terminal operations, the correction further reduces sensitivity in the region already affected by a point-valued terminal predictive. 
+
+# 7 Off-support behavior 
+
+7.1 Sufficient conditions for off-support conservatism 
+
+A learned heteroscedastic variance does not, by itself, control false alarms on out-of-distribution trajectories; an unconstrained variance head may extrapolate to arbitrarily small values. Suffi-cient conditions require variance to increase with distance from the training support and require the mean extrapolation error to be bounded by that distance. Spectral normalization can pro-vide the required Lipschitz control (Miyato et al., 2018; Liu et al., 2020). Under a bi-Lipschitz representation, feature-space distance to the training set also controls input-space distance up to fixed constants. For composition with the procedures in Section 5, the relevant condition is upper-tail dom-inance rather than validity at a single threshold. 
+
+Theorem 7 (off-support tail conservatism). Consider a benign step whose conditioning state lies at distance D ≥ d0 from the training support. Suppose the model is isotropic with variance σ2(D) = σ20 (1 + γD 2); the true conditional law has mean within κD + η0 of the model mean and covariance ⪯ ¯σ2Id. Put 
+
+A∞ = 2( κ + η0/d 0)2
+
+σ20 γ , B0 = 2¯ σ2
+
+σ20 (1 + γd 20) .
+
+If B0 < 1 then for every u ≥ A∞/(1 − B0),
+
+P(at > u ) ≤ P(χ2 
+
+> d
+
+> u ).
+
+In particular, if A∞/(1 − B0) ≤ χ2
+
+> d, 1−α
+
+, the benign p-value is α-tail super-uniform: P(pt ≤ u) ≤
+
+u for every u ≤ α.Both A∞ and B0 decrease with γ, so the conditions hold above an explicit inflation thresh-old. With a spectrally normalized mean head of Lipschitz constant Lμ and a true mean map assumed to be L∗-Lipschitz, κ ≤ Lμ + L∗, while η0 is the on-support fit error. The assump-tion of Gaussian off-support deviations can be replaced by a sub-Gaussian condition, with corresponding changes to the constants. Benjamini–Hochberg, Benjamini–Yekutieli, and e-BH use super-uniformity only at levels below their operating level. Thus, when q ≤ α, Theorem 7 supplies assumption (A2b) and extends the error-control results of Part I to trajectories that leave the training support. 
+
+Proposition 9 (off-support detection threshold). At a corrupted step at the same distance D, a shift b yields effective noncentrality λeff = ∥b∥2/σ 2(D). By Corollary 3, detection at level α and power 1 − β requires ∥b∥2 ≥ σ20 (1 + γD 2)√2d (zα + z1−β ).The variance inflation that makes off-support null scores conservative reduces the noncen-trality of genuine off-support perturbations by the same factor. 17 7.2 Inherited corruption 
+
+Exact on-path validity at every benign step is incompatible with unconstrained off-support behavior after a corruption. A downstream benign operation may receive a conditioning state that is absent from the training support even though its transition mechanism is valid. Theorem 7 addresses this case through tail conservatism rather than exact equality. Theorem 7 yields the following conservative localization result. 
+
+Corollary 4. Let t /∈ I follow a corrupted step, so that its conditioning state lies at distance D ≥ d0 from the training support, and suppose the conditions of Theorem 7 hold. Then P(at > u ) ≤ P(χ2 
+
+> d
+
+> u ) for all u ≥ A∞/(1 − B0), and the step is flagged with probability at most its nominal level. Exact localization is replaced by conservative localization. Downstream residuals are exactly null when the model is correct at the inherited state and have upper tails no heavier than the null when variance inflation is required off support. The same variance inflation also reduces sensitivity to a second genuine error committed after the trajectory has left the training support, by the factor in Proposition 9. Control of downstream false alarms and detection of subsequent errors therefore constitute a direct trade-off. 
+
+# 8 Terminal anchoring with multimodal endpoints 
+
+Valid analyses of the same question may terminate at different endpoints, such as distinct defensible covariate sets or compatible estimands. A point-valued anchor conditions the drift on one endpoint. Under (A4), routing trajectories to well-separated modes late in the run requires state sensitivity that grows as 1/(1 − s), which a uniformly Lipschitz uθ cannot provide. In addition, an ℓ2-trained point anchor converges to the conditional mean of the valid endpoints, which may lie in a low-density region between modes. 
+
+Proposition 10 (terminal multimodality). Consider the terminal step with isotropic model variance σ2 
+
+> T
+
+, flag threshold τ , and (A4) in force. Let z, z ′ be two benign pre-terminal states with ∥z − z′∥ ≤ w whose true terminal laws are N (mi, σ 2 
+
+> c
+
+Id) with ∥m1 − m2∥ ≥ 2r. Let 
+
+Lg be the Lipschitz constant of the anchor head in its state argument, put hT = 1 − sT −1 and 
+
+κT = 1 + Lg∆T /h T + L∆T , and set ρ = r − wκ T /2. If ρ ≥ 2σc(√d + t), then at least one of the following holds: (a) the benign terminal flag probability at one of the two states exceeds 
+
+1 − e−t2/2; or (b) σ2 
+
+> T
+
+≥ ρ2/(4 τ ), in which case every terminal shift with ∥b∥2 ≤ c1ρ2/√d for a universal constant c1 is undetectable at the boundary of Proposition 3. Maximum-likelihood training strongly penalizes under-coverage and may therefore favor alternative (b), with an inflated terminal variance. Under this behavior, endpoint multimodality appears as reduced sensitivity to corruptions in the final operations rather than as an increased terminal false-positive rate. Section 9 describes an empirical test of this prediction. Two modifications are compatible with the framework in Part I. The predictable anchor in Section 6.2 is useful when the terminal mode is identifiable from the pre-terminal state. The function gη(x0, x t−1, s t−1) can then select an endpoint without in-creasing the Lipschitz constant of the complete drift. Appendix A.10 shows that the dichotomy applies only while ρ > 0 and that this condition fails when the anchor head’s state sensitivity exceeds (2 r/w − 1 − L∆T )hT /∆T . Exceeding this threshold provides capacity to separate the modes but does not establish accurate routing. Section 8.1 gives an additional accuracy condi-18 tion. A point anchor remains inadequate when more than one endpoint is plausible from the same pre-terminal state. A more general modification replaces the point anchor with a multimodal predictive dis-tribution, such as a mixture over endpoints or a conditional normalizing flow. Because Part I is formulated through generalized residuals for arbitrary predictive families, this modification changes Qt but leaves Theorem 1, Lemma 1, Theorems 3–5, and Proposition 6 unchanged. The Gaussian closed forms in Section 4 and the bridge-specific results in Part II would require corresponding modification. 
+
+8.1 Routing capacity and off-support sensitivity 
+
+The anchor head contributes to the terminal mean and therefore to the extrapolation constant in Theorem 7. With κT = 1 + Lg∆T /h T + L∆T , the terminal mean map satisfies κ ≤ κT + L∗.
+
+Proposition 11 (off-support consequence of routing capacity). Under the conditions of Theorem 7 applied at the terminal step, the second design condition forces 
+
+γ ≥ 2 κT + L∗ + η0/d 0
+
+2
+
+σ20 χ2 
+
+> d, 1−α
+
+(1 − B0) ,
+
+and hence, by Proposition 9 and for γD 2 ≫ 1, a minimum detectable terminal perturbation at distance D of 
+
+∥b∥2min ≥ 2 κT + L∗ + η0/d 0
+
+2 D2 √2d (zα + z1−β )
+
+χ2 
+
+> d, 1−α
+
+(1 − B0) ,
+
+in which σ20 cancels. If Lg exceeds the separation threshold in Proposition 10, then κT > 2r/w ,so the off-support minimum detectable perturbation grows at least quadratically with the mode-separation ratio r/w .Increasing the anchor’s capacity to separate endpoints also increases the Lipschitz constant of the terminal mean. Theorem 7 then requires greater variance inflation, and Proposition 9 implies lower off-support sensitivity. The effect is quadratic in the separation ratio. This trade-off is less restrictive near the training support, where D is small, but can be substantial for trajectories that are both strongly routed and far off support. Exceeding the capacity threshold removes the obstruction in Proposition 10 but does not ensure that the fitted anchor maps each state to the appropriate mode. An accuracy condition is also required. 
+
+Proposition 12 (accurate routing avoids both failure modes). In the setting of Proposition 10, suppose the anchor routes accurately in the sense that ∥μ(z) − m(z)∥ ≤ e0 at every benign pre-terminal state z, where m(z) is the mean of that state’s true terminal law. If 
+
+σ2 
+
+> T
+
+≥ 2σ2 
+
+> c
+
++ 2e20
+
+χ2
+
+> d, 1−α
+
+,
+
+then the benign terminal score is tail-dominated by χ2 
+
+> d
+
+above χ2
+
+> d, 1−α
+
+, so alternative (a) does not occur. A terminal shift is detectable at level α and power 1 − β once ∥b∥2 ≥ σ2
+
+> T
+
+√2d(zα + z1−β ),which is of order σ2
+
+> c
+
+√2d when e20 ≲ σ2 
+
+> c
+
+χ2
+
+> d, 1−α
+
+.Under alternative (b) of Proposition 10, blindness extends to ∥b∥2 ≲ ρ2/√d. Under accurate routing, it extends only to order σ2
+
+> c
+
+√d. The improvement factor is ρ2/(σ2 
+
+> c
+
+d), which is at least 19 four under the hypothesis ρ ≥ 2σc(√d+t) and increases with mode separation. Accurate routing therefore replaces the between-mode separation by the within-mode spread and routing error as the scale governing terminal sensitivity. It cannot remove the intrinsic detection boundary associated with terminal spread σc.The routing modification therefore requires three conditions: sufficient capacity to separate the modes (Proposition 10), sufficient accuracy to route each state to its mode (Proposition 12), and acceptable off-support sensitivity at the resulting Lipschitz constant (Proposition 11). A mixture predictive can represent separated modes without requiring a steep point-valued anchor and may therefore avoid the first and third constraints. 
+
+# 9 Diagnostics 
+
+Two assumptions can be assessed using data already available in deployment. Under (A1 ∗), pooled calibration scores follow χ2
+
+> d
+
+. Quantile–quantile plots and Kolmogorov– Smirnov or Anderson–Darling statistics on held-out valid trajectories can assess this implica-tion. Diagnostics should be reported both overall and within strata of st−1, because localized misspecification may be obscured by pooling. Rejection indicates that the uninflated guar-antees in Section 5.3 do not apply; failure to reject does not establish correct specification. Deployment documentation should state this asymmetry. Four simulation studies can assess whether the fitted implementation exhibits the pre-dicted behavior. First, trajectories sampled from M should produce χ2 
+
+> d
+
+benign scores and null downstream scores after an injected shift. Second, power should be evaluated across non-centralities at the deployed dimension to assess the approximation in Proposition 3. Third, one-step, intermediate-horizon, and free-running scores can be compared on the same injected perturbation to measure the localization window in Proposition 1. Fourth, a bimodal-endpoint simulation can evaluate terminal sensitivity. The final simulation directly tests the prediction of Proposition 10. If a model with demon-strably multimodal endpoints exhibits elevated terminal false-positive rates rather than reduced terminal sensitivity, then training has selected alternative (a) rather than alternative (b), and the assumed training behavior in Section 8 does not hold for that implementation. 
+
+Part III: Population-level auditing and identifiability 
+
+# 10 Recurrent errors across trajectories 
+
+The preceding results concern one trajectory. In deployment, recurrent execution errors may appear across many trajectories, including repeated cohort restrictions, join failures, or omitted adjustments. Pooling repeated occurrences provides information that is unavailable in a single-trajectory analysis. Let each operation have a type label c(ot) ∈ { 1, . . . , C }, defined by the invoked tool or by a cluster of operation embeddings. Across M audited trajectories, let Tc contain the steps of type 
+
+c, with mc = |T c|, and let Hc denote the hypothesis that type c is executed validly wherever it occurs. This estimand concerns recurrent type-level departures rather than the corrupted set within one trajectory. 20 Proposition 13 (recurrence gain). Suppose (A1 ∗) and (A2a) hold, a type-c defect contributes noncentrality λ at each of its occurrences, and the occurrences lie in distinct tra-jectories. Then the pooled score Ac = P 
+
+> t∈T c
+
+at is χ2
+
+> mcd
+
+(mcλ), and detection at level α with power 1 − β requires 
+
+λ ≥
+
+r 2dmc
+
+ zα + z1−β
+
+,
+
+a factor √mc below the per-step boundary of Proposition 3. For type-level error control, averaging the e-values in Section 5.4 within a type yields a valid type-level e-value. Applying e-BH across the C types controls type-level FDR at q under arbitrary dependence, including dependence among occurrences within the same trajectory. The recurrence gain applies only to the noise-limited component of the detection boundary. 
+
+Corollary 5 (recurrence does not resolve confusability). The √mc improvement applies to the noise-limited boundary of Section 11.2 only. The confusability floor of Theorem 9 concerns the distinction between a corruption and an unmodelled feature of the valid dynamics, and is governed by the number of valid calibration trajectories n, never by the number of audited occurrences mc.Audited occurrences cannot resolve uncertainty about the valid mechanism itself. A re-current departure concentrated in one region of state space may be observationally similar to systematic misspecification of the valid drift. Recurrence increases statistical power against known null dynamics but does not reduce the identifiability limit. Analyses that pool across trajectories should distinguish these two sources of uncertainty. 
+
+# 11 Identifiability and detection limits 
+
+The guarantees in Parts I and II address the error rate of the reported set. This section addresses the interpretation of that set. Three results limit the departures that can be identified from observational trajectories. 
+
+11.1 Testability of the estimand 
+
+Exact inequality between transition kernels is not a statistically separated estimand. 
+
+Theorem 8 (non-testability of the exact-departure estimand). Fix a valid mech-anism K∗ with transition densities, a step t0 < T , and η ∈ (0 , 1) . There exist mechanisms 
+
+K(1) , K (2) with 
+
+I(K(1) ) = {t0}, I(K(2) ) = {t0, t 0 + 1 , . . . , T }, TV  P (1) , P (2)  ≤ η, 
+
+where I(K) = {t ≤ T : Kt̸ = K∗ 
+
+> t
+
+} and P (i) is the law of the audited trajectory under K(i), the calibration law being the same under both. Consequently every auditor ψ satisfies 
+
+E1 ψ △ I(K(1) ) + E2 ψ △ I(K(2) ) ≥ (T − t0)(1 − η).
+
+The construction in Appendix A.13 modifies every kernel after t0 by an ϵ-mixture of the valid kernel and an alternative. Each subsequent kernel differs from K∗, while the total variation distance between the resulting trajectory laws can be made arbitrarily small. Thus, a set estimator that is correct under one mechanism can have large symmetric-difference loss under an observationally indistinguishable mechanism. 21 Corollary 6. No auditor estimates I(K) consistently, at any sample size, for any score, under any assumption on K∗ that does not restrict the size of departures. The estimand must therefore include a minimum departure magnitude. For δ > 0, define 
+
+Iδ(K) = {t : TV( Kt, K ∗ 
+
+> t
+
+) > δ } and leave departures below δ in an indifference region. The audit then reports operations whose conditional mechanisms differ from the valid mechanism by more than a prespecified threshold. Section 2.3 should be interpreted with this qualification. Assumption (A2a) provides a positive result under competence preservation. 
+
+Proposition 14 (factorization under competence). Suppose K∗ is known and every benign step satisfies Kt = K∗ 
+
+> t
+
+conditionally on Gt whatever the past states. Then the likelihood ratio of any corruption hypothesis against the null factorizes over steps, the generalized residuals are jointly sufficient for Iδ, and every admissible auditor is a function of them. If the mechanism may instead change after an error and remain changed, no such factorization holds: the minimal sufficient statistic is the whole trajectory, the natural hypothesis family is nested rather than indexed by individual steps, and step-wise testing is inadmissible. Competence preservation is the condition under which step-level attribution is well posed. If the mechanism changes after an error and remains changed, the appropriate estimand is the time at which the process leaves the valid regime, not a set of independent corrupted operations. Controlled replay and counterfactual intervention can restore step-level identification by fixing the downstream mechanism. 
+
+11.2 A detection floor from finite calibration 
+
+After introducing a magnitude threshold, the attribution rate is limited by uncertainty in the valid dynamics. A local mean shift at one operation can be observationally equivalent to a legitimate local feature of the valid drift. Distinguishing these cases requires sufficient calibration trajectories in the same region of state space and is therefore a local nonparametric estimation problem. Fix a class U(L) of drifts L-Lipschitz in the state, noise level σ2, per-step increment ∆, and a visited-state density bounded above by c. Write N = nT for the total number of calibration transitions. 
+
+Theorem 9 (confusability floor). For any b with ∥b∥d+2 ≲ σ2(L∆) d/(cN ) there exist u ∈U(L), a state z, and u′ ∈ U (L) agreeing with u outside a neighbourhood of z, such that the joint law of calibration and audited data under (a) drift u with a single corruption of displacement 
+
+b at the operation visiting z, so Iδ = {t}, and (b) drift u′ with no corruption, so Iδ = ∅, differ by at most 1/4 in total variation. Every auditor then satisfies Ea|ψ△Ia| + Eb|ψ△Ib| ≥ 3/4.Combining with the noise-limited boundary for a corruption at an unknown one of T loca-tions, the smallest attributable corruption satisfies 
+
+ρ2min ≍ σ2p2d log T + ρ2floor , ρfloor ≍
+
+ σ2(L∆) d
+
+c nT 
+
+ 1
+
+> d+2
+
+.
+
+Corollary 7. The floor decays in the number of valid trajectories as n−1/(d+2) ; halving it requires 2d+2 times more calibration data. 22 d floor after 100 × data after 10 4× data multiple to halve the floor 2 0.32 0.10 16 8 0.63 0.40 1.0 × 10 3
+
+32 0.87 0.76 1.7 × 10 10 
+
+128 0.965 0.932 10 39 
+
+256 0.982 0.965 10 78 
+
+At d = 256 , a 100-fold increase in valid trajectories reduces this floor by less than 2%. 
+
+Corollary 8. The dependence on d is through the exponent, so reducing the dimension in which the dynamics are modeled changes the rate rather than the constant. From d = 256 to 
+
+d = 8 turns a floor effectively fixed in n into one decaying as n−1/5.This rate provides a stronger motivation for dimension reduction than the finite-dimensional score comparison in Section 4.2. The relevant dimension is the intrinsic dimension of the fitted dynamics, not necessarily the width of the embedding. A 256-dimensional embedding concentrated near an 8-dimensional manifold can have the more favorable rate if the model is fitted in a representation that exposes that structure. The intrinsic dimension of agent trajectories must be evaluated empirically. 
+
+Corollary 9. As d grows with the other quantities fixed, ρfloor → L∆: no auditor can distinguish a corruption from a legitimate feature of the dynamics when the corruption is smaller than what the dynamics may do over one operation. The floor is an identifiability limit rather than an estimation-error term. For an auditor trained only on valid trajectories, a sufficiently small local corruption cannot be distinguished from an unobserved feature of the valid dynamics. Theorem 9 therefore limits the magnitude of departures that can be attributed, while the error-control results in Section 5 remain valid for the resulting scores. 
+
+11.3 Adversarially chosen corruption 
+
+The corruptions in Section 3.1 are exogenous. If the location of a perturbation is selected to maximize terminal effect while limiting detectability, its position along the trajectory becomes relevant. Measure damage by terminal displacement. In the noiseless limit, a shift b at normalized time s0 produces terminal displacement ∥b∥(1 − ¯s)/(1 − s0) and detection noncentrality λ =
+
+∥b∥2/σ 2eff (s0). Define the damage-to-detectability ratio E(s0) = σeff (s0)(1 − ¯s)/(1 − s0).
+
+Proposition 15 (late shifts have greater damage-to-detectability ratio). With σeff 
+
+constant, E is strictly increasing in s0. At ¯s = 0 .9, a shift at s0 = 0 .75 is four times as efficient as the same shift at the start of the trajectory, and a shift at s0 = 0 .89 is nine times as efficient. Early shifts are contracted toward the anchor by the factor (1 − ¯s)/(1 − s0), whereas late shifts are less attenuated. With constant σeff , innovation detectability does not depend on position. The bridge therefore reduces terminal effects of early perturbations more strongly than those of late perturbations. 
+
+Corollary 10. Proposition 10 places reduced terminal sensitivity and Proposition 8 places high anchor leverage in the final operations. Under the stated model, the single shift with the largest terminal effect relative to detectability therefore occurs near the end of the trajectory. A second strategy distributes the perturbation across operations. A displacement b spread evenly over k consecutive operations has noncentrality λ(h)(k) = ∥b∥2 min( h, k )2/(k2hσ 2) in 23 the h-step channel, which is maximized at h = k. Relative to this matched horizon, a one-step score loses a factor k in noncentrality. 
+
+Theorem 10 (dyadic horizon ladder). With horizons H = {1, 2, 4, . . . , 2J } and a corruption spread over any k ≤ 2J operations, 
+
+max  
+
+> h∈H
+
+λ(h)(k) ≥ 1√2 λ(k)(k),
+
+with equality at k = √2 2 j . The number of tested horizons is J + 1 = O(log T ).The dyadic horizon set is therefore minimax within a factor √2 of the matched horizon, compared with a factor-k loss for one-step scoring. The most difficult perturbations under the bridge model are gradual displacements concentrated in the final operations. Examples include progressive narrowing of a cohort definition, gradual relaxation of inclusion criteria, or drift in the selected covariate set. These results further motivate a multimodal terminal predictive in Section 8. 
+
+# 12 Limitations 
+
+Three limitations are structural. First, the flagged set has no causal interpretation. The set I contains mechanism violations but does not distinguish an initiating error from an independent later error or identify a causal chain among flagged operations. Second, assumption (A2a) may fail when the agent’s mechanism changes after an error. Sustained procedural changes invalidate the benign-step model even if individual downstream operations are locally coherent. The total-variation bound in Theorem 5 can then approach its trivial limit, and off-support variance inflation in Corollary 4 does not address a changed transition mechanism. A latent-regime model is more appropriate in this setting: the esti-mand becomes the time at which the process leaves the valid regime, yielding a changepoint problem with an unknown post-change law. E-detectors provide non-asymptotic guarantees for this setting (Shin, Ramdas and Rinaldo, 2024), and conformal test martingales provide an exchangeability-based alternative (Vovk, Nouretdinov and Gammerman, 2003). Multi-horizon residuals address bounded gradual perturbations, but not a persistent regime change. Third, report-specific false-discovery guarantees are weak at the trajectory lengths consid-ered here. Proposition 6 bounds the realized false discovery proportion simultaneously over thresholds, but the additive term is large when T is in the tens. A reader therefore receives a long-run FDR guarantee and a realized point estimate, not a high-probability statement for the individual report. The identifiability results in Section 11 impose two additional limits. The exact corrupted set is not testable without a minimum-effect threshold, and the smallest attributable departure has a confusability floor that decreases extremely slowly with calibration sample size in high dimension. Accordingly, the strongest guarantees apply when a departure occurs near the training support and the post-error transition mechanism remains within the modeled family. 24 A Proofs 
+
+Throughout, {T ≥ t} ∈ F t−1 because the decision to continue after operation t − 1 is made from the realized history. Part I invokes (A2a) at on-support benign steps. Off-support benign steps are treated through (A2b) and Theorem 7, which provides tail dominance rather than equality and preserves results that require only super-uniformity. 
+
+A.1 Theorem 1 
+
+Write Et = {t ≤ T, t / ∈ I}. Since {T ≥ t} ∈ F t−1 ⊆ G t and {t ∈ I} ∈ G t by (A3), we have 
+
+Et ∈ G t. The parameters of Qt are Gt-measurable, so Rt is a Gt-measurable map; under (A2a) and (A0), L(xt | G t) = Qt is atomless on Et, and the Rosenblatt transform of a law by itself is uniform (Rosenblatt, 1952), giving L(ut | G t) = Unif[0 , 1] d on Et. Hence 
+
+E[f (ut)1Et ] = E1Et E[f (ut) | G t] = E[f (U )] P(Et).
+
+For t1 < · · · < t r, the variables ut1 , . . . , u tr−1 and the event T 
+
+> j<r
+
+Etj are measurable with respect to Ftr −1 ⊆ G tr . Conditioning on Gtr separates the last factor, and iteration gives the product identity. The argument does not condition on the realized value of T or I, which permits a stopping time and random predictable corruption set. For (ii), on {t ∈ I} the conditional law of xt given Gt is ˜Qt by definition, so ut | G t ∼ Rt# ˜Qt.Corollary 1 follows because εt = νt + ξt with νt being Gt-measurable, and the monotonicity of the noncentral chi-square tail in its noncentrality is classical (Johnson, Kotz and Balakrishnan, 1995, Ch. 29). Corollary 2 follows by diagonalizing Γt; if Γt ≺ 0 then P
+
+> i
+
+(1 + γt,i )χ21 is stochastically smaller than χ2
+
+> d
+
+, so the upper-tail rejection probability is below α. □
+
+A.2 Theorem 2 
+
+Let D(s) = ˜ z(s) − z(s), so D′ = −D/ (1 − s) + [ uθ(˜ z, s ) − uθ(z, s )] . Wherever D̸ = 0 ,
+
+dds ∥D∥ = − ∥D∥
+
+1 − s + D/ ∥D∥, u θ(˜ z, s ) − uθ(z, s ) ,
+
+and the inner product is bounded in modulus by L∥D∥ under (A4). Hence 
+
+− 11 − s − L ≤ dds log ∥D(s)∥ ≤ − 11 − s + L. 
+
+Integrating from s0 and using R ss0 (1 −v)−1dv = log 1−s0 
+
+> 1−s
+
+gives the envelopes. The lower envelope is strictly positive on [s0, ¯s], so D never vanishes and the differentiation is justified; at isolated points of non-differentiability of ∥D∥ the same bounds hold for the Dini derivatives. If Σ is state-independent, running both stochastic dynamics with the same noise cancels the noise in the difference and the envelope holds pathwise. The lower envelope decays for every L, since  
+
+> dds
+
+log[(1 −s)e−L(s−s0)] = −1/(1 −s)−L < 0; the upper envelope decays only when L < 1/(1 −s).For L above that the two envelopes separate and the bound determines only that the gap is nonzero, not whether it decays. For repeated shifts bi at times si, superposition of the upper envelope gives ∥D(s)∥ ≤ P 
+
+> si≤s
+
+∥bi∥ 1−s 
+
+> 1−si
+
+eL(s−si); the lower bound does not superpose, since shifts can cancel. □
+
+25 A.3 Propositions 1 and 2 
+
+Proposition 1(i). Fix t ≥ t0 + k. The conditioning σ-field of Q(k) 
+
+> t
+
+contains xt−k with t − k ≥ t0,so the corrupted transition at t0 lies in the past of the prediction. Every transition from 
+
+t − k + 1 to t is benign and follows M under (A2a), so Q(k) 
+
+> t
+
+is the correct conditional law and the residual is uniform by the argument of Appendix A.1 applied to the coarser filtration. For t0 ≤ t ≤ t0 + k − 1 we have t − k < t 0, so the corrupted transition lies strictly inside the prediction window and enters the predictive mean. 
+
+Proposition 1(ii). The conditioning σ-field of Q(k) 
+
+> t
+
+is G(k) 
+
+> t
+
+= Ft−k ∨ σ(ct−k+1 , . . . , c t). The argument of Appendix A.1 requires the benign event to lie in that field. Now {t / ∈ I} ∈ G t need not lie in G(k) 
+
+> t
+
+, and {t ≤ T } depends on the halting decisions at t − k + 1 , . . . , t − 1 and hence on 
+
+xt−k+1 , . . . , x t−1, which are not in Ft−k. Under the stated commitment condition both events lie in G(k) 
+
+> t
+
+and Appendix A.1 applies unchanged. Without it, conditioning on survival to t
+
+selects on the intervening innovations and the residual is not uniform. 
+
+Proposition 1(iii). If tj+1 − tj ≥ k then u(k) 
+
+> tj
+
+is Ftj -measurable and Ftj ⊆ F tj+1 −k ⊆ G (k) 
+
+> tj+1
+
+,so the peeling argument of Appendix A.1 goes through. If tj+1 − tj < k then xtj lies strictly inside the prediction window of tj+1 and the two residuals share k − (tj+1 − tj ) innovations, so they are dependent; nothing above bounds that dependence. □
+
+Proposition 2. With Σ ≡ σ2I and identity drift over the window, xt − E[xt | F t−k] = Ptj=t−k+1 (bj + σξ j ), which has mean P 
+
+> j
+
+bj and covariance kσ 2I. At t = t0 + k − 1 the accumulated shift is b, so the whitened mean has squared norm ∥b∥2/(kσ 2). The one-step residual at any single step of the window has whitened mean b/ (kσ ), giving ∥b∥2/(k2σ2). □
+
+A.4 Propositions 3, 4 and 5 
+
+Proposition 3. Write a = P
+
+> i
+
+(νi + ξi)2 = d + λd + S1 + S2 with S1 = P
+
+> i
+
+(ξ2 
+
+> i
+
+− 1) and 
+
+S2 = 2 P 
+
+> i
+
+νiξi. Then S1/√2d ⇒ N (0 , 1) , S2 ∼ N (0 , 4λd) exactly, and Cov( S1, S 2) = 0 since 
+
+E[ξ3] = 0 . When λd = O(√d), S2/√2d has standard deviation p2λd/d → 0, so (a − d)/√2d =
+
+λd/√2d + S1/√2d + oP (1) while (χ2 
+
+> d, 1−α
+
+− d)/√2d → zα. If λd/√2d → ∞ , then a has mean 
+
+d+λd and standard deviation √2d + 4 λd = o(λd)+ O(√d), and Chebyshev gives power tending to one. □
+
+Proposition 4. The Bonferroni test has level at most α by the union bound. For power, fix a signal coordinate: P(|δd + ξ| > z α/ (2 d)) ≥ P(ξ > z α/ (2 d) − δd), and since zα/ (2 d) ≤
+
+p2 log(2 d/α ) = √2 log d(1 + o(1)) while δd = p2(1 + η) log d, the gap diverges. For the chi-square test, λd = kdδ2 
+
+> d
+
+= 2(1+ η)kd log d = o(√d) by hypothesis, and Proposition 3 applies. The finite-dimensional entries in the table of Section 4.2 are exact: λ∗ solves P(χ2
+
+> d
+
+(λ) > χ 2
+
+> d, 0.99
+
+) = 0.8, and λ∗ 
+
+> k
+
+= kδ 2 where δ solves 1 − [Φ( c − δ) − Φ( −c − δ)] k[2Φ( c) − 1] d−k = 0 .8 with c the exact level-α maximum threshold, 2(1 − Φ( c)) = 1 − (1 − α)1/d . □
+
+Proposition 5. If Σ is diagonal so is Σ−1/2, and supports are preserved. Otherwise take 
+
+Σ−1/2 with a dense first column and b = e1; then Σ−1/2b is that column. □
+
+A.5 Lemma 1, Theorems 3 and 4 
+
+Under (A1 ∗) the calibration scores are i.i.d. from the null score law; under (A2a) and Theorem 1 each benign test score has the same law and is independent of the calibration set, which comes from distinct trajectories. The n + 1 scores are exchangeable with continuous common law, so 26 the rank of at is uniform and P(pt ≤ u) ≤ u (Vovk, Gammerman and Shafer, 2005). Under (A1) alone the same argument runs within a stratum, where exchangeability of the test score with the calibration scores at that index is assumed directly rather than derived from correct specification. (A5) is what permits the statement to be read conditionally on the trajectory having been submitted for audit. For Theorem 3, pad with pt = 1 for T < t ≤ Tmax . Padded p-values satisfy P(pt ≤ u) = 0 
+
+for u < 1, so the padded family has Tmax hypotheses of which the padded ones are super-uniform, and the count is now deterministic. Benjamini–Yekutieli requires only marginal super-uniformity of the nulls and controls FDR at q m 0/T max under arbitrary dependence (Benjamini and Yekutieli, 2001, Theorem 1.3). A padded index is rejected only if 1 ≤ qk/ (Tmax HTmax ),which fails for all k ≤ Tmax when q < H Tmax , so the realized discoveries are unchanged. For Theorem 4, the likelihood ratio fd,λ (a)/f d(a) has expectation one under fd for each λ,hence so does any mixture; the closed form follows from the Poisson-mixture representation of the noncentral density, fd,λ (a) = e−λ/ 2 P 
+
+> j≥0(λ/ 2) j
+> j!
+
+fd+2 j (a) together with fd+2 j (a)/f d(a) =  
+
+> Γ( d/ 2) Γ( d/ 2+ j)
+
+(a/ 2) j , so that the ratio is e−λ/ 2 0F1(; d/ 2; λa/ 4) and the Bessel form is the standard identity for 0F1. For a calibrated e-value, if f is decreasing with R 10 f = 1 and p is super-uniform, then E[f (p)] ≤ E[f (U )] = 1 . e-BH controls FDR at q m 0/T max under arbitrary dependence (Wang and Ramdas, 2022). □
+
+A.6 Proposition 6 
+
+Under (A1 ∗) and (A2a) the exact-null p-values pt = P(χ2 
+
+> d
+
+≥ at) are i.i.d. uniform across benign steps by Theorem 1. Let V (s) count benign p-values at most s. By the Dvoretzky–Kiefer– Wolfowitz inequality with Massart’s constant, with probability at least 1 − δ, sup s |V (s)/m 0 −
+
+s| ≤ plog(2 /δ )/(2 m0), so V (s) ≤ m0s+pm0 log(2 /δ )/2 simultaneously in s; bounding m0 ≤ T
+
+and dividing by R(s) ∨ 1 gives the claim. With conformal rather than exact-null p-values the benign p-values are dependent through the shared calibration set. Conditioning on it restores independence, and a second application of the same inequality to the calibration sample gives P(pt ≤ s | Ω) ≤ s + plog(2 /δ ′)/(2 n) uni-formly in s with probability 1−δ′; the bound then holds with s replaced by s+plog(2 /δ ′)/(2 n)
+
+and total failure probability δ + δ′. □
+
+A.7 Theorem 5 and Proposition 7 
+
+Theorem 5. Construct both worlds on one space, sequentially in t. Given agreement of histories through t − 1: if t ∈ I, both worlds apply the same corruption kernel to the same history and can be coupled to agree exactly; if t / ∈ I, maximally couple the true conditional law with Qt,which fail to agree with probability at most δt (Lindvall, 2002). If the histories already disagree, couple arbitrarily. Let E be the event of agreement through T ; a union bound over benign steps gives P(Ec) ≤ P 
+
+> t / ∈I
+
+δt. The calibration set is shared and exact. On E the two worlds produce identical scores, flags and corrupted sets, hence identical false discovery proportions. Since 
+
+FDP ≤ 1,
+
+FDR true = E[FDP 1E ] + E[FDP 1Ec ] ≤ FDR model + P(Ec). □
+
+Proposition 7. Let ˆSn(a) = n−1#{ωj ≥ a}, let SG be the survival function of the true calibration score law and S that of the model null. Then pt = nn+1 ˆSn(at)+ 1 
+
+> n+1
+
+, so |pt −S(at)| ≤ 
+
+27 ∥ ˆSn − S∥∞ + 1 
+
+> n+1
+
+, and ∥ ˆSn − S∥∞ ≤ ∥ ˆSn − SG∥∞ + ϵ. The Dvoretzky–Kiefer–Wolfowitz inequality bounds the first term by plog(2 /δ )/(2 n) with probability 1 − δ. On that event 
+
+˜pt = pt + η ≥ S(at), which is uniform under (A2a) at the test step, so ˜pt is super-uniform and every procedure valid for super-uniform nulls applies, with δ added to the error rate to account for the complement. □
+
+A.8 Theorem 7, Corollary 4 and Proposition 9 
+
+Write x − μm = ( μ∗ − μm) + C1/2ζ with ∥μ∗ − μm∥ ≤ κD + η0, C ⪯ ¯σ2I and ζ ∼ N (0 , I d).Pointwise, ∥x − μm∥2 ≤ 2( κD + η0)2 + 2¯ σ2∥ζ∥2, so with A(D) = 2( κD + η0)2/σ 2(D) and 
+
+B(D) = 2¯ σ2/σ 2(D),
+
+at ≤ A(D) + B(D) χ2 
+
+> d
+
+pointwise in ζ. 
+
+For D ≥ d0, A(D) ≤ 2( κD + η0)2/(σ20 γD 2) ≤ 2( κ + η0/d 0)2/(σ20 γ) = A∞ and B(D) ≤ B(d0) = 
+
+B0. Hence for any u,
+
+P(at > u ) ≤ P A∞ + B0χ2 
+
+> d
+
+> u  = P χ2 
+
+> d
+
+> (u − A∞)/B 0
+
+,
+
+which is at most P(χ2 
+
+> d
+
+> u ) precisely when (u − A∞)/B 0 ≥ u, that is u ≥ A∞/(1 − B0). Both 
+
+A∞ and B0 are decreasing in γ, so the two conditions B0 < 1 and A∞/(1 − B0) ≤ χ2
+
+> d, 1−α
+
+hold for all γ above an explicit threshold. Super-uniformity at levels u ≤ α follows because 
+
+pt ≤ u ≤ α corresponds to at exceeding a threshold at least χ2
+
+> d, 1−α
+
+. If the true deviation is 
+
+¯σ2-sub-Gaussian rather than Gaussian, replace ∥ζ∥2 by its sub-Gaussian envelope (√d + t)2
+
+with failure probability e−t2/2; the conclusion holds with χ2 
+
+> d
+
+replaced by that envelope and an additive e−t2/2.Corollary 4 is the special case in which the state is off-support because it inherits a corrup-tion. Proposition 9 is immediate: ε = b/σ (D) + ξ gives a ∼ χ2
+
+> d
+
+(∥b∥2/σ 2(D)) , and Corollary 3 converts the noncentrality into a requirement on ∥b∥. □
+
+A.9 Proposition 8 
+
+Take ϱ = 0 for legibility; the general case replaces W by W + ϱ throughout. With εt = ξt + vtg,
+
+ˆg = W −1 P 
+
+> s
+
+vsεs = g + W −1 P 
+
+> s
+
+vsξs, so ˜εt = ξt − vtW −1 P 
+
+> s
+
+vsξs is free of g. Its covariance is 
+
+ 1 − 2v2 
+
+> t
+
+/W + v2 
+
+> t
+
+W/W 2Id = (1 − ht)Id, ht = v2 
+
+> t
+
+/W, 
+
+and Cov(˜ εt, ˜εs) = −vtvsW −1Id for s̸ = t, which is the cross-correlation in part (i). Hence 
+
+˜at = ∥˜εt∥2/(1 − ht) ∼ χ2 
+
+> d
+
+marginally when no step is corrupted. If a shift νt is present at step t
+
+only, E[˜ εt] = (1 − ht)νt and E[˜ εs] = −vsvtW −1νt, so the standardized residual at s is N (θs, I d)
+
+with ∥θs∥2 = μs = hshtλt/(1 − hs).For the resulting bound, TV( N (θ, I d), N (0 , I d)) = 2Φ( ∥θ∥/2) − 1 ≤ ∥ θ∥/√2π, and total variation between the score laws is no greater than total variation between the residual laws. Summing √μs = √htλt
+
+phs/(1 − hs) over s̸ = t gives the displayed bound, which grows as √λt. Under a bounded-influence estimator with influence bounded by ς, the induced mean satisfies ∥θs∥ ≤ vsς/ √1 − hs independently of λt, and the sum is uniformly bounded in the corruption magnitude. □
+
+28 A.10 Proposition 10 
+
+With the predictable anchor gη of Lipschitz constant Lg and hT = 1 − sT −1 ≥ ∆T , the terminal model mean satisfies 
+
+μ(z) − μ(z′) = ( z − z′)
+
+
+
+1 − ∆T
+
+hT
+
+
+
++ ∆T
+
+hT
+
+ gη(z) − gη(z′) + ∆ T
+
+ uθ(z) − uθ(z′),
+
+so ∥μ(z) − μ(z′)∥ ≤ w κ T with κT = 1 + Lg∆T /h T + L∆T . Since ∥m1 − m2∥ ≥ 2r, the triangle inequality implies max i ∥μ(zi)−mi∥ ≥ r −wκ T /2 = ρ. At the state with the larger discrepancy, 
+
+∥x − μ∥ ≥ ρ − σc∥ζ∥, so the flag probability is at least P(σc∥ζ∥ < ρ − σT
+
+√τ ). If alternative (b) fails, then σT
+
+√τ < ρ/ 2, and ρ ≥ 2σc(√d+t) gives a probability of at least 1−e−t2/2 by Gaussian norm concentration. If instead σ2 
+
+> T
+
+≥ ρ2/(4 τ ), a terminal shift has λeff = ∥b∥2/σ 2 
+
+> T
+
+≤ 4τ ∥b∥2/ρ 2.For τ ≤ 2d at large d, the noncentrality reaches the √2d boundary of Proposition 3 only when 
+
+∥b∥2 ≥ ρ2√2d/ (8 d), which gives c1.The hypothesis ρ > 0 is what makes the dichotomy bind, and it fails when 
+
+Lg >
+
+ 2rw − 1 − L∆T
+
+ hT
+
+∆T
+
+.
+
+An anchor head whose state sensitivity exceeds this threshold can map the two states to different terminal means, so the hypothesis of Proposition 10 no longer holds. This capacity condition does not establish that either alternative is avoided; accurate routing is addressed in Proposition 12. The threshold increases with hT /∆T , making separation most difficult when the final operation has low cost while substantial budget remains. □
+
+A.11 Theorem 6 and Proposition 13 
+
+Theorem 6. The odds bound gives, for any valid τ, τ ′, π(τ ) 1 − π(τ ′) ≤ Γ π(τ ′) 1 − π(τ ),hence π(τ ) ≤ Γπ(τ ′) + π(τ )π(τ ′)(1 − Γ) ≤ Γπ(τ ′) since Γ ≥ 1. Condition on the calibration set 
+
+Ω, which is drawn without selection. For any event A measurable in the audited trajectory, 
+
+P(A | S, Ω) = E[π(τ )1A | Ω] 
+
+E[π(τ ) | Ω] ≤ sup π
+
+inf π P(A | Ω) ≤ Γ P(A | Ω) .
+
+Taking A = {pt ≤ u} for a benign t and averaging over Ω gives P(pt ≤ u | S) ≤ Γu by Lemma 1. Substituting the inflated super-uniformity into the Benjamini–Yekutieli or e-BH argument multiplies the bound by Γ, so running at q/ Γ restores level q. The expression for Γ∗ is the largest Γ for which the realized p(k) still satisfies the Benjamini–Yekutieli threshold at level 
+
+q/ Γ. □
+
+Proposition 13. Under (A2a) and correct specification, the occurrences of type c in distinct trajectories are independent, each contributing χ2
+
+> d
+
+(λ) by Corollary 1, so the sum is χ2
+
+> mcd
+
+(mcλ)
+
+by additivity of independent noncentral chi-squares. Proposition 3 applied in dimension mcd
+
+requires noncentrality of order √2mcd (zα + z1−β ); setting mcλ equal to that and dividing by mc gives the stated bound. For Corollary 5, the confusability construction in Appendix A.14 perturbs the drift of the valid mechanism and is distinguished only by calibration transi-tions passing through the perturbed region; audited occurrences are draws from the corrupted mechanism and enter neither side of that comparison. □
+
+29 A.12 Propositions 11 and 12 
+
+Proposition 11. The terminal model mean is μ(z) = z(1 − ∆T /h T ) + (∆ T /h T )gη(z) + ∆ T uθ(z),so Lip( μ) ≤ 1 + Lg∆T /h T + L∆T = κT , and the extrapolation bound of Theorem 7 holds with κ ≤ κT + L∗. Solving the second design condition of Theorem 7, A∞/(1 − B0) ≤ χ2
+
+> d, 1−α
+
+with A∞ = 2( κ + η0/d 0)2/(σ20 γ), for γ gives the first display. Substituting into ∥b∥2min =
+
+σ20 (1 + γD 2)√2d(zα + z1−β ) of Proposition 9 and dropping the additive one gives the second, with σ20 cancelling. If Lg > (2 r/w − 1 − L∆T )hT /∆T then Lg∆T /h T > 2r/w − 1 − L∆T , so 
+
+κT > 2r/w . □
+
+Proposition 12. At the terminal step, x−μ(z) = ( m(z)−μ(z))+ σcζ with ∥m(z)−μ(z)∥ ≤ e0
+
+and ζ ∼ N (0 , I d), so pointwise a ≤ A + Bχ 2 
+
+> d
+
+with A = 2 e20/σ 2 
+
+> T
+
+and B = 2 σ2 
+
+> c
+
+/σ 2 
+
+> T
+
+. This has the form used in Theorem 7, and the argument of Appendix A.8 gives P(a > u ) ≤ P(χ2 
+
+> d
+
+> u ) for 
+
+u ≥ A/ (1 − B). The conditions B < 1 and A/ (1 − B) ≤ χ2 
+
+> d, 1−α
+
+are jointly equivalent to the stated lower bound on σ2 
+
+> T
+
+. Detectability follows from Proposition 9 with σ2(D) replaced by 
+
+σ2 
+
+> T
+
+. Alternative (b) of Proposition 10 gives blindness up to ∥b∥2 ≤ c1ρ2/√d, whereas accurate routing gives detectability from ∥b∥2 ≳ σ2
+
+> c
+
+√2d. Their ratio is of order ρ2/(σ2 
+
+> c
+
+d) and is at least four when ρ ≥ 2σc
+
+√d. □
+
+A.13 Theorem 8 and Corollary 6 
+
+Let K(1) agree with K∗ except at t0, where it equals an arbitrary Q̸ = K∗ 
+
+> t0
+
+. Let K(2) agree with 
+
+K(1) at t0 and, for t > t 0, take K(2)  
+
+> t
+
+= (1 − ϵ)K∗ 
+
+> t
+
++ ϵR t with Rt̸ = K∗ 
+
+> t
+
+arbitrary. Every t > t 0
+
+satisfies K(2) 
+
+> t
+
+̸ = K∗ 
+
+> t
+
+, so I(K(2) ) = {t0, . . . , T }, while TV( K(2)  
+
+> t
+
+, K ∗ 
+
+> t
+
+) ≤ ϵ uniformly; sequential maximal coupling gives TV( P (1) , P (2) ) ≤ (T − t0)ϵ, and ϵ = η/ (T − t0) gives the bound. Symmetric difference obeys the triangle inequality, so for every set S, |S△I(1) | + |S△I(2) | ≥ |I(1) △I(2) | = T − t0 pointwise, whence 
+
+E1|ψ△I(1) | + E2|ψ△I(2) | ≥ (T − t0)
+
+Z
+
+min( dP (1) , dP (2) ) ≥ (T − t0)(1 − η).
+
+Corollary 6 follows since η is arbitrary and neither the sample size nor the score enters the bound. □
+
+A.14 Theorem 9 
+
+Fix z in the interior of the visited region and let ϕ be a smooth bump supported on the ball of radius h about z with ∥ϕ∥∞ = 1 and Lipschitz constant of order 1/h . Put β = ( b/ ∆) ϕ and 
+
+u′ = u + β; membership in U(L) requires h ≳ ∥b∥/(L∆) , and h is taken at that bound, which minimizes the calibration signal. Under (a) the calibration trajectories have drift u and under (b) drift u′. The laws differ only at transitions originating in supp ϕ, each contributing Kullback–Leibler divergence at most 
+
+∥b∥2/(2 σ2). With p = P(X ∈ supp ϕ) ≲ ch d, the chain rule and Pinsker’s inequality give 
+
+TV cal ≲
+
+s
+
+cN ∥b∥2
+
+σ2
+
+ ∥b∥
+
+L∆
+
+d
+
+.
+
+Under the stated condition, this quantity is at most a small constant. Conditional on the audited trajectory visiting supp ϕ once, at the step carrying the corruption in (a), the two 30 audited laws coincide: in (a) that transition has mean μt + b by construction and in (b) mean 
+
+μt + β(z)∆ = μt + b because the drift carries the bump, all other transitions following u in both. An additional visit has probability at most T p , negligible under the same condition when 
+
+T ≲ n. Summing and choosing constants gives TV ≤ 1/4; since |Ia△Ib| = 1 , the argument in Appendix A.13 gives the risk bound. For the noise term, with T candidate locations and known dynamics the maximum of T independent χ2 
+
+> d
+
+scores exceeds d + √2d log T (1 + o(1)) , so noncentrality of order √2d log T is required. □
+
+A.15 Proposition 15 and Theorem 10 
+
+Proposition 15. In the noiseless bridge flow the gap between perturbed and unperturbed solu-tions is ∥D(s)∥ = ∥b∥(1 − s)/(1 − s0) when the drift correction is absent, which is Theorem 2 with L = 0 . Evaluating at ¯s and dividing by √λ = ∥b∥/σ eff (s0) gives E. Monotonicity holds whenever σeff (s)(1 − s)−1 is nondecreasing, in particular for constant σeff . □
+
+Theorem 10. Write k = 2 j t with t ∈ [1 , 2) . For ladder points h ≤ k, λ(h)(k) = ∥b∥2h/ (k2σ2)
+
+increases with h, so the maximizing choice is h = 2 j . For h ≥ k, λ(h)(k) = ∥b∥2/(hσ 2) decreases with h, so the maximizing choice is h = 2 j+1 . Relative to the oracle ∥b∥2/(kσ 2), the ratio is 
+
+max(2 j /k, k/ 2j+1 ) = max(1 /t, t/ 2) , whose minimum over t ∈ [1 , 2) is 1/√2 at t = √2. Direct evaluation for k ≤ 2048 gives the same worst-case ratio, attained near k = 181 ≈ √2 128 . □
+
+# References 
+
+Basseville, M. and Nikiforov, I. V. (1993). Detection of Abrupt Changes: Theory and Applica-tion . Prentice Hall, Englewood Cliffs, NJ. Bates, S., Candès, E., Lei, L., Romano, Y., and Sesia, M. (2023). Testing for outliers with conformal p-values. The Annals of Statistics , 51(1):149–178. Benjamini, Y. and Hochberg, Y. (1995). Controlling the false discovery rate: a practical and powerful approach to multiple testing. Journal of the Royal Statistical Society, Series B ,57(1):289–300. Benjamini, Y. and Yekutieli, D. (2001). The control of the false discovery rate in multiple testing under dependency. The Annals of Statistics , 29(4):1165–1188. Cox, D. R. and Snell, E. J. (1968). A general definition of residuals. Journal of the Royal Statistical Society, Series B , 30(2):248–265. Dawid, A. P. (1984). Present position and potential developments: some personal views. Statistical theory: the prequential approach. Journal of the Royal Statistical Society, Series A ,147(2):278–290. Donoho, D. and Jin, J. (2004). Higher criticism for detecting sparse heterogeneous mixtures. 
+
+The Annals of Statistics , 32(3):962–994. Doob, J. L. (1957). Conditional Brownian motion and the boundary limits of harmonic functions. Bulletin de la Société Mathématique de France , 85:431–458. Dvoretzky, A., Kiefer, J., and Wolfowitz, J. (1956). Asymptotic minimax character of the sample distribution function and of the classical multinomial estimator. The Annals of Mathematical Statistics , 27(3):642–669. Fan, J. (1996). Test of significance based on wavelet thresholding and Neyman’s truncation. 
+
+Journal of the American Statistical Association , 91(434):674–688. 31 Feng, N., Sui, Y., Hou, S., Wu, G., and Cresswell, J. C. (2026). Conformal agent error attribution. arXiv:2605.06788. Gertler, J. (1998). Fault Detection and Diagnosis in Engineering Systems . Marcel Dekker, New York. Grönwall, T. H. (1919). Note on the derivatives with respect to a parameter of the solutions of a system of differential equations. Annals of Mathematics , 20(4):292–296. Ingster, Y. I. and Suslina, I. A. (2003). Nonparametric Goodness-of-Fit Testing Under Gaussian Models . Lecture Notes in Statistics 169. Springer, New York. Johnson, N. L., Kotz, S., and Balakrishnan, N. (1995). Continuous Univariate Distributions, Volume 2 , 2nd ed. Wiley, New York. Kailath, T. (1968). An innovations approach to least-squares estimation, Part I: linear filtering in additive white noise. IEEE Transactions on Automatic Control , 13(6):646–655. Katsevich, E. and Ramdas, A. (2020). Simultaneous high-probability bounds on the false discovery proportion in structured, regression, and online settings. The Annals of Statistics ,48(6):3465–3487. Kidger, P., Morrill, J., Foster, J., and Lyons, T. (2020). Neural controlled differential equa-tions for irregular time series. Advances in Neural Information Processing Systems , 33:6696– 6707. Kloeden, P. E. and Platen, E. (1992). Numerical Solution of Stochastic Differential Equa-tions . Springer, Berlin. Lindvall, T. (2002). Lectures on the Coupling Method . Dover, Mineola, NY. Liu, J., Lin, Z., Padhy, S., Tran, D., Bedrax Weiss, T., and Lakshminarayanan, B. (2020). Simple and principled uncertainty estimation with deterministic deep learning via distance awareness. Advances in Neural Information Processing Systems , 33:7498–7512. Massart, P. (1990). The tight constant in the Dvoretzky–Kiefer–Wolfowitz inequality. The Annals of Probability , 18(3):1269–1283. Miyato, T., Kataoka, T., Koyama, M., and Yoshida, Y. (2018). Spectral normalization for generative adversarial networks. International Conference on Learning Representations .Page, E. S. (1954). Continuous inspection schemes. Biometrika , 41(1–2):100–115. Rogers, L. C. G. and Williams, D. (2000). Diffusions, Markov Processes and Martingales, Volume 2: Itô Calculus , 2nd ed. Cambridge University Press, Cambridge. Rosenblatt, M. (1952). Remarks on a multivariate transformation. The Annals of Mathe-matical Statistics , 23(3):470–472. Seitzer, M., Tavakoli, A., Antić, D., and Martius, G. (2022). On the pitfalls of heteroscedas-tic uncertainty estimation with probabilistic neural networks. International Conference on Learning Representations .Shin, J., Ramdas, A., and Rinaldo, A. (2024). E-detectors: a nonparametric framework for sequential change detection. New England Journal of Statistics in Data Science , 2:229–260. Tibshirani, R. J., Barber, R. F., Candès, E., and Ramdas, A. (2019). Conformal prediction under covariate shift. Advances in Neural Information Processing Systems , 32. Vovk, V., Gammerman, A., and Shafer, G. (2005). Algorithmic Learning in a Random World . Springer, New York. Vovk, V., Nouretdinov, I., and Gammerman, A. (2003). Testing exchangeability on-line. In Proceedings of the 20th International Conference on Machine Learning , pp. 768–775. AAAI Press. 32 Vovk, V. and Wang, R. (2021). E-values: calibration, combination, and applications. The Annals of Statistics , 49(3):1736–1754. Wang, R. and Ramdas, A. (2022). False discovery rate control with e-values. Journal of the Royal Statistical Society, Series B , 84(3):822–852. Willsky, A. S. (1976). A survey of design methods for failure detection in dynamic systems. 
+
+Automatica , 12(6):601–611. Yeh, S., Zhu, Y., Deep, S., and Li, S. (2026). Tracing agentic failure from the flow of success. arXiv:2607.12747. Zhang, B., Zhu, J., Shi, Z., Liu, D., and Tang, R. (2026). AgentForesight: online auditing for early failure prediction in multi-agent systems. arXiv:2605.08715. Zhang, S., Yin, M., Zhang, J., Liu, J., Han, Z., Zhang, J., Li, B., Wang, C., Wang, H., Chen, Y., and Wu, Q. (2025). Which agent causes task failures and when? On automated failure attribution of LLM multi-agent systems. In Proceedings of the 42nd International Conference on Machine Learning , volume 267 of Proceedings of Machine Learning Research , pp. 76583– 76599. PMLR. 33
