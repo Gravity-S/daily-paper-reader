@@ -25,3 +25,111 @@ subscriptions:
     stage: A
     diff_threshold_pct: 15
   keyword_recall_mode: or
+  intent_profiles:
+    - tag: MAS-security
+      description: 多智能体中的安全的风险传播分析，风险阻断方法，攻击方法等
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: multi-agent security
+          keyword_cn: 多智能体安全
+          query: security concerns in multi-agent systems
+        - keyword: risk propagation
+          keyword_cn: 风险传播
+          query: how risks and threats spread across agents in a multi-agent system
+        - keyword: risk blocking methods
+          keyword_cn: 风险阻断方法
+          query: methods to block or contain risks in multi-agent systems
+        - keyword: adversarial attacks multi-agent
+          keyword_cn: 多智能体对抗攻击
+          query: attack techniques targeting multi-agent systems
+        - keyword: attack mitigation multi-agent
+          keyword_cn: 多智能体攻击缓解
+          query: mitigation strategies for attacks in multi-agent systems
+        - keyword: security defense mechanism
+          keyword_cn: 安全防御机制
+          query: defense mechanisms for multi-agent security
+      intent_queries:
+        - query: How does security risk propagate across agents in a multi agent system?
+          query_cn: 安全风险如何在多智能体系统中跨智能体传播？
+          enabled: true
+          source: manual
+          note: ''
+        - query: What methods can block and contain risks in multi agent systems?
+          query_cn: 哪些方法可以阻断和遏制多智能体系统中的风险？
+          enabled: true
+          source: manual
+          note: ''
+        - query: What are common attack methods against multi agent systems?
+          query_cn: 针对多智能体系统的常见攻击方法有哪些？
+          enabled: true
+          source: manual
+          note: ''
+        - query: How to assess and mitigate security risks in multi agent environments?
+          query_cn: 如何评估和缓解多智能体环境中的安全风险？
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-08-26T04:38:34.266Z'
+    - tag: agent-audit
+      description: Agent审计，重点关注Agent的归因、错误定位、问责与反事实分析等方法
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: agent accountability
+          keyword_cn: 智能体问责
+          query: accountability of autonomous agent actions and responsibility assignment
+        - keyword: agent error localization
+          keyword_cn: 智能体错误定位
+          query: identifying and locating errors in AI agent behavior
+        - keyword: counterfactual agent analysis
+          keyword_cn: 智能体反事实分析
+          query: counterfactual reasoning for explaining and auditing agent behavior
+        - keyword: agent behavior auditing
+          keyword_cn: 智能体行为审计
+          query: auditing the behavior of intelligent agents for compliance and correctness
+        - keyword: AI agent explainability
+          keyword_cn: AI智能体可解释性
+          query: explaining why an AI agent made a particular decision or action
+        - keyword: agent failure diagnosis
+          keyword_cn: 智能体故障诊断
+          query: diagnosing causes of failures in autonomous agents
+      intent_queries:
+        - query: How can we attribute an AI agent's decisions to specific inputs, internal states, or training data?
+          query_cn: 如何将AI智能体的决策归因于特定输入、内部状态或训练数据？
+          enabled: true
+          source: manual
+          note: ''
+        - query: What methods can localize and explain errors in autonomous agent behavior?
+          query_cn: 有哪些方法可以定位并解释自主智能体行为中的错误？
+          enabled: true
+          source: manual
+          note: ''
+        - query: How is counterfactual reasoning used to audit and evaluate agent decision making?
+          query_cn: 反事实推理如何用于审计和评估智能体的决策过程？
+          enabled: true
+          source: manual
+          note: ''
+        - query: What frameworks assign accountability for actions of intelligent agents?
+          query_cn: 有哪些框架可以为智能体的行动分配责任？
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-08-26T04:39:34.988Z'
+source_backends:
+  arxiv:
+    papers_table: arxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_arxiv_papers
+    vector_rpc_exact: match_arxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_arxiv_papers_bm25
+    sync_table: arxiv_sync_status
+    sync_success_value: success
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
