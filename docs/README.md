@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-07-28 ~ 2026-08-26</span>
+      <span class="dpr-home-dashboard-kicker">2026-08-28</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 57 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 23 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>57</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>11</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-08-26 05:33:07 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-08-28 04:08:41 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,9 +62,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今天速读57篇论文，重点聚焦多智能体系统安全，其中3篇获满分推荐。</p>
-<p>最值得关注的是SafeFlow、Bounded Agents和AUDITA，分别从信息流控制、委托安全与因果审计保障自主智能体的可信运行。</p>
-<p>建议优先浏览这三篇满分论文，即可快速把握多智能体安全的核心防线。</p>
+<p>今日23篇论文聚焦AI Agent可靠性，精读重点转向失败归因与诊断。最值得关注两大方向：轻量GNN高效定位Agent失败，以及长时程安全Agent的故障根因分析。下一步建议关注Agent工具调用中的上下文泄露与记忆注入攻击等安全风险。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -73,12 +71,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">0 篇</strong>
+    <strong class="dpr-home-dashboard-count">11 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Beyond LLM-Based Reasoning: Lightweight GNNs for Agent Failure Attribution">Beyond LLM-Based Reasoning: Lightweight GNNs for Agent Failure Attribution</span></li><li><span class="dpr-home-dashboard-paper-title" title="Beyond End-to-End Success: Diagnosing Failures in Long-Horizon Security LLM Agents">Beyond End-to-End Success: Diagnosing Failures in Long-Horizon Security LLM Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="HANSARD: A Reference Architecture for Forensic Readiness, Runtime Witnessing, and Graded Attribution in Autonomous Multi-Agent AI Systems">HANSARD: A Reference Architecture for Forensic Readiness, Runtime Witnessing, and Graded Attribution in Autonomous Multi-Agent AI Systems</span></li></ul>
   </div>
-
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>7</strong></span><span class="dpr-home-dashboard-tag">mas-security <strong>4</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -86,12 +84,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">57 篇</strong>
+    <strong class="dpr-home-dashboard-count">12 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="SafeFlow: Semantic Information-Flow Control for Blocking Malicious Propagation in Multi-Agent Systems">SafeFlow: Semantic Information-Flow Control for Blocking Malicious Propagation in Multi-Agent Systems</span></li><li><span class="dpr-home-dashboard-paper-title" title="Bounded Agents: Delegation Security for Multi-Agent AI Systems">Bounded Agents: Delegation Security for Multi-Agent AI Systems</span></li><li><span class="dpr-home-dashboard-paper-title" title="AUDITA: certified auditing and causal attribution of adverse outcomes in autonomous multi-agent systems">AUDITA: certified auditing and causal attribution of adverse outcomes in autonomous multi-agent systems</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Who Can Make the Action Happen? An Authority-Decomposition Framework for High-Risk Automated Systems">Who Can Make the Action Happen? An Authority-Decomposition Framework for High-Risk Automated Systems</span></li><li><span class="dpr-home-dashboard-paper-title" title="The Claws in Plain Sight: Unauthorized Context Disclosure through LLM Agent Tool Calls">The Claws in Plain Sight: Unauthorized Context Disclosure through LLM Agent Tool Calls</span></li><li><span class="dpr-home-dashboard-paper-title" title="InjecMEM: Memory Injection Attack on LLM Agent Memory Systems">InjecMEM: Memory Injection Attack on LLM Agent Memory Systems</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>36</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>21</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>9</strong></span><span class="dpr-home-dashboard-tag">mas-security <strong>3</strong></span></div>
 </section>
 </div>
 
