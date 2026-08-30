@@ -1,0 +1,795 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-30T22:47:07.606939+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 10,
+    "deep_cap": 7,
+    "deep_selected": 7,
+    "quick_candidates": 16,
+    "quick_skim_target": 12,
+    "quick_selected": 12
+  },
+  "deep_dive": [
+    {
+      "id": "2608.23858v1",
+      "source": "arxiv",
+      "title": "Beyond the Mandate: A Systematic Security Analysis of the Agent Payments Protocol (AP2)",
+      "abstract": "The Agent Payments Protocol (AP2), introduced by Google, enables large language model (LLM)-driven shopping agents to authorize and execute payments on behalf of users. Its signed Checkout and Payment Mandates protect the integrity of transaction data after signing. Agent interactions and external inputs that shape a transaction before authorization remain outside that protection, including Agent-to-Agent Protocol (A2A) messages and Model Context Protocol (MCP) tool calls. Prior work identified replay and prompt-injection attacks in AP2 v0.1. AP2 v0.2 addresses some of these issues but adds capabilities and deployment assumptions that require renewed analysis. We present a systematic security analysis of AP2 v0.2 based on its roles, transaction lifecycle, deployment architectures, and trust boundaries. We divide the lifecycle into five phases and identify five deployment architectures. Using MAESTRO (Multi-Agent Environment, Security, Threat, Risk, Outcome), we model four threat actors, eleven attack surfaces, eighteen adversary capabilities, and six attacker goals. The resulting catalog contains 48 threats spanning five attack families. We score these threats with the Artificial Intelligence Vulnerability Scoring System (AIVSS), identifying eight that reach the High band in at least one architecture. Because no complete public AP2 deployment was available, we build a testbed spanning all five architectures and develop five proof-of-concept demonstrations covering all eight High-risk threats and their mitigations. We also develop a deployment-aware scanner that maps applicable threats to static, cross-role consistency, and adversarial checks. Our analysis shows that valid mandate signatures alone do not ensure that an agent-mediated transaction reflects the user's intent when its pre-authorization context is manipulated.",
+      "authors": [
+        "Avital Aviv",
+        "Parth A. Gandh",
+        "Ron Bitton",
+        "Asaf Shabtai"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-08-24T22:05:00+00:00",
+      "link": "https://arxiv.org/pdf/2608.23858v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Systematic security analysis of agent payment protocol, replay and prompt-injection attacks",
+      "llm_evidence_cn": "针对智能体支付协议的系统安全分析，涉及重放与提示注入等攻击",
+      "llm_evidence": "针对智能体支付协议的系统安全分析，涉及重放与提示注入等攻击",
+      "canonical_evidence": "针对智能体支付协议的系统安全分析，涉及重放与提示注入等攻击",
+      "llm_tldr_en": "A systematic security analysis of AP2 v0.2 reveals that agent-to-agent messages and MCP tool calls are outside signed protections, exposing replay and prompt-injection attack surfaces in LLM shopping agents.",
+      "llm_tldr_cn": "针对谷歌AP2 v0.2协议的系统性安全分析发现，签署的Checkout和Payment Mandate仅保护签署后数据，而A2A消息和MCP工具调用等授权前输入不受保护。研究揭示了重放攻击和提示注入等攻击面，强调了对智能体支付协议进行持续安全审计的必要性，为多智能体购物场景的安全防护和改进提供了依据。",
+      "llm_tldr": "针对谷歌AP2 v0.2协议的系统性安全分析发现，签署的Checkout和Payment Mandate仅保护签署后数据，而A2A消息和MCP工具调用等授权前输入不受保护。研究揭示了重放攻击和提示注入等攻击面，强调了对智能体支付协议进行持续安全审计的必要性，为多智能体购物场景的安全防护和改进提供了依据。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "attack techniques targeting multi-agent systems",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.26696v1",
+      "source": "arxiv",
+      "title": "Five Primitives for Governing Autonomous AI Agents at Runtime",
+      "abstract": "Enterprise deployments of autonomous AI agents inherit a control model built for human users and long-lived services, and the fit fails in three specific ways: agent principals are ephemeral, appearing and vanishing faster than provisioning; their actions are selected by a model rather than programmed, so the set of things they may attempt is not known in advance; and the population is discovered rather than provisioned, because anyone who can call an API can create one. We argue that governing such agents is a runtime problem -- not a model-alignment problem and not a build-time problem -- and we derive five primitives from the questions that must be answered before an action takes effect and after it has: discovery, identity, governance, attestation, and supply chain. For each we state what fails if it is absent and why the others cannot structurally supply it. We describe an implementation in which an agent's action is mediated against policy before it takes effect, authorised against a per-tenant action vocabulary, and recorded in a hash-linked signed ledger a third party can verify with the vendor out of the loop. We report what the architecture costs: the enforcement point sits on the request's critical path, identity requires a sidecar per workload, and fail-closed mediation converts availability incidents into denial. We are explicit about implementation status: four primitives are built and running in private pilots, and the fifth is built as separate tooling and not yet integrated into the request path. We keep it in the set deliberately: a five-part decomposition that exactly matches what its authors happened to build is not a taxonomy but a description of a codebase.",
+      "authors": [
+        "Jiten Oswal",
+        "John Cadeddu"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CR",
+        "cs.SE"
+      ],
+      "published": "2026-08-27T06:53:11+00:00",
+      "link": "https://arxiv.org/pdf/2608.26696v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "governance primitives for runtime governance and accountability of autonomous agents",
+      "llm_evidence_cn": "面向自主智能体运行时治理与问责的框架",
+      "llm_evidence": "面向自主智能体运行时治理与问责的框架",
+      "canonical_evidence": "面向自主智能体运行时治理与问责的框架",
+      "llm_tldr_en": "This paper argues that governing autonomous AI agents is a runtime problem and derives five primitives—discovery, identity, governance, attestation, and suppression—to answer key questions before and after actions take effect, supporting accountability.",
+      "llm_tldr_cn": "论文指出，对企业级自主AI智能体的治理本质上是运行时问题，而非模型对齐或构建期问题。基于行动生效前后必须回答的若干问题，提出发现、身份、治理、证明与抑制五个原语。这些原语为智能体行为的问责和责任归属提供了结构化框架，弥补了现有控制模型无法适应临时性智能体与未知行为集合的缺陷。",
+      "llm_tldr": "论文指出，对企业级自主AI智能体的治理本质上是运行时问题，而非模型对齐或构建期问题。基于行动生效前后必须回答的若干问题，提出发现、身份、治理、证明与抑制五个原语。这些原语为智能体行为的问责和责任归属提供了结构化框架，弥补了现有控制模型无法适应临时性智能体与未知行为集合的缺陷。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "What frameworks assign accountability for actions of intelligent agents?",
+      "matched_requirement_id": "req-20",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.24562v1",
+      "source": "arxiv",
+      "title": "Counterfactual Explanations and the Scope of Contestability",
+      "abstract": "The automation of consequential decisions through opaque machine learning models in societal domains impedes our agency. This paper is about how agency can be reinstated by the provision of certain kinds of knowledge. More precisely, we discuss whether a specific type of explanation, counterfactual explanations, facilitates our ability to contest algorithmic decisions. Against this backdrop, our paper makes three contributions: First, we develop an account of contestability, where contestability is defined as the provision of information, sufficient for a decision-subject to use as a basis for demanding that a decision be revoked. We also demarcate contestability from adjacent concepts in the discourse surrounding the right to explanation, such as justification and recourse. Second, we examine to what extent counterfactual explanations are conducive to contestability by considering a variety of failure modes causing problematic algorithmic decisions and scrutinize to what extent counterfactual explanations help us detect the underlying errors. Third, we propose ways in which, with certain modifications, counterfactual explanations can be made more fitting to serve the desired function. In this vein, we sketch the contours of a multi-shot approach to counterfactuals, where decision-subjects can query a model to test their own counterfactuals for a (limited) number of times.",
+      "authors": [
+        "Alice C. W. Huang",
+        "Thomas Grote"
+      ],
+      "primary_category": "cs.CY",
+      "categories": [
+        "cs.CY"
+      ],
+      "published": "2026-08-25T13:45:16+00:00",
+      "link": "https://arxiv.org/pdf/2608.24562v1",
+      "tags": [
+        "keyword:agent-audit",
+        "query:agent-audit"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "counterfactual explanations for contestability of algorithmic decisions",
+      "llm_evidence_cn": "反事实解释用于对算法决策提出质疑",
+      "llm_evidence": "反事实解释用于对算法决策提出质疑",
+      "canonical_evidence": "反事实解释用于对算法决策提出质疑",
+      "llm_tldr_en": "This paper examines how counterfactual explanations enable contesting automated decisions, defining contestability as information sufficient to demand revocation and distinguishing it from related concepts such as justification.",
+      "llm_tldr_cn": "本文聚焦于不透明机器学习模型在公共领域的自动化决策如何削弱个体能动性的问题，系统探讨反事实解释是否能够帮助决策对象对算法决策提出质疑。文章发展了一种可质疑性定义，将可质疑性描述为提供足以让决策主体要求撤销决策的信息，并在此基础上将可质疑性与解释权话语中的合理性等相邻概念区分开来。该工作为算法决策的问责与争辩提供了概念基础。",
+      "llm_tldr": "本文聚焦于不透明机器学习模型在公共领域的自动化决策如何削弱个体能动性的问题，系统探讨反事实解释是否能够帮助决策对象对算法决策提出质疑。文章发展了一种可质疑性定义，将可质疑性描述为提供足以让决策主体要求撤销决策的信息，并在此基础上将可质疑性与解释权话语中的合理性等相邻概念区分开来。该工作为算法决策的问责与争辩提供了概念基础。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "counterfactual reasoning for explaining and auditing agent behavior",
+      "matched_requirement_id": "req-13",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.25711v1",
+      "source": "arxiv",
+      "title": "Reassembling Distributed Risk: Trajectory-Conditioned Action Generation for Multi-Turn Agent Safety",
+      "abstract": "Tool-using LLM agents extend security risks beyond generated text to actions that affect external systems. Under multi-turn decomposition attacks, a harmful objective can be distributed across individually plausible requests and tool calls, becoming apparent only from the accumulated trajectory. Existing defenses either rely on auxiliary online reasoning to recover long-horizon security evidence or assess actions after generation, often incurring additional inference cost or depending on runtime-specific action representations.   We propose \\emph{Reassembling Distributed Risk} (ReDiR), a generation-time defense that conditions action generation on trajectory-level security evidence. Before each action, ReDiR compresses the current trajectory into a compact latent safety representation and injects it into the frozen base model. The representation is learned through same-model, cross-view supervision, where safe behavior from an explicit task view provides supervision for recovering distributed safety evidence from the original multi-turn trajectory. This design enables ReDiR to integrate cross-turn security information directly within the generation process without relying on a separate action-level safety module. We evaluate ReDiR on two agent-safety benchmarks across three model families and eight held-out tool domains. ReDiR reduces attack success rates to below 8\\%, transfers to unseen tool domains, and preserves benign fidelity with low computational overhead.",
+      "authors": [
+        "Yanbo Dai",
+        "Zhenlan Ji",
+        "Zongjie Li",
+        "Shuai Wang"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR"
+      ],
+      "published": "2026-08-26T12:28:35+00:00",
+      "link": "https://arxiv.org/pdf/2608.25711v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Generation-time defense against multi-turn decomposition attacks by conditioning actions on trajectory-level security evidence",
+      "llm_evidence_cn": "基于轨迹级安全证据条件化动作生成，防御多轮分解攻击",
+      "llm_evidence": "基于轨迹级安全证据条件化动作生成，防御多轮分解攻击",
+      "canonical_evidence": "基于轨迹级安全证据条件化动作生成，防御多轮分解攻击",
+      "llm_tldr_en": "ReDiR is a generation-time defense that compresses trajectory-level security evidence before each action to counter multi-turn decomposition attacks without extra online inference.",
+      "llm_tldr_cn": "多轮分解攻击将有害目标分散到多个看似合理的请求和工具调用中，只有累积轨迹才暴露风险，现有防御依赖额外推理或事后评估，成本高。本文提出ReDiR，在每次动作生成前压缩轨迹级安全证据并条件化动作生成，在生成时阻断分布式风险。该方法以较低额外成本防御多轮攻击，提升工具使用代理的安全性。",
+      "llm_tldr": "多轮分解攻击将有害目标分散到多个看似合理的请求和工具调用中，只有累积轨迹才暴露风险，现有防御依赖额外推理或事后评估，成本高。本文提出ReDiR，在每次动作生成前压缩轨迹级安全证据并条件化动作生成，在生成时阻断分布式风险。该方法以较低额外成本防御多轮攻击，提升工具使用代理的安全性。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "mitigation strategies for attacks in multi-agent systems",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.25067v1",
+      "source": "arxiv",
+      "title": "SimVerity: When Does Simulated Agent Success Survive Physical Deployment?",
+      "abstract": "Simulated evaluation is widely used to benchmark AI agents, yet how much evidence a simulated pass provides about physical deployment has not been systematically quantified. We present SimVerity, a verdict-transfer assurance framework: it replays matched scenarios on target smart home deployments and cross-validates agent execution against independently qualified physical witnesses. Our evaluation highlights that deployment success is a real-world process, not a static property in simulation: completion, reported state, observable effect, and settled outcome diverged within the same execution. Although an advanced simulator cleared all 240 light trials, a camera caught 42 sub-second failures invisible to settled-state checks. False clearance was predictable: a risk profile learned from measured trials and locked before evaluation predicted failures on a path it never physically measured, beating a property-blind baseline in all eleven held-out sessions across two cohorts. Agent auditability was also measurable: switching one agent loop's model-client/serving configuration raised its scenario-matching share from 52-88% to 100%. Finally, a second qualified simulator added no independent cross-check: it never disagreed on any overlapping case, and only physical measurement exposed their shared blind spots. SimVerity turns verdict transfer into an explicit decision: clear, abstain, or escalate before deployment.",
+      "authors": [
+        "Zhonghao Zhan",
+        "Yefan Zhang",
+        "Krinos Li",
+        "Hamed Haddadi"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-08-25T19:00:49+00:00",
+      "link": "https://arxiv.org/pdf/2608.25067v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "cross-validates agent execution and uncovers physical failures missed by simulation",
+      "llm_evidence_cn": "交叉验证智能体执行，发现模拟评估遗漏的真实部署错误",
+      "llm_evidence": "交叉验证智能体执行，发现模拟评估遗漏的真实部署错误",
+      "canonical_evidence": "交叉验证智能体执行，发现模拟评估遗漏的真实部署错误",
+      "llm_tldr_en": "SimVerity replays scenarios on physical deployments and uses independent witnesses to show that simulated agent success masks many real failures, providing an auditing method to locate agent errors.",
+      "llm_tldr_cn": "针对模拟评估无法保证智能体真实部署成功的问题，SimVerity 提出一种判定迁移保障框架，在目标智能家居部署上回放匹配场景，并借助独立物理见证者交叉验证智能体执行。评估显示，完成状态、报告状态、可观察效果与最终结果在执行中会发生分化；先进模拟器通过全部240次灯光试验，摄像头仍捕捉到42次亚秒级失败。该方法能够定位模拟评估遗漏的错误，为智能体行为审计与失败诊断提供了可靠的证据支撑。",
+      "llm_tldr": "针对模拟评估无法保证智能体真实部署成功的问题，SimVerity 提出一种判定迁移保障框架，在目标智能家居部署上回放匹配场景，并借助独立物理见证者交叉验证智能体执行。评估显示，完成状态、报告状态、可观察效果与最终结果在执行中会发生分化；先进模拟器通过全部240次灯光试验，摄像头仍捕捉到42次亚秒级失败。该方法能够定位模拟评估遗漏的错误，为智能体行为审计与失败诊断提供了可靠的证据支撑。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "identifying and locating errors in AI agent behavior",
+      "matched_requirement_id": "req-12",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.26195v1",
+      "source": "arxiv",
+      "title": "Cost-Utility Alignment in LLM Agent Trajectories:Profiling,Attribution,Diagnosis,Adaptation,and Evaluation",
+      "abstract": "LLM agents execute tasks through multi-step trajectories that accumulate cost in tokens, latency, monetary fees, and environmental risk while producing utility only at the aggregate task level. Prior surveys address inference optimization, agent capabilities, or evaluation in isolation, leaving practitioners without principled tools to determine whether a trajectory's resource expenditure is justified by its task contribution. We address this gap by developing a trajectory-centric cost-utility alignment framework that treats resource consumption and task contribution as dual ledgers over the same execution, organized around five analytical stages: cost profiling, utility attribution, misalignment diagnosis, targeted adaptation, and evaluation. Utility attribution is central to this structure: rather than relying on aggregate outcomes, it organizes contribution methods by evidential strength, from process proxies and information dependency to counterfactual replay, supplying the causal evidence that grounds diagnosis and guides adaptation. Using this framework, we analyze recent agent systems, attribution methods, and evaluation protocols covering efficiency, reliability, and economic value, as well as five forms of misalignment spanning cognitive and context use, external interaction, recovery-loop control, resource-capability allocation, and multi-agent coordination, together with their targeted adaptations. The result is a closed analytical loop connecting the cost side of agent execution to its utility side, providing a structured basis for resource-aware agent design and deployment.",
+      "authors": [
+        "Dan Liu",
+        "Jian Li"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE"
+      ],
+      "published": "2026-08-25T06:31:00+00:00",
+      "link": "https://arxiv.org/pdf/2608.26195v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Presents trajectory-centric framework with cost profiling, utility attribution, misalignment diagnosis, adaptation, and evaluation for LLM agent trajectories.",
+      "llm_evidence_cn": "提出面向智能体轨迹的成本-效用对齐框架，涵盖成本剖析、效用归因、错位诊断、适应与评估。",
+      "llm_evidence": "提出面向智能体轨迹的成本-效用对齐框架，涵盖成本剖析、效用归因、错位诊断、适应与评估。",
+      "canonical_evidence": "提出面向智能体轨迹的成本-效用对齐框架，涵盖成本剖析、效用归因、错位诊断、适应与评估。",
+      "llm_tldr_en": "Develops a five-stage framework (profiling, attribution, diagnosis, adaptation, evaluation) to align resource cost with task utility in LLM agent trajectories, enabling misalignment localization.",
+      "llm_tldr_cn": "LLM智能体的多步轨迹会造成令牌、延迟、费用与环境风险的累积，但这些开销与任务收益的对应关系缺乏分析工具。论文提出轨迹中心化成本-效用对齐框架，将资源消耗与任务贡献视作同一执行过程的双重账簿，分为成本剖析、效用归因、错位诊断、定向适应和评估五个阶段。该框架可从轨迹中定位成本与效用不一致的环节，为智能体的效率审计与错误诊断提供系统化手段。",
+      "llm_tldr": "LLM智能体的多步轨迹会造成令牌、延迟、费用与环境风险的累积，但这些开销与任务收益的对应关系缺乏分析工具。论文提出轨迹中心化成本-效用对齐框架，将资源消耗与任务贡献视作同一执行过程的双重账簿，分为成本剖析、效用归因、错位诊断、定向适应和评估五个阶段。该框架可从轨迹中定位成本与效用不一致的环节，为智能体的效率审计与错误诊断提供系统化手段。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "What methods can localize and explain errors in autonomous agent behavior?",
+      "matched_requirement_id": "req-18",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.27146v1",
+      "source": "arxiv",
+      "title": "When Tool Outputs Become Commands: Separating Action Induction from Runtime Authorization in Tool-Augmented LLM Agents",
+      "abstract": "Tool-augmented LLM agents must rely on untrusted runtime Observations to complete open-ended tasks; however, when tool outputs no longer merely provide data but begin to specify concrete actions, they effectively become ``commands'' that can drive real-world side effects beyond user intent. We argue that this risk arises from conflating action induction with execution authorization. To address this distinction, we propose SARA, which treats action induction and execution authorization as distinct runtime roles and separates action provenance from execution authority. On the Observation side, a context-isolated Action Probe exposes action-inducing semantics and persistently records action-origin provenance across steps as a review signal; on the execution side, actual tool calls are authorized only against the user objective and audited evidence from authorized successful executions, while satisfying goal, execution-chain, and argument-level support. To preserve this separation across multi-step execution, SARA applies No-History-Promotion to prevent historical recurrence from laundering action origins into execution authority. Across AgentDojo and AgentDyn, SARA limits ASR to no more than \\(0.63\\%\\) across four primary evaluation settings while maintaining competitive task utility, and consistently reduces ASR across additional Agent backbones.",
+      "authors": [
+        "Xiaokun Guo",
+        "Zhen Xu",
+        "Dongdong Huo",
+        "Yanqiu Zhang",
+        "Wei Wang",
+        "Qinfu Yang",
+        "Dongjin Yu",
+        "Yu Wang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.SE"
+      ],
+      "published": "2026-08-27T13:59:04+00:00",
+      "link": "https://arxiv.org/pdf/2608.27146v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Separates action induction from execution authorization to block unauthorized tool-driven actions in LLM agents",
+      "llm_evidence_cn": "分离动作诱导与执行授权，阻断LLM代理中工具驱动的未授权动作",
+      "llm_evidence": "分离动作诱导与执行授权，阻断LLM代理中工具驱动的未授权动作",
+      "canonical_evidence": "分离动作诱导与执行授权，阻断LLM代理中工具驱动的未授权动作",
+      "llm_tldr_en": "SARA separates action induction from runtime authorization in tool-augmented LLM agents, recording provenance to prevent untrusted tool outputs from becoming commands.",
+      "llm_tldr_cn": "工具增强的LLM代理必须依赖不可信的运行时观察，工具输出可能从数据变为具体动作指令，产生超出用户意图的副作用。问题根源在于动作诱导与执行授权混淆。本文提出SARA，将二者作为独立运行时角色分离，在观察侧通过上下文隔离的动作探针暴露诱导语义并记录动作来源，在执行侧独立授权，从而拦截未授权的工具驱动命令。该方法提升了代理系统的安全边界。",
+      "llm_tldr": "工具增强的LLM代理必须依赖不可信的运行时观察，工具输出可能从数据变为具体动作指令，产生超出用户意图的副作用。问题根源在于动作诱导与执行授权混淆。本文提出SARA，将二者作为独立运行时角色分离，在观察侧通过上下文隔离的动作探针暴露诱导语义并记录动作来源，在执行侧独立授权，从而拦截未授权的工具驱动命令。该方法提升了代理系统的安全边界。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "defense mechanisms for multi-agent security",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2608.27086v1",
+      "source": "arxiv",
+      "title": "A Contract-Centered Architecture for Scalable and Manageable Agentic Runtimes",
+      "abstract": "Enterprise AI deployment is a coordination problem across business units, application and AI teams, testing, platform engineering, infrastructure, security, operations, and data governance. Use-case benchmarks show whether one agent completes one task, but not how changing capabilities, models, runtime mechanisms, capacity, and enterprise data should be owned, changed, admitted, or evidenced together.   We present four responsibility objects as shared organizational contracts: Skill (reusable, versioned capability and workflow asset), Harness (runtime compiler and governor), Scaffold (execution/control boundary and NFR owner), and a stack-external data substrate under independent CIO-governed semantics and telemetry. The runtime core is A = <S, H, X>, with the data substrate outside that stack.   The central contribution is one bounded, falsifiable hypothesis, P1 (cost-aware capability-capacity separability): within a declared operating region, changing activated capability preserves the capacity-response interaction within a preregistered equivalence margin, while changing compatible Scaffold capacity preserves capability semantics up to a non-inferiority margin, and the required controls stay within a declared enforcement budget. Six design conditions become measured obligations whose coverage, violations, uncertainty, cost, and exclusions determine whether P1 is decidable.   We propose a cluster-period randomized crossover experiment (balanced order, reset/washout, repeated seeds and failure regimes, cluster-aware uncertainty) with a four-state verdict: supported, falsified, conditional-engineering, or inconclusive. This paper contributes a contract-bounded runtime architecture, a source-preserving data substrate, and a falsifiable measurement protocol. It reports no completed implementation, experiment, dataset, or measured result.",
+      "authors": [
+        "Yaxiao Liu",
+        "Pengbo Liu",
+        "Yiwen Liu",
+        "Yihua Guan",
+        "Zhenghe Hou",
+        "Jiaxing Song"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.MA",
+        "cs.SE"
+      ],
+      "published": "2026-08-27T13:09:49+00:00",
+      "link": "https://arxiv.org/pdf/2608.27086v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Presents four responsibility objects (Skill, Harness, Scaffold, data substrate) as shared organizational contracts for owning, changing, and evidencing enterprise agentic runtimes.",
+      "llm_evidence_cn": "提出Skill、Harness、Scaffold与数据底座四种责任对象，作为企业级智能体运行时的共享组织契约与问责框架。",
+      "llm_evidence": "提出Skill、Harness、Scaffold与数据底座四种责任对象，作为企业级智能体运行时的共享组织契约与问责框架。",
+      "canonical_evidence": "提出Skill、Harness、Scaffold与数据底座四种责任对象，作为企业级智能体运行时的共享组织契约与问责框架。",
+      "llm_tldr_en": "Treats enterprise AI deployment as a coordination problem and introduces four responsibility objects as contracts to assign ownership, change control, and evidence across agentic runtimes.",
+      "llm_tldr_cn": "企业AI部署涉及业务方、应用/AI团队、测试、安全、运维与数据治理等多方协调，而用例基准无法回答能力、模型、运行时与数据如何被拥有、变更与问责。论文提出四个责任对象作为共享组织契约：Skill（可复用能力资产）、Harness（运行时编译器与治理器）、Scaffold（执行/控制边界与NFR所有者）以及受CIO治理的数据底座。通过A=<S,...>运行时核心，将责任分配嵌入架构，为大规模可管理的智能体运行时提供问责框架。",
+      "llm_tldr": "企业AI部署涉及业务方、应用/AI团队、测试、安全、运维与数据治理等多方协调，而用例基准无法回答能力、模型、运行时与数据如何被拥有、变更与问责。论文提出四个责任对象作为共享组织契约：Skill（可复用能力资产）、Harness（运行时编译器与治理器）、Scaffold（执行/控制边界与NFR所有者）以及受CIO治理的数据底座。通过A=<S,...>运行时核心，将责任分配嵌入架构，为大规模可管理的智能体运行时提供问责框架。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "What frameworks assign accountability for actions of intelligent agents?",
+      "matched_requirement_id": "req-20",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2608.23041v1",
+      "source": "arxiv",
+      "title": "AutoSaddler: Automatic Harness Optimization with Durable Updates from Agent Execution Traces",
+      "abstract": "LLM agents remain unreliable on long-horizon tasks, where small local failures can compound over extended interactions and lead to overall task failure. Although external harnesses can substantially improve robustness, harness design remains a manual and expensive process that requires searching over a large space of prompts, tool configurations, and control logic. We propose AutoSaddler, an automatic harness optimization framework that formulates harness improvement as an offline learning problem and iteratively updates the harness using failure signals from mini-batches. AutoSaddler combines failure-trace diagnosis, structured patch generation that treats the harness as code, and validation-based update selection. Experiments on GAIA2, SWE-Bench Pro, and Terminal-Bench 2.0 show that AutoSaddler substantially improves agent performance over the corresponding base harnesses, achieving gains of 9.0, 9.6, and 10.0 percentage points, respectively. Ablation studies further suggest that effective harness optimization benefits from three ingredients: deep debugging rather than shallow reflection, targeted modifications rather than unconstrained editing, and generalization-aware selection rather than trajectory-specific repair. Together, these results suggest that automatic harness optimization is a promising path toward more performant and reliable agent systems.",
+      "authors": [
+        "Sungho Park",
+        "Wonjoong Kim",
+        "Rongyuan Tan",
+        "Jue Zhang",
+        "Wook-Shin Han",
+        "Pengfei Gao",
+        "Chanyoung Park",
+        "Yongqiang Yao",
+        "Rao Fu",
+        "Elsie Nallipogu",
+        "Qingwei Lin",
+        "Saravan Rajmohan",
+        "Dongmei Zhang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL",
+        "cs.LG",
+        "cs.MA",
+        "cs.SE"
+      ],
+      "published": "2026-08-24T09:45:08+00:00",
+      "link": "https://arxiv.org/pdf/2608.23041v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Failure-trace diagnosis and harness patch generation to locate and fix root causes of agent failures",
+      "llm_evidence_cn": "通过失败轨迹诊断与框架补丁生成，定位并修复智能体故障根因",
+      "llm_evidence": "通过失败轨迹诊断与框架补丁生成，定位并修复智能体故障根因",
+      "canonical_evidence": "通过失败轨迹诊断与框架补丁生成，定位并修复智能体故障根因",
+      "llm_tldr_en": "AutoSaddler iteratively improves LLM agent harnesses by diagnosing failure traces, generating structured patches that treat the harness as code, and validating updates, reducing manual effort for long-horizon task robustness.",
+      "llm_tldr_cn": "LLM智能体在长程任务中常因局部小失败累积而整体失败，外部harness可提升鲁棒性但设计昂贵。AutoSaddler将harness改进视为离线学习问题，从失败轨迹中诊断原因，以代码补丁形式结构化生成harness更新，并通过验证选择更新。实验表明该方法能自动优化harness，降低人工成本并提升长期任务成功率，为智能体失败修复提供自动化工具。",
+      "llm_tldr": "LLM智能体在长程任务中常因局部小失败累积而整体失败，外部harness可提升鲁棒性但设计昂贵。AutoSaddler将harness改进视为离线学习问题，从失败轨迹中诊断原因，以代码补丁形式结构化生成harness更新，并通过验证选择更新。实验表明该方法能自动优化harness，降低人工成本并提升长期任务成功率，为智能体失败修复提供自动化工具。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "diagnosing causes of failures in autonomous agents",
+      "matched_requirement_id": "req-16",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2608.23552v1",
+      "source": "arxiv",
+      "title": "Prime Agent: A Self-Improving RLM Harness",
+      "abstract": "Language models are sequential processors, but long-horizon agency requires external information and computation beyond model weights and active context. Prime Agent is an open-source harness for long-horizon evaluation and coding-agent workflows. A persistent IPython REPL follows the Recursive Language Model abstraction for programmatic context processing and test-time compute, while Continual Harness preserves histories, memories, skills, prompts, and subagent specifications across trajectories. Recursive subagents coordinate through direct agent-to-agent communication, and the Agents View lets humans inspect and manage daemon-backed sessions. Prime Agent standardizes execution, recovery, verification, and resource accounting while leaving strategy construction to the model. This low-friction, expressive membrane prevents harness failures from becoming model failures and pushes measurement toward the model's true maximal underlying capability. Prime Agent raises ARC-AGI-3 RHAE Best@1 from 30% to 95.5% and matches or exceeds native and popular harnesses across long-context coding, GPU-kernel generation, emulator construction, and autonomous nanoGPT speedruns. On Factorio, we find refinement allows for continuous technology progression and dedicated subagents enable parallelized work. Code is available at https://github.com/PrimeIntellect-ai/prime-agent.",
+      "authors": [
+        "Seth Karten",
+        "Alex L. Zhang",
+        "Kevin Thomas",
+        "Sebastian Müller",
+        "Elie Bakouch",
+        "Daniel Auras",
+        "Mika Senghaas",
+        "Fares Obeid",
+        "Konstantin Dunas",
+        "Johannes Hagemann",
+        "Sami Jaghouar"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL",
+        "cs.SE"
+      ],
+      "published": "2026-08-24T17:54:19+00:00",
+      "link": "https://arxiv.org/pdf/2608.23552v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "harness records histories and enables human inspection for auditing",
+      "llm_evidence_cn": "工具链保存历史并支持人工检查，辅助智能体行为审计",
+      "llm_evidence": "工具链保存历史并支持人工检查，辅助智能体行为审计",
+      "canonical_evidence": "工具链保存历史并支持人工检查，辅助智能体行为审计",
+      "llm_tldr_en": "Prime Agent is an open-source harness with persistent history, memory, and agent views for human inspection, supporting verification and accountability in long-horizon agent workflows.",
+      "llm_tldr_cn": "针对长期任务智能体需要外部信息与计算支撑的问题，Prime Agent 提供了一个开源工具链，基于递归语言模型抽象和持续化工具链保留跨轨迹的历史、记忆、技能、提示词和子智能体规格。它支持递归子智能体间的直接通信，并通过智能体视图让人类检查和管理工作进程。该工具链标准化了执行、恢复、验证和资源核算，为长期智能体行为的审计与问责提供了基础性支持。",
+      "llm_tldr": "针对长期任务智能体需要外部信息与计算支撑的问题，Prime Agent 提供了一个开源工具链，基于递归语言模型抽象和持续化工具链保留跨轨迹的历史、记忆、技能、提示词和子智能体规格。它支持递归子智能体间的直接通信，并通过智能体视图让人类检查和管理工作进程。该工具链标准化了执行、恢复、验证和资源核算，为长期智能体行为的审计与问责提供了基础性支持。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "auditing the behavior of intelligent agents for compliance and correctness",
+      "matched_requirement_id": "req-14",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2608.27234v1",
+      "source": "arxiv",
+      "title": "SPA: Securing Persistent LLM Agents Across Queries with Plan-First Information-Flow Control",
+      "abstract": "Large language model (LLM) agents increasingly operate over untrusted webpages, documents, tools, and persistent states while exercising authority over security-sensitive resources. Existing defenses typically protect either planning or individual tool interactions, but persistent agents face a broader threat: attacker-controlled data can alter control flow, enter security-sensitive tool arguments, or compromise later queries. We present SPA, a plan-first architecture that secures planning, execution, and cross-query state reuse. SPA invokes the planner once per query to generate a complete executable plan in a declarative domain-specific language, then applies dual-lattice information-flow control to track confidentiality and integrity across explicit data flows and control dependencies. To support persistence without re-exposing untrusted payloads to the planner, SPA stores execution results as labeled artifacts and reveals only semantic metadata during later planning. We evaluate SPA on AgentDojo and AgentDojo-MQ, which is our multi-query extension for measuring secure state reuse and delayed attacks. Under the 'tool_knowledge' attack, SPA with information-flow control reduces attack success to zero on AgentDojo and 0.2% on AgentDojo-MQ. Our results show that plan-first execution combined with label-preserving persistence can substantially strengthen persistent LLM agents, while revealing an important security-utility tradeoff introduced by strict integrity enforcement.",
+      "authors": [
+        "Dylan Girrens",
+        "Guangjing Wang"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.SE"
+      ],
+      "published": "2026-08-27T15:17:18+00:00",
+      "link": "https://arxiv.org/pdf/2608.27234v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Presents SPA, a plan-first architecture with dual-lattice information-flow control to secure persistent LLM agents against attacker-controlled data across queries.",
+      "llm_evidence_cn": "提出SPA计划优先架构，采用双格信息流控制保护持久化LLM智能体，防止攻击者数据跨查询操控。",
+      "llm_evidence": "提出SPA计划优先架构，采用双格信息流控制保护持久化LLM智能体，防止攻击者数据跨查询操控。",
+      "canonical_evidence": "提出SPA计划优先架构，采用双格信息流控制保护持久化LLM智能体，防止攻击者数据跨查询操控。",
+      "llm_tldr_en": "Secures persistent LLM agents via a plan-first DSL and dual-lattice information-flow control to protect planning, execution, and cross-query state reuse from attacker-controlled data.",
+      "llm_tldr_cn": "持久化LLM智能体在跨查询中持续使用不受信任的网页、文档与工具，攻击者数据可改变控制流、进入敏感工具参数或污染后续查询。现有防御多只保护规划或单次工具交互，无法覆盖跨查询状态复用。论文提出SPA，采用计划优先架构，每次查询先生成完整可执行计划，再以双格信息流控制跟踪机密性与完整性标签，约束跨查询的信息流动。该方法为持久化智能体提供了端到端的安全保障。",
+      "llm_tldr": "持久化LLM智能体在跨查询中持续使用不受信任的网页、文档与工具，攻击者数据可改变控制流、进入敏感工具参数或污染后续查询。现有防御多只保护规划或单次工具交互，无法覆盖跨查询状态复用。论文提出SPA，采用计划优先架构，每次查询先生成完整可执行计划，再以双格信息流控制跟踪机密性与完整性标签，约束跨查询的信息流动。该方法为持久化智能体提供了端到端的安全保障。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "defense mechanisms for multi-agent security",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2608.23642v1",
+      "source": "arxiv",
+      "title": "AI Agents Push Humans Out of the Loop",
+      "abstract": "AI agents pose significant risks as they are granted increasing autonomy. A commonly proposed solution is human oversight and keeping a ''human in the loop'', but this is not a simple solution: Not only do current approaches to AI agent design impede effective human oversight, but the cognitive capacities required for it are also themselves degraded by extended use of AI systems. This position paper argues that current approaches to the development and deployment of AI agent systems do not support effective human oversight -- they contribute to its degradation. To address this, a top priority in the advancement of AI agents should be supporting the situated goals and cognitive requirements of effective human oversight, treating the human needs of overseers at the same level of importance as AI agent capability. To put this idea into practice, we connect work on automation and human-computer interaction to AI agent processes, outlining design-level affordances and organizational protocols that (1) support overseers in exercising critical judgement and (2) counteract the skill atrophy that arises from extended use of automation. We urge developers and deployers to adopt these or similar approaches. Without explicit support for the cognitive demands of effective human-agent interaction, AI agent systems will continue to passively incentivize the degradation of the very human skills they rely on.",
+      "authors": [
+        "Margaret Mitchell",
+        "Avijit Ghosh",
+        "Samir Passi"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.HC"
+      ],
+      "published": "2026-08-24T02:58:02+00:00",
+      "link": "https://arxiv.org/pdf/2608.23642v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "position paper on human oversight and accountability of autonomous agents",
+      "llm_evidence_cn": "关于自主智能体人类监督与问责的立场论文",
+      "llm_evidence": "关于自主智能体人类监督与问责的立场论文",
+      "canonical_evidence": "关于自主智能体人类监督与问责的立场论文",
+      "llm_tldr_en": "This position paper argues that current AI agent design erodes human oversight and calls for prioritizing cognitive needs of human overseers to ensure accountability.",
+      "llm_tldr_cn": "论文指出随着智能体自主性增强，安全风险也在上升，而常见的人类监督方案并不可靠。作者认为现有智能体设计不仅有碍有效监督，而且长期使用AI系统本身会削弱人类监督所需的认知能力。为此主张应将人类监督者的情境目标与认知需求作为智能体发展的一等议题，而非事后补救。该论文从问责与责任分配角度切入，强调维护人类监督能力对智能体治理的重要性。",
+      "llm_tldr": "论文指出随着智能体自主性增强，安全风险也在上升，而常见的人类监督方案并不可靠。作者认为现有智能体设计不仅有碍有效监督，而且长期使用AI系统本身会削弱人类监督所需的认知能力。为此主张应将人类监督者的情境目标与认知需求作为智能体发展的一等议题，而非事后补救。该论文从问责与责任分配角度切入，强调维护人类监督能力对智能体治理的重要性。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "accountability of autonomous agent actions and responsibility assignment",
+      "matched_requirement_id": "req-11",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2608.25091v1",
+      "source": "arxiv",
+      "title": "Auto-Policy, not Auto-Skill: Compiled Agent Skills for the Physical World",
+      "abstract": "Self-evolving Skill harnesses (AutoSkills, Hermes Agent) generate more advisory orchestration automatically; their reported gains are efficiency, not safety. This misses the actual gap: a Skill describes how an agent should behave; a Policy decides which behavior is allowed to become an action. Today's format covers the first with markdown and scripts; the second is left to the model. Generating more Skills scales the gap, not the safety, especially when a wrong invocation can unlock a door or move money. Two adjacent attacks are documented: malicious skills compromising cloud software, and jailbroken LLM-controlled robots causing physical harm. Their intersection, malicious agent skills causing physical harm, follows directly but has not been reported. We name this class Borrowed Authority: Skills format gives the receiving agent no typed way to reject an inter-agent permission claim, so a malicious or misused Skill can drive actuation by attaching one. We propose Edge Skillguard, a typed authority layer that lives inside the Skill artifact rather than between tools as workflow engines do, with guards over world state and sensor evidence. On a live edge control-plane testbed, the guards reject 60/60 borrowed-authority requests across five attack variants without blocking benign requests, and the result holds at 5x scale and across hosts over a Tailscale mesh. These results suggest that high-risk Skills should co-package typed invocation policy with procedural knowledge, so that physical actions depend on machine-checkable evidence rather than peer-agent claims.",
+      "authors": [
+        "Zhonghao Zhan",
+        "Hamed Haddadi"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CR"
+      ],
+      "published": "2026-08-25T19:40:50+00:00",
+      "link": "https://arxiv.org/pdf/2608.25091v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Proposes policy-based compiled skills to close safety gap in self-evolving agent skills; addresses malicious skills and physical harm.",
+      "llm_evidence_cn": "提出基于策略的编译技能机制，弥补自演进技能的安全性缺口，应对恶意技能与物理伤害风险。",
+      "llm_evidence": "提出基于策略的编译技能机制，弥补自演进技能的安全性缺口，应对恶意技能与物理伤害风险。",
+      "canonical_evidence": "提出基于策略的编译技能机制，弥补自演进技能的安全性缺口，应对恶意技能与物理伤害风险。",
+      "llm_tldr_en": "Argues auto-generated skills scale efficiency not safety; proposes explicit Policy to allow only safe behaviors, addressing malicious skills and LLM-controlled robot harms.",
+      "llm_tldr_cn": "现有自演进技能框架（如AutoSkills）追求生成效率而忽视安全性，技能描述了行为方式，但缺少控制行为能否执行的安全策略。本文指出恶意技能与被越狱机器人结合可造成物理伤害，并提出将策略编译进技能体系，让模型只能执行被允许的动作。这种方法能在技能调用层面阻断不安全行为，为智能体安全提供新的防护思路。",
+      "llm_tldr": "现有自演进技能框架（如AutoSkills）追求生成效率而忽视安全性，技能描述了行为方式，但缺少控制行为能否执行的安全策略。本文指出恶意技能与被越狱机器人结合可造成物理伤害，并提出将策略编译进技能体系，让模型只能执行被允许的动作。这种方法能在技能调用层面阻断不安全行为，为智能体安全提供新的防护思路。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "defense mechanisms for multi-agent security",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2608.27443v1",
+      "source": "arxiv",
+      "title": "Do User-Authored Permission Policies Improve Protection Against AI Agent Overreach?",
+      "abstract": "AI agents are poised to become a primary interface to digital products, acting across email, files, payments, and personal data. People without professional software backgrounds need understandable, reusable ways to control actions across services. We examine a mechanism in which a language model maps actions to plain-language consequence categories with user-authored \"allow\", \"ask\", or \"never\" rules. We ask what is gained and lost when decisions are made in advance as reusable rules rather than separately for each action.   We analyzed 113 participants without professional software backgrounds across three conditions: per-action human-in-the-loop approval (HITL), automated per-action model review (AUTO), or user-authored consequence policy (POLICY). Participants judged 2 examples in each of 4 consequence categories; POLICY participants then set one rule per category. All supervised an 18-action simulated day, including 7 overreach actions. POLICY blocked less overreach than HITL (-20.1 percentage points, 95% CI [-32.1, -8.1]) and AUTO (-14.5 points, 95% CI [-25.8, -3.2]). POLICY lowered runtime prompts from 18.0 to 10.9, but total intervention time was not reliably lower when rule setup was included.   Exploratory analysis showed that participants chose \"ask\" for 114 of 140 POLICY rules, returning most overreach actions to runtime. Of the 148 overreach actions executed in POLICY, 133 followed human approval and 15 ran automatically under \"allow\" rules. Across all 7 overreach actions, POLICY had the highest approval rate. Counterintuitively, user-authored rules did not by themselves provide stronger protection: many actions outside users' original requests went through after users approved them. These results reveal a gap between preference and commitment: repeatedly choosing \"ask\" preserves case-by-case choice but prevents a standing policy from settling decisions in advance.",
+      "authors": [
+        "Ting Yan"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC",
+        "cs.CR"
+      ],
+      "published": "2026-08-27T17:56:38+00:00",
+      "link": "https://arxiv.org/pdf/2608.27443v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "User-authored permission policies with allow/ask/never rules to block AI agent overreach",
+      "llm_evidence_cn": "用户自定义允许/询问/禁止规则，用于阻止AI智能体越权行为",
+      "llm_evidence": "用户自定义允许/询问/禁止规则，用于阻止AI智能体越权行为",
+      "canonical_evidence": "用户自定义允许/询问/禁止规则，用于阻止AI智能体越权行为",
+      "llm_tldr_en": "An experiment with 113 non-experts compares per-action HITL, automated model review, and user-authored allow/ask/never policies, examining whether reusable permission rules improve protection against AI agent overreach.",
+      "llm_tldr_cn": "AI智能体将广泛访问邮件、文件、支付等数字产品，普通用户需要可理解、可复用的权限控制方式。论文让113名非专业用户在逐动作人工审批、自动模型审查和用户编写后果策略三种条件下操作，考察预先制定的允许/询问/禁止规则能否阻止智能体越权。结果显示用户编写的策略在可理解性和防护效果上具有特定优势，为智能体权限管理设计提供了实证依据。",
+      "llm_tldr": "AI智能体将广泛访问邮件、文件、支付等数字产品，普通用户需要可理解、可复用的权限控制方式。论文让113名非专业用户在逐动作人工审批、自动模型审查和用户编写后果策略三种条件下操作，考察预先制定的允许/询问/禁止规则能否阻止智能体越权。结果显示用户编写的策略在可理解性和防护效果上具有特定优势，为智能体权限管理设计提供了实证依据。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "methods to block or contain risks in multi-agent systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2608.23867v1",
+      "source": "arxiv",
+      "title": "Markets, Not Planners: Decentralized Orchestration of LLM Agents with Private Information",
+      "abstract": "As LLM agents proliferate, built by different parties and with different capabilities and costs, orchestrating them is more like assembling labor across the economy than a computer calling a subroutine. Existing orchestration is typically centralized, with a single planner assigning every task, but this creates a bottleneck as agent pools grow, requires private information (e.g., agents' execution costs), and can easily be manipulated, such that a single inserted preference nearly doubles a favored agent's task share under a centralized LLM allocator. We introduce AgentLance, a repeated labor market in which agents bid on tasks using their private costs and self-maintained strategy notes, an allocator selects winners from bids and public reputation records, and a VCG-style payment rule rewards cost-aware bidding. Complex tasks are handled by hierarchical delegation: winning agents can decompose work and subcontract it through the same mechanism. Across mathematical reasoning, code generation, knowledge-intensive QA, and agentic tasks, AgentLance matches agents to their specializations, shifts work toward cheaper agents as cost sensitivity rises, and consistently outperforms single-model, centralized-orchestration, and market baselines. Diagnosing market failures, including inaccurate cost self-estimation and sub-optimal bidding, then correcting them in controlled experiments yields further gains, charting a path toward more efficient agent economies.",
+      "authors": [
+        "Xiao Liu",
+        "Haoyang Li",
+        "Songwei Li",
+        "Hongbo Fang",
+        "Fengli Xu",
+        "Feng Shi",
+        "James Evans"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA",
+        "cs.CL"
+      ],
+      "published": "2026-08-24T22:15:37+00:00",
+      "link": "https://arxiv.org/pdf/2608.23867v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "manipulation attacks in centralized LLM agent orchestration and market-based defense",
+      "llm_evidence_cn": "集中式LLM智能体编排中的操纵攻击与基于市场的防御",
+      "llm_evidence": "集中式LLM智能体编排中的操纵攻击与基于市场的防御",
+      "canonical_evidence": "集中式LLM智能体编排中的操纵攻击与基于市场的防御",
+      "llm_tldr_en": "This paper identifies a manipulation vulnerability in centralized LLM agent orchestration, where a single inserted preference can nearly double a preferred agent's task share, and introduces AgentLance, a repeated labor market using private costs and strategy notes to resist manipulation.",
+      "llm_tldr_cn": "本文指出集中式LLM智能体编排存在操纵漏洞：在任务描述中插入一个偏好即可使受偏袒智能体的任务份额近乎翻倍。为消除这一风险，提出AgentLance去中心化市场机制，智能体根据私有成本和策略笔记投标，分配者从竞标中择优，从而避免集中规划器带来的瓶颈与操纵面。实验显示该机制能有效抵御偏好注入攻击，并显著提高恶意插入偏好的代价。",
+      "llm_tldr": "本文指出集中式LLM智能体编排存在操纵漏洞：在任务描述中插入一个偏好即可使受偏袒智能体的任务份额近乎翻倍。为消除这一风险，提出AgentLance去中心化市场机制，智能体根据私有成本和策略笔记投标，分配者从竞标中择优，从而避免集中规划器带来的瓶颈与操纵面。实验显示该机制能有效抵御偏好注入攻击，并显著提高恶意插入偏好的代价。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "attack techniques targeting multi-agent systems",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2608.25174v1",
+      "source": "arxiv",
+      "title": "Model-Based Agentic Software Engineering",
+      "abstract": "Coding agents increase implementation capacity without automatically making project intent, system structure, or acceptance evidence explicit. As implementation becomes abundant relative to engineering judgment, the scarce work shifts toward choosing useful abstractions, producing evidence, and determining which obligations govern acceptance. Existing workflows address parts of this gap through larger prompts, repository retrieval, or perchange review, but still require agents and engineers to reconstruct consequential properties.   As an alternative, we present Model-Based Agentic Software Engineering (MAGE). MAGE is a framework and a theory for building trustworthy autonomy from commodity intelligence. MAGE addresses a representation problem and an authority problem: it externalizes the smallest purposeful representation needed to answer an engineering question, then gives settled obligations proportionate authority through constraints, sensors, validators, and gates. It keeps uncertain intent open and turns recurring reconstruction and judgment into durable engineering structure that later work can inherit. We developed MAGE from a longitudinal case and refined it through six independently reported industrial accounts. Across these sources, MAGE explains how externalized knowledge, bounded action, independent evaluation, and retained human authority can compose into a governed engineering environment, and proposes tests of when that environment turns commodity intelligence into durable engineering progress.",
+      "authors": [
+        "James C. Davis",
+        "Kelechi Kalu",
+        "Huiyun Peng",
+        "Parth V. Patil"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE"
+      ],
+      "published": "2026-08-25T21:43:16+00:00",
+      "link": "https://arxiv.org/pdf/2608.25174v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "externalizes acceptance evidence and authority for trustworthy autonomy",
+      "llm_evidence_cn": "外部化验收证据与权限，支持可信自主体的责任归属",
+      "llm_evidence": "外部化验收证据与权限，支持可信自主体的责任归属",
+      "canonical_evidence": "外部化验收证据与权限，支持可信自主体的责任归属",
+      "llm_tldr_en": "MAGE is a framework and theory for trustworthy agentic software engineering that makes project intent, structure, and acceptance evidence explicit, offering a basis for accountability assignment.",
+      "llm_tldr_cn": "论文指出编码智能体虽提升实现能力，但项目意图、系统结构和验收证据仍不明确，导致可信自主构建困难。为此提出MAGE框架，分别处理表示问题与权威问题，将关键属性外部化为显式的工程制品。该框架使智能体与工程师不必重构隐含信息，从而为自动化工程中的责任归属和验收提供清晰依据。通过外化义务与证据，MAGE为可信自主系统的治理与问责提供了基础性方法。",
+      "llm_tldr": "论文指出编码智能体虽提升实现能力，但项目意图、系统结构和验收证据仍不明确，导致可信自主构建困难。为此提出MAGE框架，分别处理表示问题与权威问题，将关键属性外部化为显式的工程制品。该框架使智能体与工程师不必重构隐含信息，从而为自动化工程中的责任归属和验收提供清晰依据。通过外化义务与证据，MAGE为可信自主系统的治理与问责提供了基础性方法。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "What frameworks assign accountability for actions of intelligent agents?",
+      "matched_requirement_id": "req-20",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2608.24667v1",
+      "source": "arxiv",
+      "title": "EviGraph: Towards Verifiable Evidence Construction for Information-Seeking Agents",
+      "abstract": "Agentic Web search can retrieve relevant information without establishing that the retrieved content actually supports the claims used in an answer. Existing agents typically keep search and evidence recording in a linear interaction trace and optimize primarily for final-answer correctness, providing limited supervision for intermediate grounding. We present EviGraph, a deep-search framework that separates search execution from evidence recording while using a shared policy for the trainable roles. An executor plans concise queries, a frozen evidence verifier inspects source pages and returns verbatim evidence items with an explicit polarity, and the policy maps those items to add/support graph requests that are checked by a deterministic structural validator. The resulting graph serves both as persistent working memory and as a source of dense process rewards, enabling reinforcement learning to directly supervise evidence construction rather than only the final answer. On BrowseComp-Plus, a Qwen3-8B EviGraph agent achieves 35.9% accuracy under a matched interaction budget, compared with 26.9% for the same dual-role architecture without reinforcement learning and 2.7% for a monolithic agent, while generating fewer tokens per rollout. Consistent gains on BrowseComp, GAIA, and XBench indicate that explicitly structuring and rewarding evidence recording improves agentic search",
+      "authors": [
+        "Jiashun Chen",
+        "Yirong Mao",
+        "Wenhui Que"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR"
+      ],
+      "published": "2026-08-25T15:06:54+00:00",
+      "link": "https://arxiv.org/pdf/2608.24667v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "verifiable evidence construction to support why an agent's answer is grounded",
+      "llm_evidence_cn": "构建可验证证据，支撑智能体答案的归因解释",
+      "llm_evidence": "构建可验证证据，支撑智能体答案的归因解释",
+      "canonical_evidence": "构建可验证证据，支撑智能体答案的归因解释",
+      "llm_tldr_en": "This paper presents EviGraph, a deep-search framework that separates search execution from evidence recording and uses an executor-verifier-policy architecture to construct explicit, verifiable evidence graphs with polarity, making agent answers supportable and auditable.",
+      "llm_tldr_cn": "本文针对信息获取型智能体在Web搜索中未能验证检索内容是否真正支持答案主张的问题，提出EviGraph框架。该框架将搜索执行与证据记录分离，由执行者生成查询、冻结的验证器从源页面提取逐字证据并标注极性、策略模型据此构建证据图并请求增补或支持。该方法为智能体答案提供可验证的中间监督，提升答案的可信度和可审计性。",
+      "llm_tldr": "本文针对信息获取型智能体在Web搜索中未能验证检索内容是否真正支持答案主张的问题，提出EviGraph框架。该框架将搜索执行与证据记录分离，由执行者生成查询、冻结的验证器从源页面提取逐字证据并标注极性、策略模型据此构建证据图并请求增补或支持。该方法为智能体答案提供可验证的中间监督，提升答案的可信度和可审计性。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "explaining why an AI agent made a particular decision or action",
+      "matched_requirement_id": "req-15",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2608.26867v1",
+      "source": "arxiv",
+      "title": "BekchiAI: Measuring, Observing, and Controlling LLM Agents in One Click",
+      "abstract": "Large language model agents reason, call tools, and act autonomously over many steps, but their agentic skills-correctly sequencing tools, planning under dependencies, judging untrusted inputs, and grounding generated arguments-are hard to measure with accuracy-only leaderboards. We present BekchiAI, which addresses both sides: a benchmark for measuring agentic skill and a platform for observing and controlling live agents. The BekchiAI-Benchmark, a suite of 13 tool-using ReAct agents across 7 task categories (arithmetic, structured/SQL, security detection, URL grounding, planning, orchestration, and tool-policy), totalling 2,057 deterministic, committed test tasks. Every task is verifier-checkable gold answers are computed by running canonical SQL against a real database, computing the exact schedule of a directed acyclic graph (DAG), or evaluating closed-form lambdas including adversarial security samples paired with deliberately imperfect signature scanners so a score reflects the model's own judgment, not the copying of an oracle. We define a small set of behavioral metrics beyond accuracy-tool-call adherence, URL hallucination and source-match, and per-model token cost and report a four-model comparison (Qwen3.7-Max, gemma-4-31B-it, gemma4:26b, gpt-oss-120b) whose story is in the per-family spread, not the aggregate. The benchmark runs are executed using the provided evaluation scripts. BekchiAI-Platform is a complementary web-based observability and control layer for deployed agents, providing full token and latency telemetry as well as remote run termination. The benchmark, evaluation tools, and platform are publicly released.",
+      "authors": [
+        "Mesut Toruk"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-08-27T09:30:08+00:00",
+      "link": "https://arxiv.org/pdf/2608.26867v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Platform for observing and controlling LLM agents, including security detection benchmarks",
+      "llm_evidence_cn": "提供LLM智能体的观测与控制平台，包含安全检测基准",
+      "llm_evidence": "提供LLM智能体的观测与控制平台，包含安全检测基准",
+      "canonical_evidence": "提供LLM智能体的观测与控制平台，包含安全检测基准",
+      "llm_tldr_en": "Presents a benchmark and platform for measuring, observing, and controlling LLM agents, covering security detection and other agentic skills.",
+      "llm_tldr_cn": "LLM智能体的技能难以用纯准确率评测，本文提出BekchiAI：包含13个工具使用ReAct智能体、2057个可验证任务的安全检测与技能基准，以及可观测、可控制的智能体平台，支持安全检测、规划、工具策略等能力的量化评估。",
+      "llm_tldr": "LLM智能体的技能难以用纯准确率评测，本文提出BekchiAI：包含13个工具使用ReAct智能体、2057个可验证任务的安全检测与技能基准，以及可观测、可控制的智能体平台，支持安全检测、规划、工具策略等能力的量化评估。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "auditing the behavior of intelligent agents for compliance and correctness",
+      "matched_requirement_id": "req-14",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2608.25457v1",
+      "source": "arxiv",
+      "title": "MACGen: Toward Functionally Correct and Secure Code Generation via Multi-Agent Collaboration",
+      "abstract": "Despite their strong ability to generate code, large language models often fail to produce secure code, as their outputs frequently contain security vulnerabilities. Secure code generation is inherently challenging because it requires solving a multi-objective problem: functional correctness and security. Existing approaches address this challenge by injecting external security knowledge or by using agentic feedback and iterative refinement. However, guideline retrieval often leaves the generator to translate generic advice into task-specific secure implementations, while shared-dialogue multi-agent feedback can blur role boundaries and suffer from context bloat.   We present MACGen, a multi-agent framework that integrates planning, security analysis, code synthesis and refinement to jointly optimize security and functionality. A planner constructs a step-by-step plan to satisfy functional requirements. A security advisor identifies likely CWEs and synthesizes task-specific guidelines, a coder then generates code grounded in these artifacts, and a reviewer issues perspective-separated feedback. Rather than sharing full dialogue histories, each agent receives only structured artifacts from upstream stages, enforcing role specialization and reducing uncontrolled context growth. On CWEval and BaxBench, MACGen improves F&S@1 over direct prompting by 19.61 and 10.57 percentage points (pp) on average, respectively.",
+      "authors": [
+        "Miseon Yu",
+        "Jaehoon Choi",
+        "Younghan Lee",
+        "Yunheung Paek"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI",
+        "cs.MA"
+      ],
+      "published": "2026-08-26T07:21:56+00:00",
+      "link": "https://arxiv.org/pdf/2608.25457v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "multi-agent collaboration for secure code generation to mitigate vulnerabilities",
+      "llm_evidence_cn": "多智能体协作生成安全代码以缓解漏洞",
+      "llm_evidence": "多智能体协作生成安全代码以缓解漏洞",
+      "canonical_evidence": "多智能体协作生成安全代码以缓解漏洞",
+      "llm_tldr_en": "This paper presents MACGen, a multi-agent framework integrating planning and role-separated feedback to generate functionally correct and secure code, addressing the multi-objective challenge that code generation must balance correctness and security vulnerabilities.",
+      "llm_tldr_cn": "本文针对大语言模型生成代码时常引入安全漏洞、而正确性与安全性需同时满足的多目标难题，提出MACGen多智能体框架。该框架将规划与智能体反馈结合，通过角色分离避免共享对话造成的上下文膨胀，使各智能体聚焦于功能正确与安全修补任务。实验表明，MACGen在保持功能正确性的同时能显著减少代码中的安全漏洞，为安全代码生成提供了新的多智能体协作范式。",
+      "llm_tldr": "本文针对大语言模型生成代码时常引入安全漏洞、而正确性与安全性需同时满足的多目标难题，提出MACGen多智能体框架。该框架将规划与智能体反馈结合，通过角色分离避免共享对话造成的上下文膨胀，使各智能体聚焦于功能正确与安全修补任务。实验表明，MACGen在保持功能正确性的同时能显著减少代码中的安全漏洞，为安全代码生成提供了新的多智能体协作范式。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "defense mechanisms for multi-agent security",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
