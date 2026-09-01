@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-08-30</span>
+      <span class="dpr-home-dashboard-kicker">2026-08-31</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 19 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 11 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>7</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>4</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-08-30 22:58:14 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-01 00:55:34 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,7 +62,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日19篇论文聚焦AI代理安全与运行时治理，精读7篇、速读12篇。最值得关注的是代理支付协议AP2的系统性安全分析（9.0分），以及自治AI代理运行时治理的五大原语（9.0分）。建议普通读者优先浏览这两篇精读论文，理解代理交互中的支付风险与治理框架。</p>
+<p>今日精读11篇论文，聚焦无人机蜂群协同安全与多智能体协作两大方向；其中《Securing Cooperative Sensing in UAV Swarms》以9.0分领跑，揭示从众型拜占庭攻击的防御思路，《Finding Where the Buck Stops》则提出失败归因驱动的反思框架，直接提升多智能体协作鲁棒性。建议优先关注无人机安全与协作反思机制，速读部分可留意LLM智能体自进化约束与跨设备可信度评测。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -74,9 +74,9 @@
     <strong class="dpr-home-dashboard-count">7 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Beyond the Mandate: A Systematic Security Analysis of the Agent Payments Protocol (AP2)">Beyond the Mandate: A Systematic Security Analysis of the Agent Payments Protocol (AP2)</span></li><li><span class="dpr-home-dashboard-paper-title" title="Five Primitives for Governing Autonomous AI Agents at Runtime">Five Primitives for Governing Autonomous AI Agents at Runtime</span></li><li><span class="dpr-home-dashboard-paper-title" title="Counterfactual Explanations and the Scope of Contestability">Counterfactual Explanations and the Scope of Contestability</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Securing Cooperative Sensing in UAV Swarms Against Conformity-Driven Byzantine Attacks">Securing Cooperative Sensing in UAV Swarms Against Conformity-Driven Byzantine Attacks</span></li><li><span class="dpr-home-dashboard-paper-title" title="Finding Where the Buck Stops: An Automated Failure Attribution-Based Reflection Framework for Multi-Agent Collaboration">Finding Where the Buck Stops: An Automated Failure Attribution-Based Reflection Framework for Multi-Agent Collaboration</span></li><li><span class="dpr-home-dashboard-paper-title" title="Offline-Verifiable Accountability for Cross-Organization Agent Messaging: A Preserved Evidence-Bundle Approach">Offline-Verifiable Accountability for Cross-Organization Agent Messaging: A Preserved Evidence-Bundle Approach</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>4</strong></span><span class="dpr-home-dashboard-tag">mas-security <strong>3</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>5</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>2</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -84,12 +84,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">12 篇</strong>
+    <strong class="dpr-home-dashboard-count">4 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="A Contract-Centered Architecture for Scalable and Manageable Agentic Runtimes">A Contract-Centered Architecture for Scalable and Manageable Agentic Runtimes</span></li><li><span class="dpr-home-dashboard-paper-title" title="SPA: Securing Persistent LLM Agents Across Queries with Plan-First Information-Flow Control">SPA: Securing Persistent LLM Agents Across Queries with Plan-First Information-Flow Control</span></li><li><span class="dpr-home-dashboard-paper-title" title="Do User-Authored Permission Policies Improve Protection Against AI Agent Overreach?">Do User-Authored Permission Policies Improve Protection Against AI Agent Overreach?</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="EvoUndo: Recoverability-Constrained Self-Evolution for LLM Agent Harnesses">EvoUndo: Recoverability-Constrained Self-Evolution for LLM Agent Harnesses</span></li><li><span class="dpr-home-dashboard-paper-title" title="Acquire, Repair, Preserve: A Diagnosis-Guided Post-Training Recipe for Small-Model Dialogue Game Agents">Acquire, Repair, Preserve: A Diagnosis-Guided Post-Training Recipe for Small-Model Dialogue Game Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="ADeptS-Bench: Measuring the Trustworthiness of Computer Use Agents Across Devices">ADeptS-Bench: Measuring the Trustworthiness of Computer Use Agents Across Devices</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>7</strong></span><span class="dpr-home-dashboard-tag">mas-security <strong>5</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>2</strong></span><span class="dpr-home-dashboard-tag">mas-security <strong>2</strong></span></div>
 </section>
 </div>
 
