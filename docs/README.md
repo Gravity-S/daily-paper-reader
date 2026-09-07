@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-08-31</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-07</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 11 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 30 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>7</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>4</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>18</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-01 00:55:34 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-07 23:24:55 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,7 +62,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日精读11篇论文，聚焦无人机蜂群协同安全与多智能体协作两大方向；其中《Securing Cooperative Sensing in UAV Swarms》以9.0分领跑，揭示从众型拜占庭攻击的防御思路，《Finding Where the Buck Stops》则提出失败归因驱动的反思框架，直接提升多智能体协作鲁棒性。建议优先关注无人机安全与协作反思机制，速读部分可留意LLM智能体自进化约束与跨设备可信度评测。</p>
+<p>今日30篇论文聚焦多智能体系统安全，18篇精读中《SoK》与《联邦图学习》双双满分，揭示协作风险与隐私保护关键。最值得关注两大方向：多智能体LLM的联合失效威胁，以及用联邦图学习实现隐私安全的拓扑防护。普通读者可优先浏览精读两篇框架性结论，并留意速读中奖励黑客与代理撤销的实用案例，二者互补构成攻防闭环。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -71,12 +71,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">7 篇</strong>
+    <strong class="dpr-home-dashboard-count">18 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Securing Cooperative Sensing in UAV Swarms Against Conformity-Driven Byzantine Attacks">Securing Cooperative Sensing in UAV Swarms Against Conformity-Driven Byzantine Attacks</span></li><li><span class="dpr-home-dashboard-paper-title" title="Finding Where the Buck Stops: An Automated Failure Attribution-Based Reflection Framework for Multi-Agent Collaboration">Finding Where the Buck Stops: An Automated Failure Attribution-Based Reflection Framework for Multi-Agent Collaboration</span></li><li><span class="dpr-home-dashboard-paper-title" title="Offline-Verifiable Accountability for Cross-Organization Agent Messaging: A Preserved Evidence-Bundle Approach">Offline-Verifiable Accountability for Cross-Organization Agent Messaging: A Preserved Evidence-Bundle Approach</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="SoK: When Safe Agents Fail Together: The Security of Multi Agent LLM Systems">SoK: When Safe Agents Fail Together: The Security of Multi Agent LLM Systems</span></li><li><span class="dpr-home-dashboard-paper-title" title="Privacy-Preserving Topology-Guided Safety for LLM-Based Multi-Agent Systems via Federated Graph Learning">Privacy-Preserving Topology-Guided Safety for LLM-Based Multi-Agent Systems via Federated Graph Learning</span></li><li><span class="dpr-home-dashboard-paper-title" title="Detect Before You Attribute: Cascade Failure Attribution for Multi-Agent Systems">Detect Before You Attribute: Cascade Failure Attribution for Multi-Agent Systems</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>5</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>2</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>10</strong></span><span class="dpr-home-dashboard-tag">mas-security <strong>8</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -84,12 +84,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">4 篇</strong>
+    <strong class="dpr-home-dashboard-count">12 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="EvoUndo: Recoverability-Constrained Self-Evolution for LLM Agent Harnesses">EvoUndo: Recoverability-Constrained Self-Evolution for LLM Agent Harnesses</span></li><li><span class="dpr-home-dashboard-paper-title" title="Acquire, Repair, Preserve: A Diagnosis-Guided Post-Training Recipe for Small-Model Dialogue Game Agents">Acquire, Repair, Preserve: A Diagnosis-Guided Post-Training Recipe for Small-Model Dialogue Game Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="ADeptS-Bench: Measuring the Trustworthiness of Computer Use Agents Across Devices">ADeptS-Bench: Measuring the Trustworthiness of Computer Use Agents Across Devices</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Can escalation channels redirect reward hacking toward defect disclosure?">Can escalation channels redirect reward hacking toward defect disclosure?</span></li><li><span class="dpr-home-dashboard-paper-title" title="VERA: Authority-Preserving Edge Revocation for Federated AI-Agent Workflows">VERA: Authority-Preserving Edge Revocation for Federated AI-Agent Workflows</span></li><li><span class="dpr-home-dashboard-paper-title" title="CAST: Critique-Aware Supervision for Training Reliable Long-Horizon Tool-Calling Agents">CAST: Critique-Aware Supervision for Training Reliable Long-Horizon Tool-Calling Agents</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>2</strong></span><span class="dpr-home-dashboard-tag">mas-security <strong>2</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>9</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>3</strong></span></div>
 </section>
 </div>
 
