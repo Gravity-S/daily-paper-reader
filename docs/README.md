@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-07</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-08</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 30 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 23 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>18</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>11</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-07 23:24:55 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-08 22:22:55 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,7 +62,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日30篇论文聚焦多智能体系统安全，18篇精读中《SoK》与《联邦图学习》双双满分，揭示协作风险与隐私保护关键。最值得关注两大方向：多智能体LLM的联合失效威胁，以及用联邦图学习实现隐私安全的拓扑防护。普通读者可优先浏览精读两篇框架性结论，并留意速读中奖励黑客与代理撤销的实用案例，二者互补构成攻防闭环。</p>
+<p>今日精读11篇、速读12篇，核心聚焦多智能体LLM系统的安全漏洞与具身VLM智能体的多模态欺骗行为。最值得看的结论是：多智能体协作时的安全失效模式亟待防范，而视觉语言智能体在社交互动中能通过语言与非语言线索联合欺骗。普通读者若关心AI安全与可信度，建议优先关注这两大风险方向。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -71,12 +71,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">18 篇</strong>
+    <strong class="dpr-home-dashboard-count">11 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="SoK: When Safe Agents Fail Together: The Security of Multi Agent LLM Systems">SoK: When Safe Agents Fail Together: The Security of Multi Agent LLM Systems</span></li><li><span class="dpr-home-dashboard-paper-title" title="Privacy-Preserving Topology-Guided Safety for LLM-Based Multi-Agent Systems via Federated Graph Learning">Privacy-Preserving Topology-Guided Safety for LLM-Based Multi-Agent Systems via Federated Graph Learning</span></li><li><span class="dpr-home-dashboard-paper-title" title="Detect Before You Attribute: Cascade Failure Attribution for Multi-Agent Systems">Detect Before You Attribute: Cascade Failure Attribution for Multi-Agent Systems</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="SoK: When Safe Agents Fail Together: The Security of Multi Agent LLM Systems">SoK: When Safe Agents Fail Together: The Security of Multi Agent LLM Systems</span></li><li><span class="dpr-home-dashboard-paper-title" title="Lies We Can See: Joint Verbal and Non-Verbal Deception by VLM Agents in Embodied Social Interactions">Lies We Can See: Joint Verbal and Non-Verbal Deception by VLM Agents in Embodied Social Interactions</span></li><li><span class="dpr-home-dashboard-paper-title" title="ECLIPSE: Self-Evolving Stealthy Prompt Injection Attack against Long-Horizon Agentic Systems">ECLIPSE: Self-Evolving Stealthy Prompt Injection Attack against Long-Horizon Agentic Systems</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>10</strong></span><span class="dpr-home-dashboard-tag">mas-security <strong>8</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>8</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>3</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -87,9 +87,9 @@
     <strong class="dpr-home-dashboard-count">12 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Can escalation channels redirect reward hacking toward defect disclosure?">Can escalation channels redirect reward hacking toward defect disclosure?</span></li><li><span class="dpr-home-dashboard-paper-title" title="VERA: Authority-Preserving Edge Revocation for Federated AI-Agent Workflows">VERA: Authority-Preserving Edge Revocation for Federated AI-Agent Workflows</span></li><li><span class="dpr-home-dashboard-paper-title" title="CAST: Critique-Aware Supervision for Training Reliable Long-Horizon Tool-Calling Agents">CAST: Critique-Aware Supervision for Training Reliable Long-Horizon Tool-Calling Agents</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Extracting Knowledge from Tools in LLM Agents">Extracting Knowledge from Tools in LLM Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="ATLAS: Dual-Horizon Diagnostic Evaluation for Industrial Tool-Use Agents">ATLAS: Dual-Horizon Diagnostic Evaluation for Industrial Tool-Use Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="AgentProv: Auditing Agentic LLM API Providers via Tool-use Policy Probes">AgentProv: Auditing Agentic LLM API Providers via Tool-use Policy Probes</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>9</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>3</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>7</strong></span><span class="dpr-home-dashboard-tag">mas-security <strong>5</strong></span></div>
 </section>
 </div>
 
