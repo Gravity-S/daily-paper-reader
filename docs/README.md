@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-08</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-09</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 23 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 20 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>11</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>8</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-08 22:22:55 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-09 22:18:33 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,7 +62,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日精读11篇、速读12篇，核心聚焦多智能体LLM系统的安全漏洞与具身VLM智能体的多模态欺骗行为。最值得看的结论是：多智能体协作时的安全失效模式亟待防范，而视觉语言智能体在社交互动中能通过语言与非语言线索联合欺骗。普通读者若关心AI安全与可信度，建议优先关注这两大风险方向。</p>
+<p>今日20篇论文聚焦AI代理的可解释性与技能正确性，精读2篇高分研究。</p>
+<p>值得关注：用执行轨迹解释代理行为，以及通过意图掩码规范推理保障技能正确性（均为10/9分高亮）。</p>
+<p>普通读者可优先理解“代理如何被解释”与“技能如何被验证”，这两点关乎AI可信度。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -71,12 +73,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">11 篇</strong>
+    <strong class="dpr-home-dashboard-count">8 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="SoK: When Safe Agents Fail Together: The Security of Multi Agent LLM Systems">SoK: When Safe Agents Fail Together: The Security of Multi Agent LLM Systems</span></li><li><span class="dpr-home-dashboard-paper-title" title="Lies We Can See: Joint Verbal and Non-Verbal Deception by VLM Agents in Embodied Social Interactions">Lies We Can See: Joint Verbal and Non-Verbal Deception by VLM Agents in Embodied Social Interactions</span></li><li><span class="dpr-home-dashboard-paper-title" title="ECLIPSE: Self-Evolving Stealthy Prompt Injection Attack against Long-Horizon Agentic Systems">ECLIPSE: Self-Evolving Stealthy Prompt Injection Attack against Long-Horizon Agentic Systems</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Explaining AI Agents Through Execution Traces">Explaining AI Agents Through Execution Traces</span></li><li><span class="dpr-home-dashboard-paper-title" title="SkillSpec: Intent-Masked Specification Reasoning for Agent Skill Correctness">SkillSpec: Intent-Masked Specification Reasoning for Agent Skill Correctness</span></li><li><span class="dpr-home-dashboard-paper-title" title="CAPMAS: Capability-Based Delegation of Privileges in Multi-Agent Systems">CAPMAS: Capability-Based Delegation of Privileges in Multi-Agent Systems</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>8</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>3</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>4</strong></span><span class="dpr-home-dashboard-tag">mas-security <strong>4</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -87,9 +89,9 @@
     <strong class="dpr-home-dashboard-count">12 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Extracting Knowledge from Tools in LLM Agents">Extracting Knowledge from Tools in LLM Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="ATLAS: Dual-Horizon Diagnostic Evaluation for Industrial Tool-Use Agents">ATLAS: Dual-Horizon Diagnostic Evaluation for Industrial Tool-Use Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="AgentProv: Auditing Agentic LLM API Providers via Tool-use Policy Probes">AgentProv: Auditing Agentic LLM API Providers via Tool-use Policy Probes</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Skill-as-API: Confidential Multi-Agent Coordination for Agentic Software Engineering">Skill-as-API: Confidential Multi-Agent Coordination for Agentic Software Engineering</span></li><li><span class="dpr-home-dashboard-paper-title" title="Agent Memory Is a Surface for Endogenous Authorization Laundering">Agent Memory Is a Surface for Endogenous Authorization Laundering</span></li><li><span class="dpr-home-dashboard-paper-title" title="Beyond Outcome Gaps: Process-Aware Fairness Diagnosis for LLM-based Multi-Agent Decision Systems">Beyond Outcome Gaps: Process-Aware Fairness Diagnosis for LLM-based Multi-Agent Decision Systems</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>7</strong></span><span class="dpr-home-dashboard-tag">mas-security <strong>5</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>7</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>5</strong></span></div>
 </section>
 </div>
 

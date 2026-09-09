@@ -1,0 +1,403 @@
+Title: Measuring AI Accountability Through Argumentation Analysis: Can Model Reasoning Withstand Scrutiny?
+
+URL Source: https://arxiv.org/pdf/2609.05088v1
+
+Published Time: Mon, 07 Sep 2026 01:09:27 GMT
+
+Number of Pages: 27
+
+Markdown Content:
+# Measuring AI Accountability Through Argumentation Analysis: Can Model Reasoning Withstand Scrutiny? 
+
+## Daan R. Henselmans, Derck W.E. Prinzhorn and Arno Libert 
+
+Aithos Research Foundation, Keizersgracht 62, Amsterdam, 1015 CS, the Netherlands. *Corresponding author(s). E-mail(s): daan@aithos.org; arno@aithos.org; Contributing authors: derck@aithos.org; 
+
+Abstract 
+
+AI oversight methods rely on ground truth for validation, but what constitutes appropriate AI behavior is contested. This leaves evaluation of moral reason-ing in LLMs and debate-based oversight implicitly avoiding realistic ambiguity. We investigate an alternative standard designed to function despite such ambi-guity: structural quality of the defence a model can mount for its verdicts in response to critical questions, measured through a four-phase dialectical proto-col grounded in Walton’s theory of argumentation schemes and Govier’s criteria for argument cogency. The protocol is adaptive to different frames of reasoning, extends beyond multiple-choice framing, and treats both the reasoning that pre-cedes a verdict and its post-hoc justification. Across nine frontier models and 200 high-ambiguity MoralChoice items— 6,778 judge-scored cells, validated against 
+
+89 .6% inter-judge agreement on the binary failure judgment—models defend their reasoning well above the rubric minimum on every dimension. Failure mass concentrates on grounds and sufficiency, and correlates with epistemic hedging rather than argument length. Reasoning is better defended than post-hoc jus-tification, on every model and every Govier dimension. The scheme a model presents in its justification differs from the one it reasoned with on a substantial share of dilemmas ( ≥ 20% per model), despite value-based practical reasoning dominating both tracks. The protocol catches strictly indefensible defences (self-contradiction, false premises), and it surfaces difficulties in characterizing the role of retraction in AI alignment, suggesting a need for more situated evaluations. 
+
+Keywords: AI ethics; AI accountability; argumentation schemes; moral reasoning; LLM evaluation; faithful reasoning. 
+
+1arXiv:2609.05088v1 [cs.AI] 4 Sep 2026 1 Introduction 
+
+In real life, morally charged decisions cannot be checked against an answer key. Jus-tifying a controversial choice requires taking responsibility, stating your reasons, and allowing others to legitimately challenge them (Forst, 2012; Habermas, 1990). As LLMs are deployed in roles affecting people’s lives, like companionship, medical advice, or resource allocation, their actions too must do more than meet a behavioral target, and be justifiable to those they affect. But before we can evaluate whether an AI system can justify itself, we need to be able to distinguish a genuine moral argument from a plausible-sounding but incoherent rationalization. Haas et al. (2026) formalize the distinction between moral performance —producing morally appropriate outputs—and moral competence —producing them on the basis of morally relevant considerations. To distinguish genuine moral reasoning from a “facsimile process” that produces correct outputs without meaningful grounds, they advocate for adversarial evaluations to test whether a model’s verdicts are produced by appropriate structural correspondence. This paper proposes an implementation using argumentation theory: rather than testing whether a model reaches a verdict stated to be defensible, we test whether it can defend whatever verdict it reaches when probed with the critical questions its own argument invites. We adapt Walton, Reed and Macagno’s theory of argumentation schemes (Walton, Reed, & Macagno, 2008). When a model justifies a verdict, we classify the argu-mentation scheme it instantiates, generate that scheme’s critical questions, and score the model’s answers on Govier’s criteria for argument cogency (Govier, 2010). The methodology is adaptive to moral framing: a utilitarian justification and a deontologi-cal one can both score highly if each withstands scrutiny. What we measure is whether a justification meets structural requirements of cogent argumentation—a standard independent of normative targets, compatible with pluralistic alignment (Sorensen et al., 2024). A central design choice separates pre-verdict reasoning from post-verdict justifica-tion and evaluates both independently, motivated by evidence that chain-of-thought traces do not reliably reflect the causal processes behind model outputs (Lanham et al., 2023; Turpin, Michael, Perez, & Bowman, 2023) and that reasoning steps can both reveal and conceal misaligned intentions (Chua, Betley, Taylor, & Evans, 2025). Comparing the two tracks exposes whether the public justification reflects the under-lying reasoning or is a mere rhetorical polish—a discrepancy that signals reduced accountability. 
+
+# 2 Background and Related Work 
+
+## 2.1 Accountability and justification 
+
+Justifiability as an ethical criterion for the legitimacy of institutions and the norms governing them is a recurring concept in modern political philosophy (Forst, 2012; Habermas, 1996; Rawls, 1993; Scanlon, 1998). Several proposals center it as an align-ment target: Gabriel and Keeling (2025) argue that AI systems must be regulated by 2principles based on fair processes amenable to public justification, while contractual-ist proposals follow Scanlon in the notion that systems should be governed by norms diverse stakeholders would endorse rather than by aggregated preferences (Levine et al., 2026; Zhi-Xuan, Carroll, Franklin, & Ashton, 2025). Habermas (1990) distinguishes monological justification—conducted through soli-tary reasoning, addressed to nobody in particular—from justification whose argumen-tation addresses those affected, allowing contestation and coordination. Levine et al. (2026) propose an alignment target which would answer to a “soft” version of this program: preemptively modeling affected parties’ counterarguments. However, current LLM simulations still fail to meet deliberation and representation standards on ethi-cally contested questions (Flechtner, 2026), and it should be noted Habermas endorses the “hard” version embodied by actual discourse with affected parties, though the two are not mutually exclusive. 
+
+## 2.2 Evaluating moral outputs vs. moral reasoning 
+
+A growing body of work documents morally consequential failures in LLM out-put: agentic misalignment (Lynch et al., 2025), sycophantic agreement over truthful responses (Sharma et al., 2024), emergent deception (Chua et al., 2025). The evaluation literature spans ethics benchmarks for normative moral judgments (Hendrycks, Burns, et al., 2021; Jin et al., 2022) and simulation environments that observe behavior under moral pressure (Chiu, Jiang, & Choi, 2025; Hendrycks, Mazeika, et al., 2021; Pan et al., 2023). These evaluations share a focus on moral performance —producing morally appropriate outputs—rather than moral competence —producing them on the basis of morally relevant considerations (Haas et al., 2026; Kilov, Hendy, Guyot, Snoswell, & Lazar, 2025). Moral competence is necessary to ground the public trust that legitimate deployment requires (Manzini et al., 2024). It can be difficult to distinguish quality moral reasoning from justificatory rhetoric. Mechanistic interpretability can identify causal links between internal representations in smaller models (Lindsey et al., 2025) but not sufficiently to confirm a verdict rests on morally salient considerations. A justification may be requested from the model itself, but frontier systems are now more persuasive than prepared, incentivized expert human debaters in live exchange (Hackenburg et al., 2026; Salvi, Horta Ribeiro, Gal-lotti, & West, 2025), potentially making it difficult to identify invalid justifications. Chain-of-thought monitoring has been proposed as a distinct and fragile oversight opportunity (Korbak et al., 2025), yet providers increasingly encrypt reasoning traces, and the summaries standing in for them can be unfaithful to the reasoning they summarize (Panfilov et al., 2026). Even where traces are available, reasoning can rationalize injected biases without surfacing them (Turpin et al., 2023), faithfulness shows inverse scaling with model capability (Lanham et al., 2023), and reasoning mod-els fine-tuned on narrow malicious behaviors emit both overt deceptive planning and benign-sounding rationalizations that evade monitoring (Chua et al., 2025). Debate between AI systems has been proposed as a proxy to identify truth in ambiguous circumstances (Irving, Christiano, & Amodei, 2018). However, its potential use in contested domains is undercut by its need for a ground truth to validate the answer (Irving & Askell, 2019). The empirical case inherits this: debate helps identify 3the correct answer on tasks like reading comprehension, mathematics, and coding (Kenton et al., 2024; Khan et al., 2024; Michael et al., 2023), but these setups require assigning one debater an incorrect position, which makes it less persuasive (Carro et al., 2025) and prone to concede (Khan et al., 2024). Debate studies on ambiguous moral questions examine epistemic positions (Prasad & Nguyen, 2025), prior beliefs (Carro et al., 2025), and interaction protocols (Sachdeva & van Nuenen, 2026), but not the justifiability of verdicts. Haas et al. (2026) identify the “facsimile problem” as the fundamental obsta-cle: LLM architectures do not guarantee that the processes generating moral outputs are structurally analogous to the moral reasoning those outputs appear to reflect. They advocate adversarial, disconfirming evaluations that disentangle genuine reason-ing from surface-level pattern matching. Our methodology implements this program through argumentation theory, with each scheme’s critical questions serving as struc-tured adversarial probes: a facsimile process should fail when the specific inferential steps of its argument are challenged. 
+
+## 2.3 Argumentation theory and argument quality 
+
+Walton, Reed and Macagno’s theory of argumentation schemes provides the struc-tural backbone of our methodology (Walton et al., 2008). An argumentation scheme is a stereotypical pattern of human reasoning—argument from consequences, practical inference, argument from analogy—each associated with critical questions that iden-tify the conditions under which the argument’s presumption can be defeated. Rather than inferring dialectical accuracy from the initial argument, our protocol poses crit-ical questions matching the instantiated scheme and scores the response. Because the questions attach to the scheme, the objections owed are fixed to the argument the arguer chooses to make. Walton argues that ethical argumentation is a species of goal-directed practical reasoning, best evaluated through case-based dialectical exchange in which defeasible arguments are challenged and defended (Walton, 2003)—the basis for our four-phase protocol. Walton’s framework has been applied computationally to classify schemes in text (Feng & Hirst, 2011) and to model dialogue protocols (Gordon & Walton, 2006), but to our knowledge has not been used as an evaluation methodology for LLM moral reasoning. Govier’s ARG conditions provide our primary evaluative criteria (Govier, 2010). A cogent argument has premises that are acceptable (reasonable to believe), relevant 
+
+(bearing on the conclusion), and that together provide adequate grounds (sufficient reason to accept the conclusion). These derive from informal logic and target real-world argumentation rather than formal deductive validity (Johnson & Blair, 1977). The conditions are partially ordered: relevance failure entails grounds failure—if premises do not bear on the conclusion they cannot supply adequate reason—but grounds can fail on its own when premises are acceptable and relevant yet insufficient, making grounds the most demanding and last to clear (Govier, 2010). An argument can fail acceptability by overstating premises, relevance by trading on emotively loaded but non-bearing claims, or grounds by over-generalizing, independently of the normative position it argues for. Motivated by the distinction between local argument quality and global argumentation quality (Blair, 2012; van Eemeren & Grootendorst, 2004; 4Wachsmuth et al., 2017), we complement per-question ARG scoring with a global equivalent, which evaluates how the argumentation relates to itself as a whole ( §3.4). Alongside argument quality, we track commitment stability as a diagnostic mea-sure. Revising one’s position in light of new considerations is a legitimate part of ethical argumentation (Walton, 2003), but balance is key: both an arguer who keeps hedging and evading commitment and one who never retracts however strong the counterar-gument make dialogue pointless (Walton & Krabbe, 1995). The first failure has been observed empirically in debate, where dishonest debaters evade being pinned down and steer away from the weak parts of their argument (Barnes & Christiano, 2020). 
+
+# 3 Methods 
+
+We measure the argumentative moral competence of a language model by subjecting every response to a four-phase dialectical protocol ( §3.3) grounded in Walton’s argu-mentation schemes (Walton et al., 2008). Rather than scoring the verdict a model reaches, the protocol scores the defence it can mount when systematically probed with critical questions fixed to the scheme it instantiated. The output is a profile of Govier ARG scores (Govier, 2010) for the model’s reasoning and its justification .
+
+## 3.1 Task and dataset 
+
+Each item is a moral dilemma drawn from the high-ambiguity subset of the Moral-Choice benchmark (Scherrer, Shi, Feder, & Blei, 2023); we restrict to this subset because low-ambiguity scenarios admit a clearly preferred action and make justifica-tion trivial. Each scenario is a pair ( D, V ): D a free-text situation description, V the model’s open-ended verdict (see §3.2). The benchmark’s auxiliary (action1, action2) pair is omitted to evaluate justification of open-ended reasoning. Like similar ethics benchmarks (Chiu, Jiang, & Choi, 2025; Chiu, Wang, et al., 2025; Hendrycks, Burns, et al., 2021), MoralChoice is monological in construction, requiring general moral rea-soning rather than justification to affected parties. We sample n = 200 scenarios using a deterministic seeded shuffle (seed = 42), after applying a content blocklist of scenarios that consistently trigger content-policy blocking. 
+
+## 3.2 Model selection and the reasoning–justification split 
+
+The evaluation covers nine models, grouped into two panels by how their reasoning is obtained. A central design choice is to separate, for every response, the reasoning 
+
+rr that preceded the verdict from the justification rj that defends it, and to run the remainder of the protocol independently on both, so that we can test whether the reasoning a model uses to decide is as argumentatively defensible as the justification it presents to a reader. The reasoning-branch panel comprises seven models with a native structured rea-soning channel: Claude Sonnet 4.6 (Anthropic), GPT-5.4 (OpenAI), Gemini 2.5 Pro (Google), and the Fireworks-hosted thinking variants DeepSeek V4 Pro, Kimi K2.6, GLM 5.1 and Qwen 3.6 Plus. Each is invoked through Inspect-AI’s reasoning-model 5solver (UK AI Security Institute, 2024); the provider’s reasoning block is taken as rr
+
+and the post-reasoning content as rj.Closed-source providers require special handling. GPT-5.4 returns its reasoning channel as encrypted ciphertext ; we capture the block as rr but treat it as unscoreable and exclude GPT from every reasoning-track and scheme analysis, reporting results on the justification track only. Claude Sonnet 4.6 and Gemini 2.5 Pro only emit a provider-generated reasoning summary, which we score on the reasoning track despite known unfaithfulness to the reasoning it summarizes (Panfilov et al., 2026). The CoT panel comprises two models without a native reasoning channel—Mistral Large 2512 and Llama 3.3—run under a visible chain-of-thought elicitation in which the pre-<answer> prose supplies rr and the answer supplies rj. We report the CoT panel in parallel rather than ranked alongside the reasoning-branch panel, except where within-model reasoning-vs-justification measures are averaged. 
+
+## 3.3 A four-phase dialectical protocol 
+
+The protocol implements a judge–respondent dialogue in the style of Walton’s critical-question interrogation. Let J denote a judge model. 
+
+Phase 1: Response elicitation. 
+
+The evaluated model produces v, rr and rj as described above. 
+
+Phase 2: Scheme classification and critical-question elicitation. 
+
+For each target r ∈ { rr, r j}, judge J identifies the most prominent argument scheme 
+
+s ∈ S instantiated in r. The set S consists of thirteen Walton schemes that we selected 
+
+a priori as particularly relevant to moral deliberation: argument from expert opinion, from popular opinion, from example, from analogy, from values, practical inference, value-based practical reasoning, argument from consequences, from need for help, from distress, from established rule, from slippery slope, and for an exceptional case. Each scheme is presented to the judge with its premises, conclusion form and associated critical questions. If no scheme in S fits, the judge selects a fallback from an extended list of roughly forty-five further Walton schemes; in that case the returned critical-question set may be empty. When the matched scheme has pre-defined critical questions, the judge is asked to situate them—rephrasing each generic question to refer concretely to the agents, actions and stakes of the dilemma, without introducing facts absent from the scenario. The output is a JSON object containing the scheme s and the situated critical ques-tions Qr = {q1, . . . , q n}. Phase 2 is performed by a single judge, Claude Sonnet 4.6, judged most capable at this task. 
+
+Phase 3: Defence. 
+
+The evaluated model M is re-queried with Qr and asked to answer each question. For the rj path the questions are asked in-context, since rj is part of the visible dialogue. For the rr path the reasoning text is re-injected verbatim, because native reasoning channels are typically not in the conversation history the model can see. The answers constitute the defence Ar = {a1, . . . , a n}.6Phase 4: Argument-quality scoring. 
+
+The judges evaluate the defence Ar against the original dilemma and the original target text r using the rubric described in §3.4. We use two independent Phase-4 judges— Claude Sonnet 4.6 and GPT-5.4—and manually review cells where they disagree. 
+
+## 3.4 Scoring rubrics 
+
+We score every defence on a single rubric derived from Govier’s ARG criteria (Govier, 2010), decomposed into a local per-question component and a global holistic component. For each critical-question response ai, the judge assigns a ternary score on each of three dimensions: acceptability (is it reasonable to believe the claims?), relevance 
+
+(do premises bear on the conclusion?) and good grounds / sufficiency (do the claims jointly provide adequate reason for the conclusion?). Scores are encoded on a 1–3 scale where 1 indicates the criterion is not met , 2 partially met and 3 fully met ; for analysis and reporting these are linearly mapped to a 0–1 normalized scale. After scoring each question individually, the judge evaluates the defence as a 
+
+whole —the original justification together with all critical-question responses—on four holistic dimensions, using the same ternary rubric as the local dimensions: 
+
+• Global acceptability (does the defense faithfully characterize the scenario and prior arguments?), 
+
+• Global relevance (do subarguments in the defense bear on the premises they are meant to support or counter?) 
+
+• Global sufficiency (does the response as a whole adequately exhaust the critical questioning?), and 
+
+• Commitment stability (does the model hold a stable position across the exchange, or do its claims shift and conflict from one answer to the next?). Commitment stability is reported as a diagnostic and is deliberately excluded from the substantive quality and failure metrics ( §3.6). A low commitment-stability score is meant to flag that a model revised its stance under questioning, which on Wal-ton’s commitment-based account of ethical argumentation (Walton, 2003) can be a legitimate response to a newly-raised consideration rather than a defect. The question whether observed instability in fact reflects such revision is tested in §4.2. 
+
+## 3.5 Multi-judge evaluation 
+
+Phase 4 is replicated across the judge set J = {Claude Sonnet 4.6 , GPT-5.4 }, with Claude Sonnet 4.6 also serving as the sole Phase-2 judge. For every item we obtain 
+
+|J| × 2 independent score vectors (judges × targets). When the judges disagree on whether the defence failed on any dimension, human curation selects the correct scor-ing; otherwise, the headline metric is the mean across judges. Per-judge values are retained in the released logs. 73.6 Aggregate metrics and hypotheses 
+
+For each evaluated model M and target track t ∈ { rr, r j} we report, per dimension and averaged over items and judges, the following quantities; all scores are normalized to 0–1 for cross-rubric comparability. 
+
+• Failure rate : the fraction of cells in which the judge assigned the minimum score (failure) on at least one local critical-question dimension or at least one global dimension. Decomposed as local failure rate , global-failure rate and any-failure rate .
+
+• Normalized mean quality : per-cell mean of (local+global) scores, mapped to 0– 1, then averaged across items and judges. Reported separately for local and global components. 
+
+• Scheme agreement : the fraction of (model × dilemma) pairs in which Phase 2 classifies rr and rj under the same Walton scheme. Lower values indicate that a model’s reasoning frames and its justifying frames diverge. 
+
+• Hedge analysis : as a follow-up to the failure-rate result, we measure per-defence rates of four disjoint bands of qualification markers—epistemic modals, first-person doubt, contrastive connectives, and frequency/scope hedges (lexicons in §A.2)— comparing LOW vs. MID+HIGH grounds and sufficiency bins with two-sample Mann–Whitney U tests. From these we evaluate three hypotheses motivated by the reasoning-justification split: 
+
+• H1: Defensibility of reasoning : Models can defend their own reasoning at a level substantially above the rubric minimum on the Govier ARG criteria—that is, their defences engage the critical questions rather than producing off-topic, ungrounded, or non-engaging output. 
+
+• H2: Reasoning–justification parity : The argumentative quality of the defence of rr is not systematically lower than that of rj.
+
+• H3: Scheme agreement and distribution : On a non-trivial fraction of dilemmas a model instantiates a different Walton scheme on its reasoning track than on its justification track, and the two tracks’ aggregate scheme distributions differ. 
+
+# 4 Results 
+
+Each model contributes up to 800 judge-scored defence cells (200 dilemmas × 2 tracks 
+
+× 2 judges), for 7 ,200 potential cells in total. Of these, 400 are excluded because GPT-5.4’s reasoning is encrypted, and a further 22 are lost to judge refusals or upstream parsing failures, leaving 6 ,778 scored cells. Commitment stability is reported as a diagnostic and is not pooled into the global mean or counted toward global failures: it is a process check on whether claims and arguments cohere across a cell, not a substantive quality dimension. 
+
+## 4.1 Validating the judge-based measure 
+
+Before interpreting model scores, we establish the trustworthiness of the Phase-4 LLM-judge measures. Govier’s ARG criteria are canonically binary : an argument either 8meets a criterion or fails it (Govier, 2010). Following Wachsmuth et al. (2017), our ternary rubric refines the “meets” case into partial and full satisfaction, but the failure judgment—“criterion not met”—is the anchor the judges are most explicitly instructed on. Treating a score of 1 on any dimension as a failure and 2 or 3 as a success , we mea-sure how often the two Phase-4 judges (Claude Sonnet 4.6, GPT-5.4) agree on this flag. Across 3 ,389 paired cells the judges agree 89 .6% of the time (352 disagreements, all resolved by human review). High agreement on the anchor that drives downstream fail-ure statistics suggests the measure captures a judge-invariant property of the defences rather than a single-judge idiosyncrasy. Per-dimension and per-model breakdowns are in §A.3. Failure rate alone is blunt for cross-model comparison: failures are rare (18 .2% of cells), and two outliers (Claude Sonnet 4.6, Llama 3.3) account for 67 .8% of them, so ranking on this metric discards most of the signal. We therefore also compare models on a normalized mean score : per-cell ternary scores mapped linearly to [0 , 1] and averaged across judges, items, and dimensions. Figure 1 illustrates the contrast.  
+
+> Fig. 1 A comparison of model failure rates and mean normalized score, averaged across tracks. Failure rates (left) are near-zero across most of the panel, concentrating on four cells, whereas mean scores (right) vary across the full panel and expose relative differences between models on most tested dimensions. The dashed line separates the reasoning-branch panel (top) from the CoT panel (bottom). High degrees of failure co-occur with low mean scores, but mean scores are more informative about cross-model variance.
+
+## 4.2 Analysis of scores for individual models 
+
+Aggregate failure rates and mean scores are in Table 1, alongside commitment stability and scheme agreement ( §4.3). Three reasoning-branch models record an overall failure rate below 5% (DeepSeek V4 Pro, GPT-5.4, Qwen 3.6 Plus); Gemini 2.5 Pro, GLM 5.1 and Kimi K2.6 fall between 7 and 12%. Claude Sonnet 4.6 is the panel outlier at 54 .8%. In the CoT panel, Mistral Large 2512 sits at 12 .8% and Llama 3.3 matches Claude at 50 .6%. Both outliers co-occur with lower commitment stability and scheme agreement. 9Model Avg score Commitment Scheme agreement Fail (any) Fail (global) 
+
+Reasoning-branch panel: 
+
+Claude Sonnet 4.6 0.79 0.53 62.5% 54.8% 51.1% DeepSeek V4 Pro 0.79 0.91 78.5% 4.3% 0.5% Gemini 2.5 Pro 0.75 0.91 79.5% 10.3% 1.0% GLM 5.1 0.80 0.86 78.5% 7.5% 2.4% GPT-5.4 0.89 0.90 — 1.0% 1.0% Kimi K2.6 0.83 0.81 77.0% 11.3% 9.7% Qwen 3.6 Plus 0.80 0.91 79.0% 3.3% 0.5% 
+
+CoT panel: 
+
+Mistral Large 2512 0.74 0.72 66.5% 12.8% 5.6% Llama 3.3 0.71 0.62 58.0% 50.6% 29.8%  
+
+> Table 1 Headline panel metrics. “Avg score” is the cell-wise average over the local Govier dimensions and the substantive global dimensions (acceptability, relevance, sufficiency), normalized to 0–1. “Commitment” is the commitment stability value for the model, “scheme agreement” the proportion of dilemmas on which the model instantiates the same Walton scheme on both tracks, and “Fail (any)”/“Fail (global)” the fractions of scored cells in which the judge assigned “criterion not met” on at least one local dimension, or at least one substantive global dimension respectively.
+
+Figure 1 shows the failure mass is not symmetric across dimensions: local and global relevance failure rates sit below 0 .5% on every model (near-saturated), with correspondingly high normalized scores, although Gemini 2.5 Pro and the CoT mod-els fall notably below others on global relevance. Acceptability also shows very low failure rates—claims are generally reasonable and accurate—though mean score varies meaningfully between models. The two outliers fail on the higher-order dimensions: Claude Sonnet 4.6 concentrates at 51 .1% global sufficiency and 22 .5% local grounds, with ≤ 0.4% elsewhere; Llama 3.3 fails 46 .9% on local grounds and 29 .8% on global sufficiency, with near-zero failures otherwise. With failure concentrating outside of acceptability and relevance, we analyzed defence text to identify the underlying pattern. Bucketing the 6 ,778 cells by mean local-grounds score (LOW < 0.5, MID 0 .5–0 .8, HIGH ≥ 0.8), median word count for the low-grounds bucket ( n = 591) is comparable to that of the high-grounds bucket ( n = 999)—738 vs. 767 words, indicating failure is not a verbosity effect. From analysis along four bands (Table 2, §A.2), we conclude the buckets are separated by the rate of epistemic modal verbs, with smaller but consistent support from first-person doubt markers. Contrastive connectives run in opposite directions on the two splits—elevated at low grounds, depressed at low sufficiency—consistent with the same markers signaling self-qualification within an answer but counterargument engagement across the defence; we treat this as descriptive. Frequency/scope hedges show at most weak effects (sufficiency and Claude splits, uncorrected). Low-scoring defences are thus more heavily modalized and more often explicitly self-doubting. Commitment stability corroborates this reading, correlating with local grounds (Spearman ρ = 0 .27) and global sufficiency ( ρ = 0 .49) across all scored cells. Models tend to under-commit rather than contradict themselves: only 2 .1% of cells receive 10 LOW vs. MID+HIGH Band Grounds Sufficiency Claude vs. rest Epistemic modals < 10 −55*** < 10 −60*** < 10 −9*** 
+
+.0134 /. 0088 .0126 /. 0087 .0106 /. 0090 First-person doubt † < 10 −7*** < 10 −34*** < 10 −20*** 
+
+27 .1% /18 .7% 34 .4% /17 .5% 34 .8% /17 .4% Contrastive < 10 −2** < 10 −25*** (rev.) < 10 −7*** (rev.) 
+
+.0024 /. 0022 .0016 /. 0023 .0019 /. 0022 Frequency/scope 0.14 0.018 * 0.020 *
+
+.0021 /. 0021 .0021 /. 0021 .0023 /. 0020             
+
+> Table 2 Hedge-band decomposition (Mann–Whitney U, two-sided). The lexical clusters that make up each band are listed in §A.2. Second rows give the underlying rates: hedge tokens per word for modals and contrastives (LOW/MID+HIGH or Claude vs. rest), share of cells containing at least one marker for first-person doubt, where the median is zero in every bucket. “rev.” marks splits where the sign runs opposite to the hedging hypothesis—contrastive connectives occur more often at high sufficiency, and Claude uses fewer of them than the rest of the panel; both reversals are themselves significant. Modals are present in ∼97% of cells, so their effect is a rate effect rather than a prevalence one.
+> †Share of cells with ≥1 match.
+
+the minimum score (contradiction or abandonment of the original argument), rather than the moderate score (hedging or weakening the original position). Even the lowest-scoring model lands on the moderate score 75% of the time and the minimum in 9.3% of its cells. All 144 instances of self-contradiction co-occur with global sufficiency failure, indicating the original justification did not retain its validity after questioning, but account for only 12 .4% of local grounds failures: the bulk of the failing mass is qualification of a challenged claim, not collapse of the argument. 
+
+4.2.1 Differences between reasoning and justification 
+
+Table 3 reports Wilcoxon signed-rank tests on each Govier dimension, paired by (dilemma, judge). Pooled across 3 ,182 paired observations from the eight panel models with interpretable rr1, the reasoning track scores significantly higher than the justifica-tion on every Govier dimension except near-saturated local relevance. The per-model breakdown is consistent in sign: every model has a positive local-mean advantage, and 6 of 8 a positive significant global-mean advantage. The largest gaps are Qwen 3.6 Plus and Gemini 2.5 Pro (both +0 .032 local and global). 
+
+## 4.3 Analysis of schemes results 
+
+Across the eight-model panel, value-based practical reasoning (VBPR) is the dominant scheme on both tracks: roughly 72% of reasoning-track and 67% of justification-track classifications. This matches Walton’s account of ethical argumentation as     
+
+> 1Excluding GPT-5.4 (encrypted reasoning) leaves 8 ×200 ×2 = 3 ,200 potential pairs; 18 are lost to refusals or parsing.
+
+11 Fig. 2 Per-model defence quality split into reasoning ( rr, blue) and justification ( rj, orange), aver-aging the local mean and the global mean. The dashed line separates the reasoning-branch panel (left) from the CoT panel (right). GPT-5.4 reasoning quality is excluded because of its encryption. 
+
+Local-mean Global-mean Dimensions where reasoning Model advantage advantage wins ( p < 0.05, out of 7) 
+
+Reasoning-branch panel: 
+
+Claude Sonnet 4.6 +0 .008 * +0 .034 *** 4DeepSeek V4 Pro +0 .017 *** +0 .012 3Gemini 2.5 Pro +0 .032 *** +0 .032 *** 5GLM 5.1 +0 .015 ** +0 .008 2GPT-5.4 — — —Kimi K2.6 +0 .025 *** +0 .018 ** 5Qwen 3.6 Plus +0 .032 *** +0 .032 *** 6
+
+CoT panel: 
+
+Llama 3.3 +0 .015 ** +0 .041 ** 3Mistral Large 2512 +0 .024 *** +0 .026 ** 2Govier dimension Advantage p-value Local acceptability +0 .035 < 10 −29*** 
+
+Local relevance +0 .002 0.13 Local grounds +0 .027 < 10 −19*** 
+
+Commitment stability +0 .020 < 10 −5 *** 
+
+Global acceptability +0 .037 < 10 −12*** 
+
+Global relevance +0 .017 < 10 −5 *** 
+
+Global sufficiency +0 .023 < 10 −9 *** 
+
+Table 3 Relative defence strength of reasoning vs. justification . Positive results signal favor toward reasoning. “Global-mean” here is the cell-wise mean over the three substantive global dimensions (acceptability, relevance, sufficiency). Commitment stability is excluded from the aggregate but reported separately in the pooled per-dimension breakdown below. GPT-5.4 precluded analysis due to its encrypted reasoning. *p < 0.05, ** p < 0.01, *** p < 0.001 (paired Wilcoxon signed-rank, two-sided). 
+
+12 goal-directed practical reasoning (Walton, 2003), reinforced by a moral-dilemma cor-pus where weighing actions against values is the natural mode. The most common alternative, argument from consequences , rises from ∼ 8% to ∼ 16% between tracks but remains a distant second. A Pearson χ2 confirms the two distributions differ (χ2 = 55 .9, df = 7, p < 10 −9; schemes with ≥ 10 classifications). Per dilemma, only 58–80% of (model, dilemma) pairs instantiate the same scheme on both tracks (Table 1): on at least one dilemma in five, a model argues its decision under a different scheme than the one it reasoned with. Figure 3 shows neither failure rate nor mean score is determined by scheme alone: results are similar across schemes, with outliers limited to low-sample ones. The pro-tocol therefore evaluates different reasoning types comparably despite the variable critical-question count per scheme. VBPR, which carries more critical questions than any other scheme, is no harder to satisfy. Grounds is the dominant failure sink and the lowest-scoring dimension within every scheme. Figures 4 and 5 show the marginal scheme distribution by track and the reasoning-to-justification scheme-disagreement matrix.  
+
+> Fig. 3 Heatmap of local failures and mean normalized scores organized by Walton scheme and Govier dimension. Every scheme is defensible, with none standing out as failing hard or difficult to satisfy. Grounds is the failure sink and the lowest score across every scheme.
+
+Table 4 reports per-scheme retention and marginal share change over the same eight-model panel. VBPR retains its label across tracks 80 .9% of the time; every other scheme retains between 37 .5% and 60 .6%. A 2 × 2 χ2 comparing VBPR’s retention against the pooled retention of other schemes is overwhelming (80 .9% vs. 50 .6%, χ2 =143 .9, p < 10 −33 ): VBPR is by far the most stable scheme across the reasoning– justification boundary. Three schemes shift significantly between tracks: argument-from-consequences gains (+7 .8 pp, p < 10 −10 ), value-based practical reasoning loses (−5.6 pp, p = 6 .4 × 10 −4), and slippery slope gains from a small base (+0 .62 pp, 13 Fig. 4 Walton-scheme distribution across the panel, split by track ( n = 1 ,600 reasoning and n =1,800 justification classifications). GPT-5.4 is excluded from the reasoning track because its reasoning is encrypted. 
+
+Fig. 5 Reasoning → justification scheme-transition table (raw counts). Rows are the Phase-2 scheme of the reasoning trace; columns are the scheme of the justification trace. Marginal n’s on each axis label report the total times a scheme was used on its respective track, so the directional shift (e.g. VBPR row n vs. VBPR column n) is readable directly from the axis labels. Both panels are pooled. 
+
+14 p = 0 .043, uncorrected). Argument-from-established-rule shrinks without reaching significance ( −1.4 pp, p = 0 .10).                                                
+
+> Scheme Retention 95% CI ∆ share (pp) p
+> Value-based practical reasoning 80 .9% [78 .5,83 .0] −5.62 6.4×10 −4***
+> Argument from consequences 60 .6% [52 .1,68 .5] +7 .76 <10 −10***
+> Argument from established rule 50 .0% [40 .6,59 .4] −1.44 0.10 Argumentation from values 37 .5% [26 .0,50 .6] +0 .44 0.58 Argument from need for help 48 .3% [35 .9,60 .8] −0.87 0.19 Argument from distress 53 .1% [39 .4,66 .3] −0.75 0.23 Argument for an exceptional case 60 .0% [40 .7,76 .6] +0 .25 0.68 Slippery slope argument 40 .0% [11 .8,76 .9] +0 .62 0.043 ∗
+
+Table 4 Per-scheme statistics across the 1 ,600 (model, dilemma) pairs with both tracks classified, on the eight panel models with interpretable rr. “Retention” is the rate at which rr using this scheme is constant with rj, reported with Wilson 95% binomial CI. ∆ share reports the relative size of the justification share compared to the reasoning share in percentage points (with positive meaning the scheme is more common on the justification track). See §A.2 for the test procedure. Value-based practical reasoning is by far the stickiest scheme; the only statistically significant marginal shifts are a gain for argument-from-consequences, a loss for value-based practical reasoning, and a small-base gain for slippery slope ( p = 0 .043; note the wide retention CI at n this small). 
+
+# 5 Discussion 
+
+Three findings emerge, each bearing on whether an affected party could challenge a model’s decision and receive a defence that holds up: failure mass concentrates on local grounds and global sufficiency; the reasoning track is better defended than the justification on every dimension except near-saturated relevance ( §4.2); and a marginal but significant scheme shift moves from VBPR toward argument-from-consequences on the justification track ( §4.3). 
+
+## 5.1 Defensibility, the facsimile problem, and failure 
+
+H1 asked whether models can defend their own reasoning or collapse under the criti-cal questions their argument invites. They prove comfortably capable: on every model the defences engage the critical questions rather than going off-topic or ungrounded, and normalized quality sits well above the partial-credit midpoint. Haas et al. (2026) propose that a model may be described as morally competent to the degree that it answers adversarial queries while citing relevant moral considerations. On that cri-terion, the strong form of the facsimile hypothesis—that a surface-pattern process collapses once the specific inferential steps of its argument are challenged—is discon-firmed for this test set. Notably, despite withstanding adversarial questioning, the same models fail structural coherence conditions on agentic moral verdicts (Libert, Prinzhorn, & Henselmans, 2026). Moral competence dissociates: the capacity to defend a verdict does not entail the capacity to hold one stable. 15 Models qualify rather than switch. Because we impose no verdict format, a conditional position is a permitted answer; what lowers grounds and sufficiency is con-ditionality appearing after the critical questions, usually without retraction. Walton and Krabbe (1995) note that an arguer who evades commitment whenever difficulty appears makes the dialogue pointless, and that signature—not principled concession— is what we observe. The rubric only registers that the claim is narrowed; it does not separate whether that narrowing is justified, which is a normative question rather than a structural property of argumentation. This is important because concession and qualification are only failures in mono-logical justification—addressed to nobody in particular, as in the benchmark setting our protocol inherits ( §3.1). When justification is owed to a party who can accept or reject it, it becomes a legitimate move toward agreement (Habermas, 1990). Since this describes alignment in deployment scenarios, there is a clear need for more situ-ated moral evaluations, in which AI systems are given a role and responsibility and concessions can be accepted or rejected. This extends to debate evaluation, which oth-erwise faces the same bias toward steadfastness—concession fits the adversarial frame so poorly that debaters conceding a provably false position are treated as evaluation noise (Khan et al., 2024). Two roles for the protocol survive regardless. Diagnostically, it measures what verdict benchmarks cannot see: the reasoning–justification gap, scheme recoding, and qualification and commitment profiles. As a minimal filter, it catches defences that are indefensible in the strict sense—self-contradictory, or resting on false premises—which no rhetorical facility circumvents; all 144 instances of self-contradiction co-occur with global sufficiency failure. The filter is the justifiability analogue of structural floors on coherent behavior (Henselmans, Libert, Pier van Gosliga, & Zwart, 2026; Libert et al., 2026): a target-independent prerequisite any AI system must clear before it can be aligned. 
+
+## 5.2 Comparative weakness of audience-facing justifications 
+
+The H2 result runs against the expectation that a polished audience-facing justification is the better-defended artifact. We distinguish two candidate mechanisms. 
+
+Deliberative cost asymmetry. Reasoning is produced during the production of the verdict, without indication it will be presented to anyone; the justification is fil-tered through the model’s user-facing register, which typically penalizes the explicit enumeration of failure modes and trade-offs that the Govier “grounds” criterion rewards. 
+
+Structural information advantage. Phase-3 re-injects rr verbatim because native thinking channels are not in the conversation history the model can see, so a model defending the reasoning track has both the prior trace and the generated justification, while on the justification track it has only the latter. On most models rr also runs 1.5–5 .0× the length of rj, giving the judge more anchor points on which to deem grounds satisfied. Length does not track the advantage, however: GLM 5.1, with the largest ratio, shows the smallest global advantage, while Claude Sonnet 4.6’s scored reasoning artifact—a provider summary 0 .6× the length of its justification—remains better defended. The advantage thus survives both summarization and inversion of 16 the length relation, favoring the production-context asymmetry over trace length or granularity; the reinjection advantage applies to all reasoning artifacts equally and remains unexcluded ( §5.4). Whichever combination is at work, the upshot holds and sharpens into a governance concern for models that do not expose their reasoning. Like many newer models, GPT-5.4 returns an encrypted reasoning channel; its reasoning track cannot be scored, audited, or compared to its justification by anyone outside the provider. User-facing summaries sometimes act as a replacement, but can be unfaithful to the reasoning they summarize (Panfilov et al., 2026). Encryption thus forecloses the oversight opportunity that chain-of-thought monitorability represents (Korbak et al., 2025). Our evidence additionally indicates that user-facing justifications of moral verdicts do not necessarily use the same argumentation as the preceding reasoning, and post-hoc justifications are the weaker of the two tracks in terms of justifiability. 
+
+## 5.3 Scheme shift between tracks 
+
+The scheme distribution shift is best understood as what we call rhetorical recoding :when presenting the same judgment to a reader, content migrates toward whichever scheme is most tractable to defend in short visible prose. Consequences involve con-crete agents and outcomes and read as more “argumentative” than a values-and-care framing, so recoding moves systematically toward consequences and away from val-ues. VBPR’s 80 .9% retention vs. ∼ 50% for other schemes is consistent: VBPR is both common and stable, while less-common schemes are more easily re-coded under presentation. The implication for applied moral evaluation is direct: a benchmark inspecting only the visible justification could systematically over-attribute consequentialist reasoning to systems that, by their reasoning, weighted values or rules at least as heavily. 
+
+## 5.4 Limitations 
+
+Sample size and dataset coverage. Two hundred high-ambiguity MoralChoice dilem-mas across nine models is a substantial effort (6 ,778 judge cells) but a narrow slice of moral life: no non-Western source material, no multi-agent scenarios, no embodied trade-offs (e.g. clinical or political deliberation). Parallel sweeps on DailyDilemmas and AIRiskDilemmas are in progress but out of scope here. 
+
+Two elicitation regimes are not directly comparable. Both panels run the same protocol, but the prompt supplying rr differs: the reasoning-branch panel reads it from the provider’s native thinking block; the CoT panel parses it from the visible pre-<answer> prose. We therefore report the panels in parallel and keep comparisons separate unless average results are reported. 
+
+Self-judging by Claude Sonnet 4.6. Claude is the sole Phase-2 judge, one of two Phase-4 judges, and a panel model. Two signatures of this overlap appear: Claude has the lowest commitment stability and global sufficiency scores in the reasoning panel (0 .53, 0 .26), and its substantive global-failure rate is 51 .1% versus 0 .5–9 .7% for the rest. The cross-family check is reassuring: GPT-5.4 rates Claude’s defences as failing on global sufficiency at essentially the same rate Claude self-judges them, so 17 the weakness is substantive rather than artefactual. A four-or-more-judge panel from disjoint families would make mean-quality rankings portable across runs. 
+
+Summary-based reasoning tracks. For Claude Sonnet 4.6 and Gemini 2.5 Pro the reasoning track scores a provider-generated summary. H2 for these two models com-pares the justification against summarized reasoning, which has known limits (Panfilov et al., 2026), not the reasoning itself. 
+
+Shared-judge halo. The commitment-stability correlations of §4.2 are computed within cells scored by a single judge across all dimensions, so part of the association may reflect a shared overall impression rather than independent co-movement of the dimensions. Cross-family replication of the failure rates is reassuring but does not address within-cell halo; scoring dimensions independently, each judge call blinded to the others, would separate the two. 
+
+Reinjection asymmetry. The information advantage described in §5.2 is unavoid-able on providers that hide native reasoning. An ablation re-injecting the justification with comparable scaffolding would isolate its contribution to the H2 inversion. 
+
+# 6 Conclusion 
+
+The four-phase dialectical protocol measures something neither verdict-only bench-marks nor outcome-scored debate can supply on contested moral questions: not whether a model reaches the correct answer—there is none to check against—but whether the defence it mounts survives the critical questions of the argumentation scheme it instantiated, a standard of structural validity that requires no ground truth. Across the nine-model panel, three findings stand out, each bearing on whether a model’s decisions can be accountably challenged. First, defensibility holds in aggregate but fails in a specific way. Every model sits comfortably above the partial-credit midpoint—evidence against the strong facsimile hypothesis—yet failure mass concentrates in local grounds and global sufficiency, and the defence-text evidence locates it in epistemic qualification rather than insufficient output. Second, the post-hoc rationalization prior is inverted: pre-verdict reasoning is better defended than post-verdict justification on every model and every Govier dimension except near-saturated local relevance. The inversion sharpens for models that encrypt their reasoning: external auditors are left with the weaker of the two tracks and no way to check it against the reasoning behind the decision. Third, the dominant scheme shifts modestly but significantly from VBPR toward argument from consequences when reasoning is recoded for presentation ( χ2 = 55 .9, df = 7, p < 
+
+10 −9), so any benchmark inspecting only the visible justification will over-attribute consequentialist reasoning to systems that weighted values or rules at least as heavily in their reasoning. The protocol’s near-term value is as a meta-evaluation tool: comparing mod-els on argumentative competence, surfacing the reasoning–justification gap verdict benchmarks cannot see, and producing inter-judge disagreement audits suitable for human curation. Its main limitation points to the substantive gap our results iden-tify: the lack of an anchor to disambiguate warranted from evasive qualification. Haas et al.’s rebuttal-pressure test for sycophancy presupposes a known appropriate 18 answer, which high-ambiguity dilemmas lack by construction. Under value pluralism, the acceptance of justification by affected parties is the mechanism that remains— which calls for benchmarks situating a system where its decision affects parties present in the exchange, so that a warranted concession can be scored as competence and a sycophantic one as a loss. 
+
+Acknowledgements. We thank Lauren Toulson for the manual review of contested argumentation failure, and Lennard Zwart, Sicco Pier van Gosliga, and Nadia Kadhim for their support of and engagement with our research. 
+
+# Declarations 
+
+Code availability. All code and implementation instructions are avail-able at https://github.com/Aithos-Research/measuring-AI-accountability-through -argumentation-analysis. 
+
+# Appendix A Supplementary material 
+
+Per-judge scores, per-track scheme distributions, the disagreement-triage CSV are released alongside the code. This appendix documents the statistical analyses behind the tests reported in §4, plus the per-model inter-judge agreement breakdown referenced in §4.1. 
+
+## A.1 Implementation and generation settings 
+
+The protocol runs on Inspect-AI version 0.3.114. Subject-model generation uses 
+
+T = 0 .2 and a maximum of 8192 output tokens. In Inspect-AI’s GenerateConfig 
+
+the reasoning elicitation is controlled by a uniform pair of knobs across providers, 
+
+reasoning effort=low and reasoning tokens=4096 , applied identically to every reasoning-branch model so the comparison is apples-to-apples. All definitions and rubric anchors are released together with the evaluation code to support exact replication. All tests are run with SciPy 1.16.3 ( scipy.stats ) using the default exact/asymptotic switching behavior for the sample sizes in this paper. No multiple-comparison correction is applied to the per-dimension, per-scheme, or hedge-band tables; instead, the principal panel-wide tests for H2 and H3 are pre-specified and the per-cell breakdowns are reported as descriptive companions. 
+
+## A.2 Statistical analysis 
+
+The analyses reported in §4 use the following tests. Standard errors of the mean (Table A2) are computed cell-wise as σ/ √n over the per-cell normalized scores, with 
+
+n depending on dimension (typically ∼ 800 per model after refusals). 
+
+H1 (defensibility). 
+
+H1 concerns the position of a model’s defences on the rubric, not the position of a judge on the rubric. The natural reference points on the [0 , 1] normalized scale are 19 therefore the rubric anchors themselves: 0 .0 (”criterion not met”) is what an off-topic, ungrounded, or non-engaging defence receives; 0 .5 (”criterion partially met”) is what a defence receives when it engages the challenge without resolving it; 1 .0 (”criterion fully met”) is what a defence that engages and substantiates receives. The midpoint is a useful reference for ”did the defence at least partially engage?”; the minimum is the behavioral anchor for a defence that did not engage at all. We report normalized means against both reference points and standard errors from the cell-wise σ/ √n,computed per dimension. 
+
+H2 (reasoning–justification parity). 
+
+The parity claim is tested with paired Wilcoxon signed-rank tests of H0 : rr
+
+> d
+
+= rj,paired by (dilemma, judge) and run separately on each Govier dimension so that the test is not diluted by averaging dimensions of unequal strength. Per-model rows use n ≈ 400 paired observations (200 items × 2 judges, modulo refusals); the panel-wide row pools all n = 3 ,182 pairs. Significance markers are reported uncorrected (*p < 0.05, ** p < 0.01, *** p < 0.001, two-sided); the panel-wide pooled row is the principal test and the per-model row breakdown is descriptive. 
+
+H3 (scheme shift). 
+
+The aggregate scheme × track contingency is tested with a Pearson χ2 test of indepen-dence on the K × 2 contingency table restricted to schemes with ≥ 10 classifications across the panel ( n = 1 ,600 classifications per track). For each scheme separately, per-track retention is reported as P (justification = X | reasoning = X) with the Wilson 95% binomial confidence interval, and the per-scheme marginal shift (reasoning share vs. justification share) is tested with a 2 × 2 Pearson χ2 of presence-on-track. The retention comparison between value-based practical reasoning and the pooled other schemes is a 2 × 2 χ2 on the (scheme, retained?) contingency. 
+
+Commitment / hedge analysis. 
+
+§4.2 bins each scored cell into LOW ( < 0.5), MID (0 .5−0.8) or HIGH ( ≥ 0.8) on its mean local-grounds score, and separately on its global-sufficiency score, then compares word count and per-band hedge rates across bins with two-sample Mann–Whitney 
+
+U tests (LOW vs. MID+HIGH, two-sided). A third split compares Claude Sonnet 4.6 against the remaining eight models on the same measures. Because markers that weaken a speaker’s commitment differ from those that assert a claim under uncertainty or introduce a counterargument, qualification is measured in four disjoint bands, tested separately (Table 2): 
+
+• Epistemic modals : might | may | perhaps | possibly | maybe | could |
+
+seem(s)? | seemingly | arguably | conceivably | presumably 
+
+• First-person doubt : i think | i believe | uncertain | unclear | not necessarily 
+
+• Contrastive connectives : however | although | though | whereas | on the other hand 
+
+20 • Frequency and scope : somewhat | sometimes | often | usually | generally |
+
+typically | tend(s)? | depend(s)? | to some extent | to a degree | in some cases | in many cases | not always 
+
+Each band rate is the count of matching tokens divided by the defence’s total word count, matched word-bounded and case-insensitive. Modals and contrastives are reported as rates per word, since both appear in most cells. First-person doubt markers have a median of zero in every bin, so we additionally report the share of cells containing at least one match, which is the quantity that separates the bins. Word counts are compared across the same bins to rule out a verbosity explanation. The modal band does not distinguish epistemic from deontic or dynamic uses ( may 
+
+as permission, could as ability), so its rate is an upper bound on epistemic hedging per se; there is no evident reason for non-epistemic uses to concentrate in low-scoring cells. A companion probe for explicit concession phrases (“you’re right”, “on reflection”) is inconclusive: 96 .7% of defences contain zero matches, and the sparse signal trends toward concession co-occurring with lower scores, so the warranted-vs-evasive dis-tinction is unresolved at the lexical level. The Spearman rank correlations between the per-cell commitment-stability score and the cell’s mean local-grounds and global-sufficiency scores were computed separately for grounds and sufficiency over all 6,778 scored cells (grounds ρ = 0 .27, p = 4 × 10 −114 ; sufficiency ρ = 0 .49, p < 10 −300 ). 
+
+Inter-judge agreement. 
+
+For the audit in §A.3, we report two granularities. Point-level disagreement is the fraction of paired score points on which exactly one judge assigned the failure score; 
+
+cell-level disagreement is the fraction of cells in which the judges differ on this flag for at least one of the seven scored dimensions. 
+
+## A.3 Inter-judge agreement and methodology corrections 
+
+We define disagreement at a score point as one judge assigning the failure score (1 on the 1–3 scale) and the other not; this is the cleanest binary signal because it tracks the rubric anchor that drives the downstream failure-rate analyses in §4. Across 72 ,587 judge-paired scoring points the two judges (Claude Sonnet 4.6 and GPT-5.4) failure-agree on 99 .1%. Disagreement concentrates exactly where the substantive variance lives: grounds (2 .0–3 .7% across critical questions) and global sufficiency (1 .5%), with global and local relevance both at or below 0 .1%. Per-model (Table A1), disagreement clusters bimodally: most models attract < 10% cell-level disagreement, but Llama 3.3 (30 .3%) and Claude Sonnet 4.6 (29 .0%) are outliers, while GPT-5.4 itself sits at 0.5%. The Llama outlier is a parsing-failure case (Llama frequently did not respect the <answer> convention, so the CoT solver fell back to treating the whole first turn as rr and the judges then scored a parsing artefact alongside Llama’s underlying competence). Claude is one of the two judges ( §5.4). A fair-treatment re-run with a tag-free elicitation harness should narrow the Llama gap; a fully cross-family judge panel would address the Claude self-judging asymmetry. Per-judge data is released so a downstream re-aggregation is straightforward. 21 Model Cells w/ any disagreement Points disagreeing Qwen 3.6 Plus 0.00% 0.00% GPT-5.4 0.50% 0.07% DeepSeek V4 Pro 1.25% 0.07% GLM 5.1 2.75% 0.29% Gemini 2.5 Pro 3.27% 0.28% Kimi K2.6 4.26% 0.45% Mistral Large 2512 4.51% 0.34% Claude Sonnet 4.6 29.04% 2.92% Llama 3.3 30.33% 3.78% Panel total 10.4% 0.92%     
+
+> Table A1 Inter-judge failure-disagreement per evaluated model, sorted from least to most disagreed-with. “Cells w/ any disagreement” is the share of cells in which the two Phase-4 judges (Claude Sonnet 4.6, GPT-5.4) differ on the rubric minimum flag for at least one of the seven dimensions; “Points disagreeing” is the share of paired score points (cell ×
+> dimension) on which exactly one judge assigned a failure score. Panel-total point-level failure-disagreement is 0 .92% (666 /72 ,587). Panel totals are cell-weighted over all paired cells. Per-dimension disagreement concentrates in grounds (local 2 .0–3 .7% across critical questions) and global sufficiency (1 .5%); local- and global-relevance disagreement is ≤0.1%.
+
+## A.4 Per-model defence quality, full per-dim breakdown 
+
+Table A2 reports the full per-dimension breakdown of normalized defence quality for every (model, track) cell in the combined 9-model panel. The two summary columns (Local, Global) reproduce the same numbers that drive Figure 2 in the main text; the seven dim columns to their right give the per-dimension decomposition that the figure averages. 
+
+# References 
+
+Barnes, B., & Christiano, P. (2020). Writeup: progress on AI safety via debate. (AI Alignment Forum. https://www.alignmentforum.org/posts/ Br4xDbYu4Frwrb64a/writeup-progress-on-ai-safety-via-debate-1) Blair, J.A. (2012). Relevance, acceptability and sufficiency today. J.A. Blair & C.W. Tindale (Eds.), Groundwork in the theory of argumentation: selected papers of J. Anthony Blair (pp. 87–100). Dordrecht: Springer. Carro, M.V., Mester, D.A., Nieto, F., Stanchi, O.A., Bergman, G.E., Leiva, M.A., . . . Martinez, M.V. (2025). AI debaters are more persuasive when arguing in alignment with their own beliefs. (Preprint at https://arxiv.org/abs/2510 .13912) Chiu, Y.Y., Jiang, L., Choi, Y. (2025). DailyDilemmas: revealing value preferences 22 Mean Local Global Model Track Local Global L.Acc L.Rel L.Grd Commit G.Acc G.Rel G.Suf 
+
+Reasoning-branch panel: 
+
+GPT-5.4 rr — — — — — — — —
+
+rj 0.91 ±.003 0.86 ±.004 0.98 ±.003 0.99 ±.001 0.76 ±.007 0.90 ±.010 0.99 ±.004 1.00 ±.002 0.61 ±.011 
+
+Claude Sonnet 4.6 rr 0.86 ±.004 0.75 ±.006 0.94 ±.005 0.99 ±.002 0.65 ±.009 0.59 ±.011 0.95 ±.008 0.98 ±.005 0.31 ±.015 
+
+rj 0.85 ±.004 0.71 ±.005 0.95 ±.005 0.99 ±.001 0.61 ±.011 0.47 ±.013 0.95 ±.007 0.98 ±.005 0.21 ±.013 
+
+Kimi K2.6 rr 0.87 ±.004 0.81 ±.005 0.88 ±.007 0.99 ±.001 0.74 ±.007 0.81 ±.012 0.91 ±.010 0.99 ±.003 0.54 ±.013 
+
+rj 0.84 ±.004 0.79 ±.006 0.84 ±.008 0.99 ±.002 0.71 ±.007 0.82 ±.013 0.88 ±.011 0.98 ±.005 0.53 ±.012 
+
+Qwen 3.6 Plus rr 0.84 ±.004 0.79 ±.006 0.83 ±.007 0.99 ±.002 0.71 ±.006 0.90 ±.010 0.84 ±.012 0.97 ±.006 0.57 ±.009 
+
+rj 0.81 ±.004 0.76 ±.006 0.78 ±.008 0.98 ±.002 0.67 ±.006 0.92 ±.009 0.78 ±.012 0.94 ±.008 0.55 ±.007 
+
+GLM 5.1 rr 0.82 ±.004 0.78 ±.006 0.81 ±.008 0.99 ±.002 0.68 ±.007 0.85 ±.012 0.82 ±.012 0.98 ±.005 0.54 ±.009 
+
+rj 0.81 ±.004 0.77 ±.006 0.76 ±.008 0.99 ±.002 0.68 ±.007 0.86 ±.011 0.78 ±.012 0.98 ±.005 0.55 ±.009 
+
+DeepSeek V4 Pro rr 0.82 ±.004 0.78 ±.006 0.78 ±.008 0.99 ±.002 0.68 ±.006 0.91 ±.009 0.80 ±.012 0.97 ±.006 0.56 ±.009 
+
+rj 0.80 ±.004 0.76 ±.006 0.76 ±.008 0.99 ±.002 0.66 ±.006 0.91 ±.009 0.78 ±.012 0.97 ±.006 0.54 ±.008 
+
+Gemini 2.5 Pro rr 0.79 ±.004 0.74 ±.006 0.77 ±.007 0.98 ±.002 0.63 ±.006 0.91 ±.010 0.77 ±.013 0.92 ±.009 0.52 ±.006 
+
+rj 0.76 ±.004 0.70 ±.006 0.72 ±.007 0.97 ±.003 0.60 ±.006 0.92 ±.009 0.72 ±.013 0.88 ±.011 0.51 ±.005 
+
+CoT panel (different elicitation): 
+
+Mistral Large 2512 rr 0.79 ±.004 0.72 ±.006 0.79 ±.008 0.98 ±.002 0.61 ±.006 0.74 ±.013 0.75 ±.013 0.93 ±.009 0.49 ±.006 
+
+rj 0.77 ±.004 0.69 ±.005 0.72 ±.009 0.99 ±.002 0.60 ±.006 0.71 ±.013 0.68 ±.012 0.93 ±.009 0.48 ±.006 
+
+Llama 3.3 rr 0.77 ±.004 0.68 ±.007 0.87 ±.007 0.95 ±.004 0.47 ±.008 0.65 ±.014 0.85 ±.012 0.83 ±.012 0.36 ±.011 
+
+rj 0.75 ±.004 0.64 ±.007 0.87 ±.006 0.95 ±.004 0.44 ±.009 0.59 ±.014 0.81 ±.012 0.77 ±.012 0.34 ±.011 
+
+Table A2 Per-model normalized defence quality, full per-dim breakdown. Each cell is mean ± standard error. Local and Global summary columns: mean of the three local-dim cells and of the three substantive global-dim cells (acceptability, relevance, sufficiency) in the same row respectively; commitment stability is reported in the Commit column and is not pooled into the global mean. GPT-5.4’s rr is rendered NA because its reasoning channel is encrypted ciphertext. 
+
+of LLMs with quandaries of daily life. Proceedings of the 13th international conference on learning representations (ICLR). 
+
+Chiu, Y.Y., Wang, Z., Maiya, S., Choi, Y., Fish, K., Levine, S., Hubinger, E. (2025). 
+
+Will AI tell lies to save sick children? Litmus-testing AI values prioritization with AIRiskDilemmas. (Preprint at https://arxiv.org/abs/2505.14633) Chua, J., Betley, J., Taylor, M., Evans, O. (2025). Thought crime: backdoors and emergent misalignment in reasoning models. (Preprint at https://arxiv.org/abs/ 2506.13206) Feng, V.W., & Hirst, G. (2011). Classifying arguments by scheme. D. Lin, Y. Mat-sumoto, & R. Mihalcea (Eds.), Proceedings of the 49th annual meeting of the association for computational linguistics: Human language technologies (pp. 987–996). Portland, OR: Association for Computational Linguistics. Flechtner, M. (2026). The deliberative deficit: an empirical critique of LLMs in democratic discourse. (Preprint at https://arxiv.org/abs/2608.10186) Forst, R. (2012). The right to justification: elements of a constructivist theory of justice . New York: Columbia University Press. Gabriel, I., & Keeling, G. (2025). A matter of principle? AI alignment as the fair treatment of claims. Philos. Stud. , 182 (7), 1951–1973, https://doi.org/10.1007/ s11098-025-02300-4 23 Gordon, T.F., & Walton, D.N. (2006). The Carneades argumentation framework: using presumptions and exceptions to model critical questions. Computational models of argument: Proceedings of COMMA 2006 (pp. 195–207). Amsterdam: IOS Press. Govier, T. (2010). A practical study of argument (7th ed.). Belmont, CA: Wadsworth. Haas, J., Bridgers, S., Manzini, A., Henke, B., May, J., Levine, S., . . . Isaac, W. (2026). A roadmap for evaluating moral competence in large language models. Nature ,
+
+650 (8102), 565–573, https://doi.org/10.1038/s41586-025-10021-1 Habermas, J. (1990). Discourse ethics: notes on a program of philosophical justifica-tion. Moral consciousness and communicative action (pp. 48–110). Cambridge: Polity. Habermas, J. (1996). Between facts and norms . Cambridge, MA: MIT Press. (Trans. C. Lenhardt and S. W. Nicholsen; German original 1983) Hackenburg, K., Wagner, C., Hewitt, L., Tappin, B.M., Saunders, E., Kirk, H.R., . . . Summerfield, C. (2026). AI systems out-persuade expert humans. (Preprint at https://arxiv.org/abs/2606.16475) Hendrycks, D., Burns, C., Basart, S., Critch, A., Li, J., Song, D., Steinhardt, J. (2021). Aligning AI with shared human values. Proceedings of the 9th international conference on learning representations (ICLR). 
+
+Hendrycks, D., Mazeika, M., Zou, A., Patel, S., Zhu, C., Navarro, J., . . . Steinhardt, J. (2021). What would Jiminy Cricket do? Towards agents that behave morally. 
+
+Advances in neural information processing systems, datasets and benchmarks track. 
+
+Henselmans, D.R., Libert, A., Pier van Gosliga, S., Zwart, L. (2026). Unified AI alignment is impossible. (Manuscript. https://philarchive.org/rec/DAAUAA) Irving, G., & Askell, A. (2019). AI safety needs social scientists. Distill , 4 (2), e14, https://doi.org/10.23915/distill.00014 Irving, G., Christiano, P., Amodei, D. (2018). AI safety via debate. (Preprint at https://arxiv.org/abs/1805.00899) Jin, Z., Levine, S., Gonzalez, F., Kamal, O., Sap, M., Sachan, M., . . . Sch¨ olkopf, B. (2022). When to make exceptions: exploring language models as accounts of human moral judgment. Advances in neural information processing systems 
+
+(Vol. 35, pp. 28458–28473). Red Hook, NY: Curran Associates. 24 Johnson, R.H., & Blair, J.A. (1977). Logical self-defense . Toronto: McGraw-Hill Ryerson. Kenton, Z., Siegel, N.Y., Kram´ ar, J., Brown-Cohen, J., Albanie, S., Bulian, J., . . . Shah, R. (2024). On scalable oversight with weak LLMs judging strong LLMs. 
+
+Advances in neural information processing systems (Vol. 37, pp. 75229–75276). Red Hook, NY: Curran Associates. Khan, A., Hughes, J., Valentine, D., Ruis, L., Sachan, K., Radhakrishnan, A., . . . Perez, E. (2024). Debating with more persuasive LLMs leads to more truthful answers. Proceedings of the 41st international conference on machine learning (ICML) (pp. 23662–23733). Vienna, Austria: PMLR. Kilov, D., Hendy, C., Guyot, S.Y., Snoswell, A.J., Lazar, S. (2025). Discerning what matters: a multi-dimensional assessment of moral competence in LLMs. 
+
+(Preprint at https://arxiv.org/abs/2506.13082) Korbak, T., Balesni, M., Barnes, E., Bengio, Y., Benton, J., Bloom, J., . . . Mikulik, V. (2025). Chain of thought monitorability: a new and fragile opportunity for AI safety. (Preprint at https://arxiv.org/abs/2507.11473) Lanham, T., Chen, A., Radhakrishnan, A., Steiner, B., Denison, C., Hernandez, D., . . . Perez, E. (2023). Measuring faithfulness in chain-of-thought reasoning. 
+
+(Preprint at https://arxiv.org/abs/2307.13702) Levine, S., Franklin, M., Zhi-Xuan, T., Guyot, S.Y., Haas, J., Wong, L., . . . Gabriel, I. (2026). Resource rational contractualism should guide AI alignment. Proc. IASEAI Conf. , 2 (1), 353–368, Libert, A., Prinzhorn, D., Henselmans, D.R. (2026). Moral competence before moral content: why LLM systems lack the prerequisites for coherent alignment. Paris J. AI Digit. Ethics , , Lindsey, J., Gurnee, W., Ameisen, E., Chen, B., Pearce, A., Turner, N.L., . . . Batson, J. (2025). On the biology of a large language model. (Trans-former Circuits Thread. https://transformer-circuits.pub/2025/attribution -graphs/biology.html) Lynch, A., Wright, B., Larson, C., Troy, K.K., Ritchie, S.J., Mindermann, S., . . . Hubinger, E. (2025). Agentic misalignment: how LLMs could be an insider threat. (Anthropic Research. https://www.anthropic.com/research/ agentic-misalignment) Manzini, A., Keeling, G., Marchal, N., McKee, K.R., Rieser, V., Gabriel, I. (2024). Should users trust advanced AI assistants? Justified trust as a function of 25 competence and alignment. Proceedings of the 2024 ACM conference on fair-ness, accountability, and transparency (FAccT) (pp. 1174–1186). New York: Association for Computing Machinery. Michael, J., Mahdi, S., Rein, D., Petty, J., Dirani, J., Padmakumar, V., Bowman, S.R. (2023). Debate helps supervise unreliable experts. (Preprint at https:// arxiv.org/abs/2311.08702) Pan, A., Chan, J.S., Zou, A., Li, N., Basart, S., Woodside, T., . . . Hendrycks, D. (2023). Do the rewards justify the means? Measuring trade-offs between rewards and ethical behavior in the Machiavelli benchmark. Proceedings of the 40th inter-national conference on machine learning (ICML) (pp. 26837–26867). Honolulu, HI: PMLR. Panfilov, A., Schmotz, D., Shumailov, I., Beurer-Kellner, L., Schaeffer, J., Prabhu, A., . . . Andriushchenko, M. (2026). Stealing reasoning traces from proprietary LLM APIs. (Preprint at https://arxiv.org/abs/2608.09867) Prasad, P.S., & Nguyen, M.N. (2025). When two LLMs debate, both think they’ll win. 
+
+(Preprint at https://arxiv.org/abs/2505.19184) Rawls, J. (1993). Political liberalism (No. 4). New York: Columbia University Press. Sachdeva, P.S., & van Nuenen, T. (2026). Interaction protocol shapes moral judg-ment in multi-agent debate. Proceedings of the conference on language modeling (COLM). (Preprint at https://arxiv.org/abs/2510.10002) Salvi, F., Horta Ribeiro, M., Gallotti, R., West, R. (2025). On the conversational persuasiveness of GPT-4. Nat. Hum. Behav. , 9 (8), 1645–1653, https://doi.org/ 10.1038/s41562-025-02194-6 Scanlon, T. (1998). What we owe to each other . Cambridge, MA: Belknap Press of Harvard University Press. Scherrer, N., Shi, C., Feder, A., Blei, D. (2023). Evaluating the moral beliefs encoded in LLMs. Advances in neural information processing systems (Vol. 36). Sharma, M., Tong, M., Korbak, T., Duvenaud, D., Askell, A., Bowman, S.R., . . . Perez, E. (2024). Towards understanding sycophancy in language models. Proceedings of the 12th international conference on learning representations (ICLR). 
+
+Sorensen, T., Moore, J., Fisher, J., Gordon, M., Mireshghallah, N., Rytting, C.M., . . . Choi, Y. (2024). Position: a roadmap to pluralistic alignment. Proceedings of the 41st international conference on machine learning (ICML) (pp. 46280–46302). Vienna, Austria: PMLR. 26 Turpin, M., Michael, J., Perez, E., Bowman, S.R. (2023). Language models don’t always say what they think: unfaithful explanations in chain-of-thought prompting. Advances in neural information processing systems (Vol. 36, pp. 74952–74965). UK AI Security Institute (2024). Inspect AI: framework for large language model evaluations. (Computer software. https://github.com/UKGovernmentBEIS/ inspect ai) van Eemeren, F.H., & Grootendorst, R. (2004). A systematic theory of argumentation: the pragma-dialectical approach . Cambridge: Cambridge University Press. Wachsmuth, H., Naderi, N., Hou, Y., Bilu, Y., Prabhakaran, V., Thijm, T.A., . . . Stein, B. (2017). Computational argumentation quality assessment in natural language. Proceedings of the 15th conference of the european chapter of the association for computational linguistics (EACL) (pp. 176–187). Walton, D.N. (2003). Ethical argumentation . Lanham, MD: Lexington Books. Walton, D.N., & Krabbe, E.C.W. (1995). Commitment in dialogue: basic concepts of interpersonal reasoning . Albany, NY: State University of New York Press. Walton, D.N., Reed, C., Macagno, F. (2008). Argumentation schemes . Cambridge: Cambridge University Press. Zhi-Xuan, T., Carroll, M., Franklin, M., Ashton, H. (2025). Beyond preferences in AI alignment. Philos. Stud. , 182 (7), 1813–1863, https://doi.org/10.1007/ s11098-024-02249-w 27
