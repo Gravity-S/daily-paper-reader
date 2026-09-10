@@ -1,0 +1,1160 @@
+Title: CABAL: Multi-Agent Simulacra for Tracing the Effects of Collusive Bidding in Peer Review
+
+URL Source: https://arxiv.org/pdf/2609.05227v1
+
+Published Time: Mon, 07 Sep 2026 01:07:00 GMT
+
+Number of Pages: 28
+
+Markdown Content:
+# CABAL : Multi-Agent Simulacra for Tracing the Effects of Collusive Bidding in Peer Review 
+
+Jicheng Zhou 1, Kemou Li 1, Kahim Wong 1, Zheyuan Li 1,Zhuan Shi 2,3, Fengpeng Li 4, Haiwei Wu 5, Jiantao Zhou 1∗
+
+> 1
+
+State Key Laboratory of Internet of Things for Smart City, University of Macau 
+
+> 2
+
+Mila – Québec AI Institute 3McGill University 
+
+> 4
+
+PRADA Lab, King Abdullah University of Science and Technology 
+
+> 5
+
+University of Electronic Science and Technology of China 
+
+> ∗Corresponding author: Jiantao Zhou (jtzhou@um.edu.mo).
+
+Abstract 
+
+Recent reports during the AAAI-27 review cycle highlight the risk of reviewers coordinating bids for reciprocal assignment advantage. Prior work treats bidding, reviewer assignment, and review manipulation as separate stages, leaving the lifecy-cle effects of collusive bidding unclear. Real-world analysis is further constrained by typically unobservable collusive intent and the lack of counterfactuals for the same conference. Motivated by this gap, we introduce CABAL , an end-to-end multi-agent simulacra framework for studying reviewer assignment integrity by holding the conference environment fixed and configuring LLM-driven reviewer agents with honest or collusive policies. We further develop an affinity-guided collusive bidding strategy that uses mutual reviewer-paper affinities to construct collusion rings and select target papers, producing expertise-consistent rather than arbitrarily targeted attacks. Controlled experiments show that collusive bidding more than doubles target-paper capture and that assigned colluders score target papers about two points higher than honest co-reviewers, while conference-wide effects remain comparatively modest. Evaluated bid-phase detectors provide only limited evidence of collusion: in a fixed-triplet detector stress test, native positive-bid graphs are confounded by benign affinity, while a Very-High-only diagnostic view enables precise but low-coverage local recovery. 
+
+1 Introduction 
+
+In top-tier conferences, reviewers bid on papers to express their interests, and organizers combine these bids with reviewer-paper affinity, conflict-of-interest (COI) constraints, and workload requirements to determine assignments. However, this reliance on bidding also creates an attack surface for strategic manipulation. This risk became concrete during the AAAI-27 review cycle, when AAAI reported evidence suggesting off-platform coordination intended to create reciprocal assignment structures [1]. In response, AAAI introduced constraints against reciprocal 2-cycles and an auditing protocol for residual cases, while warning that confirmed violations could result in desk rejection or multi-year bans [2]. Fig. 1 illustrates this pathway: honest bidding supports expertise-aligned assignments, whereas coordinated bids can capture assignments and distort downstream evaluations. Prior work has examined reviewer matching and assignment optimization [3–9], strategic bid manipu-lation and reviewer collusion [10–15], and LLM-based peer-review agents [16, 17]. While these lines of work address complementary aspects of the review process, they do not jointly connect collusive bidding, reviewer assignment, and downstream evaluation within a controlled setting. As a result,       
+
+> Preprint. arXiv:2609.05227v1 [cs.AI] 4 Sep 2026 Paper ID Final Score
+> #0053 6.33
+> #0523 4.67
+> #0689 5.67
+> #0726 6.33
+> ……
+> Reviewer B
+> Area
+> 1
+> Reviewer A
+> Area
+> 1
+> Reviewer C
+> Area
+> 2
+> Reviewer D
+> Area
+> 3
+> …
+> #0053
+> #0088
+> #0523
+> …
+> Reviewer X
+> Reviewer Y
+> Reviewer Z
+> #0053
+> #0523
+> #0726
+> #0689
+> Reviewer X
+> Reviewer 1
+> Reviewer 2
+> #0053
+> #0523
+> #0726
+> #0689
+> #0053
+> #0523
+> #0726
+> #0689
+> (8,8,10)
+> Outstanding
+> (5,8,6)
+> Accept
+> (6,3,6)
+> Borderline
+> (3,1,3)
+> Reject
+> #0053
+> #0523
+> #0726
+> #0689
+> (8,8, 3)
+> Accept
+> (8,3,6)
+> Accept
+> (3, 8,8)
+> Accept
+> (5,8, 1)
+> Borderline
+
+Honest Reviewer Behavior 
+
+Collusive Reviewer Behavior 
+
+Bidding  Reviewer Assignment  Review Outcome Before Bidding 
+
+Same conference pipeline  – Same COI constraints  – Same assignment mechanism  – Different review behavior  – Different results                       
+
+> Very High
+> High
+> Neutral
+> Low
+> Very low
+> Bidding Score
+> Expertise -aligned bidding and reviewing behavior support quality -aligned outcomes.
+> Malicious bidding and reviewing behavior distort evaluation outcomes .
+> #0689
+> #0726
+> … …
+> Reviewer 1
+> Area
+> 4
+> Reviewer 2
+> Area
+> 4
+> … …
+> COI (Conflicts -of -Interest)
+> Filtering
+> ✓Non -COI Candidate Papers
+> Reviewer A #0053
+> Reviewer B #0088
+> Reviewer C #0088
+> Reviewer D #0523
+> …
+> Affinity Score Calculation
+> ✓Pre -match the paper
+> with reviewers .
+> COI Filtering
+> Affinity Score
+> Calculation
+> Review
+> Review
+> Collusive Chat -Box
+> Type a message... ➤
+> Reviewer M1: Please bid on
+> #0689 and give it a high
+> score if possible. 10:02 AM
+> Reviewer M2: Done!
+> Please also help me to save
+> my paper #0726 titled ….
+> 10: 25 AM
+> Reviewer M1: Sure! Let ’skeep this coordinated .10: 32 AM
+> Reviewer M2: Agreed. We ’ll help each other out.
+> 10: 35 AM
+
+Accept! 
+
+> Standard protocol
+> safeguards evaluation.
+
+DISTORTED!       
+
+> Collusive manipulation
+> distorts evaluation.
+> Paper ID Final Score
+> #0053 8.67
+> #0523 6.33
+> #0689 5.00
+> #0726 2.33
+> ……
+> Quality -aligned Outcome
+> Outcome Distortion
+> Very High
+> High
+> Neutral
+> Low
+> Very low
+> Bidding Score
+
+Figure 1: Overview of the lifecycle effects studied in CABAL . With the conference environment (papers, reviewer profiles, COI constraints, and assignment mechanism) held fixed, honest reviewer behavior is expertise-aligned, whereas collusive reviewer behavior involves coordinated, affinity-guided bids to capture target-paper assignments and distort downstream evaluations. how expertise-grounded collusive bids propagate through assignment and ultimately affect review outcomes remains insufficiently understood. Studying these lifecycle effects in real conferences poses two key challenges. First, collusive intent is typically unobserved, making expertise-consistent collusive bids difficult to distinguish from legitimate expressions of reviewer interest. Second, real conferences lack the causal counterfactual needed to isolate the effect of reviewer behavior: the same conference cannot be rerun with its papers, reviewers, COI constraints, and assignment mechanism held fixed while changing only whether reviewers behave collusively. As a result, observed differences in review outcomes cannot be cleanly attributed to collusive behavior itself. Addressing these challenges therefore requires a controlled environment in which collusive intent is known, and all other conference conditions are held fixed across behavioral worlds. We introduce CABAL (Collusive Agent-based Bidding and Assignment Laboratory), an end-to-end multi-agent simulacra framework for controlled studies of how collusive bidding affects reviewer as-signment integrity and downstream evaluation. CABAL instantiates LLM-driven reviewer simulacra with known honest or collusive policies, while holding the conference environment fixed. Within this environment, we develop an affinity-guided collusive bidding strategy that derives collusion rings and target papers from mutual reviewer-paper affinities, keeping coordinated bids consistent with plausible reviewer expertise rather than arbitrary targeting. CABAL jointly models collusion, bidding, assignment, and reviewing rather than treating them as isolated components. Tab. 1 contrasts this pipeline-level scope with representative prior work, which addresses complementary subsets of the review process. Our contributions are summarized as follows: • We introduce CABAL , a programmable multi-agent simulacra framework that models reviewer bidding, assignment, and reviewing within a fixed conference environment, enabling matched counterfactual comparisons in which papers, reviewers, COI constraints, and the assignment mechanism are held constant while reviewer behavior is varied. • We develop an affinity-guided collusive bidding strategy that constructs collusion rings and selects target papers from mutual reviewer-paper affinity relationships, allowing colluders to support one another on papers that remain plausible matches to their expertise rather than relying on arbitrary or obviously suspicious targeting. 2Table 1: Comparison with representative prior work across the peer-review lifecycle. CABAL 
+
+jointly connects expertise-grounded strategic behavior, bidding, assignment, downstream reviewing, and outcome analysis within a controlled behavioral counterfactual.                                                                                           
+
+> Work Venue Expertise/ Affinity Strategic Behavior Bidding Assignment Reviewing Outcome Analysis Behavioral Counterfactual
+> Reviewer Assignment and Bidding Mechanisms
+> Anjum et al. [18] EMNLP-IJCNLP’19 •--◦---Stelmakh et al. [7] JMLR’21 ◦--•-◦-Rozencweig et al. [9] AAMAS’23 ◦-•◦--◦
+> Strategic Manipulation and Adversarial Behaviors in Peer Review
+> Wu et al. [11] ICML’21 ◦•••--◦
+> Jecmen et al. [12] WWW’23 ◦•••--◦
+> Jecmen et al. [14] TMLR’25 ◦••---◦
+> Hsieh et al. [15] USENIX Sec’25 ••-•--◦
+> LLM-based Peer-Review Agents and Simulation
+> Jin et al. [16] EMNLP’24 ◦---•••
+> Lu et al. [17] ICML’25 •---•◦-
+> CABAL Ours •••••••
+> Notes. •indicates that a component is explicitly modeled or is a primary object of study; ◦indicates that it is incorporated as an input, auxiliary component, or downstream analysis; and - indicates that it is not modeled.
+
+• We conduct an end-to-end empirical analysis of how collusive bids alter targeted reviewer-paper access, propagate into downstream review scores and conference-level outcomes, and compare the resulting attack patterns against representative bid-phase detection methods. 
+
+2 Problem Statement 
+
+Problem formulation. We consider a conference with papers P = {p1, . . . , p N } and reviewers 
+
+R = {r1, . . . , r M }. For each paper-reviewer pair (p, r j ), Apj denotes their topical affinity score, with a larger value indicating a stronger expertise match, and Cpj ∈ { 0, 1} denotes the conflict-of-interest (COI) indicator, where Cpj = 1 means that reviewer rj is ineligible to review paper p. We compare two behavioral worlds indexed by z ∈ { h, c }, where h denotes the all-honest world and c denotes the collusive world. Given the bid matrix B(z), affinity matrix A, and COI matrix C, a fixed assignment procedure Φ produces the binary assignment matrix M(z), where M (z) 
+
+> pj
+
+= 1 indicates that reviewer 
+
+rj is assigned to paper p. For each assigned pair, Y (z) 
+
+> pj
+
+denotes the numerical recommendation score given by reviewer rj to paper p. The review lifecycle is therefore 
+
+M(z) = Φ 
+
+
+
+B(z), A, C
+
+
+
+,
+
+B(z) −→ M(z) −→ Y(z), z ∈ { h, c }.
+
+(1) 
+
+Threat model. Our threat model considers groups of reviewer-authors with overlapping expertise who can legitimately bid on and may be assigned to one another’s submissions. Such expertise overlap is a practical condition for plausible collusion, because reviewers outside a paper’s relevant research area are typically less viable candidates for its assignment. We define collusive bidding as off-platform coordination through which these reviewer-authors strategically manipulate their bidding preferences to increase the likelihood of reciprocal assignments. Colluders operate through the ordinary bidding and reviewing interfaces: they neither control the assignment mechanism nor bypass its COI and eligibility constraints. If coordinated bidding results in the intended assignments, they may subsequently evaluate one another’s papers strategically rather than independently. This threat model therefore captures coordinated behavior across bidding, assignment, and reviewing without prescribing how colluding groups are formed, how bids are manipulated, or how strategic reviews are generated. 
+
+Reviewer assignment integrity. We use reviewer assignment integrity to denote the resistance of assignment outcomes to coordinated manipulation of reviewer bids. Integrity is compromised when such coordination gives colluders greater access to one another’s submissions than they would 3Collusion Construction                         
+
+> Two reviewers are connected when
+> each other’s papers appear in their top -
+> K expertise.
+> Ordinary reviewer
+> Selected colluding reviewer
+> Collusion Ring
+> 2-3 members
+> Expertise -grounded
+> ring construction
+> Papers
+> Reviewer Profiles
+> Collusive agents place
+> reciprocal Very High
+> bids for ring peers’
+> target papers
+> ✓Behavior controlled through
+> natural -language instructions.
+> lH…N
+> LN…h
+> …………
+> hN…H
+> L: Very Low l: Low
+> N: Neutral
+> h: High H: Very High
+> P1 P2 …Pn
+> R1
+> R2
+> Rn
+> …
+> •Review Score
+> •Quality Labels
+> •Honest Bid Score
+> •Collusive Bid Score
+> Affinity Score
+> Calculation
+> …
+> …
+> …
+> …
+> COI Filtering
+> 2. Expertise -grounded
+> Collusion Construction
+> 1. Conference Setup
+
+3. Agent Simulacra  4. Bidding, Assignment,  
+
+> Reviewing
+
+5. Evaluation              
+
+> Honest
+> World
+> Collusive
+> World
+> Bid Matrix
+> 2. Reviewer Profiles
+> ➢Research areas
+> ➢Representative publications
+> 5. Ring Context
+> ➢Ring ID + Peers ID
+> ➢Target paper(s)
+> 4. Bidding Strategy
+> ➢Expertise -based
+> ➢Reciprocal bids
+> 3. Behavior Type
+> ➢Honest
+> ➢Collusive
+> 1. Conference Context
+> ➢Acceptance rate
+> ➢Shared 1 -10 rubric 1-10
+> Scenario Configuration
+> Ring Size: 0 / 2 / 3
+> Acceptance Rate: 20% -30%
+> Top -K expertise: Top20
+> World Setting
+> Outcomes
+> Conference Substrate Agent Persona
+> Quality Grader Agent
+> Review Honest
+> Collusive
+> Subtle / Aggressive
+> (5/10)
+> (9/10)
+> Assignment
+> Bidding
+
+Figure 2: Overview of CABAL . The workflow comprises five stages: (1) constructing a fixed con-ference substrate; (2) forming expertise-grounded collusion rings and target papers; (3) instantiating honest or collusive reviewer simulacra; (4) executing bidding, assignment, and reviewing; and (5) evaluating outcomes across matched behavioral worlds. obtain under honest behavior. We examine this effect first at the assignment level by asking whether designated reviewers obtain their intended papers, and then at the review level by asking whether successful assignment capture alters their evaluations. Assignment capture is therefore the direct integrity effect, whereas review distortion is its downstream consequence. 
+
+Counterfactual analysis. Our analysis follows a matched counterfactual design. Each collusive world is paired with an all-honest world that shares the same papers, reviewers, affinity structure, COI constraints, and assignment procedure; only reviewer behavior varies. This comparison isolates whether changes in bidding propagate into reviewer assignments, target-paper evaluations, and conference-wide outcomes. We additionally evaluate whether representative bid-phase detectors can distinguish the resulting collusive behavior from honest bidding. 
+
+3 CABAL : Collusive Agent-based Bidding and Assignment Laboratory 
+
+Fig. 2 provides an overview of CABAL , which operationalizes the peer-review lifecycle in Eq. (1) as a controlled multi-agent workflow. CABAL first constructs a fixed conference substrate shared across behavioral worlds (§3.1), then derives expertise-grounded collusion rings and target papers from mutual reviewer-paper affinity (§3.2) and instantiates reviewer simulacra with honest or collusive behavioral objectives (§3.3). These agents proceed through bidding, assignment, and reviewing to produce B(z), M(z), and Y(z) (§3.4), enabling matched comparisons that isolate how reviewer behavior propagates through assignment into downstream evaluation. 
+
+3.1 Conference Substrate 
+
+CABAL instantiates the fixed conference substrate defined in §2. Public researcher profiles, including research areas and representative publications, define the reviewer pool R and ground reviewer expertise. Synthetic submissions P are generated from author backgrounds, and an independent grading agent assigns reference-quality scores using the shared rubric without access to reviewer behavior or collusion context. Let Dj denote the representative publications of reviewer rj , and let xp and xd denote the title-and-abstract text of submission p and publication d. Reviewer-paper affinity is computed as 
+
+Apj = max 
+
+d∈D j
+
+cos (emb( xp), emb( xd)) , (2) using the reviewer publication most aligned with the submission. We use Cpj = 1 to denote a conflict of interest and exclude such pairs from bidding and assignment. The resulting substrate 
+
+(P, R, A, C, Φ) , rubric, and reference assessments are fixed across z ∈ { h, c }.43.2 Expertise-Grounded Collusion Construction 
+
+In the collusive world defined in §2, a subset of reviewer-authors coordinates its bids to gain reciprocal access to one another’s submissions. A meaningful instantiation of this threat model should preserve plausible reviewer-paper expertise relationships. Otherwise, colluders would target papers that they would be unlikely to bid on under honest behavior. CABAL therefore derives both collusion rings and target papers from the fixed affinity and COI structure. We consider reviewer-authors as candidate colluders because they possess submissions that can participate in reciprocal support. Let Pi denote the papers authored by reviewer ri, and define the candidate set as V = {ri ∈ R : Pi̸ = ∅} . For each candidate, let 
+
+NK (i) := TopK p∈P :Cpi =0 Api 
+
+denote the reviewer’s top-K non-COI papers by affinity. Every paper in NK (i) is therefore both eligible and compatible with the reviewer’s expertise profile. 
+
+Mutual-affinity graph. We construct an undirected graph G = ( V, E ) over reviewer-authors, with 
+
+(ri, r j ) ∈ E ⇐⇒  Pj ∩ N K (i)̸ = ∅ ∧  Pi ∩ N K (j)̸ = ∅. (3) An edge requires reciprocal compatibility: each reviewer has at least one submission authored by the other in their own eligible high-affinity pool. This condition is stronger than one-way topical similarity and ensures that potential coordination is plausible in both directions. Importantly, G
+
+is constructed only from authorship, A, and C, before any bids are generated; its edges therefore represent expertise compatibility rather than observed collusive behavior. 
+
+Ring construction. Starting from G, we form small collusion rings through greedy clique expansion. A reviewer can be added to a ring only when they are connected to every existing member. Conse-quently, all reviewer pairs within a ring satisfy the mutual-affinity condition in Eq. (3), providing pairwise expertise support for reciprocal bidding. 
+
+Target construction. Targets are defined separately for each ring member. For reviewer ri in ring 
+
+Rg , we set 
+
+Tg,i =
+
+ [    
+
+> rj∈R g\{ ri}
+
+Pj
+
+
+
+∩ N K (i). (4) Thus, Tg,i contains only papers authored by other ring members that already fall within ri’s eligible high-affinity pool. The construction changes the reviewer’s behavioral objective without fabricating reviewer-paper relevance. For each matched honest-collusive comparison, ring memberships and target sets are held fixed, but this coordination context is disclosed only to the collusive reviewer. 
+
+3.3 Reviewer Simulacra 
+
+Given the expertise-grounded rings and target sets constructed in §3.2, CABAL instantiates each reviewer rj as an LLM-based reviewer simulacrum under behavioral world z ∈ { h, c }. The goal is not to reproduce a particular human reviewer, but to create an expertise-grounded role whose behavioral objective can be systematically controlled while its conference and research context remains fixed. 
+
+Layered reviewer personas. Each persona separates fixed grounding from world-dependent behav-ioral control. The grounding layer contains (i) the shared conference setting and reviewing rubric and (ii) the reviewer’s research areas and representative publications. These components are identical for the same reviewer across behavioral worlds. The control layer specifies whether the reviewer behaves honestly or collusively, together with the corresponding bidding and reviewing objectives. In the collusive world, this layer additionally provides ring membership Rg and the reviewer-specific target set Tg,i . Thus, the conference substrate and reviewer expertise remain unchanged, while only the information and objectives governing reviewer behavior vary. 
+
+Honest and collusive behavior. Honest reviewer simulacra bid according to their expertise and interest and evaluate assigned papers independently under the shared rubric. They receive no information about collusion rings, target papers, or other reviewers’ objectives. Collusive reviewer simulacra retain the same conference context, expertise profile, and rubric, but receive the coordination context defined above. During bidding, they strongly prioritize papers in 5Tg,i while continuing to bid by expertise on non-target papers. The resulting intervention therefore modifies preferences over reviewer-paper pairs that are already eligible and expertise-compatible, rather than introducing artificial relevance. 
+
+Strategic reviewing and stealth. When a collusive reviewer is assigned a target paper, CABAL 
+
+controls the strength of downstream manipulation through the reviewing objective. An aggressive strategy seeks to strongly promote the target, whereas a subtle strategy seeks the most favorable evaluation that remains plausible under the shared rubric. Both strategies use the same target-seeking bidding policy; they differ only in how the reviewer evaluates a target after assignment. This separation allows CABAL to distinguish whether coordinated bidding changes assignment access from how strategic reviewing subsequently affects evaluation. 
+
+3.4 Bidding, Assignment, and Reviewing Bidding. In world z, each reviewer rj submits an ordinal bid B(z) 
+
+> pj
+
+for every p ∈ N K (j) according to its honest or collusive objective. These bids form B(z).
+
+Assignment. After mapping ordinal bids to numerical utilities, the fixed assignment procedure scores each feasible pair and produces 
+
+u(z) 
+
+> pj
+
+= wAApj + wB B(z) 
+
+> pj
+
+, M(z) = Φ  B(z); A, C, M (z) 
+
+> pj
+
+∈ { 0, 1}. (5) Here, M (z) 
+
+> pj
+
+= 1 denotes an assignment. We use a lightweight greedy matcher that processes papers in a fixed order and assigns the highest-ranked eligible reviewers to each paper. Reviewers who have not yet satisfied their minimum service load receive priority until that obligation is met, after which assignments follow the standard affinity-bid ranking. 
+
+Reviewing. For each pair with M (z) 
+
+> pj
+
+= 1 , reviewer rj produces a rubric-based review and recommen-dation score Y (z) 
+
+> pj
+
+, forming Y(z). Since A, C, and Φ remain fixed, matched comparisons separate the effect of collusive bidding on assignment access from that of strategic reviewing on downstream evaluation. 
+
+CABAL therefore preserves the sequential pathway B(z) → M(z) → Y(z), allowing the exper-iments in §4 to separately examine whether collusive bidding changes reviewer assignments and whether those assignment changes propagate into downstream evaluations. 
+
+4 Experiments 
+
+4.1 Experimental Setup Conference instance and reference quality. We construct a fixed conference instance with 140 
+
+researcher profiles from Semantic Scholar [19] and 100 synthetic submissions spanning cs.LG, cs.CV, cs.CL, and cs.AI. Submissions are generated from author backgrounds under controlled quality conditions, with authors drawn from the reviewer pool, yielding 92 distinct author-reviewers. An independent grading agent evaluates each paper from its title and abstract using the shared 1-10 rubric, without access to preset quality, reviewer behavior, or collusion context. Its score Qp serves as the fixed reference-quality assessment and agrees substantially with the preset quality conditions (Pear-son/Spearman = 0 .832 /0.828 ). Reviewer-paper affinity is computed with all-MiniLM-L6-v2 [20] as the maximum cosine similarity over the reviewer’s representative publications. Each reviewer bids on its top-20 non-COI papers, with paper authors excluded from bidding and assignment. 
+
+Agents and assignment. All reviewer and grading agents use deepseek-v4-flash [21] with role-specific prompts. Bid labels from Very Low to Very High are encoded as Bpj ∈ {− 100 , −1, 0, 1, 2}.A fixed greedy matcher assigns three reviewers per paper using 
+
+upj = Apj + 2 Bpj ,
+
+with Bpj = −100 treated as a hard refusal. Reviewers have a maximum load of five papers, while author-reviewers must complete at least three reviews and receive priority until this minimum is met. Papers are processed by fixed reference-quality category, preserving their original order within each category. These categories are derived once from Qp and held fixed across behavioral worlds. 6Collusion and counterfactual conditions. We consider nominal collusion rates r ∈ { 0, 0.2, 0.5}
+
+over the 92 author-reviewers, where r = 0 denotes the all-honest condition. Following §3.2, colluders are organized into expertise-grounded rings of two or three members, and each member targets only other members’ papers within its own top-20 affinity pool. The r = 0 .2 and r = 0 .5 conditions contain 18 .43 ± 0.49 and 46 .71 ± 0.70 realized colluders, respectively. Rings use either an aggressive or a subtle target-reviewing strategy. Each collusive world is paired with an all-honest world that preserves the same papers, reviewers, affinity scores, COI constraints, target relations, and assignment mechanism; ring and target information is disclosed only to collusive agents. 
+
+Runs and evaluation. We conduct seven runs over five structural seeds, with seed 0042 independently executed three times to assess LLM run-to-run variation under an identical structural configuration. Papers, reviewer profiles, reference-quality assessments, affinity scores, COI constraints, and matcher settings remain fixed. Results report mean ± standard deviation over the seven runs. Additional implementation details and agent prompts are provided in Appx. B. 
+
+Analysis structure. Our analysis follows the lifecycle in Eq. (1). We first examine whether co-ordinated bids alter access to target papers ( B(z) → M(z)). We then measure whether successful assignment capture changes target-paper evaluations ( M(z) → Y(z)). Finally, we assess whether these localized effects produce a measurable conference-wide footprint. §5 separately evaluates how much evidence of the simulated attack is exposed to representative bid-phase detectors. 
+
+4.2 Effect on Assignment Access 
+
+Collusive reviewing is possible only if ring members obtain access to their partners’ submissions. For each paired run, let S contain every directed support relation (r, p ) for which reviewer r is designated to support a ring partner’s target paper p. The same set S is evaluated in the collusive world and its matched all-honest counterpart, thereby isolating whether behavioral changes in bidding convert intended support into assignments. We measure access at two levels. The targeted assignment rate (TAR) uses support relations as its unit of analysis. The target-paper capture rate (TPCR) instead considers the set PT = {p : ∃r, (r, p ) ∈ S} 
+
+and asks whether each target paper is assigned at least one designated supporter: 
+
+TAR (z) = 1
+
+|S| 
+
+X 
+
+> (r,p )∈S
+
+M (z) 
+
+> pr
+
+,
+
+TPCR (z) = 1
+
+|P T |
+
+X
+
+> p∈P T
+
+I
+
+X 
+
+> r:( r,p )∈S
+
+M (z) 
+
+> pr
+
+≥ 1
+
+
+
+, z ∈ { h, c }.
+
+(6) where I[·] is the indicator function, equal to one when its argument is true and zero otherwise. TAR measures how often individual support relations are realized, whereas TPCR measures how often the ring gains any reviewing access to a target paper. Colluders place a Very High bid on every relation in 
+
+S, whereas only 16 -18% of the same relations receive a Very High bid under honest behavior. This inter-vention substantially, but not perfectly, converts into assignments. As shown in Fig. 3, TAR rises from 
+
+18 .3-22 .7% under honest bidding to 62 .4-64 .1% un-der collusive bidding, corresponding to gains of 41 .4
+
+and 44 .1 percentage points at r = 0 .2 and r = 0 .5.TPCR similarly rises from 28 .0-29 .6% to 71 .8-76 .9% ,with gains of 42 .2 and 48 .9 points. Overall, coordi-nated bidding more than doubles assignment access. Approximately two-thirds of designated support rela-tions are realized, and at least one colluder reaches roughly three-quarters of the targeted papers. TAR Targeted assignment TPCR Target-paper capture              
+
+> 020 40 60 80 100
+> Rate (%)  +41.4 +44.1 +42.2 +48.9
+> Honest, r= 0.2 Collusive, r= 0.2 Honest, r= 0.5 Collusive, r= 0.5
+> Figure 3. Assignment access under honest and collusive bidding. Values are mean ±standard deviation over seven runs.
+
+4.3 Target-Paper Score Inflation 
+
+The preceding results show that coordinated bids substantially increase access to target papers. We next examine whether successful assignment capture changes how these papers are evaluated. We 7Table 2: Conference-wide score inflation and quality alignment. Alignment metrics compare three-reviewer paper means with the fixed reference-quality assessments. 
+
+Measurement Honest r = 0 .2 r = 0 .5
+
+Score inflation across all reviews 
+
+Average review score 4.34 ± 0.02 4.47 ± 0.06 4.72 ± 0.09 
+
+Reviews above threshold ( s > 5.5) 28 .2 ± 0.4% 30 .6 ± 1.7% 34 .2 ± 2.1% 
+
+Alignment with reference quality 
+
+Pearson correlation 0.804 ± 0.010 0.775 ± 0.019 0.775 ± 0.025 
+
+Spearman rank correlation 0.813 ± 0.014 0.776 ± 0.021 0.765 ± 0.035 
+
+Overlap with grader top-30 (/30 ) 23 .0 ± 0.0 22 .3 ± 0.7 22 .9 ± 0.3
+
+distinguish reviewer-level disagreement from the resulting paper-level score change. At the reviewer level, we compare the score submitted by each assigned supporting ring member with the mean score of the honest co-reviewers assigned to the same captured paper. This within-paper comparison holds the evaluated paper fixed and measures how differently the strategically motivated reviewer evaluates it. The mean within-paper differences are 2.21 points at r = 0 .2 and 1.99 points at r = 0 .5.Because every paper is assigned three reviewers, the denominator equals three in our experiments. We define the matched paper-level score change as 
+
+∆p = Y (c) 
+
+> p
+
+− Y (h) 
+
+> p
+
+, Y (z) 
+
+> p
+
+= 13
+
+X 
+
+> j∈R
+
+M (z) 
+
+> pj
+
+Y (z) 
+
+> pj
+
+. (7) This quantity captures the combined downstream effect of altered reviewer assignment and strategic reviewing. Consistent with the TPCR definition, a target paper is classified as captured when at least one of its designated supporting ring members is assigned in the collusive world. The reviewer-level discrepancy survives aggregation over the three reviews received by each paper. As shown in Fig. 4, target papers gain 0.61 -0.69 points on average relative to their matched all-honest outcomes. The change is concentrated among captured targets, whose means rise by 0.84 -0.89 points; uncaptured targets change by only 0.03 -0.04 points. Because capture is induced by the bidding intervention rather than independently randomized, this contrast provides mechanism-consistent localization rather than a sepa-rate causal estimate. Reviewer- and strategy-specific analyses of target-paper score inflation are reported in Appx. C.3. All targets Captured targets Uncaptured targets      
+
+> −0.25 0.00 0.25 0.50 0.75 1.00 1.25
+> Matched score change, Δ p (points)
+> 0.61 0.84 0.03
+> 0.69 0.89 0.04
+> inflation concentrates here
+> r= 0.2 r= 0.5
+> Figure 4. Matched target-paper score changes across all, captured, and uncaptured targets. Values are mean
+> ±standard deviation over seven runs.
+
+Taken together, these results show that the assignment effect propagates into downstream evaluation. Once capture succeeds, supporting ring members score the same papers approximately two points above honest co-reviewers, increasing the captured paper’s three-reviewer mean by approximately 
+
+0.9 points relative to its honest counterfactual. 
+
+4.4 Conference-Wide Effects 
+
+The preceding analyses establish a localized pathway from coordinated bids to assignment capture and target-paper score inflation. We now assess whether these effects produce a measurable conference-wide footprint along two complementary dimensions. Score inflation measures changes in the distribution of the 300 individual review scores produced in each run. Quality alignment measures whether the three-reviewer paper means remain aligned with the fixed reference-quality scores Qp.We quantify this alignment using Pearson correlation, Spearman rank correlation, and overlap with the grader’s top-30 papers. Let s denote an individual review score. Reviews with s > 5.5 are classified as acceptance-level evaluations for this analysis; this threshold does not represent the conference’s final paper-acceptance decisions. Collusion produces a clear, rate-dependent shift in conference-wide score levels. Relative to the honest condition, the average review score increases by 0.13 points at r = 0 .2 and by 0.38 points at 8Table 3: Representative bid-phase detector results. ∆r is the collusive-minus-honest change in normalized rank (negative is more suspicious); set entries report recovered colluders / flagged reviewers. Complete results are provided in Appx. D.                                             
+
+> Input view Detector r= 0 .2(|C| = 18 )r= 0 .5(|C| = 47 )
+> Reviewer ranking :∆r
+> Ternary bid matrix Counting +0 .054 +0 .025
+> Ternary bid matrix Pairwise −0.005 −0.014
+> Ternary bid matrix Low-rank −0.032 −0.024
+> Set recovery : recovered / flagged reviewers Bid-author, τ= 1 Greedy densest 16 /89 42 /77
+> Bid-author, τ= 1 TellTail 2.0/15 .012 .3/16 .7
+> Bid-author, τ= 2 TellTail 3.2/4.25.9/7.4
+> Reviewer-paper, τ= 1 Fraudar 15 /97 41 /101
+> Reviewer-paper, τ= 2 Fraudar 6/36 9/21
+
+r = 0 .5. The proportion of reviews above the acceptance-level threshold likewise increases by 2.4
+
+and 6.0 percentage points. Thus, the localized target-paper effects identified in §4.3 accumulate into broader score inflation as the colluding population grows. The effect on quality alignment is smaller. Pearson correlation decreases from 0.804 to 0.775 under both collusion conditions, while Spearman correlation decreases from 0.813 to 0.776 and 0.765 . In contrast, overlap with the grader’s top-30 remains between 22 .3 and 23 .0 papers across all conditions. The results therefore indicate modest degradation in overall score and rank alignment, but not a wholesale disruption of top-paper membership. In conclusion, target-level manipulation leaves a measurable but limited conference-wide footprint. Score inflation increases with the collusion rate, whereas reference-quality alignment weakens only modestly and top-30 overlap remains nearly unchanged. The dominant effect of collusion is therefore concentrated on successfully captured targets, with a weaker aggregate effect at the conference level. 
+
+5 Can CABAL -generated Collusion be Detected? 
+
+We evaluate three bid-phase detector families on one fixed triplet comprising an all-honest world and two collusive worlds. Collusion is restricted to the 92 author-reviewers in the 140-reviewer pool. The r = 0 .2 and r = 0 .5 instances contain 18 and 47 colluders arranged in 8 and 20 rings, respectively. The detectors test reviewer anomaly rankings [12], dense bid-author groups, and dense reviewer-paper blocks [14]. Tab. 3 reports rank shifts for rankings and recovered/flagged counts for sets. Assumptions, input mappings, and full metrics appear in Appx. D. The ranking methods provide little attack-induced separation. Counting’s rejection prior mismatches 
+
+CABAL ’s bid inflation, Pairwise Reciprocity largely rediscovers reciprocity already induced by honest affinity, and Low-rank Residual produces only small, encoding-dependent shifts. On the native positive-bid view ( τ = 1 ), OQC and TellTail change little from the honest reference, while Densest and Fraudar obtain broad coverage only by flagging 77 -101 of 140 reviewers. At τ = 2 , TellTail recovers one complete ring with precision .753 /. 874 , but recall remains .178 /. 126 . Each set detector returns one group against an attack distributed across eight or 20 rings. 
+
+Takeaway. CABAL is not invisible: its strongest bids expose local structure. However, native positive-bid views are confounded by benign affinity, and single-set detectors do not cleanly re-cover the distributed collusive population. This conclusion concerns the evaluated detector-input combinations, not general undetectability. 
+
+6 Conclusion 
+
+We introduce CABAL , a multi-agent simulacra framework for tracing expertise-grounded collusive bidding through reviewer assignment and downstream evaluation under matched behavioral worlds. Our experiments show that coordinated bids substantially increase colluders’ access to target papers and, when assignment capture succeeds, lead to inflated evaluations of those papers, while aggregate conference-wide effects remain comparatively modest. Existing bid-phase detectors reveal a clear 9precision-coverage trade-off: native bid graphs often confound collusion with benign expertise-driven affinity, whereas stricter bid filtering improves localization but recovers only a small subset of colluders. Overall, CABAL provides a controlled testbed for studying assignment-integrity risks and evaluating future defenses against collusive bidding. 
+
+References 
+
+[1] Association for the Advancement of Artificial Intelligence. AAAI-27 Statement on Poten-tial Collusion During Reviewer Bidding. Post on X, https://x.com/RealAAAI/status/ 2082108476302479560 , July 2026. Posted July 28, 2026; accessed September 4, 2026. [2] Association for the Advancement of Artificial Intelligence. AAAI-27 Letter: Re-viewer Bidding Integrity. AAAI Publication Policies and Guidelines, https://aaai.org/ aaai-publications/aaai-publication-policies-guidelines/ , August 2026. Accessed September 4, 2026. [3] David Mimno and Andrew McCallum. Expertise modeling for matching papers with reviewers. In Proceedings of the 13th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining , pages 500–509, 2007. [4] Laurent Charlin, Richard S Zemel, and Craig Boutilier. A framework for optimizing paper matching. arXiv preprint arXiv:1202.3706 , 2012. [5] Judy Goldsmith and Robert H Sloan. The AI conference paper assignment problem. In 
+
+Proceedings of the AAAI Workshop on Preference Handling for Artificial Intelligence , pages 53–57, 2007. [6] Ari Kobren, Barna Saha, and Andrew McCallum. Paper matching with local fairness constraints. In Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining , pages 1247–1257, 2019. [7] Ivan Stelmakh, Nihar Shah, and Aarti Singh. Peerreview4all: Fair and accurate reviewer assignment in peer review. Journal of Machine Learning Research , 22(163):1–66, 2021. [8] Tanner Fiez, Nihar Shah, and Lillian Ratliff. A SUPER* algorithm to optimize paper bidding in peer review. In Proceedings of the 36th Conference on Uncertainty in Artificial Intelligence (UAI) , pages 580–589. PMLR, 2020. [9] Inbal Rozencweig, Reshef Meir, Nicholas Mattei, and Ofra Amir. Mitigating skewed bidding for conference paper assignment. In Proceedings of the 22nd International Conference on Autonomous Agents and Multiagent Systems (AAMAS) , pages 573–581. IFAAMAS, 2023. [10] Steven Jecmen, Hanrui Zhang, Ryan Liu, Nihar Shah, Vincent Conitzer, and Fei Fang. Mitigating manipulation in peer review via randomized reviewer assignments. In Advances in Neural Information Processing Systems (NeurIPS) , volume 33, pages 12533–12545, 2020. [11] Ruihan Wu, Chuan Guo, Felix Wu, Rahul Kidambi, Laurens Van Der Maaten, and Kilian Weinberger. Making paper reviewing robust to bid manipulation attacks. In Proceedings of the 38th International Conference on Machine Learning (ICML) , pages 11240–11250. PMLR, 2021. [12] Steven Jecmen, Minji Yoon, Vincent Conitzer, Nihar B Shah, and Fei Fang. A dataset on malicious paper bidding in peer review. In Proceedings of the ACM Web Conference 2023 ,pages 3816–3826, 2023. [13] Niclas Boehmer, Robert Bredereck, and André Nichterlein. Combating collusion rings is hard but possible. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 36, pages 4843–4850, 2022. [14] Steven Jecmen, Nihar B Shah, Fei Fang, and Leman Akoglu. On the detection of reviewer-author collusion rings from paper bidding. Transactions on Machine Learning Research , 2025. ISSN 2835-8856. 10 [15] Jhih-Yi Janet Hsieh, Aditi Raghunathan, and Nihar B Shah. Vulnerability of text-matching in ML/AI conference reviewer assignments to collusions. In 34th USENIX Security Symposium (USENIX Security 25) , pages 5189–5208, 2025. [16] Yiqiao Jin, Qinlin Zhao, Yiyang Wang, Hao Chen, Kaijie Zhu, Yijia Xiao, and Jindong Wang. AgentReview: Exploring peer review dynamics with LLM agents. In Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing (EMNLP) , pages 1208–1226. Association for Computational Linguistics, 2024. [17] Kai Lu, Shixiong Xu, Jinqiu Li, Kun Ding, and Gaofeng Meng. Agent reviewers: Domain-specific multimodal agents with shared memory for paper review. In Proceedings of the 42nd International Conference on Machine Learning (ICML) . PMLR, 2025. [18] Omer Anjum, Hongyu Gong, Suma Bhat, Wen-Mei Hwu, and JinJun Xiong. PaRe: A paper-reviewer matching approach using a common topic space. In Proceedings of the 2019 Confer-ence on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP) , pages 518–528. Association for Computational Linguistics, 2019. [19] Waleed Ammar, Dirk Groeneveld, Chandra Bhagavatula, Iz Beltagy, Miles Crawford, Doug Downey, Jason Dunkelberger, Ahmed Elgohary, Sergey Feldman, Vu Ha, Rodney Kinney, Sebastian Kohlmeier, Kyle Lo, Tyler Murray, Hsu-Han Ooi, Matthew Peters, Joanna Power, Sam Skjonsberg, Lucy Wang, Chris Wilhelm, Zheng Yuan, Madeleine van Zuylen, and Oren Etzioni. Construction of the literature graph in Semantic Scholar. In Proceedings of the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 3 (Industry Papers) , pages 84–91. Association for Computational Linguistics, 2018. [20] Nils Reimers and Iryna Gurevych. Sentence-BERT: Sentence embeddings using siamese BERT-networks. In Proceedings of the 2019 Conference on Empirical Methods in Natural Lan-guage Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP) , pages 3982–3992. Association for Computational Linguistics, 2019. [21] DeepSeek-AI. DeepSeek-V4: Towards highly efficient million-token context intelligence, 2026. Technical report. [22] Martin Saveski, Steven Jecmen, Nihar Shah, and Johan Ugander. Counterfactual evaluation of peer-review assignment policies. In Advances in Neural Information Processing Systems (NeurIPS) , volume 36, pages 58765–58786, 2023. [23] Yixuan Xu, Steven Jecmen, Zimeng Song, and Fei Fang. A one-size-fits-all approach to improving randomness in paper assignment. In Advances in Neural Information Processing Systems (NeurIPS) , volume 36, pages 14445–14468, 2023. [24] Weixin Liang, Zachary Izzo, Yaohui Zhang, Haley Lepp, Hancheng Cao, Xuandong Zhao, Lingjiao Chen, Haotian Ye, Sheng Liu, Zhi Huang, et al. Monitoring AI-modified content at scale: A case study on the impact of ChatGPT on AI conference peer reviews. arXiv preprint arXiv:2403.07183 , 2024. [25] Ruiyang Zhou, Lu Chen, and Kai Yu. Is LLM a reliable reviewer? a comprehensive evaluation of LLM on automatic paper reviewing tasks. In Proceedings of the 2024 Joint International Con-ference on Computational Linguistics, Language Resources and Evaluation (LREC-COLING 2024) , pages 9340–9351, 2024. [26] Jianxiang Yu, Zichen Ding, Jiaqi Tan, Kangyang Luo, Zhenmin Weng, Chenghua Gong, Long Zeng, Renjing Cui, Chengcheng Han, Qiushi Sun, et al. Automated peer reviewing in paper sea: Standardization, evaluation, and analysis. In Findings of the Association for Computational Linguistics: EMNLP 2024 , pages 10164–10184. Association for Computational Linguistics, 2024. [27] Joon Sung Park, Joseph O’Brien, Carrie Jun Cai, Meredith Ringel Morris, Percy Liang, and Michael S Bernstein. Generative agents: Interactive simulacra of human behavior. In Proceed-ings of the 36th Annual ACM Symposium on User Interface Software and Technology (UIST) ,pages 1–22, 2023. 11 [28] Samuel Schmidgall, Yusheng Su, Ze Wang, Ximeng Sun, Jialian Wu, Xiaodong Yu, Jiang Liu, Michael Moor, Zicheng Liu, and Emad Barsoum. Agent laboratory: Using LLM agents as research assistants. In Findings of the Association for Computational Linguistics: EMNLP 2025 , pages 5977–6043. Association for Computational Linguistics, 2025. 12 Appendix of CABAL 
+
+Contents 
+
+A Related Work 14 
+
+A.1 Reviewer Assignment and Bidding Mechanisms . . . . . . . . . . . . . . . . . . . 14 A.2 Strategic Manipulation and Adversarial Behaviors in Peer Review . . . . . . . . . 14 A.3 LLM-based Peer Review Agents and Simulation . . . . . . . . . . . . . . . . . . . 15 
+
+B Further Experimental Setup 15 
+
+B.1 Conference and Submission Construction . . . . . . . . . . . . . . . . . . . . . . 15 B.2 Reference-Quality Assessment . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15 B.3 Agent Prompting and Generation Configuration . . . . . . . . . . . . . . . . . . . 16 B.4 Bidding and Assignment Implementation . . . . . . . . . . . . . . . . . . . . . . 16 B.5 Collusion Configurations and Repeated Runs . . . . . . . . . . . . . . . . . . . . 17 
+
+C Additional Experimental Details 17 
+
+C.1 Data Provenance, Structure, and Release . . . . . . . . . . . . . . . . . . . . . . . 17 C.2 Run-Level Assignment Access . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18 C.3 Target-Paper Score Inflation by Reviewer and Strategy . . . . . . . . . . . . . . . 19 C.4 Metrics for Conference-Wide Effects . . . . . . . . . . . . . . . . . . . . . . . . . 20 
+
+D Detector Evaluation Details 21 
+
+D.1 Evaluation Goal and Experimental Logic . . . . . . . . . . . . . . . . . . . . . . . 21 D.2 Common Data and Reference Worlds . . . . . . . . . . . . . . . . . . . . . . . . 22 D.3 Detector Families and Their Prior Assumptions . . . . . . . . . . . . . . . . . . . 22 D.4 Aligning CABAL with Detector Inputs . . . . . . . . . . . . . . . . . . . . . . . 23 D.5 Evaluation Measures and Reporting Conventions . . . . . . . . . . . . . . . . . . 24 D.6 Results by Detector Family . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 24 D.7 What the Experiment Reveals . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 26 
+
+E Discussion 27 F Limitation 27 G Broader Impacts 28 
+
+13 Overview of the Appendix 
+
+The appendix is organized as follows: • §A reviews prior work on reviewer assignment, strategic manipulation, collusion detection, and LLM-based peer-review agents. • §B provides further experimental details, including conference and submission construction, reference-quality assessment, agent prompting, assignment implementation, collusion config-urations, and repeated runs. • §C documents the provenance, cross-artifact structure, integrity checks, and responsible-release protocol for the experimental data, followed by supplementary analyses of assignment access, target-paper score inflation, and conference-wide effects. • §D specifies the detector families, input representations, evaluation protocol, reporting measures, and complete detector-level results. • §E discusses the implications of the findings for collusion detection and reviewer-assignment mechanism design. • §F summarizes the scope of the current simulation and evaluation and outlines directions for future work. • §G discusses the potential benefits of peer-review integrity research together with its dual-use, false-positive, fairness, and privacy risks. 
+
+A Related Work 
+
+A.1 Reviewer Assignment and Bidding Mechanisms 
+
+Reviewer-paper matching is a fundamental component of modern peer-review systems [7]. Early work focused on estimating reviewer expertise and paper-reviewer affinity from publication histories, topic models, and textual similarity [3, 4]. Anjum et al. [18] proposed PaRe , which matches papers and reviewer profiles in a shared topic space to mitigate vocabulary mismatch and partial topic overlap. More recent approaches formulate reviewer assignment as a constrained optimization problem, balancing matching quality with reviewer workload, fairness, and allocation constraints [5–7]. Beyond automatically inferred affinity scores, reviewer-provided preferences have become an im-portant source of information in practical conference assignment pipelines. In particular, bidding mechanisms allow reviewers to explicitly indicate their interest and willingness to review specific submissions, providing complementary signals for optimization-based assignment. Fiez et al. [8] optimized paper presentation during bidding to improve bid coverage, while Rozencweig et al. [9] investigated interventions for reducing skewed bidding and orphan papers. Saveski et al. [22] fur-ther developed counterfactual methods for evaluating alternative reviewer-assignment policies from randomized assignments. Recent work has also investigated scalable assignment policies for large conference settings [23]. Overall, these methods primarily treat reviewer expertise, preferences, and bids as signals for constructing or evaluating assignments, rather than as strategically generated behaviors whose effects propagate through subsequent review stages. 
+
+A.2 Strategic Manipulation and Adversarial Behaviors in Peer Review 
+
+A growing body of work has examined the vulnerability of peer-review mechanisms to strategic and adversarial reviewer behavior. Jecmen et al. [10] studied malicious reviewer targeting, including quid-pro-quo and torpedo-reviewing scenarios, and proposed randomized assignment mechanisms that limit the probability of obtaining strategically desired assignments. Wu et al. [11] focused directly on bid manipulation, showing how strategically altered reviewer preferences can influence assignment and developing mechanisms to improve robustness against such attacks. Subsequent work has examined both empirical attack behavior and structural forms of collusion. Jecmen et al. [12] released a dataset of malicious paper bidding collected through a controlled mock-conference activity and analyzed how different bidding strategies affect reviewer assignment. 14 Boehmer et al. [13] studied cycle-free reviewer assignments designed to prevent reciprocal reviewer-author structures, while Jecmen et al. [14] investigated the detection of reviewer-author collusion rings from bidding signals. Hsieh et al. [15] further showed that collusive assignment manipulation can arise through reviewer-paper text-matching signals even in the absence of bidding. These studies establish that both bids and matching signals can create meaningful assignment-integrity risks. However, they predominantly characterize attack behaviors, detect suspicious structures, or redesign the assignment stage itself. They do not jointly model how expertise-grounded collusive behavior generates strategic bids, changes reviewer assignments, and subsequently alters the reviews produced for the same target papers under a matched conference environment. 
+
+A.3 LLM-based Peer Review Agents and Simulation 
+
+Recent advances in large language models have enabled both automated review generation and agent-based simulation of academic peer review. Initial studies explored LLMs for generating review reports, assessing scientific manuscripts, and supporting review-quality evaluation [24–26]. More recent work has moved from single-model review generation toward explicit reviewer agents. Jin et al. [16] introduced AgentReview , an LLM-based peer-review simulation framework that models reviewer and decision-making roles and enables controlled analysis of latent behavioral factors and their effects on reviews and paper decisions. Lu et al. [17] developed domain-specific multimodal reviewer agents with shared memory to provide more specialized and context-aware paper reviews. These approaches demonstrate that LLM agents can reproduce important aspects of reviewer eval-uation and support controlled studies of peer-review dynamics. However, existing agent-based peer-review systems largely begin after reviewer access to papers has already been determined: they do not jointly model strategic bidding, endogenous reviewer assignment, and the resulting downstream reviews. Beyond peer review, broader studies have demonstrated the potential of LLM agents as programmable simulations of human behavior and social interactions [27, 28]. 
+
+B Further Experimental Setup 
+
+B.1 Conference and Submission Construction 
+
+The reviewer pool contains 140 Semantic Scholar researcher profiles from four computer-science areas: cs.LG ( 37 ), cs.CV ( 36 ), cs.CL ( 34 ), and cs.AI ( 33 ). Each profile contains the researcher’s areas and representative publications, which are used to ground the corresponding reviewer agent. The submission set contains 100 synthetic papers generated from author backgrounds under four preset quality conditions: 5 strong accept, 25 accept, 40 borderline, and 30 reject. It comprises 60 
+
+single-author papers, 30 dual-author papers whose authors belong to the same area, and 10 dual-author papers with cross-area author pairs. Authors are sampled from the reviewer pool, producing 92 
+
+distinct author-reviewers. These papers, authors, and reviewer profiles are fixed across all behavioral worlds and runs. For each paper-reviewer pair, affinity is computed with all-MiniLM-L6-v2 [20]. We separately embed the title-and-abstract text of the submission and each representative publication in the reviewer profile, and define affinity as the maximum cosine similarity over that reviewer’s publications, as specified in Eq. (2). Each reviewer retains its top-20 non-COI papers as its bidding pool. 
+
+B.2 Reference-Quality Assessment 
+
+The quality-grading agent uses the same LLM backbone as the reviewer agents but receives an independent system prompt describing the role of a calibrated senior area chair. It evaluates papers comparatively from their titles and abstracts using the shared 1-10 rubric and is instructed to calibrate its scores against a conference acceptance rate of approximately 30% . The grader does not receive the papers’ preset quality conditions or any reviewer, bidding, assignment, or collusion information. Let Qp ∈ [1 , 10] denote the grader’s continuous assessment of paper p. These scores are generated freely by the LLM and are not constrained to follow a predetermined distribution. For analyses requiring categorical reference labels, we sort papers by Qp and apply fixed quantile thresholds: the top 5% are labeled strong accept, the next 25% accept, the next 40% borderline, and the remaining 15 Table 4: Prompt scaffold and selected behavior-defining excerpts. Runtime fields such as research areas, ring peers, and target-paper IDs are instantiated separately for each agent. Repeated paper formatting and JSON output instructions are omitted for clarity.          
+
+> Prompt component Content supplied to the agent
+> Shared prompt scaffold
+> Reviewer context Conference context and score calibration; the shared scoring rubric; the reviewer’s research areas; and three representative publication titles. Quality grader “You assess the quality of all submitted papers together, comparatively, based on their title and abstract. You must rank them and assign each a score that reflects the conference’s rigorous standards and acceptance rate.”
+> Behavior-specific policy
+> Honest reviewer “Evaluate papers based solely on their technical quality, originality, clarity, and significance . . . calibrate your scores honestly.”
+> Collusive bidding After receiving its ring peers and target-paper IDs, the agent is instructed: “You MUST bid ‘Very High’ on every paper in your ring’s target list. For all other papers, bid according to your genuine research expertise.”
+> Target reviewing Aggressive: “Give it a score STRICTLY ABOVE 6 . . . chosen as the highest score you can still defend from the paper’s content.”
+> Subtle: “Give it the HIGHEST score an honest, fair expert in your area could plausibly give . . . Keep your review plausible and do not mention the ring.”
+
+30% reject. Thus, the categorical labels follow the 5/25 /40 /30 distribution by construction, whereas the continuous scores remain unconstrained. Although the grader does not observe the preset generation conditions, its continuous assessments show substantial agreement with them (Pearson/Spearman = 0 .832 /0.828 ). Both the continuous scores and the derived labels are computed once and then fixed across all experimental runs. 
+
+B.3 Agent Prompting and Generation Configuration 
+
+Each agent prompt is assembled from a shared scaffold and a behavior-specific policy. The shared reviewer scaffold contains the conference context, the common 1-10 scoring rubric, the reviewer’s research areas, and three representative publication titles. The quality grader receives the same conference context and rubric, but an independent role description. Tab. 4 summarizes the prompt structure and shows the instructions that define the experimental behaviors. The shared scaffold is held fixed across honest and collusive worlds. Collusive agents additionally receive their ring membership and reviewer-specific target papers. Both aggressive and subtle agents receive the same target-bidding instruction; the two policies differ only in how they evaluate a target after being assigned to it. Subtle agents are further instructed to vary their language across ring papers so that coordination is not explicit in the review text. For bidding, papers are presented in chunks of ten and the agent must select one of five labels from Very Low to Very High. Assigned papers are reviewed in a batch using the shared rubric, with a numerical score and concise review requested for each paper. Bids and reviews are returned as structured JSON. Reviewer bidding and reviewing use temperature 0.4, while reference-quality grading uses tem-perature 0.2; all calls use deepseek-v4-flash with a maximum of 4096 output tokens. Invalid or incomplete outputs are retried. After the retry limit, missing bids are filled with Neutral and missing reviews with score 5; a failed batch review is first retried as separate single-paper calls. 
+
+B.4 Bidding and Assignment Implementation 
+
+Each reviewer bids on its top-20 non-COI papers using one of five ordinal labels. The matcher encodes these labels as Label Very Low Low Neutral High Very High 
+
+Bpj −100 −1 0 1 2
+
+16 Table 5: Realized ring-level reviewing strategies. Each entry reports the number of aggressive/subtle colluders. All members of the same ring share its assigned strategy.                   
+
+> Run r= 0 .2r= 0 .50042 -1 14 /422 /25 0042 -2 13 /624 /23 0042 -3 14 /418 /28 0921 12 /734 /13 1125 11 /725 /23 2024 7/11 21 /25 7777 9/10 20 /26
+
+and computes the base pairwise utility 
+
+upj = Apj + 2 Bpj .
+
+The Very Low value produces a strongly negative utility and is treated as a hard refusal. The greedy matcher processes papers according to the fixed reference-quality category order: strong accept, accept, borderline, and reject. These categories are obtained by ranking the continuous reference-quality scores ( Qp) and applying the fixed (5/25/40/30) quantile partition. Within each category, the matcher preserves the original input order. The resulting order is fixed across behavioral worlds and affects only when papers access scarce reviewer capacity; neither the category labels nor ( Qp)otherwise enter the assignment objective. Each paper receives three eligible reviewers. Every reviewer has a maximum load of five papers, and author-reviewers have a minimum service load of three. During matching, eligible author-reviewers below this minimum receive dominant priority until the obligation is satisfied; subsequent assignments follow the affinity-bid utility ranking. 
+
+B.5 Collusion Configurations and Repeated Runs 
+
+Collusion is restricted to the Na = 92 author-reviewers. For nominal rate r, the target number of colluders is 
+
+nc = ⌊rN a⌋ .
+
+Complete rings are retained during construction, so the realized number may differ slightly from this quota. Across the seven runs, the r = 0 .2 and r = 0 .5 conditions contain 18 .43 ± 0.49 and 
+
+46 .71 ± 0.70 colluders, respectively. Rings are greedily constructed as cliques in the mutual top-20 affinity graph defined in §3.2. The implementation produces rings containing two or three members. Each member’s targets are restricted to papers authored by other ring members that also occur in its own non-COI top-20 bidding pool. Each ring, rather than each individual reviewer, is independently assigned an aggressive or subtle target-reviewing strategy with equal probability. The realized strategy proportions therefore vary across runs. Tab. 5 reports the resulting numbers of aggressive and subtle colluders. We use five structural seeds, {0042 , 0921 , 1125 , 2024 , 7777 }. Seed 0042 is executed three times with the same structural configuration but independent LLM calls, yielding seven runs in total. The remaining seeds vary ring construction and ring-level reviewing-strategy assignment. Papers, reviewer profiles, reference-quality assessments, affinities, COI constraints, and matcher hyperparameters remain fixed. Reported means and standard deviations are computed over all seven runs. 
+
+C Additional Experimental Details 
+
+C.1 Data Provenance, Structure, and Release 
+
+The conference substrate is grounded in researcher profiles collected from public Semantic Scholar metadata. The resulting snapshot contains 140 pseudonymized researcher profiles across cs.LG (37 ), cs.CV ( 36 ), cs.CL ( 34 ), and cs.AI ( 33 ). Each profile records research areas and representative publications and is used to ground the expertise of one reviewer simulacrum. Among these profiles, 17 Public metadata 
+
+> Semantic Scholar researcher records
+> Frozen profiles
+> 140 real researchers profiles
+> Synthetic papers
+> 100 submissions 92 reviewer-authors
+> Fixed substrate
+> 14,000 affinities authorship and COIs
+> Reviewer personas
+> 140 per world honest or collusive
+> Bids
+> 2,800 per world five ordinal levels
+> Assignments
+> 300 per world three per paper
+> Reviews and metrics
+> 300 reviews per world multi-level outcomes
+
+Figure 5: Data provenance and artifact organization in CABAL . Public researcher metadata is collected into a frozen profile snapshot that grounds both reviewer expertise and synthetic submission generation. The conference substrate is held fixed across behavioral worlds, while personas, bids, assignments, reviews, and evaluation metrics are generated separately for each world. Orange denotes the restricted profile snapshot; blue denotes synthetic or derived artifacts that can be released after consistent identifier remapping and privacy review. 
+
+92 are selected as reviewer-authors and provide the research context from which the 100 synthetic submissions are generated. Thus, the reviewer and author profiles originate from real public meta-data, whereas the submissions, bids, assignments, and reviews are produced within the simulated conference. Fig. 5 shows how the collected profiles are transformed into the fixed conference substrate and world-specific behavioral artifacts. The raw profile snapshot is treated as restricted data because combinations of publication histories and research areas may permit re-identification, even when direct names are removed. Figs. 6 and 7 show schema-faithful excerpts from the corresponding JSON artifacts. Field names and nesting match the files used in our experiments. Values are shortened or replaced by descriptive placeholders for readability and privacy. In particular, publication titles, abstracts, institutions, and coauthor relations from collected profiles are not reproduced. 
+
+Artifact integrity checks. Before computing evaluation metrics, we verify referential consistency across the artifacts: every paper and reviewer identifier must resolve to the fixed conference substrate; conflicted paper-reviewer pairs must not appear in the assignment; every reviewer must produce 20 bids; every paper must receive three distinct reviewers; and every assigned pair must have exactly one corresponding review record. Under each behavioral condition, this yields 2,800 bids, 300 assignments, and 300 reviews. Matched worlds are additionally checked to ensure that they share the same profiles, submissions, affinity scores, and conflict-of-interest relations. 
+
+Responsible release. Although profile identifiers are pseudonymous, publication portfolios, in-stitutional affiliations, coauthor relations, and citation statistics can serve as quasi-identifiers. We therefore do not plan to publicly release the unaltered collected-profile snapshot. The public artifact package will retain the exact file schemas while replacing profile identifiers through a consistent random mapping and removing profile-derived identifying fields. Synthetic submissions, experi-mental configurations, and sanitized numerical bid, assignment, review, and metric records can be released under the same mapping. Free-text bid rationales and reviews will be audited to remove inadvertent references to identifiable profile information. This design supports recomputation of the reported statistics from sanitized run outputs, while intentionally separating such reproducibility from redistribution of the underlying real-world profiles. 
+
+C.2 Run-Level Assignment Access 
+
+We complement the aggregate assignment-access results with paired within-run tests. For each run and collusion rate, the binary assignment outcome M (c) 
+
+> pr
+
+for every support relation (r, p ) ∈ S is paired with the corresponding outcome M (h) 
+
+> pr
+
+in the matched all-honest world. The collusive condition produces a significant increase in targeted assignment access in every run under both r = 0 .2 and 
+
+r = 0 .5 (exact McNemar test, p < 0.05 ). We treat these tests as supplementary paired checks; the primary evidence is the large assignment-access effect and its consistency across all seven runs. 18 Collected profile: profiles_140.json 
+
+[{"profile_id": "U_<random_id>", "research_areas": ["cs.CV", "vision", "..."], "sub_areas": ["segmentation", "..."], "publications": [ {"title": "[withheld]", "abstract": "[withheld]", "venue": "[withheld]", "year": 2023, "keywords": ["vision", "..."], "venue_type": "conference", "citation_count": 120 }], "h_index_estimate": 12, "total_papers_estimate": 10, "institutions": ["[withheld]"], "coauthor_ids": ["U_<random_id>"], "source_type": "semantic_scholar", "source_timestamp": "2026-08-17T..." }]
+
+Synthetic submission: papers_graded.json 
+
+[{"paper_id": "P0001", "title": "[synthetic title]", "abstract": "[synthetic abstract]", "keywords": [ "video editing", "diffusion models", "reinforcement learning" ], "primary_area": "cs.CV", "preset_quality": "borderline", "author_type": "single", "author_profile_ids": ["U_<random_id>"], "generated_at": "2026-08-19T...", "generation_model": "llm", "quality": "borderline", "grader_score": 4.0, "grader_reasoning": "" }]
+
+Affinity matrix: affinity_100.json 
+
+{"model": "all-MiniLM-L6-v2", "num_papers": 100, "num_reviewers": 140, "num_scores": 14000, "affinity_stats": { "mean": 0.3341, "min": -1.0, "max": 0.7331 }, "scores": [ {"paper_id": "P0065", "reviewer_id": "U_<random_id>", "score": 0.7331 }]}
+
+Derived metrics: paper_level_metrics.json 
+
+{"target_score_deviation": 1.4094, "deviation_by_quality": { "strong_accept": 0.1944, "accept": -0.0870, "borderline": 1.6671, "reject": 0.8580 }, "n_target_papers": 26, "n_nontarget_papers": 74, "per_paper": { "P0001": { "avg_score": 2.83, "is_target": true, "quality": "borderline" }}}
+
+Figure 6: Representative JSON structures for the fixed conference substrate and derived paper-level outputs. The collected researcher profiles are based on real public metadata, whereas submission contents are synthetically generated. Profile values shown here are masked; field names and data types follow the experimental artifacts. 
+
+C.3 Target-Paper Score Inflation by Reviewer and Strategy 
+
+Tab. 6 decomposes target-paper score inflation at the reviewer level. Supporting ring members assign substantially higher scores to captured target papers than honest co-reviewers evaluating the same papers, yielding within-paper gaps of +2 .21 and +1 .99 points under r = 0 .2 and r = 0 .5,respectively. The strategy-specific results show that both collusive reviewing policies favor target papers. Aggres-sive reviewers assign average scores of 7.45 and 7.44 , whereas subtle reviewers assign 6.50 and 6.27 .The subtle policy therefore reduces, but does not eliminate, target favoritism. Because strategies are sampled at the ring level, their realized allocation varies across runs; the corresponding colluder counts are reported in Tab. 5. 19 Reviewer persona: personas.json 
+
+[{"reviewer_id": "U_<random_id>", "behavior_type": "collusion", "research_areas": ["cs.CL", "..."], "sample_publications": ["[withheld]", "..."], "stealth": "aggressive", "ring_id": "ring_A", "ring_peers": [ "U_<random_id>", "U_<random_id>" ], "target_paper_ids": [ "P0034", "P0042", "P0078" ], "target_description": "papers authored by ring members" }]
+
+Bid record: bids.json 
+
+{"bids": [ {"reviewer_id": "U_<random_id>", "paper_id": "P0042", "label": "Very High", "score": 2.0, "reasoning": "Strong match to my expertise." }]}
+
+Assignment record: assignments.json 
+
+{"metrics": { "total_assignments": 300, "papers_covered": 100, "global_avg_affinity": 0.4749 }"assignments": [ {"paper_id": "P0005", "reviewer_id": "U_<random_id>", "affinity": 0.4438, "bid_score": 2.0, "aggregate_score": 4.4438, "paper_quality": "strong_accept" }]}
+
+Review record: review_scores.json 
+
+{"review_stats": { "global": { "quality_score_correlation": 0.6915, "mean_score": 4.42, "std_score": 1.79 }}"scores": [ {"paper_id": "P0016", "reviewer_id": "U_<random_id>", "score": 7.0, "review_text": "[generated review]", "behavior_type": "honest", "affinity": 0.6253, "quality": "strong_accept" }]}
+
+Figure 7: Representative world-specific behavioral artifacts. Persona files encode the experimental behavior condition; bid, assignment, and review files record successive stages of the simulated conference pipeline. Text fields are shortened in the illustration, while numerical fields retain their original types and scales. 
+
+C.4 Metrics for Conference-Wide Effects 
+
+Let N = |P| = 100 . Since each paper receives three reviews, every run contains 3N = 300 assigned reviewer-paper pairs. The conference-wide mean review score in world z is 
+
+μ(z) = 13N
+
+X
+
+> p∈P
+
+X
+
+> j∈R
+
+M (z) 
+
+> pj
+
+Y (z) 
+
+> pj
+
+. (8) The fraction of reviews above the acceptance-level score threshold is 
+
+π(z) = 13N
+
+X
+
+> p∈P
+
+X
+
+> j∈R
+
+M (z) 
+
+> pj
+
+I
+
+h
+
+Y (z) 
+
+> pj
+
+> 5.5
+
+i
+
+. (9) This quantity describes the prevalence of favorable individual evaluations; it does not represent the conference’s final paper acceptance rate. For each paper, we compute the mean of its three assigned reviews as 
+
+Y (z) 
+
+> p
+
+= 13
+
+X
+
+> j∈R
+
+M (z) 
+
+> pj
+
+Y (z) 
+
+> pj
+
+. (10) 20 Table 6: Reviewer-level evidence of target-paper score inflation. Values summarize the scores assigned to captured target papers. The within-paper gap compares supporting ring members with honest co-reviewers evaluating the same papers. Aggressive and subtle columns report the corre-sponding strategy-specific supporter scores. 
+
+Scenario All supporters Honest co-reviewers Within-paper gap Aggressive supporters Subtle supporters 
+
+r = 0 .2 7.11 4.90 +2 .21 7.45 6.50 
+
+r = 0 .5 6.83 4.83 +1 .99 7.44 6.27    
+
+> Notes. Scores use the shared 1-10 rubric. “All supporters” combines aggressive and subtle ring reviewers. Strategy-specific columns report supporter scores only; the within-paper gap is computed for all supporting reviewers against honest co-reviewers on the same captured papers.
+
+Quality alignment is then evaluated by the Pearson correlation 
+
+ρ(z)P = corr 
+
+
+
+{Qp}p∈P , {Y (z) 
+
+> p
+
+}p∈P 
+
+
+
+(11) and the Spearman rank correlation 
+
+ρ(z)S = corr 
+
+
+
+{rank( Qp)}p∈P , {rank( Y (z) 
+
+> p
+
+)}p∈P 
+
+
+
+. (12) Finally, let TopK( x) denote the indices of the K largest entries in vector x. The top-30 overlap is 
+
+O(z)30 = TopK 30 ({Qp}p∈P ) ∩ TopK 30 
+
+
+
+{Y (z) 
+
+> p
+
+}p∈P 
+
+
+
+. (13) All five metrics are computed separately for each run and behavioral condition. Tab. 2 reports their mean and standard deviation over the seven runs. 
+
+D Detector Evaluation Details 
+
+D.1 Evaluation Goal and Experimental Logic 
+
+This evaluation asks a deliberately scoped question: given only the bidding and authorship information available at the end of the bidding phase, do representative bid-based detectors recover the reviewers and rings generated by CABAL ? Our goal is not to establish that CABAL is undetectable in general. Instead, we test whether its behavior produces the specific malicious-bidding signatures assumed by existing detector families. All detectors operate without access to the realized colluder identities, ring memberships, target-paper annotations, reviewer assignments, or review scores. Depending on the method, the observable bids are represented in one of three ways: as reviewer-level bidding vectors, as a reviewer-reviewer bid-author graph, or as a reviewer-paper bipartite graph. These representations correspond to different detection hypotheses. Reviewer-level methods search for individually anomalous bidding profiles; bid-author graph methods search for an unusually dense group of reviewers who bid on one another’s papers, and the bipartite method searches for a group of reviewers whose bids concentrate on a common set of papers. The first family returns a ranking of all reviewers, whereas the latter two return one suspicious reviewer set. The methods therefore do not form a single interchangeable leaderboard and must be evaluated according to their respective outputs. The common evaluation pipeline is [ bids and authorship −→ detector-specific representation −→ 
+
+reviewer ranking or suspicious set −→ comparison with the realized collusion structure ] Ground-truth colluder and ring labels enter only in the final comparison. For each collusive condition, we first measure how well the detector output recovers the realized colluders. We then apply the same detector to the all-honest reference world and track the reviewers who are designated as colluders in the corresponding collusive condition. This second comparison asks whether their apparent suspi-ciousness is induced by collusive behavior or is already present in benign affinity-driven bidding and co-authorship structure. The two comparisons provide complementary evidence. Recovery in the collusive world characterizes what a detector would flag from the observed bids, while the honest-world comparison diagnoses 21 Table 7: Detector families and prior assumptions. Each detector operationalizes a different malicious-bidding signature. The final column states the diagnostic question evaluated on CABAL ;it is not an additional input to the detector.                                     
+
+> Detector Input / output Assumed malicious signature Diagnostic question for CABAL
+> Reviewer-level ranking: individual bidding anomalies Counting
+> simple_detect
+> Ternary reviewer-paper bids; reviewer ranking Many negative bids, with positive bids concentrated on a small target set Does CABAL resemble a rejection-style target-seeking attack?
+> Pairwise reciprocity
+> cluster_detect
+> Ternary bids and authorship; reviewer ranking A reviewer pair bids positively on each other’s papers while showing limited interest elsewhere Does collusion add reciprocal interest be-yond that induced by benign mutual affin-ity?
+> Low-rank residual
+> low_rank_detect
+> Ternary reviewer-paper ma-trix; reviewer ranking A malicious reviewer’s bid vector devi-ates from the matrix’s low-rank prefer-ence structure Does target-bid inflation create areviewer-level matrix anomaly?
+> Bid-author graph: anomalously dense reviewer groups OQC-Greedy Directed bid-author graph; one reviewer set A ring has more internal bid-author edges than expected under a fixed back-ground density Does CABAL form a quasi-clique recov-erable along a degree-peeling sequence?
+> OQC-Local Directed bid-author graph; one reviewer set The same excess-density structure ap-pears as a local optimum in the graph Can local search isolate a CABAL ring from the surrounding affinity graph?
+> TellTail Mutual bid-author graph; one reviewer set Mutual bids are unexpectedly concen-trated after accounting for reviewer de-gree Does CABAL reciprocity remain anomalous after controlling for bidding activity?
+> Greedy densest sub-graph
+> Directed bid-author graph; one reviewer set Colluders occupy the graph region with the highest average internal connectiv-ity Do the distributed CABAL rings form the dominant dense core?
+> Reviewer-paper bipartite graph: coordinated targeting blocks Fraudar Thresholded reviewer-paper graph; one reviewer-paper block A reviewer group concentrates bids on the same relatively unpopular papers Do CABAL bids form acommon coordinated-targeting block rather than dispersed small blocks?
+
+whether that output is specific to the behavioral intervention. The honest world is an experimental reference rather than an input available to a deployed detector, and the two worlds are generated separately rather than forming a bid-by-bid counterfactual pair. Accordingly, we interpret the results as a stress test of the evaluated detector-representation combinations, not as a claim of general or deployment-level undetectability. 
+
+D.2 Common Data and Reference Worlds 
+
+The detector study uses the fixed conference substrate introduced in §4.1: 140 reviewers and 100 papers spanning four areas of computer science, including 92 author-reviewers. Reviewer and paper identities, authorship, affinities, conflicts, and each reviewer’s top-20 non-conflict bidding pool are shared across behavioral worlds. Because bids are submitted only within these pools, the observed reviewer-paper matrix is sparse. And the unsubmitted entry is not an observed Neutral bid. We evaluate one saved triplet comprising an all-honest world and two collusive worlds. The r = 0 .2
+
+instance contains 18 colluders in eight rings, while the r = 0 .5 instance contains 47 colluders in 20 rings. All rings contain two or three reviewers and are constructed from mutual expertise affinity. Colluders assign the strongest interest category to eligible papers written by their ring partners and otherwise continue to bid by expertise. The reported detector results characterize this fixed triplet rather than an average over the seven lifecycle runs in the main evaluation. Moreover, the worlds are generated by separate LLM calls, so non-target bids are not held identical. We therefore treat the all-honest world as a structural reference, not as a strict bid-level counterfactual. 
+
+D.3 Detector Families and Their Prior Assumptions 
+
+We organize the eight evaluated detectors by the behavioral structure they assume an attack will produce. The reviewer-level methods adapted from Jecmen et al. [12] look for anomalous individual bidding profiles. The ring-detection methods adapted from Jecmen et al. [14] instead search for a dense reviewer group or a dense reviewer-paper block. Tab. 7 makes these assumptions explicit and states the corresponding question each method poses about CABAL .22 Two distinctions are important for interpreting the later results. First, despite its implementation name, cluster_detect scores reviewer pairs and converts the maximum pair score into a reviewer ranking; it does not return a recovered cluster. Second, Fraudar does not use the bid-author graph or paper authorship, but operates directly on the reviewer-paper bipartite graph. OQC, TellTail, Greedy Densest Subgraph, and Fraudar each return one suspicious set per run, even though CABAL 
+
+distributes colluders across multiple small rings. Performance must therefore be read as evidence about the particular signature and output structure assumed by each detector, rather than as a generic test of whether any evidence of collusion exists. 
+
+D.4 Aligning CABAL with Detector Inputs 
+
+The source detectors expect input representations that differ from CABAL ’s sparse, five-level bids. We therefore construct a separate input view for each detector family. These transformations are part of the evaluated detector configuration and are made explicit because they determine which attack signals remain visible. 
+
+Reviewer-paper ternary matrix. For the reviewer-level ranking detectors, we map the five bid levels to the ternary representation expected by the source methods: 
+
+eBjp =
+
+
+
+1, Bpj ∈ { High , Very High },
+
+0, Bpj = Neutral ,
+
+−1, Bpj ∈ { Low , Very Low }.
+
+We additionally fill unsubmitted entries with −1 and set authorship-conflict entries to zero. The former is solely a dense-input adaptation and should not be interpreted as an observed negative bid. Counting, Pairwise Reciprocity, and Low-rank Residual are each applied once to the full 140 × 100 
+
+reviewer-paper matrix. Pairwise Reciprocity also uses authorship information; for reviewer pairs in which either reviewer authors multiple papers, we evaluate all combinations of their authored papers and retain the maximum pairwise score. Low-rank Residual retains the first three singular components and sums the absolute reconstruction residual over each reviewer’s row. 
+
+Bid-author graph. For graph-based detectors, we first threshold the original bid matrix as 
+
+X(τ ) 
+
+> jp
+
+= I[Bjp ≥ τ ] , τ ∈ { 1, 2},
+
+where τ = 1 retains High and Very High bids, while τ = 2 retains only Very High bids. Let Ypk = 1 
+
+indicate that reviewer k is an author of paper p. We then construct the directed reviewer graph 
+
+G(τ ) 
+
+> jk
+
+= I
+
+"X
+
+> p
+
+X(τ ) 
+
+> jp
+
+Ypk > 0
+
+#
+
+, G(τ ) 
+
+> jj
+
+= 0 .
+
+Thus, j → k records that reviewer j positively bids on at least one paper authored by reviewer k;multiple such papers do not increase the binary edge weight. The τ = 1 view corresponds to the original positive-bid semantics, whereas τ = 2 provides a diagnostic view of CABAL ’s strongest target-bid signal. OQC and Greedy Densest Subgraph operate on the directed graph, whereas TellTail retains only mutual edges through G(τ ) ⊙ (G(τ ))⊤.
+
+Reviewer-paper bipartite graph. Fraudar receives the thresholded matrix X(τ ) directly and does not use the authorship projection. Its two node types are reviewers and papers. To reduce the influence of papers attracting many positive bids, a paper with degree dp = P 
+
+> j
+
+X(τ ) 
+
+> jp
+
+receives weight 
+
+1/ log( dp + 5) . Fraudar then searches for a dense weighted reviewer-paper block and returns the reviewer side of that block for evaluation. 
+
+Implementation-specific adaptations. Following the source method, we set α = 1 /3 for both OQC variants. OQC-Local and TellTail evaluate one heuristic initialization together with ten random initializations per invocation. The source Densest Subgraph implementation uses an exact linear program requiring a commercial solver; we therefore use a greedy degree-peeling approximation and refer to it as Greedy Densest Subgraph. Repetition and aggregation of stochastic detector outputs are specified in §D.5. 23 D.5 Evaluation Measures and Reporting Conventions 
+
+Let C denote all realized colluders in a collusive world and {R g } their ring partition. Because the detector families return different objects, we evaluate reviewer rankings and suspicious sets separately. 
+
+Reviewer-ranking outputs. A ranking detector D assigns every reviewer a suspiciousness ordering. We normalize each zero-based position by the number of reviewers and write it as r(z) 
+
+> D
+
+(j) for reviewer 
+
+j in world z ∈ { h, c }. Lower values indicate greater suspiciousness, and the expected mean rank under a random ordering is approximately 0.5. For the designated colluders, we report the mean rank in the honest and collusive worlds, 
+
+¯r(z) 
+
+> D
+
+= 1
+
+|C| 
+
+X
+
+> j∈C
+
+r(z) 
+
+> D
+
+(j), ∆rD = ¯ r(c) 
+
+> D
+
+− ¯r(h) 
+
+> D
+
+.
+
+Results are displayed as ¯r(h) 
+
+> D
+
+→ ¯r(c) 
+
+> D
+
+, with ∆rD in parentheses. A negative change means that the designated colluders move toward the suspicious end under collusion. We also report Top-K hit, 
+
+Hit@K D = | TopK (c) 
+
+> D
+
+∩C| |C| , K = |C| ,
+
+which measures how many colluders occur among the K most suspicious reviewers. The raw rank describes absolute prioritization by the detector, whereas ∆rD asks whether collusion creates additional suspiciousness. 
+
+Set-valued outputs. For OQC, TellTail, Greedy Densest Subgraph, and Fraudar, let S be the returned reviewer set. We report the number of recovered colluders q = |S ∩ C| together with the number of flagged reviewers m = |S|. The results tables present this pair directly as q/m (recovered / flagged), followed by 
+
+Precision( S) = qm , Recall( S) = q
+
+|C| .
+
+Precision measures localization, whereas recall measures coverage of the distributed collusive population. To determine whether a detector recovers at least one local ring despite low global recall, we additionally compute 
+
+BestRing( S) = max 
+
+> g
+
+|S ∩ R g ||R g | .
+
+We also compare recall with the expected coverage of a uniformly random set of the same size, 
+
+m/ 140 ; this prevents a broad output from appearing effective solely because it flags much of the reviewer pool. 
+
+Honest-world reference. Each method is run on the all-honest instance, using the same reviewer IDs in C as a reference group. For a set-valued detector, we display the mean overlap as |S(h) ∩ C| → |S(c) ∩ C| and define 
+
+∆overlap = |S(c) ∩ C| − | S(h) ∩ C| .
+
+Raw ranks and recovery metrics describe the detector output in the collusive world. Cross-world changes instead diagnose whether the same reviewers were already prioritized by benign structure; they are not inputs to the detector or deployable performance measures. 
+
+Repetition and aggregation. The ranking methods are deterministic and are each applied once to the full matrix. Set-valued methods are invoked 30 times on each fixed input graph. OQC-Local and TellTail may return different local optima, so their set sizes and recovery metrics are averaged over these invocations. OQC-Greedy, Greedy Densest Subgraph, and Fraudar are deterministic and therefore repeat the same output. These 30 invocations measure detector-optimization variability, not variation across independently generated conference instances. 
+
+D.6 Results by Detector Family D.6.1 Reviewer-Level Bidding Anomalies 
+
+Tab. 8 reports both the colluders’ absolute positions in the honest and collusive rankings and their change between worlds. Showing the two ranks is essential: a detector may prioritize the designated 24 Table 8: Reviewer-level ranking results. For each collusion rate, entries report the designated reviewers’ mean normalized rank as honest → collusive, with ∆r in parentheses. Lower ranks indicate greater suspiciousness, and 0.5 is the random-ranking reference. Top-K hit (r = .2/. 5) hit is evaluated in the collusive world with K = |C| .
+
+Detector r = 0 .2: Honest → Collusive r = 0 .5: Honest → Collusive Top-K hit 
+
+Reviewer-level anomaly ranking Counting .551 → .605 (+ .054) .579 → .604 (+ .025) .11 /. 11 
+
+Pairwise reciprocity .292 → .287 ( −.005) .346 → .332 ( −.014) .11 /. 49 
+
+Low-rank residual .463 → .431 ( −.032) .484 → .460 ( −.024) .17 /. 40 
+
+Table 9: Bid-author graph recovery. “Rec./flag.” reports mean recovered colluders |S ∩ C| followed by mean flagged reviewers |S|. “Prec./rec.” reports precision and global recall. Honest → collusive gives the detector’s overlap with the designated reviewers in the two worlds. Stochastic outputs are averaged over 30 detector invocations on the fixed graph.                                                                                                       
+
+> r= 0 .2(|C| = 18 )r= 0 .5(|C| = 47 )Detector Rec./flag. Prec./rec. H→C overlap Rec./flag. Prec./rec. H→C overlap
+> Native positive-bid graph: τ= 1 (High or Very High)
+> OQC-Greedy 2.0/19 .0.105 /. 111 3.0→2.012 .0/20 .0.600 /. 255 14 .0→12 .0
+> OQC-Local 2.0/18 .7.109 /. 113 2.0→2.012 .2/20 .0.610 /. 260 12 .3→12 .2
+> TellTail 2.0/15 .0.133 /. 111 2.0→2.012 .3/16 .7.741 /. 262 12 .0→12 .3
+> Greedy Densest Subgraph 16 .0/89 .0.180 /. 889 17 .0→16 .042 .0/77 .0.545 /. 894 43 .0→42 .0
+> Diagnostic Very-High-only graph: τ= 2
+> OQC-Greedy 3.0/8.0.375 /. 167 2.0→3.06.0/7.0.857 /. 128 6.0→6.0
+> OQC-Local 1.0/8.0.125 /. 056 2.0→1.06.0/8.0.750 /. 128 5.0→6.0
+> TellTail 3.2/4.2.753 /. 178 2.0→3.25.9/7.4.874 /. 126 4.0→5.9
+> Greedy Densest Subgraph 8.0/35 .0.229 /. 444 2.0→8.010 .0/16 .0.625 /. 213 12 .0→10 .0
+
+reviewers in the collusive world because they were already unusual under honest bidding, rather than because their collusive behavior creates a new signal. Counting becomes less suspicious under collusion because its prior is directionally mismatched to CABAL . The method expects malicious reviewers to reject broadly and reserve positive bids for a few targets, whereas CABAL adds Very High target bids without replacing expertise-based non-target behavior. Pairwise Reciprocity illustrates why absolute detection scores alone are insufficient. Under r = 0 .2,the designated reviewers already have a mean rank of .292 when honest and move only to .287 when colluding. Likewise, its Top-K hit reaches .49 under r = 0 .5, but the mean-rank change remains only −.014 . The detector is finding a real reciprocal structure, but that structure largely predates the attack because CABAL selects rings from mutual affinity neighborhoods. Low-rank Residual is the only ranking method with a consistently negative change, but the shifts are small ( −.032 and −.024 ) and depend on the dense encoding of unsubmitted bids. The result supports a weak global perturbation of the bidding matrix, not clean reviewer-level identification. 
+
+D.6.2 Dense Groups in the Bid-Author Graph 
+
+Tab. 9 separates localization from coverage by showing the recovered and flagged counts directly. It also shows whether the same designated reviewers were already selected in the honest-world graph. 
+
+Native positive-bid view. At τ = 1 , OQC-Greedy, OQC-Local, and TellTail return sets of 15-20 reviewers. Under r = 0 .2, each recovers only about two of the 18 colluders. Under r = 0 .5, their precision rises to .600 -.741 , but they recover only about 12 of 47 colluders. More importantly, their honest-to-collusive overlaps are nearly unchanged or decrease: for example, OQC-Greedy moves from 14 to 12 designated reviewers. The positive-bid graph therefore contains groups that overlap with eventual colluders, but much of that structure is already induced by honest affinity-based bidding. 25 Table 10: Fraudar reviewer-paper block recovery. Fraudar returns a reviewer-paper block; the table evaluates its reviewer side. Notation follows Tab. 9.                                          
+
+> Input view r= 0 .2(|C| = 18 )r= 0 .5(|C| = 47 )Rec./flag. Prec./rec. H→C overlap Rec./flag. Prec./rec. H→C overlap
+> Native positive-bid view
+> τ= 1 (Positive-bids) 15 .0/97 .0.155 /. 833 13 .0→15 .041 .0/101 .0.406 /. 872 36 .0→41 .0
+> Very-High-only diagnostic view
+> τ= 2 (Very High only) 6.0/36 .0.167 /. 333 2.0→6.09.0/21 .0.429 /. 191 4.0→9.0
+
+Greedy Densest Subgraph displays a different failure mode. It recovers 16 of 18 and 42 of 47 colluders, but does so by flagging 89 and 77 of the 140 reviewers. Its honest-world overlaps are even larger (17 and 43). High recall here reflects selection of a broad background graph core rather than precise localization of the planted rings. 
+
+Diagnostic Very-High-only view. At τ = 2 , removing ordinary High-bid edges exposes smaller structures. TellTail returns only 4.2 and 7.4 reviewers on average, of whom 3.2 and 5.9 are colluders, yielding precision .753 and .874 . It attains BestRing = 1 at both rates, showing that its output contains at least one complete ring. OQC-Greedy similarly recovers a complete ring, and at r = 0 .5
+
+identifies six colluders among seven flagged reviewers. These local successes nevertheless cover only 0.126 -0.178 of the full collusive population. Moreover, high absolute precision does not always represent an attack-induced change: OQC-Greedy selects six designated reviewers in both the honest and collusive r = 0 .5 comparisons. Greedy Densest Subgraph again produces broader outputs. Its overlap increases from two to eight reviewers under r = 0 .2, but decreases from 12 to 10 under r = 0 .5. The threshold reveals some local Very-High-bid structure, but does not yield a consistent global dense core across collusion rates. 
+
+D.6.3 Coordinated Reviewer-Paper Blocks 
+
+Fraudar evaluates a different structural hypothesis from the bid-author methods. Tab. 10 reports whether colluders form a dominant dense block in the thresholded reviewer-paper graph. On the native τ = 1 input, Fraudar recovers most colluders but flags 97 and 101 reviewers, corre-sponding to roughly 69-72% of the full reviewer pool. Its recall is therefore high ( .833 /. 872 ), but the output is only about 1.2× as enriched as a uniformly random set of the same size. As with the broad densest-subgraph outputs, this is coverage without useful localization. The τ = 2 view reduces the detected blocks to 36 and 21 reviewers and increases honest-to-collusive overlap from 2 → 6 and 4 → 9. This indicates that Very High target bids create a visible bipartite signal. The signal remains incomplete, however: precision is .167 /. 429 and global recall is .333 /. 191 .CABAL’s targets are distributed across many small rings rather than concentrated in one common reviewer-paper block, so Fraudar does not cleanly isolate the full collusive population. 
+
+D.7 What the Experiment Reveals Detectability depends on the assumed attack mechanism. The Counting result is not evidence that all individual-level evidence is absent; it shows that a rejection-style prior is directionally mismatched to CABAL ’s bid-inflation policy. Low-rank Residual detects a small global change under one dense encoding, while Pairwise Reciprocity detects reviewer pairs that are already unusual under honest bidding. The three ranking methods fail for different reasons and should not be summarized as a single negative result. 
+
+Benign affinity confounds ordinary positive-bid structure. Both Pairwise Reciprocity and the 
+
+τ = 1 bid-author graph expose the main identification challenge. Because CABAL constructs rings from mutual expertise affinity, its members can legitimately express interest in one another’s papers. Thresholding High and Very High bids into the same binary edge further removes the distinction between ordinary expertise-based interest and the strongest target bids. Consequently, a detector can rank or select colluders without observing a meaningful change when those reviewers become collusive. 26 Very High bids expose a local, representation-dependent signal. The τ = 2 view removes much of the positive-bid background and allows TellTail and OQC-Greedy to recover at least one complete small ring with high precision. Fraudar also exhibits a larger honest-to-collusive overlap on this view. This finding rules out the stronger claim that CABAL leaves no detectable bidding footprint. However, τ = 2 is an attack-informed diagnostic projection rather than the native positive-bid input of the source methods, and its signal does not produce high global coverage. 
+
+Detector output structure limits multi-ring recovery. Each graph or bipartite method returns one suspicious block, while CABAL distributes 18 or 47 colluders across eight or 20 rings. Methods that isolate one local ring therefore achieve high precision but low global recall. Methods that cover most colluders instead return sets containing a large fraction of the reviewer pool. The observed precision-coverage trade-off reflects both the bidding signal and a mismatch between single-block detector outputs and a distributed multi-ring attack. Taken together, the results support a narrower conclusion than general undetectability: CABAL 
+
+leaves fragmented, locally detectable signals, but the evaluated detector-input combinations do not cleanly separate its distributed collusive population from benign affinity structure. This conclusion is limited to the fixed bidding triplet, the input adaptations in §D.4, and detector-level restarts rather than independent conference replications. The honest-world comparisons remain experimental diagnostics, not deployable detector inputs or strictly paired causal estimates. 
+
+E Discussion 
+
+Detection should be pathway-aware. Because CABAL constructs rings from mutual expertise affinity, colluders target papers on which they could plausibly express interest under honest behavior. Positive bids and reciprocal bid-author patterns are therefore not sufficient evidence of collusion. Consistent with this construction, our detector comparison shows that native bid graphs confound attack-induced structure with benign affinity, while the conference-wide score footprint remains modest. Effective auditing may instead need to condition bidding patterns on expected expertise and then examine whether suspicious relations convert disproportionately into reciprocal assignments and systematically divergent target-paper evaluations. Combining evidence across bidding, assignment, and reviewing may provide more informative signals than isolated bid anomalies, although such signals should trigger further investigation rather than serve as direct evidence of misconduct. 
+
+Assignment should be treated as an integrity-critical mechanism. Our results show that coor-dinated bids can substantially increase target-paper access, after which biased reviewing produces the largest downstream effects. Defenses should therefore act before or during assignment, rather than relying only on post-hoc review anomalies. Possible directions include limiting the determin-istic influence of bids, introducing controlled randomization, constraining suspicious reciprocal assignments, and monitoring unusually high bid-to-assignment conversion within connected reviewer groups. These interventions must nevertheless preserve legitimate expertise-based bidding and avoid penalizing tightly connected research communities. CABAL provides a controlled setting for jointly comparing manipulation resistance, assignment quality, reviewer workload, and false-positive risks across such mechanisms. 
+
+F Limitation 
+
+CABAL is designed as a controlled stress-testing framework rather than a faithful replica of every real-world conference. The current evaluation uses synthetic submissions, LLM-based reviewer simulacra and reference assessments, and a fixed conference configuration with a lightweight assignment mechanism. These design choices enable controlled comparisons across behavioral worlds, but they do not fully capture the heterogeneity of human reviewers, operational assignment systems, or broader forms of strategic behavior. Our findings should therefore be interpreted as evidence about how expertise-grounded collusive bidding can propagate through the modeled bidding–assignment– reviewing pathway, rather than as estimates of real-world prevalence or guarantees about detectability in deployment. 
+
+Future work. Future work will extend CABAL by validating its findings across additional model families, human quality assessments, and richer paper representations; integrating production-oriented assignment algorithms and a wider range of conference scales and bidding policies; and studying 27 larger, adaptive, and multi-stage collusion strategies. Extending the simulation to discussion, rebuttal, meta-review, and final decision stages would also enable a more complete account of downstream effects. These directions would strengthen the framework’s external validity and support systematic comparisons of assignment defenses and collusion-detection methods under more diverse operational conditions. 
+
+G Broader Impacts 
+
+Potential benefits. CABAL provides a controlled environment for studying how strategic bidding can affect reviewer assignment and downstream evaluation. It may help conference organizers identify vulnerabilities before deployment, compare manipulation-resistant assignment mechanisms, and develop auditing procedures that improve the integrity and trustworthiness of scientific peer review. More broadly, the framework supports reproducible research on peer-review security without requiring experiments on an active conference. 
+
+Risks and mitigations. The same simulations could be misused to refine collusive strategies or search for behaviors that evade existing detectors. Automated detection also carries a risk of falsely implicating legitimate reviewers, particularly in small or closely connected research communities where reciprocal expertise and bidding patterns arise naturally. Moreover, applying such methods to real bidding or review data would raise privacy and governance concerns. CABAL should therefore be treated as a defensive stress-testing tool rather than an operational basis for accusing or sanctioning individuals. Any deployment should protect confidential conference data, use multiple sources of evidence, audit detector performance across research communities, and retain human oversight for all consequential decisions. Where attack artifacts are released, their scope and level of operational detail should be limited to what is necessary for reproducible defensive evaluation. 28

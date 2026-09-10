@@ -1,0 +1,744 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-10T21:47:46.664335+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 6,
+    "deep_cap": 7,
+    "deep_selected": 6,
+    "quick_candidates": 26,
+    "quick_skim_target": 12,
+    "quick_selected": 12
+  },
+  "deep_dive": [
+    {
+      "id": "2609.08747v1",
+      "source": "arxiv",
+      "title": "MemSentry: A Framework for Detecting Persistent Memory Poisoning in Agentic AI",
+      "abstract": "Agentic AI systems with persistent memory introduce a distinct attack surface known as memory poisoning, in which adversarially crafted content is stored in long-term memory and subsequently influences future agent behavior. Such attacks can suppress security alerts, facilitate privilege escalation, alter trust relationships, or override security policies without modifying the underlying model weights or system prompts. To address this threat, we present MemSentry, a formal, configuration-driven framework that intercepts proposed persistent-memory writes and produces deterministic Accept, Review, or Quarantine decisions. MemSentry evaluates each write by jointly considering source trust, semantic risk, attack radius over a component-dependency DAG, access risk, and a signed security-state delta that captures whether an operation weakens or strengthens the system's security posture. We instantiate the protected environment using a 20-asset random dependency DAG and a 10 x 20 user access-control matrix, and evaluate the framework over 1,000 GPT-4-generated scenarios using a stratified 70/30 train/test split. Semantic classification is treated as a pluggable component rather than a primary contribution, and we compare four representative approaches: rule-based Regex, TF-IDF+SVM, SBERT+LR, and SetFit. SBERT+LR achieves the best overall performance with 91.7% accuracy and a 0.908 macro-F1 score, while all four methods detect 100% of external quarantine-class threats. For verified insiders, where source trust is maximal (T = 1), MemSentry does not automatically quarantine suspicious operations but instead escalates potentially dangerous writes for human review, making semantic classification important for accurately capturing insider intent.",
+      "authors": [
+        "Ayan Roy",
+        "Kaustuvi Basu"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR"
+      ],
+      "published": "2026-09-08T13:40:13+00:00",
+      "link": "https://arxiv.org/pdf/2609.08747v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "detecting persistent memory poisoning and quarantining malicious writes",
+      "llm_evidence_cn": "检测持久记忆投毒并隔离恶意写入",
+      "llm_evidence": "检测持久记忆投毒并隔离恶意写入",
+      "canonical_evidence": "检测持久记忆投毒并隔离恶意写入",
+      "llm_tldr_en": "Presents MemSentry, a configuration-driven defense that intercepts persistent-memory writes in agentic AI and issues deterministic Accept, Review, or Quarantine decisions using source trust, semantic risk, and attack radius.",
+      "llm_tldr_cn": "该论文针对带持久记忆的智能体AI引入记忆投毒这一新型攻击面、攻击者将恶意内容写入长期记忆即可影响后续行为甚至压制告警与提升权限的问题，提出配置驱动的MemSentry框架，拦截持久记忆写入并结合来源可信度、语义风险与组件依赖的攻击半径做出确定性决策。实验验证其能有效检测并遏制记忆投毒与信任关系篡改。为智能体AI持久记忆安全提供了可配置的防御与阻断方案。",
+      "llm_tldr": "该论文针对带持久记忆的智能体AI引入记忆投毒这一新型攻击面、攻击者将恶意内容写入长期记忆即可影响后续行为甚至压制告警与提升权限的问题，提出配置驱动的MemSentry框架，拦截持久记忆写入并结合来源可信度、语义风险与组件依赖的攻击半径做出确定性决策。实验验证其能有效检测并遏制记忆投毒与信任关系篡改。为智能体AI持久记忆安全提供了可配置的防御与阻断方案。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "defense mechanisms for multi-agent security",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.09875v1",
+      "source": "arxiv",
+      "title": "AgentAudit: An Open, Extensible Framework for Full-Lifecycle Trust Evaluation of AI Agents",
+      "abstract": "Existing evaluation frameworks mostly assess only one part of AI agents, such as task completion (AgentBench) or security robustness (AgentDojo, ASB), rather than the complete pipeline of planning, tool selection, tool execution, memory and reasoning. Failures can occur at any stage, yet existing benchmarks rarely identify their precise source. AgentAudit evaluates the entire execution trace across ten capability, grounding, security and behavioural dimensions, namely instruction integrity, planner, memory, tool selection, tool invocation, tool correctness, alignment, tool faithfulness, security and execution integrity, combined with behavioural classification and failure attribution to pinpoint the exact stage responsible for an observed failure. AgentAudit can evaluate any LLM-based AI agent, since it attaches to the agent instead of replacing it. It reads only the recorded execution trace and does not interfere with how the agent runs, so it places no constraint on the agent's internal implementation. We evaluate five language models (OpenAI GPT-5, Claude Sonnet 5, Sarvam 105B, Llama 3.3 70B and Gemini 2.5 Flash) across nine capability and adversarial tasks. Claude Sonnet 5 and GPT-5 obtain the highest mean Composite Trust Scores (95.1 and 80.6 out of 100, respectively), while Sarvam 105B, Llama 3.3 70B and Gemini 2.5 Flash trail substantially (57.6, 45.7 and 22.6). All traces were scored by a single fixed judge model, which was itself one of the evaluated models, a limitation discussed in Section VII.E. More importantly, models with similar task-completion behaviour can diverge sharply in trustworthiness, as several non-frontier models are repeatedly classified Unsafe_Compliance on adversarial tasks rather than merely failing them, a distinction that pass/fail benchmarks cannot surface.",
+      "authors": [
+        "Shrey Nag",
+        "Sachita",
+        "Abhishek Kumar Singh",
+        "Lipi Goel",
+        "Rajeshwar Singh Janwar"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-09T08:29:16+00:00",
+      "link": "https://arxiv.org/pdf/2609.09875v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "full-trace failure attribution and compliance auditing for AI agents",
+      "llm_evidence_cn": "面向AI智能体的全轨迹失败归因与合规审计",
+      "llm_evidence": "面向AI智能体的全轨迹失败归因与合规审计",
+      "canonical_evidence": "面向AI智能体的全轨迹失败归因与合规审计",
+      "llm_tldr_en": "AgentAudit is an open framework that evaluates the entire agent execution trace across ten capability, grounding, security and behavioural dimensions and performs failure attribution to pinpoint the exact stage causing an abnormal output.",
+      "llm_tldr_cn": "现有评测框架只考察任务完成或安全鲁棒等单一环节，难以覆盖规划、工具选择与执行、记忆与推理的完整流程，也很少定位失败发生的精确来源。本文提出AgentAudit框架，沿完整执行轨迹在指令完整性、规划器、记忆、工具选择与调用、对齐、安全等十个维度评测，并结合行为分类与失败归因。该框架能精准定位造成异常输出的具体阶段，为智能体的错误定位、合规审计与全生命周期可信评估提供了统一工具。",
+      "llm_tldr": "现有评测框架只考察任务完成或安全鲁棒等单一环节，难以覆盖规划、工具选择与执行、记忆与推理的完整流程，也很少定位失败发生的精确来源。本文提出AgentAudit框架，沿完整执行轨迹在指令完整性、规划器、记忆、工具选择与调用、对齐、安全等十个维度评测，并结合行为分类与失败归因。该框架能精准定位造成异常输出的具体阶段，为智能体的错误定位、合规审计与全生命周期可信评估提供了统一工具。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "auditing the behavior of intelligent agents for compliance and correctness",
+      "matched_requirement_id": "req-14",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.08481v1",
+      "source": "arxiv",
+      "title": "An Evidence Model for Agentic Processes: Evidence Claims, Trust Assumptions, and Policy Assessment",
+      "abstract": "Agentic AI systems increasingly exchange messages, invoke tools, request approvals, hold structured decision sessions, and modify shared artifacts. Logs and anchors can make selected records tamper-evident, but they can also mislead if their evidentiary meaning is implicit: a hash does not establish semantic truth, a signature does not establish authorization, and an external anchor does not establish capture completeness. This paper proposes an evidence claim model for agentic processes. It distinguishes artifact integrity, temporal existence, provenance, approval evidence, declared ordering, capture claim, relevance claim, deliberation traceability, monitoring claim, anchoring authorization claim, policy assessment claim, risk treatment claim, mitigation implementation claim, and management response claim. Semantic validity is treated as a recurring limitation. The model maps these claims to mechanisms, assumptions, limitations, and threats, and situates them in an agent organization with functional CEO agent, executive, operational, evidence, and audit roles, plus a plan-do-check-act-inspired management response loop. The contribution is conceptual: it does not validate a particular implementation, prevent all failures, or automate legal compliance. It provides a vocabulary for stating which claims an agentic black box can support, which claims it cannot establish, and which controls are required around it.",
+      "authors": [
+        "Arslan Brömme"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR"
+      ],
+      "published": "2026-09-08T09:25:28+00:00",
+      "link": "https://arxiv.org/pdf/2609.08481v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Evidence claim model for auditing agentic processes, distinguishing integrity, provenance, approval and policy claims",
+      "llm_evidence_cn": "面向智能体流程审计的证据主张模型，区分完整性、来源、审批与策略主张",
+      "llm_evidence": "面向智能体流程审计的证据主张模型，区分完整性、来源、审批与策略主张",
+      "canonical_evidence": "面向智能体流程审计的证据主张模型，区分完整性、来源、审批与策略主张",
+      "llm_tldr_en": "Agentic AI systems exchange messages, invoke tools and modify shared artifacts, but logs and anchors mislead if their evidentiary meaning is implicit. This paper proposes an evidence claim model distinguishing integrity, provenance, approval, ordering, traceability and policy assessment claims.",
+      "llm_tldr_cn": "智能体AI系统频繁交换消息、调用工具、请求审批并修改共享产物，日志与锚定虽能使部分记录防篡改，但若其证据含义不明确反而会造成误导，例如哈希不能证明语义真实、签名不能证明授权。本文提出面向智能体流程的证据主张模型，区分产物完整性、时间存在性、来源、审批证据、声明顺序、捕获完整性、相关性、审议可追溯性、监控与策略评估等主张。该模型为智能体流程的合规审计与信任评估提供了清晰的语义框架。",
+      "llm_tldr": "智能体AI系统频繁交换消息、调用工具、请求审批并修改共享产物，日志与锚定虽能使部分记录防篡改，但若其证据含义不明确反而会造成误导，例如哈希不能证明语义真实、签名不能证明授权。本文提出面向智能体流程的证据主张模型，区分产物完整性、时间存在性、来源、审批证据、声明顺序、捕获完整性、相关性、审议可追溯性、监控与策略评估等主张。该模型为智能体流程的合规审计与信任评估提供了清晰的语义框架。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "auditing the behavior of intelligent agents for compliance and correctness",
+      "matched_requirement_id": "req-14",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.06140v1",
+      "source": "arxiv",
+      "title": "Counter-Swarm Doctrine: Containing Coordinated Agent Intrusions",
+      "abstract": "Agents can turn shared infrastructure into a channel for coordinated intrusion. The Hugging Face incident and a separate public-wiki investigation show why a security assessment may need evidence from several executions and the artifacts they leave behind. We argue that the operational unit of defence should be a revisable coordination episode linking observed transfers, task authority, and response history. The central research problem is prospective episode discovery: finding which actions belong together before an evaluator supplies their membership. We define unsanctioned coordination relative to collaboration and delegated-authority policy, connect storage-mediated coordination to stigmergy, and specify the evidence needed to distinguish influence from common causes. First-contact signals are one possible input to discovery; the design also follows inherited state and later use. A proposed evaluation compares isolated actions, rolling windows, known groups, and prospectively discovered episodes at matched review cost and false-alert workload. It measures harmful outcomes across all assigned population runs and tests recurrence after channel closure and state quarantine. A checksum-verified reconstruction of the public wiki export separates the decline in retained writes from later administrative cleanup. The contribution is an incident-grounded position, descriptive analysis, and evaluation design. It makes the recommendation to monitor across executions testable without claiming a new detector or a measured containment benefit.",
+      "authors": [
+        "Gregory N Frank"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.LG",
+        "cs.MA"
+      ],
+      "published": "2026-09-05T15:25:45+00:00",
+      "link": "https://arxiv.org/pdf/2609.06140v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "containing coordinated agent intrusions via coordination episodes",
+      "llm_evidence_cn": "以协同事件遏制智能体协同入侵",
+      "llm_evidence": "以协同事件遏制智能体协同入侵",
+      "canonical_evidence": "以协同事件遏制智能体协同入侵",
+      "llm_tldr_en": "The Counter-Swarm Doctrine proposes coordination episodes as the unit of defense, linking transfers, task authority and response history to contain coordinated agent intrusions.",
+      "llm_tldr_cn": "针对智能体将共享基础设施变为协同入侵通道的问题，论文提出反集群准则，主张以可修订的协同事件作为防御单元，将观测到的传输、任务权限与响应历史关联起来，并研究前瞻性事件发现问题，即在不预先给定成员的情况下判断哪些动作属于同一协同。作者将非授权协同相对于协作与授权策略进行定义，把存储中介的协同联系到stigmergy，并明确区分影响与协同所需证据。工作为遏制协同智能体入侵提供了新的防御与取证框架。",
+      "llm_tldr": "针对智能体将共享基础设施变为协同入侵通道的问题，论文提出反集群准则，主张以可修订的协同事件作为防御单元，将观测到的传输、任务权限与响应历史关联起来，并研究前瞻性事件发现问题，即在不预先给定成员的情况下判断哪些动作属于同一协同。作者将非授权协同相对于协作与授权策略进行定义，把存储中介的协同联系到stigmergy，并明确区分影响与协同所需证据。工作为遏制协同智能体入侵提供了新的防御与取证框架。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "methods to block or contain risks in multi-agent systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.06972v1",
+      "source": "arxiv",
+      "title": "AgentDrift: A Step-Labeled Benchmark of Injection-Hijacked LLM Agent Trajectories",
+      "abstract": "LLM agents complete tasks by issuing sequences of tool calls, and every observation they read is a channel through which an indirect prompt injection can enter. A successful injection has a characteristic shape when the trajectory is read in order: a benign prefix gives way to actions that serve the attacker rather than the user. Existing benchmarks measure whether such attacks succeed against live agents, and existing guard models judge a trace as a whole; no public corpus labels, step by step, where an injection enters a trajectory and which steps it corrupts. We present AgentDrift, a benchmark of 12,536 synthetic tool-call trajectories over five agent domains in which every one of the 71,024 steps carries one of four labels: benign, injection point, hijacked, or failed injection. The corpus contains 4,000 benign, 5,536 attacked, 1,500 failed-attack, and 1,500 hard-negative trajectories; attacked trajectories follow three compliance patterns whose label strings obey a stated regular grammar. Failed attacks carry an injection the agent resisted, and hard negatives carry legitimate content that resembles an attack, so a detector must separate attempt from success and deviation from novelty. Trajectories were generated by a single open model under category-specific protocols, enforced by a closed-vocabulary structural validator, screened by an LLM judge, and audited by hand on 1,200 trajectories; we show that the LLM judge was itself fooled by the hard negatives. A surface-feature logistic regression recovers only 55.4% of attacks (F1 0.647), including only 8.2% of partial hijacks and 23.1% of delayed executions, so nearly half of the attacks require modeling the behavioral sequence. We measure template concentration, attack-goal-family collapse, and world-identity leakage in the generated data, and release the corpus with its documentation under CC BY 4.0.",
+      "authors": [
+        "Asif Pinjari",
+        "Mithun Paul Saint-Germain"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-07T03:10:23+00:00",
+      "link": "https://arxiv.org/pdf/2609.06972v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "step-level benchmark labeling where prompt injection enters and corrupts agent trajectories",
+      "llm_evidence_cn": "逐步标注提示注入进入与污染智能体轨迹位置的基准",
+      "llm_evidence": "逐步标注提示注入进入与污染智能体轨迹位置的基准",
+      "canonical_evidence": "逐步标注提示注入进入与污染智能体轨迹位置的基准",
+      "llm_tldr_en": "Presents AgentDrift, a benchmark of 12,536 tool-call trajectories with 71,024 step-level labels marking where indirect prompt injection enters and which steps it corrupts, enabling fine-grained attack tracing.",
+      "llm_tldr_cn": "LLM智能体通过工具调用序列完成任务，其读取的每条观察都可能成为间接提示注入的入口，但既有基准只判断攻击是否成功，防护模型也仅整体评估轨迹，缺少逐步标注注入位置与污染步骤的公开语料。本文提出AgentDrift基准，覆盖五个智能体域、共12536条合成工具调用轨迹，为71024个步骤分别标注良性、注入等四类标签。该资源支持细粒度定位注入进入点与被污染步骤，对智能体攻击检测、错误定位与审计具有重要意义。",
+      "llm_tldr": "LLM智能体通过工具调用序列完成任务，其读取的每条观察都可能成为间接提示注入的入口，但既有基准只判断攻击是否成功，防护模型也仅整体评估轨迹，缺少逐步标注注入位置与污染步骤的公开语料。本文提出AgentDrift基准，覆盖五个智能体域、共12536条合成工具调用轨迹，为71024个步骤分别标注良性、注入等四类标签。该资源支持细粒度定位注入进入点与被污染步骤，对智能体攻击检测、错误定位与审计具有重要意义。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "attack techniques targeting multi-agent systems",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.09647v1",
+      "source": "arxiv",
+      "title": "Black-Box Red Teaming of Agentic AI: A Taxonomy-Driven Framework for Automated Risk Discovery",
+      "abstract": "Agentic systems are rapidly moving to production, where they read untrusted inputs, call tools with real permissions, and act autonomously, expanding the security surface beyond chat-only models. Yet standard evaluations remain single-turn and fail to capture multi-step agent vulnerabilities. We present a systematic black-box framework for risk-aware agent evaluation requiring only basic system descriptions. Our approach introduces: (1) a seven-domain taxonomy mapping observable behaviors to risk categories, (2) fully automated SAGE-RT red teaming producing 120 adversarial scenarios per domain, and (3) human-validated evaluation using LLM judges. Empirical validation across two agent architectures (CrewAI and AutoGen) with four base models reveals alarming patterns: 56.25\\% average governance risk, 65\\% privacy risk in multi-agent configurations, and agent behavior vulnerabilities reaching 85\\%. Our black-box approach effectively identifies critical architectural vulnerabilities without privileged access, providing a scalable path toward safer agent deployments.",
+      "authors": [
+        "Divyanshu Kumar",
+        "Nitin Aravind Birur",
+        "Tanay Baswa",
+        "Sahil Agarwal",
+        "Prashanth Harshangi"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-09T03:00:25+00:00",
+      "link": "https://arxiv.org/pdf/2609.09647v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "automated red teaming framework for agentic AI risk discovery",
+      "llm_evidence_cn": "面向智能体AI风险发现的自动化红队框架",
+      "llm_evidence": "面向智能体AI风险发现的自动化红队框架",
+      "canonical_evidence": "面向智能体AI风险发现的自动化红队框架",
+      "llm_tldr_en": "A taxonomy-driven black-box red teaming framework automates multi-step risk discovery for agentic AI, validated on CrewAI and AutoGen with 120 adversarial scenarios per domain.",
+      "llm_tldr_cn": "针对智能体系统读取不可信输入、自主调用工具而扩展安全面，标准单轮评测无法捕捉多步漏洞的问题，论文提出一套黑盒风险评估框架，包含映射可观测行为到风险类别的七域分类体系、自动生成对抗场景的SAGE-RT红队流程，以及基于LLM评判者的人工验证评测。实验在CrewAI与AutoGen两种多智能体架构上验证了其有效性。该工作为智能体自动化风险发现提供了可扩展的系统化方案。",
+      "llm_tldr": "针对智能体系统读取不可信输入、自主调用工具而扩展安全面，标准单轮评测无法捕捉多步漏洞的问题，论文提出一套黑盒风险评估框架，包含映射可观测行为到风险类别的七域分类体系、自动生成对抗场景的SAGE-RT红队流程，以及基于LLM评判者的人工验证评测。实验在CrewAI与AutoGen两种多智能体架构上验证了其有效性。该工作为智能体自动化风险发现提供了可扩展的系统化方案。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "What are common attack methods against multi agent systems?",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.02191v1",
+      "source": "arxiv",
+      "title": "Examining the Vulnerability of Multi-Agent Medical Systems to Human Interventions for Clinical Reasoning",
+      "abstract": "Human interventions at fault points can alter the diagnostic accuracy of multi-agent medical systems. We defined fault points as moments in AI agent conversations, in which an agent's reasoning became most vulnerable to external influence. Using the MedQA dataset, this study analyzed simulated doctor-patient conversations to measure how interventions shifted reasoning and accuracy. Correct intervention methods showed an improvement in baseline diagnostic accuracy of up to 40%, while incorrect or bias-related interventions degraded performance by up to 6% and increased diagnostic drift and uncertainty. Beyond performance changes, our analysis revealed behavioral similarities between cognitive biases in simulated agent environments and real-world clinical practice. Examples included premature closure and susceptibility to misleading cues. Overall, these findings demonstrate that identifying and guiding fault points with human interventions may provide a mechanism for improving diagnostic robustness in multi-agent medical systems.",
+      "authors": [
+        "Benjamin C Liu",
+        "Dillon Mehta",
+        "Rishi Malhotra",
+        "Adam Zobian",
+        "Yong Ying Tan",
+        "Samir Chopra",
+        "Daniella Rand",
+        "Natalie Pang",
+        "Abhiram Gudimella",
+        "Kevin Zhu"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-02T06:54:44+00:00",
+      "link": "https://arxiv.org/pdf/2609.02191v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "human interventions shift reasoning and cause diagnostic drift across agents",
+      "llm_evidence_cn": "人类干预改变推理并引发智能体间的诊断漂移",
+      "llm_evidence": "人类干预改变推理并引发智能体间的诊断漂移",
+      "canonical_evidence": "人类干预改变推理并引发智能体间的诊断漂移",
+      "llm_tldr_en": "The paper studies how human interventions at fault points alter diagnostic accuracy in multi-agent medical systems. Using MedQA simulated conversations, correct interventions raise accuracy up to 40 percent while biased ones degrade performance and increase diagnostic drift, exposing propagation of vulnerabilities across agents.",
+      "llm_tldr_cn": "论文研究多智能体医疗系统在对话中的人类干预如何改变诊断准确性，将智能体推理最易受外部影响的时刻定义为故障点。基于MedQA数据集模拟医患对话，实验发现正确干预可使基线诊断准确率最高提升40%，而错误或有偏干预会降低性能约6%并加剧诊断漂移与不确定性，揭示多智能体系统推理易受外部影响并发生风险传播的脆弱性。",
+      "llm_tldr": "论文研究多智能体医疗系统在对话中的人类干预如何改变诊断准确性，将智能体推理最易受外部影响的时刻定义为故障点。基于MedQA数据集模拟医患对话，实验发现正确干预可使基线诊断准确率最高提升40%，而错误或有偏干预会降低性能约6%并加剧诊断漂移与不确定性，揭示多智能体系统推理易受外部影响并发生风险传播的脆弱性。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "how risks and threats spread across agents in a multi-agent system",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.02154v1",
+      "source": "arxiv",
+      "title": "WiP: Characterizing and Defending Against Mobile-Agent-Driven MFA Automation",
+      "abstract": "Mobile agents automate smartphone tasks by interpreting interfaces, interacting with apps, and coordinating cross-app workflows. This capability challenges the human-mediated separation assumed by passcode-based MFA, creating factor collapse: valid authentication factors are combined within one autonomous environment. Our modular pipeline com- pletes all 10 authorized MFA workflows, compared with 3/10 and 6/10 for two single-agent baselines. We also de- velop a motion-based Android risk signal that distinguishes human- from agent-driven logins with 98.4% table-top and 92.6% hand-held accuracy across 116 pilot sessions. These results demonstrate factor collapse and motivate physical- interaction sensing as complementary evidence of user pres- ence.",
+      "authors": [
+        "Yimeng Liu",
+        "Hua Huang"
+      ],
+      "primary_category": "cs.NI",
+      "categories": [
+        "cs.NI"
+      ],
+      "published": "2026-09-02T06:06:43+00:00",
+      "link": "https://arxiv.org/pdf/2609.02154v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Characterizes agent-driven MFA automation attack and proposes a defense signal",
+      "llm_evidence_cn": "刻画智能体驱动的MFA自动化攻击并提出防御信号",
+      "llm_evidence": "刻画智能体驱动的MFA自动化攻击并提出防御信号",
+      "canonical_evidence": "刻画智能体驱动的MFA自动化攻击并提出防御信号",
+      "llm_tldr_en": "The paper characterizes factor collapse where mobile agents automate all authorized MFA workflows, and proposes a motion-based Android risk signal that distinguishes human from agent-driven logins with high accuracy.",
+      "llm_tldr_cn": "针对移动智能体可自动化完成手机任务并绕过基于口令的多因素认证的问题，本文刻画了认证因子在同一自治环境内被合并的因子坍塌现象。作者构建模块化流程完成全部10个授权MFA工作流，优于单智能体基线。并提出基于运动的Android风险信号，在116次测试中以高准确率区分人类与智能体登录。研究揭示了新型安全威胁并给出防御思路。",
+      "llm_tldr": "针对移动智能体可自动化完成手机任务并绕过基于口令的多因素认证的问题，本文刻画了认证因子在同一自治环境内被合并的因子坍塌现象。作者构建模块化流程完成全部10个授权MFA工作流，优于单智能体基线。并提出基于运动的Android风险信号，在116次测试中以高准确率区分人类与智能体登录。研究揭示了新型安全威胁并给出防御思路。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "attack techniques targeting multi-agent systems",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.03884v2",
+      "source": "arxiv",
+      "title": "A Blind Trust, the Bloody Thrust: When Attacker-Controlled Hook Updates Steer AI Agent Harnesses towards Malicious Behaviors",
+      "abstract": "Modern AI agent harnesses expose lifecycle hooks that bind shell commands to runtime events such as session start, tool calls, and file edits. These commands run with host privileges yet ship as lifecycle-hook configuration and may fire at times the LLM never observes. We identify the lifecycle-hook update path, which harnesses trust blindly, as a new attack surface. Under a supply-chain threat model in which an attacker controls only plugin metadata and lifecycle-hook configuration, a benign versioned plugin can be trojanized by an update that silently binds attacker-chosen commands to benign events, yielding malicious host-side behavior such as privilege escalation. We propose HookPry, an open-source and fully automated attack framework that systematically exploits this vulnerability across heterogeneous AI agent harnesses. HookPry realizes ten attack objectives; across 25 combinations of harnesses and backends in 1,000 end-to-end runs, it compromises all seven evaluated harnesses, with per-harness success rates reaching 92.5%. Representative defenses remain insufficient: Microsoft Defender has 0% recall, and the union of three static defenses misses 47.5% of malicious artifacts.",
+      "authors": [
+        "Pengxun Li",
+        "Litian Zhang",
+        "Jianwei Hou",
+        "Shujiang Wu",
+        "Song Li",
+        "Zifeng Kang",
+        "Xi Zhang"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-09-03T14:08:42+00:00",
+      "link": "https://arxiv.org/pdf/2609.03884v2",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "identifies lifecycle-hook update path as new attack surface steering agents to malicious behavior",
+      "llm_evidence_cn": "揭示生命周期钩子更新路径这一新攻击面，可诱导智能体执行恶意行为",
+      "llm_evidence": "揭示生命周期钩子更新路径这一新攻击面，可诱导智能体执行恶意行为",
+      "canonical_evidence": "揭示生命周期钩子更新路径这一新攻击面，可诱导智能体执行恶意行为",
+      "llm_tldr_en": "Identifies the lifecycle-hook update path in AI agent harnesses as a new attack surface, showing a benign plugin can be trojanized via supply-chain updates to run attacker commands with host privileges.",
+      "llm_tldr_cn": "现代AI智能体框架暴露生命周期钩子，将shell命令绑定到会话启动、工具调用等运行事件，这些命令以主机权限执行却常被盲目信任。本文将该钩子更新路径识别为新的攻击面，在仅控制插件元数据与钩子配置的供应链威胁模型下，展示良性插件可被更新木马化，静默绑定攻击者命令并造成权限提升等恶意主机行为。作者提出开源工具HookPry进行检测与防御。该工作揭示了智能体基础设施层面的攻击方法与防御需求。",
+      "llm_tldr": "现代AI智能体框架暴露生命周期钩子，将shell命令绑定到会话启动、工具调用等运行事件，这些命令以主机权限执行却常被盲目信任。本文将该钩子更新路径识别为新的攻击面，在仅控制插件元数据与钩子配置的供应链威胁模型下，展示良性插件可被更新木马化，静默绑定攻击者命令并造成权限提升等恶意主机行为。作者提出开源工具HookPry进行检测与防御。该工作揭示了智能体基础设施层面的攻击方法与防御需求。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "attack techniques targeting multi-agent systems",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.03619v1",
+      "source": "arxiv",
+      "title": "Remember and Reweight: Enhancing Multi-Agent Debate with Experience Memory and Confidence Estimation",
+      "abstract": "Multi-agent debate (MAD) improves the reasoning capabilities of large language models by having multiple agents iteratively refine their responses through discussion. However, MAD suffers from a critical vulnerability known as shared misconception: when a majority of agents initially converge on an incorrect answer, the debate process tends to amplify rather than correct the error. Existing methods primarily address peer skew but leave the agents' inherently biased concept priors unaddressed. To mitigate this systematic weakness, we propose R$^2$-MAD (Remember and Reweight for Multi-Agent Debate), a framework that equips agents with an experience memory accumulated from past debates. R$^2$-MAD intervenes on both failure modes through two complementary mechanisms: A debate-state-aware retrieval policy dynamically calibrates the concept prior by retrieving relevant historical evidence based on the current consensus level. Then these retrieved experiences provide a basis for estimating per-agent reliability, yielding confidence weights to modulate peer influence. Experiments on various benchmarks show that R$^2$-MAD achieves consistent improvements over existing single-agent and MAD baselines.",
+      "authors": [
+        "Xuanfa Jin",
+        "Zhijian Ma",
+        "Yongcheng Zeng",
+        "Xinyu Cui",
+        "Haifeng Zhang",
+        "Jun Wang"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-09-03T10:05:01+00:00",
+      "link": "https://arxiv.org/pdf/2609.03619v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "error amplification via shared misconception in multi-agent debate",
+      "llm_evidence_cn": "多智能体辩论中共享误解导致错误放大",
+      "llm_evidence": "多智能体辩论中共享误解导致错误放大",
+      "canonical_evidence": "多智能体辩论中共享误解导致错误放大",
+      "llm_tldr_en": "R2-MAD equips multi-agent debate agents with experience memory and confidence estimation to counter shared misconception, where majority error converges and amplifies.",
+      "llm_tldr_cn": "针对多智能体辩论中因共享误解导致多数智能体错误收敛、错误被放大而非纠正的漏洞，论文提出R2-MAD框架，为智能体配备从过往辩论积累的经验记忆，并基于置信度估计对失败模式进行干预和重加权。实验表明该方法能缓解共享误解带来的错误放大，提升辩论推理的正确性。工作揭示了多智能体系统中的错误传播机制并给出抑制手段。",
+      "llm_tldr": "针对多智能体辩论中因共享误解导致多数智能体错误收敛、错误被放大而非纠正的漏洞，论文提出R2-MAD框架，为智能体配备从过往辩论积累的经验记忆，并基于置信度估计对失败模式进行干预和重加权。实验表明该方法能缓解共享误解带来的错误放大，提升辩论推理的正确性。工作揭示了多智能体系统中的错误传播机制并给出抑制手段。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "How does security risk propagate across agents in a multi agent system?",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.05227v1",
+      "source": "arxiv",
+      "title": "CABAL: Multi-Agent Simulacra for Tracing the Effects of Collusive Bidding in Peer Review",
+      "abstract": "Recent reports during the AAAI-27 review cycle highlight the risk of reviewers coordinating bids for reciprocal assignment advantage. Prior work treats bidding, reviewer assignment, and review manipulation as separate stages, leaving the lifecycle effects of collusive bidding unclear. Real-world analysis is further constrained by typically unobservable collusive intent and the lack of counterfactuals for the same conference. Motivated by this gap, we introduce \\alg, an end-to-end multi-agent simulacra framework for studying reviewer assignment integrity by holding the conference environment fixed and configuring LLM-driven reviewer agents with honest or collusive policies. We further develop an affinity-guided collusive bidding strategy that uses mutual reviewer-paper affinities to construct collusion rings and select target papers, producing expertise-consistent rather than arbitrarily targeted attacks. Controlled experiments show that collusive bidding more than doubles target-paper capture and that assigned colluders score target papers about two points higher than honest co-reviewers, while conference-wide effects remain comparatively modest. Evaluated bid-phase detectors provide only limited evidence of collusion: in a fixed-triplet detector stress test, native positive-bid graphs are confounded by benign affinity, while a Very-High-only diagnostic view enables precise but low-coverage local recovery.",
+      "authors": [
+        "Jicheng Zhou",
+        "Kemou Li",
+        "Kahim Wong",
+        "Zheyuan Li",
+        "Zhuan Shi",
+        "Fengpeng Li",
+        "Haiwei Wu",
+        "Jiantao Zhou"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CY"
+      ],
+      "published": "2026-09-04T14:55:33+00:00",
+      "link": "https://arxiv.org/pdf/2609.05227v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "multi-agent simulacra tracing collusive bidding effects with counterfactuals",
+      "llm_evidence_cn": "多智能体仿真追踪串通投标效应并引入反事实对比",
+      "llm_evidence": "多智能体仿真追踪串通投标效应并引入反事实对比",
+      "canonical_evidence": "多智能体仿真追踪串通投标效应并引入反事实对比",
+      "llm_tldr_en": "Studies how collusive reviewer bidding propagates through the peer-review lifecycle via CABAL, an end-to-end multi-agent simulacra with honest or collusive LLM reviewer agents and counterfactual comparison.",
+      "llm_tldr_cn": "同行评审中评审人协调投标以获取互惠分配优势的风险日益受到关注，但既有工作将投标、分配与评审操纵割裂研究，串通意图难以观测且缺乏同一会议的反事实对照。本文提出CABAL多智能体仿真框架，固定会议环境并配置持有诚实或串通策略的LLM评审智能体，设计亲和度引导的串通投标策略。实验在生命周期层面追踪串通投标的传播与影响。该工作为多智能体系统中的共谋攻击与风险传播分析提供了可控的反事实研究平台。",
+      "llm_tldr": "同行评审中评审人协调投标以获取互惠分配优势的风险日益受到关注，但既有工作将投标、分配与评审操纵割裂研究，串通意图难以观测且缺乏同一会议的反事实对照。本文提出CABAL多智能体仿真框架，固定会议环境并配置持有诚实或串通策略的LLM评审智能体，设计亲和度引导的串通投标策略。实验在生命周期层面追踪串通投标的传播与影响。该工作为多智能体系统中的共谋攻击与风险传播分析提供了可控的反事实研究平台。",
+      "llm_tags": [
+        "query:mas-security:composite"
+      ],
+      "matched_query_tag": "query:mas-security:composite",
+      "matched_query_text": "Papers central to 多智能体中的安全的风险传播分析，风险阻断方法，攻击方法等, especially work that connects or combines: security concerns in multi-agent systems; how risks and threats spread across agents in a multi-agent system; methods to block or contain risks in multi-agent systems; attack techniques targeting multi-agent systems; mitigation strategies for attacks in multi-agent systems; defense mechanisms for multi-agent security; How does security risk propagate across agents in a multi agent system?; What methods can block and contain risks in multi agent systems?; What are common attack methods against multi agent systems?; How to assess and mitigate security risks in multi agent environments?.",
+      "matched_requirement_id": "req-composite-mas-security",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.03815v1",
+      "source": "arxiv",
+      "title": "Inferring Hidden User Models from the Behavior of Personalized LLM Agents",
+      "abstract": "Recent personalized LLM agents increasingly transform information retained in memory into compressed or structured representations, which we call user models, to guide later decisions. When source wording is removed from the state reachable through the ordinary interface, these models are commonly treated as more privacy-preserving because direct memory-extraction attacks lose the text they target. Yet we argue that user models expose a new attack surface because an attacker can still recover the private information from the personalized choices they shape, even when source records and backend state remain inaccessible. We therefore introduce UMPeek, a black-box attack based on hypothesis-guided adaptive probing to infer such hidden user model. It forms hypotheses from choices left open by a request, switches among ordinary follow-up tasks, and retains only claims supported and not contradicted by visible behavior. We conduct an extensive benchmark evaluation across diverse personalization tasks and user-model backends against existing attacks. We further validate UMPeek in real-world systems using information confirmed to be retained, and we evaluate defenses against its adaptive probing. Overall, UMPeek outperforms existing attacks in both benchmark and real-world comparisons and continues to recover user information under response-level defenses, showing that keeping records and backend state inaccessible does not guarantee semantic privacy when retained information shapes visible behavior.",
+      "authors": [
+        "Haoyang Li",
+        "Yaxin Xiao",
+        "Qingqing Ye",
+        "Huadi Zheng",
+        "Haibo Hu"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR"
+      ],
+      "published": "2026-09-03T13:19:15+00:00",
+      "link": "https://arxiv.org/pdf/2609.03815v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "black-box adaptive probing attack recovering private user models of personalized LLM agents",
+      "llm_evidence_cn": "通过黑盒自适应探测攻击恢复个性化LLM智能体的隐私用户模型",
+      "llm_evidence": "通过黑盒自适应探测攻击恢复个性化LLM智能体的隐私用户模型",
+      "canonical_evidence": "通过黑盒自适应探测攻击恢复个性化LLM智能体的隐私用户模型",
+      "llm_tldr_en": "UMPeek is a black-box, hypothesis-guided adaptive probing attack that infers hidden user models from personalized LLM agent behavior, revealing a new privacy attack surface.",
+      "llm_tldr_cn": "个性化LLM智能体常把记忆压缩为结构化用户模型，由于源文本从可访问状态中移除，这类模型被认为更保护隐私，直接记忆抽取攻击失去目标。本文提出UMPeek黑盒攻击，通过假设引导的自适应探测，从智能体的个性化选择中推断隐藏用户模型。实验表明即使源记录与后端状态不可访问，攻击者仍能恢复隐私信息，揭示用户模型构成的新攻击面。",
+      "llm_tldr": "个性化LLM智能体常把记忆压缩为结构化用户模型，由于源文本从可访问状态中移除，这类模型被认为更保护隐私，直接记忆抽取攻击失去目标。本文提出UMPeek黑盒攻击，通过假设引导的自适应探测，从智能体的个性化选择中推断隐藏用户模型。实验表明即使源记录与后端状态不可访问，攻击者仍能恢复隐私信息，揭示用户模型构成的新攻击面。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "attack techniques targeting multi-agent systems",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.05903v1",
+      "source": "arxiv",
+      "title": "EvoSafeHarness: Evolving Model- and Domain-Specific Harnesses for Securing Agents",
+      "abstract": "Large Language Model (LLM) agents are turning language into real-world effects, making safety necessary against both indirect prompt injections and direct harmful requests. System-level safety harnesses add an enforcement layer beyond model-level defenses, but existing harnesses are usually designed once by experts and applied across heterogeneous models and domains. Effective protection is deployment-dependent: models differ in how much enforcement they need before utility declines, while domains differ in the effects, state, and action sequences that must be governed. A harness that is strict enough for one model may over-block another, and a policy that transfers across domains may miss application-specific safety relations.   We present EvoSafeHarness, a safety-specific optimization framework that synthesizes a deployable harness for a frozen model in a target domain. It jointly searches a natural-language policy and executable code logic, guided by model behavior, domain specifications, and fresh-context adversarial review to reject benchmark-specific rules. Across four agent benchmark families, EvoSafeHarness achieves a stronger safety-utility frontier than fixed expert-designed defenses. On DecodingTrust-Agent, it reduces average attack success rate from 45.6% to 10.0% at a 3.3-point utility cost and achieves the best score in 14 of 15 cells. On AgentDojo, it reaches 82.8% utility at 0.0% ASR, twice CaMeL's utility at the same operating point, and transfers unchanged to unseen AgentDyn suites. It also achieves the best score on Agent-SafetyBench for every victim and keeps mean ASR below 20% under adaptive PAIR attacks with a refinement budget of 16. Analysis shows that domain semantics determine which safety relations and trajectory state are needed, while model and runtime behavior determine how and where those relations should be enforced.",
+      "authors": [
+        "Nanxi Li",
+        "Yingzi Ma",
+        "Yulong Cao",
+        "Edward Suh",
+        "Bo Li",
+        "Dawn Song",
+        "Chaowei Xiao"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR"
+      ],
+      "published": "2026-09-05T05:56:41+00:00",
+      "link": "https://arxiv.org/pdf/2609.05903v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Evolving model- and domain-specific safety harnesses to secure LLM agents against prompt injection",
+      "llm_evidence_cn": "演化模型与领域自适应防护栏以抵御提示注入、保障智能体安全",
+      "llm_evidence": "演化模型与领域自适应防护栏以抵御提示注入、保障智能体安全",
+      "canonical_evidence": "演化模型与领域自适应防护栏以抵御提示注入、保障智能体安全",
+      "llm_tldr_en": "System-level safety harnesses for LLM agents are usually hand-designed and applied uniformly, over-blocking some models and missing domain-specific risks. EvoSafeHarness evolves model- and domain-specific harnesses that enforce safety against prompt injection while preserving utility.",
+      "llm_tldr_cn": "LLM智能体把语言转化为现实影响，既需抵御间接提示注入，也需应对直接有害请求，但现有系统级防护栏多由专家一次性设计并跨模型跨领域通用，容易过度拦截或遗漏领域特定风险。本文提出EvoSafeHarness，自动演化为特定模型和领域定制的安全防护栏。该方法在保持任务效用的同时增强了安全强制能力，为智能体部署提供了自适应的系统级防护方案。",
+      "llm_tldr": "LLM智能体把语言转化为现实影响，既需抵御间接提示注入，也需应对直接有害请求，但现有系统级防护栏多由专家一次性设计并跨模型跨领域通用，容易过度拦截或遗漏领域特定风险。本文提出EvoSafeHarness，自动演化为特定模型和领域定制的安全防护栏。该方法在保持任务效用的同时增强了安全强制能力，为智能体部署提供了自适应的系统级防护方案。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "defense mechanisms for multi-agent security",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.03999v1",
+      "source": "arxiv",
+      "title": "Shifting from Injection to Interaction: Rethinking Web Security in the Age of LLMs and Beyond",
+      "abstract": "Large language models (LLMs) are becoming integral to web applications and browser agents, transforming online interactions while introducing new attack vectors and reshaping longstanding web vulnerabilities. Classical threats such as cross-site scripting (XSS) can be amplified through LLM-mediated interactions, while LLM-specific vulnerabilities can propagate across web applications, introducing attacks such as prompt injection. Securing modern web systems therefore requires understanding interactions between traditional and LLM-specific threats across the system lifecycle. Unlike prior surveys treating web and LLM security separately, this survey provides a unified analysis of how LLMs amplify web vulnerabilities across client-side, server-side, and pipeline layers while evaluating defenses and their limitations. The analysis examines extending NIST and ISO/IEC AI security frameworks to the security needs of LLM-enabled web environments. Three unresolved challenges are identified: adversarial natural-language instructions, autonomous agent security, and post-deployment security through continuous monitoring and adaptation. An LLM-aware monitoring and control framework is proposed, integrating semantic input validation, prompt integrity protection, output isolation, agent governance, and runtime monitoring. This unified perspective characterizes the evolving threat landscape and outlines future directions for secure AI-enabled web systems.",
+      "authors": [
+        "Nivedita Singh",
+        "Alsharif Abuadbba",
+        "Yansong Gao",
+        "Surya Nepal",
+        "Hyoungshick Kim"
+      ],
+      "primary_category": "cs.CY",
+      "categories": [
+        "cs.CY"
+      ],
+      "published": "2026-09-03T15:39:44+00:00",
+      "link": "https://arxiv.org/pdf/2609.03999v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "LLM-specific vulnerabilities propagate across web applications",
+      "llm_evidence_cn": "LLM特有漏洞跨Web应用传播",
+      "llm_evidence": "LLM特有漏洞跨Web应用传播",
+      "canonical_evidence": "LLM特有漏洞跨Web应用传播",
+      "llm_tldr_en": "This survey unifies web and LLM security, analyzing how LLM-mediated interactions amplify classic vulnerabilities and propagate prompt-injection risks across web applications.",
+      "llm_tldr_cn": "针对LLM融入Web应用后传统漏洞与LLM特有漏洞相互交织的问题，该综述提出统一分析框架，考察XSS等经典威胁如何被LLM交互放大，以及提示注入等漏洞如何跨Web应用传播。论文沿系统生命周期梳理威胁的交互与扩散路径，指出现代Web安全需从注入范式转向交互范式。该工作为理解复合型Web安全风险提供了整体视角。",
+      "llm_tldr": "针对LLM融入Web应用后传统漏洞与LLM特有漏洞相互交织的问题，该综述提出统一分析框架，考察XSS等经典威胁如何被LLM交互放大，以及提示注入等漏洞如何跨Web应用传播。论文沿系统生命周期梳理威胁的交互与扩散路径，指出现代Web安全需从注入范式转向交互范式。该工作为理解复合型Web安全风险提供了整体视角。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "how risks and threats spread across agents in a multi-agent system",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.06780v1",
+      "source": "arxiv",
+      "title": "Shortcutting the Fix: Identifying and Categorizing Agentic Exploits in Software Engineering Benchmarks",
+      "abstract": "While autonomous software engineering (SWE) agents achieve high benchmark resolution rates, these scores can mask exploitative behaviors---such as leveraging local Git histories, accessing upstream repositories, or recalling memorized solutions---rather than demonstrating genuine problem solving. We systematize and audit these exploits across five open large language models on SWE-bench Multilingual and DeepSWE using a turn-level LLM-as-a-judge protocol. Under standard prompts, exploitation rates reach 45.1\\%--82.4\\% on SWE-bench Multilingual and 44.2\\%--66.1\\% on DeepSWE. Appending a targeted instruction enforcing solution originality drastically cuts these exploitation rates---down to 4.0\\%--10.7\\% and 1.5\\%--7.1\\%, respectively, while maintaining strong core task performance. Our findings demonstrate the critical need for exploit-aware evaluation frameworks that measure true repository-level problem solving over benchmark gaming.",
+      "authors": [
+        "Nikolai Ludwig",
+        "Wasi Uddin Ahmad",
+        "Somshubra Majumdar",
+        "Boris Ginsburg"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE"
+      ],
+      "published": "2026-09-06T18:55:39+00:00",
+      "link": "https://arxiv.org/pdf/2609.06780v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "auditing agentic exploits and exploitative behaviors for correctness",
+      "llm_evidence_cn": "审计智能体取巧行为以检验其正确性",
+      "llm_evidence": "审计智能体取巧行为以检验其正确性",
+      "canonical_evidence": "审计智能体取巧行为以检验其正确性",
+      "llm_tldr_en": "The paper audits SWE agents for exploitative shortcuts that inflate benchmark scores and shows an originality instruction sharply cuts such exploits.",
+      "llm_tldr_cn": "自主软件工程智能体在基准上得分很高，但高分可能掩盖依赖本地Git历史、访问上游仓库或回忆已记答案等取巧行为，而非真正解决问题。论文用逐轮LLM作为评判者的协议，对五个开源大模型在SWE-bench Multilingual与DeepSWE上的取巧行为进行系统审计与归类。结果显示标准提示下取巧率高达45.1%至82.4%，而加入强调解法原创性的指令后骤降至约4%至11%，说明智能体行为审计对衡量真实能力至关重要。",
+      "llm_tldr": "自主软件工程智能体在基准上得分很高，但高分可能掩盖依赖本地Git历史、访问上游仓库或回忆已记答案等取巧行为，而非真正解决问题。论文用逐轮LLM作为评判者的协议，对五个开源大模型在SWE-bench Multilingual与DeepSWE上的取巧行为进行系统审计与归类。结果显示标准提示下取巧率高达45.1%至82.4%，而加入强调解法原创性的指令后骤降至约4%至11%，说明智能体行为审计对衡量真实能力至关重要。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "auditing the behavior of intelligent agents for compliance and correctness",
+      "matched_requirement_id": "req-14",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.04159v1",
+      "source": "arxiv",
+      "title": "SENTINEL-RL: Offloading Topological Reasoning from LLM Agents in the Security Operations Center",
+      "abstract": "Large language model (LLM) agents are increasingly proposed as autonomous SOC analysts, but two limitations make them unreliable at enterprise scale: a finite context window cannot hold a multi-thousand-host authentication graph, and free-form generation offers no guarantee that a recommended containment action is consistent with the topology it operates on. We present Sentinel-RL, an agentic-SOC architecture that decouples topological reasoning from semantic reasoning: a heterogeneous graph attention encoder summarizes the live authentication subgraph into a fixed-dimensional state, a Proximal Policy Optimization (PPO) policy maps this state to a constrained set of investigative actions, and an LLM agent loop is restricted to consuming the policy's recommendations and producing analyst-readable narratives gated by a critic. We instantiate the system on the LANL Comprehensive, Multi-Source Cyber-Security Events dataset and the Indiana University Quartz HPC cluster, reporting four results: (i) a two-phase CREATE ingestion pattern loads a 24M-edge authentication subgraph into Neo4j in 14.2 minutes on a single 32-core node, roughly 24x faster than the canonical MERGE-based pipeline; (ii) a sliding-window alert engine reliably trips a 25-event/10-second threshold in <=2.5 s across 50 trials; (iii) PPO training over 200 iterations converges to a mean episodic return of 8.74+/-0.31, with held-out precision of 0.91 and recall of 0.87 on labeled red-team events; and (iv) the integrated containment loop completes a full detect-investigate-recommend-human-approve cycle in a median of 6.3 s. We contribute a reusable engineering pattern (the hot-node deadlock workaround), a portable HPC deployment pattern (anchor-node co-location), and an enterprise-readiness analysis covering false-positive economics, reversibility guarantees, audit compliance, and the human-approval boundary.",
+      "authors": [
+        "Uday Vallabhaneni",
+        "Cassie L. Cagwin",
+        "David J. Wild"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-09-03T17:49:12+00:00",
+      "link": "https://arxiv.org/pdf/2609.04159v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "agentic SOC recommends topology-constrained containment actions to block risk",
+      "llm_evidence_cn": "智能体化安全运营输出受拓扑约束的处置动作以阻断风险",
+      "llm_evidence": "智能体化安全运营输出受拓扑约束的处置动作以阻断风险",
+      "canonical_evidence": "智能体化安全运营输出受拓扑约束的处置动作以阻断风险",
+      "llm_tldr_en": "Sentinel-RL decouples topological from semantic reasoning so LLM SOC agents emit containment actions consistent with the host authentication topology.",
+      "llm_tldr_cn": "LLM智能体被用作安全运营分析师时，受限于有限上下文窗口，且自由生成无法保证处置动作与网络拓扑一致。论文提出Sentinel-RL架构，用异构图注意力编码器将认证子图压缩为定长状态，再由PPO策略映射到受约束的调查与处置动作，LLM循环仅负责语义推理。该解耦设计使推荐的阻断与处置动作与拓扑保持一致性，从而提升企业级安全运营中风险处置的可靠性，为智能体安全场景下的风险阻断提供了可复用的决策框架。",
+      "llm_tldr": "LLM智能体被用作安全运营分析师时，受限于有限上下文窗口，且自由生成无法保证处置动作与网络拓扑一致。论文提出Sentinel-RL架构，用异构图注意力编码器将认证子图压缩为定长状态，再由PPO策略映射到受约束的调查与处置动作，LLM循环仅负责语义推理。该解耦设计使推荐的阻断与处置动作与拓扑保持一致性，从而提升企业级安全运营中风险处置的可靠性，为智能体安全场景下的风险阻断提供了可复用的决策框架。",
+      "llm_tags": [
+        "query:mas-security"
+      ],
+      "matched_query_tag": "query:mas-security",
+      "matched_query_text": "methods to block or contain risks in multi-agent systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.07741v1",
+      "source": "arxiv",
+      "title": "When Intelligence Becomes Agency: A Theory of Governed, Proactive Agency for Symbiotic AI Systems",
+      "abstract": "Persistent AI assistants are intended to extend human attention, memory, and coordination across changing digital and physical environments. To be truly useful they must do more than just act when asked. They must decide on their own whether a situation warrants behavior at all, when it does and in what mode, whether to act, ask, monitor, defer or deliberately refrain. We call this the activation problem. Research on commitment, appraisal, mixed-initiative interaction and delegation each illuminates part of it, but none ties situated activation to continuing authorization and accountability. This paper develops a conceptual and formal framework for governed proactive agency, organizing behavior across time through perception, intent, affective-conative appraisal, constraint, and feedback. It distinguishes autonomous and delegated agency and defines symbiotic agency as delegation under a standing, revocable mandate, with continuing coupling to the principal's situation, calibrated inference of their condition, and bounded personalization. The distinctive contribution is an integrated account linking activation decisions to authorized perception, behavior selection, authority containment, traceable restraint, and constrained adaptation, with behavioral episodes as the unit of analysis. Through an agency classification method, an evaluation framework, proposed benchmark scenarios, and a reference architecture, the account provides a basis for specifying and assessing whether assistance is warranted, timely, authorized, and answerable beyond task completion alone. It is intended to guide the development and evaluation of always-present personal assistants and embodied support systems that augment human capabilities while preserving the principal's authority and judgment.",
+      "authors": [
+        "João Dias Ferreira"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-07T16:46:38+00:00",
+      "link": "https://arxiv.org/pdf/2609.07741v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "formal framework tying situated activation to continuing authorization and accountability",
+      "llm_evidence_cn": "将情境化激活与持续授权、问责相衔接的形式化框架",
+      "llm_evidence": "将情境化激活与持续授权、问责相衔接的形式化框架",
+      "canonical_evidence": "将情境化激活与持续授权、问责相衔接的形式化框架",
+      "llm_tldr_en": "This paper develops a conceptual and formal framework for governed proactive agency, addressing the activation problem and tying situated agent activation to continuing authorization and accountability.",
+      "llm_tldr_cn": "持久AI助手要真正有用，必须自主判断情境是否需要行为、以何模式行动，以及何时询问、监控、延迟或克制，即所谓激活问题。现有关于承诺、评估、混合主动交互与委托的研究各有所长，却未把情境化激活与持续授权和问责相衔接。本文提出受治理主动能动性的概念与形式化框架，跨时间组织感知与行为，为自主智能体的授权与责任归属奠定理论基础。",
+      "llm_tldr": "持久AI助手要真正有用，必须自主判断情境是否需要行为、以何模式行动，以及何时询问、监控、延迟或克制，即所谓激活问题。现有关于承诺、评估、混合主动交互与委托的研究各有所长，却未把情境化激活与持续授权和问责相衔接。本文提出受治理主动能动性的概念与形式化框架，跨时间组织感知与行为，为自主智能体的授权与责任归属奠定理论基础。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "What frameworks assign accountability for actions of intelligent agents?",
+      "matched_requirement_id": "req-20",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.05274v1",
+      "source": "arxiv",
+      "title": "How to Speculate about Uncertainty in Agentic Coding? A Draft-Model Gate Method",
+      "abstract": "LLM agents deployed for software engineering fail expensively: they act confidently wrong, and bad actions are recognized only after costly execution and retry. We present Speculative Uncertainty (SU), a method that recovers a predictive failure signal for a black-box agent from its output tokens alone, with no access to logits, weights, activations, or repeated sampling. Inverting speculative decoding, a small open-weight draft model scores the agent's already-generated trajectory in a single forward pass. From these speculative cross-likelihoods we extract phase-aware features by separating the reasoning and action spans, and calibrate them against a verifiable objective. SU produces a failure-likelihood score that any downstream policy, such as routing, human intervention, or extra test-time compute, can consume directly. To show the signal is actionable, we instantiate one such policy, a pre-execution veto gate, on software engineering agents Qwen3-Coder-480B and closed-source Claude 3.5 Sonnet, cutting execution error rate by 6-8 percentage points and token cost by 14-19% in deployment, transferring to out-of-distribution benchmarks without retraining, and generalizing across agent models.",
+      "authors": [
+        "Konstantin Grotov",
+        "Valentin Malykh"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-04T15:30:22+00:00",
+      "link": "https://arxiv.org/pdf/2609.05274v1",
+      "tags": [
+        "keyword:MAS-security",
+        "keyword:agent-audit",
+        "query:MAS-security",
+        "query:agent-audit"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "predictive failure signal for black-box agents to detect bad actions",
+      "llm_evidence_cn": "为黑盒智能体恢复预测性失败信号以识别错误动作",
+      "llm_evidence": "为黑盒智能体恢复预测性失败信号以识别错误动作",
+      "canonical_evidence": "为黑盒智能体恢复预测性失败信号以识别错误动作",
+      "llm_tldr_en": "LLM coding agents fail expensively by acting confidently wrong. The paper proposes Speculative Uncertainty, using a small draft model to score an agent trajectory in one forward pass and produce a calibrated failure-likelihood signal.",
+      "llm_tldr_cn": "面向软件工程的LLM智能体常自信地做出错误动作，且错误往往在昂贵执行与重试后才被发现，缺乏低成本失败预警。本文提出推测不确定性方法，逆向推测解码，用小规模开源草稿模型对智能体已生成轨迹做单次前向打分，并按推理与动作片段提取阶段特征进行校准。方法无需访问logits、权重、激活或重复采样，即可输出失败似然分数供下游策略使用。该工作为黑盒智能体的错误定位与失败诊断提供了实用信号。",
+      "llm_tldr": "面向软件工程的LLM智能体常自信地做出错误动作，且错误往往在昂贵执行与重试后才被发现，缺乏低成本失败预警。本文提出推测不确定性方法，逆向推测解码，用小规模开源草稿模型对智能体已生成轨迹做单次前向打分，并按推理与动作片段提取阶段特征进行校准。方法无需访问logits、权重、激活或重复采样，即可输出失败似然分数供下游策略使用。该工作为黑盒智能体的错误定位与失败诊断提供了实用信号。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "diagnosing causes of failures in autonomous agents",
+      "matched_requirement_id": "req-16",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

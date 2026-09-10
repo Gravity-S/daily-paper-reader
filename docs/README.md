@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-09</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-10</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 20 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 18 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>8</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>6</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-09 22:18:33 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-10 22:01:55 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,9 +62,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日20篇论文聚焦AI代理的可解释性与技能正确性，精读2篇高分研究。</p>
-<p>值得关注：用执行轨迹解释代理行为，以及通过意图掩码规范推理保障技能正确性（均为10/9分高亮）。</p>
-<p>普通读者可优先理解“代理如何被解释”与“技能如何被验证”，这两点关乎AI可信度。</p>
+<p>今天从18篇AI论文中精读6篇、速读12篇，重点锁定Agent安全与信任评估方向。</p>
+<p>最值得看的是两篇9分精读：《MemSentry》关注Agentic AI持久记忆投毒检测，《AgentAudit》提出AI Agent全生命周期信任评估框架。</p>
+<p>普通读者可优先了解Agent的记忆、钩子更新和权限风险，再结合《MemSentry》与《AgentAudit》建立基本防护与评估思路。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -73,12 +73,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">8 篇</strong>
+    <strong class="dpr-home-dashboard-count">6 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Explaining AI Agents Through Execution Traces">Explaining AI Agents Through Execution Traces</span></li><li><span class="dpr-home-dashboard-paper-title" title="SkillSpec: Intent-Masked Specification Reasoning for Agent Skill Correctness">SkillSpec: Intent-Masked Specification Reasoning for Agent Skill Correctness</span></li><li><span class="dpr-home-dashboard-paper-title" title="CAPMAS: Capability-Based Delegation of Privileges in Multi-Agent Systems">CAPMAS: Capability-Based Delegation of Privileges in Multi-Agent Systems</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="MemSentry: A Framework for Detecting Persistent Memory Poisoning in Agentic AI">MemSentry: A Framework for Detecting Persistent Memory Poisoning in Agentic AI</span></li><li><span class="dpr-home-dashboard-paper-title" title="AgentAudit: An Open, Extensible Framework for Full-Lifecycle Trust Evaluation of AI Agents">AgentAudit: An Open, Extensible Framework for Full-Lifecycle Trust Evaluation of AI Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="Counter-Swarm Doctrine: Containing Coordinated Agent Intrusions">Counter-Swarm Doctrine: Containing Coordinated Agent Intrusions</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>4</strong></span><span class="dpr-home-dashboard-tag">mas-security <strong>4</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>4</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>2</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -89,9 +89,9 @@
     <strong class="dpr-home-dashboard-count">12 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Skill-as-API: Confidential Multi-Agent Coordination for Agentic Software Engineering">Skill-as-API: Confidential Multi-Agent Coordination for Agentic Software Engineering</span></li><li><span class="dpr-home-dashboard-paper-title" title="Agent Memory Is a Surface for Endogenous Authorization Laundering">Agent Memory Is a Surface for Endogenous Authorization Laundering</span></li><li><span class="dpr-home-dashboard-paper-title" title="Beyond Outcome Gaps: Process-Aware Fairness Diagnosis for LLM-based Multi-Agent Decision Systems">Beyond Outcome Gaps: Process-Aware Fairness Diagnosis for LLM-based Multi-Agent Decision Systems</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Examining the Vulnerability of Multi-Agent Medical Systems to Human Interventions for Clinical Reasoning">Examining the Vulnerability of Multi-Agent Medical Systems to Human Interventions for Clinical Reasoning</span></li><li><span class="dpr-home-dashboard-paper-title" title="A Blind Trust, the Bloody Thrust: When Attacker-Controlled Hook Updates Steer AI Agent Harnesses towards Malicious Behaviors">A Blind Trust, the Bloody Thrust: When Attacker-Controlled Hook Updates Steer AI Agent Harnesses towards Malicious Behaviors</span></li><li><span class="dpr-home-dashboard-paper-title" title="CABAL: Multi-Agent Simulacra for Tracing the Effects of Collusive Bidding in Peer Review">CABAL: Multi-Agent Simulacra for Tracing the Effects of Collusive Bidding in Peer Review</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>7</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>5</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>9</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>3</strong></span></div>
 </section>
 </div>
 
