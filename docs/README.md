@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-10</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-11</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 18 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 15 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>6</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>3</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-10 22:01:55 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-11 22:08:51 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,9 +62,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今天从18篇AI论文中精读6篇、速读12篇，重点锁定Agent安全与信任评估方向。</p>
-<p>最值得看的是两篇9分精读：《MemSentry》关注Agentic AI持久记忆投毒检测，《AgentAudit》提出AI Agent全生命周期信任评估框架。</p>
-<p>普通读者可优先了解Agent的记忆、钩子更新和权限风险，再结合《MemSentry》与《AgentAudit》建立基本防护与评估思路。</p>
+<p>今日筛完15篇AI安全与智能体评测论文，精读3篇、速读12篇，焦点落在A2A协议安全与搜索代理失败诊断。最值得看的是9.0分《A2ABreak》对A2A协议的系统安全分析，以及8.0分《CIVI》诊断公民信息搜索代理失效；速读还覆盖同行评审串标、LLM风险意识评估与安全多智能体强化学习。普通读者可优先读《A2ABreak》了解智能体协议风险，再按兴趣跟进《CIVI》和速读中的评测方法。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -73,12 +71,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">6 篇</strong>
+    <strong class="dpr-home-dashboard-count">3 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="MemSentry: A Framework for Detecting Persistent Memory Poisoning in Agentic AI">MemSentry: A Framework for Detecting Persistent Memory Poisoning in Agentic AI</span></li><li><span class="dpr-home-dashboard-paper-title" title="AgentAudit: An Open, Extensible Framework for Full-Lifecycle Trust Evaluation of AI Agents">AgentAudit: An Open, Extensible Framework for Full-Lifecycle Trust Evaluation of AI Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="Counter-Swarm Doctrine: Containing Coordinated Agent Intrusions">Counter-Swarm Doctrine: Containing Coordinated Agent Intrusions</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="A2ABreak: Systematic Security Analysis of the A2A Protocol">A2ABreak: Systematic Security Analysis of the A2A Protocol</span></li><li><span class="dpr-home-dashboard-paper-title" title="CIVI: A Framework for Diagnosing Search Agent Failures in Civic Information">CIVI: A Framework for Diagnosing Search Agent Failures in Civic Information</span></li><li><span class="dpr-home-dashboard-paper-title" title="DriftNet: A Dual-Head Trajectory Transformer for Detecting and Localizing Prompt Injection in LLM Agents">DriftNet: A Dual-Head Trajectory Transformer for Detecting and Localizing Prompt Injection in LLM Agents</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>4</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>2</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>2</strong></span><span class="dpr-home-dashboard-tag">mas-security <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -89,9 +87,9 @@
     <strong class="dpr-home-dashboard-count">12 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Examining the Vulnerability of Multi-Agent Medical Systems to Human Interventions for Clinical Reasoning">Examining the Vulnerability of Multi-Agent Medical Systems to Human Interventions for Clinical Reasoning</span></li><li><span class="dpr-home-dashboard-paper-title" title="A Blind Trust, the Bloody Thrust: When Attacker-Controlled Hook Updates Steer AI Agent Harnesses towards Malicious Behaviors">A Blind Trust, the Bloody Thrust: When Attacker-Controlled Hook Updates Steer AI Agent Harnesses towards Malicious Behaviors</span></li><li><span class="dpr-home-dashboard-paper-title" title="CABAL: Multi-Agent Simulacra for Tracing the Effects of Collusive Bidding in Peer Review">CABAL: Multi-Agent Simulacra for Tracing the Effects of Collusive Bidding in Peer Review</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="CABAL: Multi-Agent Simulacra for Tracing the Effects of Collusive Bidding in Peer Review">CABAL: Multi-Agent Simulacra for Tracing the Effects of Collusive Bidding in Peer Review</span></li><li><span class="dpr-home-dashboard-paper-title" title="AURA-Eval: Evaluation Framework for Acting Under Risk Awareness in LLM Agent Trajectories">AURA-Eval: Evaluation Framework for Acting Under Risk Awareness in LLM Agent Trajectories</span></li><li><span class="dpr-home-dashboard-paper-title" title="Decentralized Safe Multi-Agent Reinforcement Learning via Predictive Shielding">Decentralized Safe Multi-Agent Reinforcement Learning via Predictive Shielding</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>9</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>3</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>8</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>4</strong></span></div>
 </section>
 </div>
 
