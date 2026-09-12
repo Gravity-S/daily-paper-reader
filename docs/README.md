@@ -41,7 +41,7 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-11</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-12</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
     <strong class="dpr-home-dashboard-count">共 15 篇</strong>
@@ -51,7 +51,7 @@
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>3</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-11 22:08:51 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-12 21:36:13 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,7 +62,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日筛完15篇AI安全与智能体评测论文，精读3篇、速读12篇，焦点落在A2A协议安全与搜索代理失败诊断。最值得看的是9.0分《A2ABreak》对A2A协议的系统安全分析，以及8.0分《CIVI》诊断公民信息搜索代理失效；速读还覆盖同行评审串标、LLM风险意识评估与安全多智能体强化学习。普通读者可优先读《A2ABreak》了解智能体协议风险，再按兴趣跟进《CIVI》和速读中的评测方法。</p>
+<p>今日</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -74,9 +74,9 @@
     <strong class="dpr-home-dashboard-count">3 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="A2ABreak: Systematic Security Analysis of the A2A Protocol">A2ABreak: Systematic Security Analysis of the A2A Protocol</span></li><li><span class="dpr-home-dashboard-paper-title" title="CIVI: A Framework for Diagnosing Search Agent Failures in Civic Information">CIVI: A Framework for Diagnosing Search Agent Failures in Civic Information</span></li><li><span class="dpr-home-dashboard-paper-title" title="DriftNet: A Dual-Head Trajectory Transformer for Detecting and Localizing Prompt Injection in LLM Agents">DriftNet: A Dual-Head Trajectory Transformer for Detecting and Localizing Prompt Injection in LLM Agents</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Distributed Secure Learning Control for Large-scale Multirobots under Stealthy Actuator Attacks">Distributed Secure Learning Control for Large-scale Multirobots under Stealthy Actuator Attacks</span></li><li><span class="dpr-home-dashboard-paper-title" title="ResidualAuth: What Authorization State Must Language Agents Preserve under Revocable Delegation?">ResidualAuth: What Authorization State Must Language Agents Preserve under Revocable Delegation?</span></li><li><span class="dpr-home-dashboard-paper-title" title="Predefined-Time Leaderless Consensus Under Denial-of-Service Attacks">Predefined-Time Leaderless Consensus Under Denial-of-Service Attacks</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>2</strong></span><span class="dpr-home-dashboard-tag">mas-security <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>3</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -87,9 +87,9 @@
     <strong class="dpr-home-dashboard-count">12 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="CABAL: Multi-Agent Simulacra for Tracing the Effects of Collusive Bidding in Peer Review">CABAL: Multi-Agent Simulacra for Tracing the Effects of Collusive Bidding in Peer Review</span></li><li><span class="dpr-home-dashboard-paper-title" title="AURA-Eval: Evaluation Framework for Acting Under Risk Awareness in LLM Agent Trajectories">AURA-Eval: Evaluation Framework for Acting Under Risk Awareness in LLM Agent Trajectories</span></li><li><span class="dpr-home-dashboard-paper-title" title="Decentralized Safe Multi-Agent Reinforcement Learning via Predictive Shielding">Decentralized Safe Multi-Agent Reinforcement Learning via Predictive Shielding</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Revoked but Still Authoritative: An Empirical Study of Revocation Enforcement in Agent-Memory Systems">Revoked but Still Authoritative: An Empirical Study of Revocation Enforcement in Agent-Memory Systems</span></li><li><span class="dpr-home-dashboard-paper-title" title="Authority Is Not a String: A Capability-Scoped Harness for Prompt-Injection-Resistant Coding Agents">Authority Is Not a String: A Capability-Scoped Harness for Prompt-Injection-Resistant Coding Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="An Efficient and Effective Agentic Group Shilling Attack on Recommender Systems">An Efficient and Effective Agentic Group Shilling Attack on Recommender Systems</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>8</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>4</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>9</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>3</strong></span></div>
 </section>
 </div>
 

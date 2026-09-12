@@ -1,0 +1,579 @@
+Title: Predefined-Time Leaderless Consensus Under Denial-of-Service Attacks
+
+URL Source: https://arxiv.org/pdf/2609.11781v1
+
+Published Time: Fri, 11 Sep 2026 01:27:31 GMT
+
+Number of Pages: 7
+
+Markdown Content:
+> 1
+
+# Predefined-Time Leaderless Consensus Under Denial-of-Service Attacks 
+
+Lohitvel Gopikannan, Student Member, IEEE , Shashi Ranjan Kumar, Senior Member, IEEE ,and Abhinav Sinha, Senior Member, IEEE 
+
+Abstract — This paper addresses predefined-time re-silient consensus of leaderless second-order nonlinear multi-agent systems under denial-of-service (DoS) attacks, motivated by coordination requirements in safety-critical applications. The agents are subject to bounded external disturbances and communicate over a strongly connected directed graph whose links are simultaneously disabled during attacks. We develop a switching sliding-mode pro-tocol with the objective of reaching an invariant manifold of position and velocity agreement. The protocol uses rel-ative position and velocity information during attack-free intervals and local velocity feedback during communication blackouts. A time-scaling function remains constant during each blackout and resumes evolving when communica-tion is restored, accounting for the time available for con-sensus. Under bounds on attack duration and frequency, we derive sufficient gain conditions through a Lyapunov analysis. We show that, despite bounded disturbances, the agents achieve position and velocity consensus by a realistic settling time equal to a prescribed convergence duration plus the cumulative attack duration up to the realistic settling time. The prescribed convergence duration is independent of the initial conditions, and the realistic settling time reduces to that duration in the absence of attacks. 
+
+Index Terms — Denial-of-service attacks, leaderless con-sensus, predefined-time control, second-order multi-agent systems, sliding-mode control. 
+
+I. I NTRODUCTION 
+
+Coordinated motion planning, e.g., [1]–[3], relies on infor-mation exchanged among agents to organize their motion. In tasks with a scheduled cooperative maneuver, e.g. [4], the time required to reach agreement becomes part of the coordination objective. For second-order agents, both position and velocity disagreement matter because velocity mismatch continues to change relative positions. A denial-of-service (DoS) attack interrupts the information exchange needed to correct those mismatches while the agents continue to evolve. The inter-action between physical motion, communication availability, and convergence time motivates resilient consensus for safety-critical multi-agent systems (MASs). 
+
+L. Gopikannan and S. R. Kumar are with the Intelligent Sys-tems & Control (ISaC) Lab, Department of Aerospace Engineering, Indian Institute of Technology Bombay, Mumbai 400076, India. (e-mails: lohitvel@aero.iitb.ac.in, srk@aero.iitb.ac.in). A. Sinha is with the Guidance, Autonomy, Learning, and Control for Intelligent Systems (GALACxIS) Lab, Department of Aerospace Engineering, University of Cincinnati, OH 45221, USA. (e-mail: abhinav.sinha@uc.edu). 
+
+For directed second-order networks, the work in [5] es-tablished consensus conditions that account for nonlinear dy-namics and position–velocity coupling. Asymptotic agreement provides no finite completion deadline, which motivated finite-time protocols for double-integrator networks, including the leaderless and leader-following designs of [6]. A finite-time bound can still depend on the initial disagreement. Fixed-time protocols for nonlinear and disturbed second-order agents [7] address this dependence through settling-time bounds that are uniform over initial conditions. The ensuing design objective is to make a desired convergence duration a transparent controller parameter, which has become a central motivation for prescribed-time consensus [8]. The authors in [9] developed time-scaling methods that prescribe the convergence time for single-integrator consensus and containment problems. Extending such guarantees to second-order motion requires control of both position and velocity. This requirement was addressed in [10] through prescribed-time observers and formation-tracking controllers for second-order networks with a dynamic leader. The leader trajectory yields the tracking objective, whereas leaderless co-ordination requires the agents to reach agreement through their mutual interactions. The work in [11] advanced prescribed-time coordination to practical scaled consensus in disturbed second-order networks without any cyber-attacks, including a leaderless setting, with estimates of the residual consensus error. Sliding-mode designs, albeit robust, must also accommo-date the structure of the leaderless disagreement dynamics. Therein graph Laplacian is singular, which precludes using its inverse in the consensus protocol. Integral sliding-mode designs for disturbed second-order agents have shown to achieve asymptotic leaderless consensus and finite-time leader-following consensus [12]. Nonsingular sliding-mode control with coded event-triggered communication has subsequently yielded predefined-time leaderless consensus [13]. Resilient consensus methods have addressed DoS-induced communication loss in several settings. For example, event-triggered control for nonlinear second-order agents under DoS attacks over directed interaction topologies was developed in [14], [15]. An asymptotic leaderless consensus using event-and self-triggered communication when individual channels are independently attacked was established in [16]. Dual-terminal triggering also supports resilient leaderless average consensus while reducing communication and actuator up-dates [17]. These studies address the availability and use of arXiv:2609.11781v1 [eess.SY] 10 Sep 2026 2
+
+network information. A scheduled coordination task addition-ally requires a finite convergence-time guarantee. For second-order agents, that guarantee must accommodate the evolution of velocity and position disagreement throughout each black-out. To this end, the authors in [18] studied prescribed-time consensus under DoS by introducing a realistic settling time that adds the cumulative attack duration to a prescribed conver-gence duration. Their leader-following formulation accounts for the communication time lost to attacks. A prescribed-time event-triggered control for leader-following nonlinear second-order systems with time delays, DoS attacks, and external dis-turbances was presented in the work of [19]. Prescribed-time formation under DoS has also been developed for leaderless double-integrator networks with undirected communication graphs and self-triggered updates [20]. To the best of the authors’ knowledge, sliding-mode co-ordination laws that achieve leaderless consensus within a prescribed cumulative duration of attack-free communication remain comparatively scarce. The central difficulty is that velocity mismatch and external disturbances continue to drive relative motion during each blackout, while the neighboring-agent information needed to correct the disagreement is un-available. A controller must govern the agents using locally available information during attacks and guarantee conver-gence by a realistic settling time that accounts for the cu-mulative loss of communication. We address this problem through a sliding-mode framework over a strongly connected directed graph. Our main contribu-tions are as follows. First, we design a switching sliding-mode protocol for predefined-time leaderless consensus of second-order agents with known nonlinear dynamics and bounded dis-turbances. The position–velocity sliding variable is built from mutual disagreement, and the protocol avoids inversion of the singular graph Laplacian. Local velocity feedback governs the agents during complete communication blackouts. Second, We extend the realistic-settling-time concept of [18] to prescribe the cumulative attack-free communication time for leaderless consensus independently of the initial conditions, with the convergence deadline extended by the accumulated outage duration. The extension realizes this timing guarantee through a sliding variable built from mutual position and velocity disagreement, accommodating continued second-order motion under local feedback while the associated time scaling pauses during blackouts. Third, we derive a quantitative disagreement bound that tracks amplification and disturbance accumulation during successive blackouts and their attenuation after com-munication recovery. The bound relates the convergence rate to the directed graph and control gains, establishing position and velocity agreement while keeping the consensus correction bounded as the time scaling becomes singular at the realistic settling time. 
+
+II. B ACKGROUND AND PROBLEM FORMULATION 
+
+In this work, the communication topology is modeled by a weighted directed graph G = (V , E) , where 𝑁 ≥ 2 and 
+
+V = {1, . . . , 𝑁 } is the agent set and (𝑖, 𝑗 ) ∈ E ⊆ V × V 
+
+indicates that agent 𝑗 receives information from agent 𝑖 . The weighted adjacency matrix A = [𝑎 𝑖 𝑗 ] ∈ R𝑁 × 𝑁 has 𝑎 𝑖 𝑗 > 0
+
+if ( 𝑗, 𝑖 ) ∈ E and zero otherwise, with 𝑎 𝑖𝑖 = 0. The in-degree matrix D = diag {𝑑 1, . . . , 𝑑 𝑁 } has 𝑑 𝑖 = Í𝑁 𝑗 =1 𝑎 𝑖 𝑗 , and the graph Laplacian is defined as L = D − A ∈ R𝑁 × 𝑁 . L has a simple zero eigenvalue with all other eigenvalues having positive real parts if and only if the directed network has a directed spanning tree. 
+
+Assumption 1. G is assumed to be strongly connected. 
+
+Lemma 1 ( [5]) . Under Assumption 1, L1𝑁 = 0𝑁 , and the Laplacian admits a unique normalized vector 𝝃 =
+
+(𝜉 1, . . . , 𝜉 𝑁 )⊤ ∈ R𝑁 >0 satisfying 𝝃 ⊤L = 0⊤ 
+
+> 𝑁
+
+, 𝝃 ⊤1𝑁 = 1. Define 
+
+Ξ = diag (𝜉 1, . . . , 𝜉 𝑁 ) and ˆL = (ΞL + L ⊤Ξ)/ 2. The matrix 
+
+ˆL is symmetric positive semidefinite with ker (L) = ker ( ˆL) =
+
+span {1𝑁 }. The graph constant 𝑎 ( ˆL) := min 𝝃 ⊤z=0  
+
+> z∈R𝑁 \{ 0𝑁 }
+
+z⊤ ˆLz
+
+∥z∥22
+
+satisfies 0 < 𝑎 ( ˆL) ≤ 𝜆 2 ( ˆL) , where 𝜆 2 ( ˆL) is the second-smallest eigenvalue of ˆL.
+
+The agents associated with each node of G are described by the following dynamics: 
+
+(
+
+¤𝑥 𝑖 = 𝑣 𝑖 ,
+
+¤𝑣 𝑖 = 𝑓 𝑖 + 𝑏 𝑖 𝑢 𝑖 + 𝑑 𝑖 , 𝑖 = 1, . . . , 𝑁, (1) where, for the 𝑖 -th agent, 𝑥 𝑖 , 𝑣 𝑖 ∈ R𝑛 denote the position and velocity, 𝑓 𝑖 := 𝑓 (𝑥 𝑖 , 𝑣 𝑖 , 𝑡 ) ∈ R𝑛 and 𝑏 𝑖 := 𝑏 (𝑥 𝑖 , 𝑣 𝑖 , 𝑡 ) ∈ R𝑛 ×𝑛 ≠
+
+0 are known nonlinear functions representing the inherent dynamics and state-dependent input matrix, respectively, with 
+
+𝑢 𝑖 as the control input to be designed, and 𝑑 𝑖 (𝑡 ) denotes the external bounded disturbance. For simplicity, scalar second-order dynamics ( 𝑛 = 1) are considered throughout. The results can be extended to higher-dimensional systems by employing the Kronecker product. A DoS attack occurs when an adversary blocks or dis-rupts the communication links between agents, preventing the exchange of information over the affected connections. Let 𝑡 0 be the initial time, and let 𝑡 𝑠 𝑚 , 𝑡 𝑒 𝑚 , 𝑚 = 1, 2, . . . ,denote the start and end instants of the 𝑚 th attack. The attack intervals are indexed chronologically, with 𝑡 𝑒  
+
+> 0
+
+= 𝑡 0 ≤ 𝑡 𝑠  
+
+> 1
+
+and 
+
+𝑡 𝑠 𝑚 < 𝑡 𝑒 𝑚 ≤ 𝑡 𝑠 𝑚 +1. The attacked and attack-free portions of 
+
+[𝑡 0, 𝑡 ] are written as Υ𝐴 (𝑡 0, 𝑡 ) := [𝑡 0, 𝑡 ] ∩ Ð 𝑗 ≥1 [𝑡 𝑠 𝑗 , 𝑡 𝑒 𝑗 ) and 
+
+Υ𝑁 (𝑡 0, 𝑡 ) := [𝑡 0, 𝑡 ] \ Υ𝐴 (𝑡 0, 𝑡 ), with |Υ𝐴 (𝑡 0, 𝑡 )| + | Υ𝑁 (𝑡 0, 𝑡 )| =
+
+𝑡 − 𝑡 0. For 𝑡 ∈ [ 𝑡 𝑒 𝑚 −1, 𝑡 𝑠 𝑚 ), |Υ𝐴 (𝑡 0, 𝑡 )| = Í𝑚 −1 
+
+> 𝑗 =1
+
+(𝑡 𝑒 𝑗 − 𝑡 𝑠 𝑗 ), whereas for 𝑡 ∈ [ 𝑡 𝑠 𝑚 , 𝑡 𝑒 𝑚 ), |Υ𝐴 (𝑡 0, 𝑡 )| = Í𝑚 −1 
+
+> 𝑗 =1
+
+(𝑡 𝑒 𝑗 − 𝑡 𝑠 𝑗 ) + ( 𝑡 − 𝑡 𝑠 𝑚 ). Let 
+
+N𝐴 (𝑡 0, 𝑡 ) denote the number of attack onsets in [𝑡 0, 𝑡 ] and they are detectable by the agents. In this work, zero-topology attack is considered, whose characteristics are described below. 
+
+Definition 1 ( [21]) . Under a zero-topology attack, all com-munication edges are disabled during each attack interval and restored during attack-free intervals. The availability function satisfies 𝜁 (𝑡 ) = 0 during attacks and 𝜁 (𝑡 ) = 1 during attack-free intervals, so that the time-varying adjacency matrix under DoS attacks is given by A𝜁 (𝑡 ) = [𝑎 𝜁 𝑖 𝑗 (𝑡 )] , where 𝑎 𝜁 𝑖 𝑗 (𝑡 ) =
+
+𝑎 𝑖 𝑗 𝜁 (𝑡 ).
+
+Assumption 2. There exist constants 𝜈 1, 𝜈 3 > 1 and 𝜈 2, 𝜈 4 ≥ 0
+
+such that 
+
+|Υ𝐴 (𝑡 0, 𝑡 )| ≤ 𝑡 − 𝑡 0
+
+𝜈 1
+
++ 𝜈 2, N𝐴 (𝑡 0, 𝑡 ) ≤ 𝑡 − 𝑡 0
+
+𝜈 3
+
++ 𝜈 4. (2) 3
+
+Remark 1. Jamming a communication channel requires the attacker to continuously expend energy, and since attackers generally operate under a finite energy budget, attacks cannot persist indefinitely. This physical constraint justifies bounding the duration and frequency of such attacks [16], [18], [21]. A fixed convergence deadline requires sufficient commu-nication time and control authority to remove the remaining disagreement. Online gain tuning can accelerate correction after communication resumes, but the duration and frequency bounds in Assumption 2 do not specify future recovery in-stants. During a complete blackout, increasing relative-state feedback gains cannot restore the missing neighboring-agent information. A late recovery also compresses the correction into a short interval, i.e., even closing a fixed position mis-match from rest requires peak acceleration that grows inversely with the square of the available recovery time. With finite actuation, this requirement can make the original deadline infeasible. We adopt the realistic settling time of [18] to ac-count for lost communication time while retaining a prescribed duration of attack-free coordination. 
+
+Definition 2 ( [18]) . Let 𝑙 and 𝑛 𝑢 be positive integers denoting the state and input dimensions, respectively. Consider the non-autonomous system ¤𝜓 (𝑡 ) = ℎ(𝜓, 𝑢, 𝑡 ), where 𝜓 (𝑡 ) ∈
+
+R𝑙 is the state vector, 𝑢 ∈ R𝑛 𝑢 is the control vector, and 
+
+ℎ : R𝑙 × R𝑛 𝑢 × R+ → R𝑙 is a nonlinear function satisfying 
+
+ℎ(0, 0, 𝑡 ) = 0. Then the origin of the system is said to be globally uniformly resiliently prescribed-time stable if it is globally uniformly finite-time stable, and the settling time 
+
+𝑇 (𝜓 0) admits a finite bound 𝑡 𝐹 𝑐 ∈ R+ satisfying 𝑇 (𝜓 0) ≤ 𝑡 𝐹 𝑐 
+
+for all 𝜓 0 ∈ R𝑙 . The bound 𝑡 𝐹 𝑐 , termed the realistic settling time, satisfies 𝑡 𝐹 𝑐 = 𝑡 𝑐 + | Υ𝐴 (0, 𝑡 𝐹 𝑐 )| , with 𝑡 𝑐 stipulated in advance, independent of the initial conditions and of the sys-tem/controller parameters. Furthermore, there exists a radially unbounded positive-definite function 𝑉 : R𝑙 × R≥0 → R+
+
+satisfying 𝑉 (𝜓, 𝑡 𝑠 𝑚 ) ≤ 𝛼𝑉 (𝜓, 𝑡 𝑠 − 
+
+> 𝑚
+
+), 𝑉 (𝜓, 𝑡 𝑒 𝑚 ) ≤ 𝛼𝑉 (𝜓, 𝑡 𝑒 − 
+
+> 𝑚
+
+) and 
+
+¤𝑉 (𝜓, 𝑡 ) ≤ 𝜃𝑉 (𝜓, 𝑡 ), ∀ 𝑡 ∈ [ 0, 𝑡 𝐹 𝑐 ) ∩ [ 𝑡 𝑠 𝑚 , 𝑡 𝑒 𝑚 ) in the absence of disturbances, where 𝛼 ≥ 1 and 𝜃 > 0.
+
+Problem. Set 𝑡 0 = 0 and consider the scalar agents (1) 
+
+over a graph satisfying Assumption 1, subject to zero-topology attacks satisfying Assumption 2. Given a prescribed duration 
+
+𝑡 𝑐 > 0, chosen independently of the initial states, and a known disturbance bound ¯𝑑 ≥ 0, design causal switching control inputs 𝑢 𝑖 (𝑡 ), 𝑖 = 1, . . . , 𝑁 , using local measurements and available network information during attack-free intervals, and local state feedback during blackouts. For each admissible attack history, let us define the realistic settling time as the first instant at which the cumulative attack-free time reaches 
+
+𝑡 𝑐 , i.e., 
+
+𝑡 𝐹 𝑐 := inf {𝑡 ≥ 0 : |Υ𝑁 (0, 𝑡 )| ≥ 𝑡 𝑐 } . (3) 
+
+For all finite initial states (𝑥 𝑖 (0), 𝑣 𝑖 (0)) ∈ R2 and all measur-able disturbance signals satisfying |𝑑 𝑖 (𝑡 )| ≤ ¯𝑑 for all agents and 𝑡 ≥ 0, we require the closed-loop trajectories to satisfy, for every pair 𝑖, 𝑗 ∈ { 1, . . . , 𝑁 },
+
+lim   
+
+> 𝑡 →( 𝑡 𝐹 𝑐 )−
+
+ 𝑥 𝑖 (𝑡 ) − 𝑥 𝑗 (𝑡 ) =0, lim   
+
+> 𝑡 →( 𝑡 𝐹 𝑐 )−
+
+ 𝑣 𝑖 (𝑡 ) − 𝑣 𝑗 (𝑡 ) = 0. (4) The cumulative attack-free time is continuous, and Assump-tion 2 yields |Υ𝑁 (0, 𝑡 )| ≥ ( 1 − 1/𝜈 1)𝑡 − 𝜈 2. The deadline in (3) consequently satisfies 
+
+𝑡 𝐹 𝑐 = 𝑡 𝑐 + | Υ𝐴 (0, 𝑡 𝐹 𝑐 )| ≤ 𝜈 1 (𝑡 𝑐 + 𝜈 2)
+
+𝜈 1 − 1 . (5) The bound in (5) is finite and independent of the initial states. During a blackout, the cumulative attack-free time remains fixed while relative motion and disturbances continue to change the disagreements. The controller must regulate the blackout motion through local feedback and use restored communication to drive both disagreements to zero. 
+
+III. M AIN RESULTS 
+
+We formulate the objective (4) in terms of position and velocity disagreements induced by L. Let x = [𝑥 1, . . . , 𝑥 𝑁 ]⊤
+
+and v = [𝑣 1, . . . , 𝑣 𝑁 ]⊤ denote the global position and velocity state vectors, respectively. The system (1) can then be written in compact form 
+
+¤x = v, (6) 
+
+¤v = F + Bu + d, (7) where F = [ 𝑓 1, . . . , 𝑓 𝑁 ]⊤ ∈ R𝑁 , B = diag (𝑏 1, . . . , 𝑏 𝑁 ) ∈
+
+R𝑁 × 𝑁 , d = [𝑑 1, . . . , 𝑑 𝑁 ]⊤ ∈ R𝑁 and u = [𝑢 1, . . . , 𝑢 𝑁 ]⊤ ∈
+
+R𝑁 . Define the consensus error vectors Z1 = Lx ∈ R𝑁 
+
+and Z2 = Lv ∈ R𝑁 , whose 𝑖 th components are 𝑧 1𝑖 =Í𝑁 𝑗 =1 𝑎 𝑖 𝑗 (𝑥 𝑖 − 𝑥 𝑗 ) and 𝑧 2𝑖 = Í𝑁 𝑗 =1 𝑎 𝑖 𝑗 (𝑣 𝑖 − 𝑣 𝑗 ), representing the local disagreement of agent 𝑖 in position and velocity, respectively. It can be noted that Z1 = Z2 = 0 implies consensus among all agents. To facilitate the control design, the following sliding surface is introduced: 
+
+S = Z2 + 𝛾 (𝑡 )Z1, (8) where the time-varying scaling function [18] is 
+
+𝛾 (𝑡 ) =
+
+
+
+𝑐 𝑡 𝑐 + | Υ𝐴 (0, 𝑡 )| − 𝑡 , 0 ≤ 𝑡 < 𝑡 𝐹 𝑐 ,
+
+0, 𝑡 ≥ 𝑡 𝐹 𝑐 ,
+
+(9) with 𝑐 ≥ 2.
+
+Remark 2. The scaling function 𝛾 (𝑡 ) is not unique and may be chosen by the user; several such choices exist in the literature; e.g., see [22]. In general, for 𝑇 > 0, one may define 𝑠 (𝑡 )
+
+with 𝑠 (0) = 0, 𝑠 (𝑇 ) = +∞ , strictly monotonically increasing and continuously differentiable, giving the scaling function 
+
+𝛾 (𝑇, 𝑡 ) := ¤𝑠 (𝑡 ), which similarly satisfies 𝛾 (𝑇, 𝑡 ) → ∞ as 
+
+𝑡 → 𝑇 . Although this singularity appears restrictive, remedies have been proposed in the literature [22]. As this work focuses on consensus protocol design rather than the scaling function itself, we leave the choice of 𝛾 (𝑡 ) to the user. 
+
+Theorem 1. Consider the scalar agents (1) under Assump-tions 1 and 2, with |𝑑 𝑖 (𝑡 )| ≤ ¯𝑑 . For a prescribed 𝑡 𝑐 > 0,choose gains satisfying 
+
+𝑘 > 𝜆 max (Ξ)
+
+𝑎 ( ˆL) 
+
+
+
+1 + 1
+
+𝑐 
+
+
+
+, 𝑐 ≥ 2, 𝑘 𝑣 ≥ 0, 𝜂 ≥ ¯𝑑. (10) 4
+
+With S and 𝛾 (𝑡 ) defined by (8) and (9) , apply the switching protocol 
+
+u(𝑡 ) = −B−1
+
+(
+
+F + 𝑘𝛾 (𝑡 )S + 𝜂 sign (L ⊤ΞS); 𝜁 (𝑡 ) = 1,
+
+F + 𝑘 𝑣 v + 𝜂 sign (v); 𝜁 (𝑡 ) = 0. (11) 
+
+Then the Filippov solutions satisfy (4) for all finite initial states and admissible attack histories, with 𝑡 𝐹 𝑐 defined by (3) . The attack-free consensus correction 𝑘𝛾 (𝑡 )S(𝑡 ) remains bounded as 𝑡 → ( 𝑡 𝐹 𝑐 )− and converges to zero when 𝑐 > 2.Proof. All differential inequalities below hold almost every-where along Filippov solutions. On an attack-free interval 
+
+[𝑡 𝑒 𝑚 , 𝑡 𝑠 𝑚 +1)∩ [ 0, 𝑡 𝐹 𝑐 ), define 𝑡 𝑚 +1 
+
+> 𝑐
+
+:= 𝑡 𝑐 +| Υ𝐴 (0, 𝑡 𝑒 𝑚 )| , with 𝑡 𝑒  
+
+> 0
+
+= 0.The scaling law (9) satisfies 𝛾 (𝑡 ) = 𝑐 /( 𝑡 𝑚 +1 
+
+> 𝑐
+
+−𝑡 ) on this interval. Differentiating (8) and substituting (11) yields 
+
+¤S = − 𝛾 (𝑘 L − I𝑁 )S − 𝜇 Z1 + L  d − 𝜂 sign (L ⊤ΞS) , (12) where 𝜇 := 𝛾 2 − ¤ 𝛾 = 𝑐 (𝑐 − 1)/( 𝑡 𝑚 +1 
+
+> 𝑐
+
+− 𝑡 )2 > 0 by 𝑐 ≥ 2 in (10). Consider the piecewise differentiable Lyapunov function 
+
+𝑉 (𝑡 ) = 12 S⊤ΞS + 12 𝜇 (𝑡 )Z⊤ 
+
+> 1
+
+ΞZ1. (13) Using ¤Z1 = Z2 = S − 𝛾 Z1 and (12), the mixed terms in ¤𝑉 
+
+cancel, leaving 
+
+¤𝑉 = − 𝛾 S⊤Ξ(𝑘 L − I𝑁 )S − ˆ𝜇 Z⊤ 
+
+> 1
+
+ΞZ1
+
++ S⊤ΞL  d − 𝜂 sign (L ⊤ΞS) , (14) where ˆ𝜇 := 𝜇𝛾 − ¤𝜇 /2 = (𝑐 − 1)𝜇𝛾 /𝑐 > 0. H¨ older’s inequality and the uniform disturbance bound imply S⊤ΞL( d−
+
+𝜂 sign (L ⊤ΞS)) ≤ ( ¯𝑑 − 𝜂 )∥L ⊤ΞS∥1 ≤ 0 by (10). Moreover, 
+
+𝝃 ⊤S = 0 because Z1 = Lx and Z2 = Lv. Applying Lemma 1 to (14) yields 
+
+¤𝑉 ≤ − 𝛾 ˆ𝑘 S⊤ΞS − 𝑐 − 1
+
+𝑐 𝜇𝛾 Z⊤ 
+
+> 1
+
+ΞZ1, (15) where ˆ𝑘 := [𝑘𝑎 ( ˆL) − 𝜆 max (Ξ)]/ 𝜆 max (Ξ) > 1/𝑐 by (10). Set 
+
+¯𝑐 := 2𝑐 min { ˆ𝑘, (𝑐 −1)/ 𝑐 } ≥ 2. From (13) and (15), one obtains 
+
+¤𝑉 ≤ − ¯𝑐𝑉 /( 𝑡 𝑚 +1 
+
+> 𝑐
+
+− 𝑡 ). Integration over the attack-free interval establishes 
+
+𝑉 (𝑡 ) ≤ 
+
+ 𝑡 𝑚 +1 
+
+> 𝑐
+
+− 𝑡 𝑡 𝑚 +1 
+
+> 𝑐
+
+− 𝑡 𝑒 𝑚 
+
+ ¯𝑐 
+
+𝑉 (𝑡 𝑒 𝑚 ). (16) During an attack interval [𝑡 𝑠 𝑚 , 𝑡 𝑒 𝑚 ) ∩ [ 0, 𝑡 𝐹 𝑐 ), (9) makes 𝛾 
+
+constant, so 𝜇 = 𝛾 2 in (13). Under the blackout branch of (11), the sliding variable satisfies ¤S = (𝛾 − 𝑘 𝑣 )Z2 + L( d − 𝜂 sign (v)) .Differentiating (13) now yields 
+
+¤𝑉 =(𝛾 − 𝑘 𝑣 )S⊤ΞS + 𝑘 𝑣 𝛾 S⊤ΞZ1
+
+− 𝛾 3Z⊤ 
+
+> 1
+
+ΞZ1 + S⊤ΞL( d − 𝜂 sign (v)) . (17) Young’s inequality bounds the mixed term by 𝑘 𝑣 𝛾 S⊤ΞZ1 ≤(𝑘 𝑣 /2)S⊤ΞS + ( 𝑘 𝑣 𝛾 2/2)Z⊤ 
+
+> 1
+
+ΞZ1. For 𝚽 := Ξ L( d − 𝜂 sign (v)) ,the disturbance bound implies ∥𝚽 ∥2 ≤ ¯𝜔 , where ¯𝜔 :=
+
+∥L∥ 2𝜆 max (Ξ)√𝑁 ( ¯𝑑 + 𝜂 ). Applying S⊤𝚽 ≤ (∥ S∥22 + ∥ 𝚽 ∥22)/ 2
+
+to (17) and using (13) establishes 
+
+¤𝑉 ≤ 𝜃 (𝑡 )𝑉 + ˆ𝜃, (18) with 𝜃 (𝑡 ) := 2|𝛾 − 𝑘 𝑣 /2| + ( 2/𝛾 2) max {0, (𝑘 2 
+
+> 𝑣
+
+/2) − 𝛾 3 } + 
+
+1/𝜆 min (Ξ) and ˆ𝜃 := ¯𝜔 2/2.The deadline bound (5) and the attack-frequency bound in Assumption 2 ensure that the number 𝑀 of attacks starting before 𝑡 𝐹 𝑐 is finite, with 𝑀 ≤ N𝐴 (0, 𝑡 𝐹 𝑐 ) ≤ 𝑡 𝐹 𝑐 /𝜈 3 + 𝜈 4.By the first-attainment definition (3), every such attack ends before 𝑡 𝐹 𝑐 : the remaining attack-free duration is positive at the attack onset and remains constant throughout the blackout. Hence 𝛾 (𝑡 𝑠 𝑚 ) is finite for 𝑚 = 1, . . . , 𝑀 , and a finite constant 
+
+¯𝜃 > 0 bounds 𝜃 on all these attack intervals. Take ¯𝜃 :=
+
+max 1≤𝑚 ≤ 𝑀 𝜃 (𝑡 𝑠 𝑚 ) when 𝑀 ≥ 1, and ¯𝜃 := 1 when 𝑀 = 0.Integration of (18) over the 𝑚 -th attack leads to the endpoint bound 
+
+𝑉 (𝑡 𝑒 − 
+
+> 𝑚
+
+) ≤ 𝑒 ¯𝜃 (𝑡 𝑒 𝑚 −𝑡 𝑠 𝑚 )𝑉 (𝑡 𝑠 𝑚 ) + Δ𝑚 , (19) where Δ𝑚 := ( ˆ𝜃 / ¯𝜃 ) [ 𝑒 ¯𝜃 (𝑡 𝑒 𝑚 −𝑡 𝑠 𝑚 ) − 1] ≥ 0.At switching instants before 𝑡 𝐹 𝑐 , the plant states x and v
+
+and the scaling function 𝛾 are continuous, so (8) ensures continuity of S. The coefficient 𝜇 equals (𝑐 −1)𝛾 2/𝑐 on attack-free intervals and 𝛾 2 during attacks. Across an attack onset, 
+
+𝜇 increases by at most the factor 𝑐 /( 𝑐 − 1); at an attack end, 
+
+𝜇 cannot increase. Thus (13) implies 𝑉 (𝑡 𝑠 𝑚 ) ≤ 𝛼𝑉 (𝑡 𝑠 − 
+
+> 𝑚
+
+) and 
+
+𝑉 (𝑡 𝑒 𝑚 ) ≤ 𝑉 (𝑡 𝑒 − 
+
+> 𝑚
+
+) ≤ 𝛼𝑉 (𝑡 𝑒 − 
+
+> 𝑚
+
+), where 𝛼 := 𝑐 /( 𝑐 − 1). If the first attack starts at 𝑡 = 0, take 𝑉 (𝑡 𝑠 − 
+
+> 1
+
+) := 𝑉 (0) in the initial switching estimate. Applying the bounds on 𝑉 (𝑡 𝑠 𝑚 ) and 𝑉 (𝑡 𝑒 𝑚 )
+
+to (19) and using (16) yields 
+
+𝑉 (𝑡 ) ≤ 
+
+ 𝑡 𝑚 +1 
+
+> 𝑐
+
+− 𝑡 𝑡 𝑚 +1 
+
+> 𝑐
+
+− 𝑡 𝑒 𝑚 
+
+ ¯𝑐 h
+
+𝛼 2𝑒 ¯𝜃 (𝑡 𝑒 𝑚 −𝑡 𝑠 𝑚 )𝑉 (𝑡 𝑠 − 
+
+> 𝑚
+
+) + 𝛼 Δ𝑚 
+
+i
+
+. (20) Since 𝑡 − | Υ𝐴 (0, 𝑡 )| is constant during [𝑡 𝑠 𝑚 , 𝑡 𝑒 𝑚 ), the remaining attack-free duration has the same value at attack onset and recovery: 
+
+𝑡 𝑚 +1 
+
+> 𝑐
+
+− 𝑡 𝑒 𝑚 = 𝑡 𝑚 𝑐 − 𝑡 𝑠 𝑚 > 0. (21) To propagate (20) through successive intervals, set Λ0 :=
+
+𝑉 (0)/ 𝑡 ¯𝑐 𝑐 and define 
+
+Λ𝑚 := 𝛼 2𝑒 ¯𝜃 (𝑡 𝑒 𝑚 −𝑡 𝑠 𝑚 ) Λ𝑚 −1 + 𝛼 Δ𝑚 
+
+(𝑡 𝑚 +1 
+
+> 𝑐
+
+− 𝑡 𝑒 𝑚 ) ¯𝑐 . (22) Suppose 𝑉 (𝑡 ) ≤ Λ𝑚 −1 (𝑡 𝑚 𝑐 − 𝑡 ) ¯𝑐 for 𝑡 ∈ [𝑡 𝑒 𝑚 −1, 𝑡 𝑠 𝑚 ). Taking the limit as 𝑡 → (𝑡 𝑠 𝑚 )− yields 𝑉 (𝑡 𝑠 − 
+
+> 𝑚
+
+) ≤ Λ𝑚 −1 (𝑡 𝑚 𝑐 − 𝑡 𝑠 𝑚 ) ¯𝑐 .Substituting the bound on 𝑉 (𝑡 𝑠 − 
+
+> 𝑚
+
+) into (20) and applying (21) establishes 𝑉 (𝑡 ) ≤ Λ𝑚 (𝑡 𝑚 +1 
+
+> 𝑐
+
+− 𝑡 ) ¯𝑐 on [𝑡 𝑒 𝑚 , 𝑡 𝑠 𝑚 +1) ∩ [ 0, 𝑡 𝐹 𝑐 ), with 
+
+Λ𝑚 defined by (22). Equation (16) with 𝑚 = 0 establishes 
+
+𝑉 (𝑡 ) ≤ Λ0 (𝑡 𝑐 − 𝑡 ) ¯𝑐 on the initial healthy interval. Induction using (22) extends the bound on 𝑉 (𝑡 ) to every healthy interval before 𝑡 𝐹 𝑐 . Expanding the recursion (22) expresses Λ𝑚 in terms of the attack history: 
+
+Λ𝑚 = 𝛼 2𝑚 𝑒 ¯𝜃 Í𝑚 𝑟 =1 (𝑡 𝑒 𝑟 −𝑡 𝑠 𝑟 )
+
+𝑡 ¯𝑐 𝑐 
+
+𝑉 (0)+
+
+> 𝑚
+
+∑︁ 
+
+> 𝑞 =1
+
+𝛼 2(𝑚 −𝑞 )+ 1𝑒 ¯𝜃 Í𝑚 𝑟 =𝑞 +1 (𝑡 𝑒 𝑟 −𝑡 𝑠 𝑟 )
+
+(𝑡 𝑞 +1 
+
+> 𝑐
+
+− 𝑡 𝑒 𝑞 ) ¯𝑐 Δ𝑞 . (23) Since 𝑡 𝑐 > 0 and (21) ensures 𝑡 𝑞 +1 
+
+> 𝑐
+
+− 𝑡 𝑒 𝑞 > 0, the finite sum in (23) defines finite coefficients Λ𝑚 for 𝑚 = 0, . . . , 𝑀 .With Λ := max 0≤𝑚 ≤ 𝑀 Λ𝑚 < ∞, the healthy-interval estimates become 
+
+𝑉 (𝑡 ) ≤ Λ(𝑡 𝑚 +1 
+
+> 𝑐
+
+− 𝑡 ) ¯𝑐 . (24) 5
+
+The constant Λ may depend on the initial state and attack history; the deadline bound (5) is independent of the initial state. There is a final healthy interval [𝑡 𝑒 𝑀 , 𝑡 𝐹 𝑐 ), with 𝑡 𝑒 𝑀 = 0 if 
+
+𝑀 = 0, and (3) implies 𝑡 𝑀 +1 
+
+> 𝑐
+
+= 𝑡 𝐹 𝑐 . Set 𝑟 (𝑡 ) := 𝑡 𝐹 𝑐 − 𝑡 and 
+
+𝐶 :=√︁ 2Λ/𝜆 min (Ξ). Since 𝜇 = 𝑐 (𝑐 − 1)/ 𝑟 2 on this interval, the two nonnegative terms in (13), together with (24), establish 
+
+∥S(𝑡 )∥ 2 ≤𝐶𝑟 (𝑡 ) ¯𝑐 /2, ∥Z1 (𝑡 )∥ 2 ≤ 𝐶 √︁ 
+
+𝑐 (𝑐 − 1) 𝑟 (𝑡 ) ¯𝑐 /2+1. (25) Using Z2 = S − 𝛾 Z1 from (8) and 𝛾 = 𝑐 /𝑟 , (25) yields 
+
+∥Z2 (𝑡 )∥ 2 ≤ 𝐶 
+
+
+
+1 +√︂ 𝑐 𝑐 − 1
+
+
+
+𝑟 (𝑡 ) ¯𝑐 /2. (26) Both Z1 and Z2 tend to zero as 𝑡 → ( 𝑡 𝐹 𝑐 )− . Because ker (L) =
+
+span {1𝑁 } by Lemma 1, convergence of Z1 and Z2 to zero establishes the pairwise position and velocity consensus limits (4). Finally, (25) bounds the attack-free consensus correction by 
+
+𝑘𝛾 (𝑡 )∥ S(𝑡 )∥ 2 ≤ 𝑐𝑘𝐶𝑟 (𝑡 ) ( ¯𝑐 −2)/ 2. (27) The correction remains bounded since ¯𝑐 ≥ 2. When 𝑐 > 2, the strict gain condition (10) ensures ˆ𝑘 > 1/𝑐 and (𝑐 −1)/ 𝑐 > 1/𝑐 ,so ¯𝑐 > 2. The upper bound in (27) then vanishes as 𝑡 →(𝑡 𝐹 𝑐 )− , establishing 𝑘𝛾 (𝑡 )S(𝑡 ) → 0𝑁 . As 𝑡 → 𝑡 𝑐 𝐹 , 𝑉 (𝑡 ) → 0,by continuity of 𝑉 and since ¤𝑉 ≤ 0, the consensus manifold remains invariant for all 𝑡 ≥ 𝑡 𝑐 − 
+
+> 𝐹
+
+. □
+
+In the absence of DoS attacks, (3) reduces to 𝑡 𝐹 𝑐 = 𝑡 𝑐 . Hence Theorem 1 establishes the position and velocity agreement limits (4) at 𝑡 𝑐 , despite bounded exogenous disturbances. 
+
+Remark 3. For a connected undirected graph, the normal-ization in Lemma 1 yields 𝝃 = 1𝑁 /𝑁 , Ξ = I𝑁 /𝑁 , and 
+
+ˆL = L/ 𝑁 . Hence 𝑎 ( ˆL) = 𝜆 2 (L)/ 𝑁 , and (10) reduces to 
+
+𝑘 > (1 + 1/𝑐 )/ 𝜆 2 (L) , with 𝑐 ≥ 2, 𝑘 𝑣 ≥ 0, and 𝜂 ≥ ¯𝑑 
+
+unchanged. The discontinuous consensus term simplifies to 
+
+𝜂 sign (L S) inside (11). During communication blackouts, the local branch of (11) regulates each agent’s velocity through damping and distur-bance compensation. Substitution into (1) results in ¤𝑣 𝑖 =
+
+−𝑘 𝑣 𝑣 𝑖 −𝜂 sign (𝑣 𝑖 ) + 𝑑 𝑖 . Under (10), the velocity satisfies 𝑣 𝑖 ¤𝑣 𝑖 ≤−𝑘 𝑣 𝑣 2 
+
+> 𝑖
+
+almost everywhere, so the speed of each agent remains nonincreasing throughout a blackout. The scaling function 
+
+𝛾 remains fixed during each outage by (9); relative-position feedback and the evolution of 𝛾 resume when communication is restored. The design of analogous local blackout feedback for higher-order agents remains a direction for future work. 
+
+Remark 4. The estimate (27) ensures that the consen-sus correction 𝑘𝛾 (𝑡 )S(𝑡 ) remains bounded as 𝑡 → (𝑡 𝐹 𝑐 )−
+
+and vanishes when 𝑐 > 2. During attack-free inter-vals, the full control input in (11) satisfies ∥u(𝑡 )∥ 2 ≤∥B−1 ∥2
+
+
+
+∥F∥2 + 𝑘𝛾 (𝑡 )∥ S(𝑡 )∥ 2 + 𝜂 √𝑁 
+
+
+
+. During an attack in-terval, the local feedback branch instead implies ∥u(𝑡 )∥ 2 ≤∥B−1 ∥2
+
+
+
+∥F∥2 + 𝑘 𝑣 ∥v(𝑡 )∥ 2 + 𝜂 √𝑁 
+
+
+
+. Thus the full input is bounded on [0, 𝑡 𝐹 𝑐 ) if F, B−1, and the blackout velocities remain bounded. Implementing (11) with finite actuation capacity requires choosing 𝑡 𝑐 so that the control demand remains within the available input range. Although the convergence guarantee in Theorem 1 holds for all finite initial states, the required control magnitude depends on the initial conditions. Actuator limits consequently restrict the range of implementable deadlines, even in the absence of DoS attacks. 
+
+IV. S IMULATIONS       
+
+> 51234
+> 0.71.20.91.40.40.50.8
+
+Fig. 1 : Interaction Topology ( G). To demonstrate the efficacy of the proposed strategy, we consider 5 agents interacting over a weighted, strongly con-nected digraph G. Each agent is modeled as an ideal single-link robotic manipulator with 𝑓 𝑖 = − 𝑔 𝑙 sin 𝑥 𝑖 − ¯𝜈 𝑚𝑙 2 𝑣 𝑖 and 
+
+𝑏 𝑖 = 1 
+
+> 𝑚𝑙 2
+
+, where 𝑥 𝑖 denotes the angular position, 𝑚 = 2 kg 
+
+is the link mass, 𝑙 = 1 m is the link length, ¯𝜈 = 6 Nms 
+
+is the friction coefficient, 𝜏 𝑖 is the applied torque (control input), and 𝑔 = 9.81 m /s2 is the gravitational acceleration. The external disturbance is modeled as 𝑑 𝑖 = 0.5𝑖 sin (( 0.5+0.1𝑖 )𝑡 )+ 
+
+0.05 𝑖 cos (( 1 + 0.2𝑖 )𝑡 ), 𝑖 = 1, . . . , 5.The initial conditions are set to 𝑥 (0) = [− 2.5, 1.25 , 3.75 , −1.25 , 5.0]⊤ and 𝑣 (0) =
+
+[1.0, −0.6, 0.4, 0.0, −0.8]⊤. The controller gains are set to 
+
+𝑐 = 3, 𝑘 = 5, and 𝜂 = 3.5, with convergence time 𝑡 𝑐 = 5 s .The discontinuous sign (·) in (11) is replaced by tanh (·/ 𝜀 ),where 𝜀 > 0 is small, to mitigate numerical chattering. We first consider the case with no DoS attacks. The corresponding results are illustrated in Fig. 2. One can observe from Fig. 2c that 𝑆 converges to zero within 𝑡 = 0.5 s and remains there despite the disturbances. On the sliding manifold, Z2 = ¤Z1 ≈−𝛾 (𝑡 )Z1, which guarantees consensus of 𝑥 𝑖 and 𝑣 𝑖 as 𝑡 → 𝑡 − 
+
+> 𝑐
+
+,and consensus is preserved thereafter, as can be observed from Fig. 2a and Fig. 2b. The corresponding control input (shown in Fig. 2c), remains bounded throughout. For the next case, we consider the system under DoS attacks in the absence of disturbances, with the gains 𝑘 𝑣 and 𝜂 set to zero. The corresponding results are presented in Fig. 3, where the DoS attack intervals are indicated by the gray bands. In Fig. 3c, the quantity 𝑡 go (𝑡 ) = 𝑡 𝑐 + | Υ𝐴 (0, 𝑡 )| − 𝑡 is depicted, indicating a realistic settling time of 𝑡 𝐹 𝑐 = 6.5, s, at which 
+
+𝑡 go (𝑡 ) reaches zero. As shown in Fig. 3b, ¤𝑣 𝑖 = 0 during the DoS intervals. Nevertheless, consensus in both velocity and position is achieved by 𝑡 𝐹 𝑐 , as illustrated in Fig. 3b and Fig. 3a respectively. Furthermore, one can note that the consensus condition remains invariant under subsequent DoS attacks. Corresponding control inputs are shown in Fig. 3c. It can also be observed that abrupt changes occur at the transitions between DoS and healthy communication intervals; a smooth transition mechanism will be considered in future work. 6          
+
+> (a) 𝑥 𝑖 (𝑡 ).(b) 𝑣 𝑖 (𝑡 ).(c) 𝑆 (𝑡 )and 𝑢 𝑖 (𝑡 )
+
+Fig. 2 : Prescribed time consensus under no DoS attacks.            
+
+> (a) 𝑥 𝑖 (𝑡 ).(b) 𝑣 𝑖 (𝑡 ).(c) 𝑢 𝑖 (𝑡 )and 𝑡 go (𝑡 )
+
+Fig. 3 : Consensus under DoS attacks with no disturbances.            
+
+> (a) 𝑥 𝑖 (𝑡 ).(b) 𝑣 𝑖 (𝑡 ).(c) 𝑢 𝑖 (𝑡 )and 𝑡 go (𝑡 )
+
+Fig. 4 : Consensus under DoS attacks with disturbances. Next, we consider the system under DoS attacks in the presence of disturbances, with 𝑘 𝑣 = 3 and 𝜂 = 3.5. A different DoS attack sequence is considered, and the corresponding results are presented in Fig. 4. From 𝑡 go (𝑡 ) in Fig. 4c, one can note that 𝑡 𝐹 𝑐 = 7.5 s . During the DoS intervals, 𝑣 𝑖 de-creases toward zero, while velocity and position consensus are achieved by 𝑡 𝐹 𝑐 , as shown in Fig. 4b and Fig. 4a, respectively. The corresponding control inputs in Fig. 4c remain bounded, and the consensus remains invariant under subsequent DoS attacks and disturbances. 
+
+V. C ONCLUSIONS 
+
+We developed a switching sliding-mode protocol for predefined-time leaderless consensus of nonlinear second-order agents under bounded disturbances and DoS attacks. The proposed design uses mutual position and velocity dis-agreement over a strongly connected directed graph, avoids inversion of the singular graph Laplacian, and regulates mo-tion through local velocity feedback during complete com-munication blackouts. Under bounds on attack duration and frequency, we established convergence by a realistic settling time that accounts for accumulated outages while retaining a prescribed attack-free duration independent of the initial conditions. We derived bounds that track disagreement am-plification and disturbance accumulation during blackouts and quantify disagreement decay after communication recovery. The resulting gain conditions ensure position and velocity agreement as the realistic settling time is approached, while keeping the consensus correction bounded despite the singular 7
+
+time scaling. Future work will address the selection of feasible convergence durations under actuator limits and the extension of local blackout feedback to higher-order agents. 
+
+REFERENCES 
+
+[1] Y. Bai, Y. Wang, M. Svinin, E. Magid, and R. Sun, “Adaptive multi-agent coverage control with obstacle avoidance,” IEEE Control Systems Letters , vol. 6, pp. 944–949, 2022. [2] A. Sinha and Y. Cao, “3-d nonlinear guidance law for target circumnav-igation,” IEEE Control Systems Letters , vol. 7, pp. 655–660, 2023. [3] A. Sinha, S. R. Kumar, and D. Mukherjee, “Cooperative salvo based active aircraft defense using impact time guidance,” IEEE Control Systems Letters , vol. 5, no. 5, pp. 1573–1578, 2021. [4] A. Sinha and S. R. Kumar, “Supertwisting control-based cooperative salvo guidance using leader–follower approach,” IEEE Transactions on Aerospace and Electronic Systems , vol. 56, no. 5, pp. 3556–3565, 2020. [5] W. Yu, G. Chen, M. Cao, and J. Kurths, “Second-order consensus for multiagent systems with directed topologies and nonlinear dynamics,” 
+
+IEEE Transactions on Systems, Man, and Cybernetics, Part B (Cyber-netics) , vol. 40, no. 3, pp. 881–891, 2009. [6] S. Li, H. Du, and X. Lin, “Finite-time consensus algorithm for multi-agent systems with double-integrator dynamics,” Automatica , vol. 47, no. 8, pp. 1706–1712, 2011. [7] H. Hong, W. Yu, J. Fu, and X. Yu, “A novel class of distributed fixed-time consensus protocols for second-order nonlinear and disturbed multi-agent systems,” IEEE Transactions on Network Science and Engineer-ing , vol. 6, no. 4, pp. 760–772, 2018. [8] B. Ning, Q.-L. Han, Z. Zuo, L. Ding, Q. Lu, and X. Ge, “Fixed-time and prescribed-time consensus control of multiagent systems and its applications: A survey of recent trends and methodologies,” IEEE Transactions on Industrial Informatics , vol. 19, no. 2, pp. 1121–1135, 2022. [9] Y. Wang, Y. Song, D. J. Hill, and M. Krstic, “Prescribed-time consen-sus and containment control of networked multiagent systems,” IEEE transactions on cybernetics , vol. 49, no. 4, pp. 1138–1147, 2018. [10] T.-F. Ding, M.-F. Ge, C. Xiong, Z.-W. Liu, and G. Ling, “Prescribed-time formation tracking of second-order multi-agent networks with directed graphs,” Automatica , vol. 152, p. 110997, 2023. [11] M. Meng, L. Li, Q. Kang, and Q. Gan, “Practical prescribed-time scaled consensus of second-order multi-agent systems via event-triggered and time-based generator approaches,” Communications in Nonlinear Sci-ence and Numerical Simulation , p. 110608, 2026. [12] G. Wang, X. Wang, and S. Li, “Sliding-mode consensus algorithms for disturbed second-order multi-agent systems,” Journal of the Franklin Institute , vol. 355, no. 15, pp. 7443–7465, 2018. [13] P. Wei, M. Luo, J. Cheng, and X. Wang, “Further results on coded-based predefined-time consensus via nonsingular sliding mode control for multiple aerial vehicles,” Information Sciences , vol. 721, p. 122637, 2025. [14] Y. Shang, C.-L. Liu, and K.-C. Cao, “Event-triggered consensus control of second-order nonlinear multi-agent systems under denial-of-service attacks,” Transactions of the Institute of Measurement and Control ,vol. 43, no. 10, pp. 2272–2281, 2021. [15] J. Liang, Z. Chen, Z. Yu, and H. Jiang, “Fixed-time consensus of second-order multi-agent systems based on event-triggered mechanism under dos attacks,” AIMS Mathematics , vol. 10, no. 1, pp. 1501–1528, 2025. [16] B. Li, Z. Wang, W. Wang, Q. Gao, and J. L¨ u, “Event-/self-triggered communication for dos-resilient consensus in multiagent systems with application to leo satellite formation,” IEEE Transactions on Industrial Informatics , 2026. [17] B. Li, Q. Gao, Z. Wang, W. Wang, and J. L¨ u, “Dual-terminal dynamic event-triggering leader-following and leaderless consensus for multi-agent systems under distributed dos attack,” International Journal of Robust and Nonlinear Control , 2026. [18] Z. Ye, D. Zhang, L. Liu, Y. Shi, and G. Feng, “Prescribed time consensus of leader-following multi-agent systems under dos attacks,” Automatica ,vol. 188, p. 112953, 2026. [19] W. Zhu, Y. Luo, J. Cao, D. Yue, and W. Xia, “Prescribed-time event-triggered consensus control of nonlinear multi-agent systems under dos attacks and time-delays,” Neurocomputing , p. 133360, 2026. [20] M. Sharma, H. Shanmugam, and S. R. Mahapatro, “Self-triggered prescribed-time time varying formation control of second-order multi-agent systems with denial of service (DoS) attacks,” Scientific Reports ,vol. 16, p. 26672, 2026. [21] W. Cao, L. Liu, D. Zhang, and G. Feng, “Distributed resilient fixed-time control for cooperative output regulation of mass over directed graphs under dos attacks,” IEEE Transactions on Automatic Control , 2026. [22] H. Yang and Y. Wang, “Finite-gain based prescribed-time consensus control for multi-agent systems under switching topology,” Automatica ,vol. 183, p. 112686, 2026.

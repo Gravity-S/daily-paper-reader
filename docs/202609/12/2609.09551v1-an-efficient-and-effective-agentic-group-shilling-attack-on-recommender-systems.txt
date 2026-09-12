@@ -1,0 +1,593 @@
+Title: An Efficient and Effective Agentic Group Shilling Attack on Recommender Systems
+
+URL Source: https://arxiv.org/pdf/2609.09551v1
+
+Published Time: Thu, 10 Sep 2026 00:32:39 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# An Efficient and Effective Agentic Group Shilling Attack on Recommender Systems 
+
+Quoc Viet Nguyen 1, Trinh Pham 1, Viet Huynh 2, Hongzhi Yin 3,* , Quoc Viet Hung Nguyen 1,* ,Bay Vo 4, Thanh Tam Nguyen 1
+
+> 1
+
+Griffith University , Australia 
+
+> 2
+
+Edith Cowan University , Australia 
+
+> 3
+
+The University of Queensland , Australia 
+
+> 4
+
+Faculty of Information Technology, HUTECH University , Vietnam 
+
+Abstract —Recommender systems have become core infras-tructure for modern online platforms, personalizing content at scale and strongly influencing what users see, click on, and purchase. However, this dependence on user interaction also exposes them to shilling attacks, where malicious actors can inject fake profiles to distort item rankings and control visibility. Existing attacks often rely on target-specific fine-tuning or fixed profile templates, making them either difficult to adapt to different victims or easier to detect. To overcome these limitations, we propose the Agentic Group Attack System (AGAS), a coordinated shilling framework where a central Coordinator directs a group of role-switching worker agents to adaptively promote a target item across different victim families. The Coordinator dynamically adjusts the strategy when progress stalls or suppression signals increase, while workers pursue a shared objective and switch between active and inactive roles to avoid repetitive patterns. Under the same attack budgets and evaluation protocols, AGAS consistently surpasses strong baselines in target promotion while better preserving benign recommendation quality, weakening representative detectors, and achieving higher efficiency than prior attacks. These findings also emphasize that defending recommender systems may require mechanisms that can handle adaptive shilling campaigns, not just isolated fake-profile injections. Our code is available at https://github.com/phkhanhtrinh23/AGAS. 
+
+Index Terms —Recommender Systems, Group Shilling Attacks, Agentic AI. 
+
+I. I NTRODUCTION 
+
+Recommender systems (RecSys) are widely deployed to rank products, media, and information at scale. In practice, many RecSys rely on Collaborative Filtering (CF), which learns from user–item interaction signals such as clicks, rat-ings, and purchases [1]–[4]. This interaction-driven design also makes CF-based victims vulnerable to shilling attacks, where adversaries inject fake profiles to promote chosen target items. Prior attacks include heuristic profile injection [5], augmented profile generation [6], [7], surrogate-guided and bi-level optimization [8]–[11], reinforcement learning [12], [13], and recent LLM-driven shilling attacks [14]–[18]. Despite this diversity, Fig. 1 shows that these methods are still limited in many aspects. The learning-based pipelines (AUSH [6], GOAT [7], GSPAttack [9], and CLeaR [10]) require extensive 
+
+> *
+
+Corresponding authors. 
+
+Fig. 1: AGAS vs prior attacks on five axes. offline fine-tuning before a single campaign can be launched: AUSH must fit a GAN [19] on the clean interaction matrix for every new target. GOAT must train a graph-convolutional GAN to approximate the real rating distribution, introduc-ing substantial preparation overhead before attack generation. GSPAttack and CLeaR must converge a bi-level optimization loop that alternates inner and outer updates. AgentSA [14] avoids offline fine-tuning by using LLM agents to generate fake profiles, but each profile is still produced largely as an independent attacker following a shared prompt recipe, which can leave repeated behavioral patterns. AgentAttack [15] intro-duces an LLM planner, but the planner operates over a library of pre-generated profiles from existing attack families [5]–[7], [20]. The planner can only sample these limited candidates even when the pre-generated profiles share similar templates or fail to match a new victim setting. Most existing attacks operate as collections of independent fake users rather than coordinated group campaigns. The emergence of the Agentic Web [21], [22] changes the threat surface. Websites increasingly grant AI agents broad permissions to rate items, post reviews, and make purchases on users’ behalf. Malicious actors can recruit a group of such agents and coordinate them to attack a RecSys [23]. To the best of our knowledge, previous works have not explicitly studied coordinated agentic group shilling attacks in RecSys. They arXiv:2609.09551v1 [cs.CR] 9 Sep 2026 share some structural shortcomings. (1) Costly preparation :learning-based methods require hours of training before the first fake profile can be produced, and LLM-driven methods still generate expensive fake profiles or recursively sample new batches when the attack underperforms. (2) Static patterns :every fake user is locked to one generation algorithm or profile template for the entire campaign, leaving detectable distribu-tional fingerprints. (3) Static strategy : there is no mechanism to redirect the group when the campaign underperforms. For example, fake users may rate the same suboptimal sequence of items. This motivates us to propose the Agentic Group Attack System (AGAS) . Powered by the growing planning and rea-soning capabilities of LLMs [24]–[30], AGAS addresses each shortcoming in turn. (1) Training-free : A hidden Coordinator autonomously orchestrates the group from victim feedback, worker signals, and safety checks, without any training costs. 
+
+(2) Coordination : the Coordinator jointly decides which role a worker should take, and when the group should attack, slow down, or stay inactive. This makes the campaign adaptive at the group level, rather than a set of independent fake users repeatedly pushing the same target. (3) Role-switching :Each worker is a stateful agent with its own memory. It switches roles (Profiler, Sniper, Camouflageur, or Inactive) across rounds under the Coordinator’s supervision, reliably breaking the stable patterns that detectors rely on. (4) Dy-namic strategies : AGAS switches strategies (§IV-C) based on feedback from victims. This allows it to push aggressively when safe, slow down when risky, and avoid detectable attack patterns. This design lifts all five axes in Fig. 1. It improves Speed by eliminating training latency, and improves Detector Evasion, Profile Realism, and Unpopular and Popular Item scores through coordination, role-switching, and dynamic strategies. Our contributions are summarized as follows:  
+
+> •
+
+Formulation : To the best of our knowledge, this is the first formulation of coordinated group shilling as an adaptive campaign, where multiple fake users are jointly managed to maximize target exposure while maintaining stealth.  
+
+> •
+
+Method : We propose AGAS , an agentic framework where a Coordinator manages specialized worker roles instead of treating fake users as independent attackers. It uses feedback signals to adjust role assignments and attack strategies without offline fine-tuning.  
+
+> •
+
+Evaluation : Across different datasets and victim models, AGAS consistently outperforms conventional and agentic baselines under the same evaluation protocols, while pre-serving benign recommendation quality and weakening representative detectors.  
+
+> •
+
+Benchmark : AGAS is both effective and efficient since it enables fast stress-testing of RecSys against sophisticated shilling attacks without costly fine-tuning or repeated surrogate retraining. II. R ELATED WORK 
+
+Model-based CF learns user and item representations from historical interactions and remains widely used in RecSys [31]. We consider two main families. Embedding-based models include MF [1], NMF [32], NCF, NeuMF, and GMF [2]. 
+
+Graph-based models propagate embeddings over user–item graphs, including NGCF [3], LightGCN [4], SimGCL [33], XSimGCL [34], EGCF [35], and LightCCF [36]. Existing attacks are often tailored to specific victim families, while AGAS operates in a black-box setting and adapts from victim feedback that is observable to the attacker. 
+
+White-box attacks. White-box attacks assume access to vic-tim objectives, gradients, or parameters. PGA [8] derives poi-soning gradients for factorization models, while CLeaR [10] and InfoAtk [37] target contrastive or graph-based recom-menders. Such access can enable strong attacks but limits practical applicability. 
+
+Gray and Black-box attacks. Gray-box attacks use partial knowledge, typically through surrogate models. AIA [38] learns transferable fake-user behaviors, while GSPAttack [9] generates fake users and graph edges for GNN recommenders. Their effectiveness still depends on surrogate quality and victim-family assumptions. Black-box attacks use only observ-able behavior. Random Attack [20], Bandwagon Attack [5], HybridAttack [39], and its social extension [40] use fixed heuristics or templates. AUSH [6] and GOAT [7] learn pro-file generators, while PoisonRec [12], CopyAttack [13], and MultiAttack [18] use reinforcement learning. R-Trojan [41] additionally exploits textual reviews. These methods improve profile generation but often require costly generative or policy training before deployment. 
+
+Agentic attacks. Recent LLM-based methods introduce agents into black-box recommender attacks. CheatAgent [16] uses a single LLM agent against LLM-empowered recom-menders. AgentSA [14] assigns one agent to each fake ac-count and rewrites profiles until validation succeeds. Agen-tAttack [15] uses an LLM planner to select pre-generated attack profiles from existing methods [5]–[7], [20], with weak combinations filtered through surrogate retraining. In contrast, AGAS performs adaptive campaign management. A Coordi-nator manages role-switching workers, observes round-level feedback, pauses or slows attacks under suppression, replaces risky workers, and updates roles and strategies. Therefore, the attack evolves across rounds without relying on fixed profiles, prompts, or pre-generated libraries. III. F ORMULATION 
+
+A. Collaborative Filtering with Implicit Feedback 
+
+Let U = {1, . . . , M } and I = {1, . . . , N } denote the user and item sets. The implicit matrix R ∈ { 0, 1}M ×N has 
+
+Rui = 1 if user u interacted with item i, and Rui = 0
+
+otherwise. CF learns a scoring function ˆyui = fΘ(u, i ) from each user’s positive set I+ 
+
+> u
+
+= {i ∈ I | Rui = 1 }. This formulation covers common CF backbones, including matrix factorization [2], graph convolution [4], and graph-contrastive recommenders [34]. BPR [42] is used as the training objective: 
+
+LBPR (Θ) = X
+
+> (u,i,j )∈D
+
+− log σ(ˆ yui − ˆyuj ) + λ∥Θ∥22, (1) Fig. 2: Overview of the AGAS pipeline. Across attack rounds, the Coordinator aggregates worker and environment signals to adapt fake-user roles and attack strategies, progressively steering the campaign toward effective promotion of the target item. AGAS effectively uses feedback-derived signals to probe the victim, slow down when suppression emerges, and keep some workers inactive to avoid repetitive or overly synchronized behavior. where D = {(u, i, j ) | u ∈ U , i ∈ I + 
+
+> u
+
+, j / ∈ I + 
+
+> u
+
+}, σ(·) is the sigmoid, and λ is the regularization weight. At inference, the recommender returns: 
+
+TopK( u) = arg topK 
+
+> q∈I\I +
+> u
+
+ˆyuq . (2) 
+
+B. Targeted Shilling Attack 
+
+The attacker selects a target item itar ∈ I and aims to push it into the top-K list of benign test users Utest , measured by: 
+
+HR@ K(itar ) = 1
+
+|U test |
+
+X
+
+> u∈U test
+
+I[itar ∈ TopK( u)] . (3) Following standard targeted shilling evaluation, the attacker injects fake users as new accounts, while attack success is measured on held-out benign users by checking whether the target item appears in their top-K recommendation lists. 
+
+Threat model. We assume a black-box setting: the attacker has no access to deployed-victim parameters, gradients, train-ing procedure, evaluation-user identities, held-out interactions, or exact platform discount weights. The attacker injects Mf
+
+fake users Uf = {1, . . . , M f }, where each fake user w
+
+has interaction vector ˜rw ∈ { 0, 1}N . Stacking them gives 
+
+˜R ∈ { 0, 1}Mf ×N , appended to the clean data: 
+
+R′ = R; ˜R. (4) 
+
+Attack objective. Let A(·) be the training procedure mapping a poisoned matrix to a deployed recommender. AGAS maxi-mizes target exposure while keeping injected profiles within a stealth tolerance: 
+
+max  
+
+> {˜rw}w∈U f
+
+1
+
+|U test |
+
+X
+
+> u∈U test
+
+I[itar ∈ TopK( u; A(R′))] 
+
+s.t. S( ˜R; R) ≤ ε, 
+
+(5) where TopK( u; A(R′)) is the top-K list returned to benign test user u by the recommender trained on the poisoned matrix 
+
+R′, S(·; ·) measures anomaly relative to benign profiles, and ε
+
+is the attacker–defender tolerance. In AGAS, this tolerance is operationalized through the worker and environment signals in §IV, which decide whether to continue, slow down, pause, or switch strategy. AGAS constructs ˜R over T rounds using only attacker-accessible feedback, obtained from recommendation lists returned to its own fake accounts rather than from Utest or any hidden metric of the deployed victim (§IV). The reported attack uses the full poisoning history accumulated over all 
+
+T rounds, so R′ in Eq. 4 is the matrix on which we report HR@ K and NDCG@ K in §V. IV. M ETHOD 
+
+We present the Agentic Group Attack System (AGAS) , as shown in Fig. 2, where a Coordinator manages a pool of fake users over multiple rounds. The team contains four worker roles: Profiler (PR), Camouflageur (CA), Sniper (SN), and 
+
+Inactive (IN). The Coordinator tracks global attack progress, worker safety, and campaign state, then adjusts both worker roles and attack strategy over time, without training latency. The complete process is described in Alg. 1. 
+
+A. Coordinator 
+
+At round t, the Coordinator reads the current observation ot,updates memory mt, and computes the control signals directly from workers’ actions and environment feedback. 
+
+Worker signals. These signals are maintained for each worker and summarize how safe that worker is.  
+
+> •
+
+Trust and risk scores. AGAS maintains a trust score 
+
+τt,w and a risk score γt,w for each worker w. After an accepted action on item i with rating rt,w , it computes the deviation from the current item bias as: dt,w = |rt,w −bi|.Trust increases only when the action remains close to the item bias: 
+
+τt+1 ,w = max(0 , τ t,w + I[dt,w ≤ 1]) . (6) Algorithm 1 AGAS Attack Procedure  
+
+> 1:
+
+Input: clean matrix R, target item itar , fake users Uf ,per-user budget L, rounds T . 
+
+> 2:
+
+Output: poisoned matrix R′ = [ R; ˜R]. 
+
+> 3:
+
+Initialize Coordinator memory, worker states, victim fam-ily as unknown, and ˜R ← ∅. 
+
+> 4:
+
+Initialize worker signals as τ0,w = 0 , γ0,w = 0 , and 
+
+ϕ0,w = 0 for each w ∈ U f . 
+
+> 5:
+
+Initialize environment signals as η0 = 1 , ξ0 = ( q0, s 0) = (0 , 0) , and a0 = 0 . 
+
+> 6:
+
+for t = 0 , . . . , T − 1 do  
+
+> 7:
+
+Build observation ot and update mem-ory mt from the current signals 
+
+(ρ(t), ∆ρ(t), {τt,w , γ t,w , ϕ t,w }w∈U f , η t, ξ t, a t). 
+
+> 8:
+
+Based on these signals, the Coordinator selects one round-level strategy and assigns each worker a role in 
+
+{PR , CA , SN , IN }. 
+
+> 9:
+
+The Coordinator validates and aggregates accepted worker actions into one batch ∆ ˜R(t+1) . 
+
+> 10:
+
+Update ˜R ← ˜R ∪ ∆ ˜R(t+1) and form the current poisoned matrix [R; ˜R]. 
+
+> 11:
+
+Update worker signals, rank feedback, and environment signals (ηt+1 , ξ t+1 , a t+1 ). 
+
+> 12:
+
+Update victim-family prediction, worker states, and Coordinator memory.  
+
+> 13:
+
+if the stopping condition is met then  
+
+> 14:
+
+break  
+
+> 15:
+
+end if  
+
+> 16:
+
+end for  
+
+> 17:
+
+R′ ← [R; ˜R]. 
+
+> 18:
+
+return R′
+
+Risk increases when the action deviates from the bias, with an additional penalty for extreme actions from low-trust workers: 
+
+γt+1 ,w = max(0 , γ t,w + 0 .5 I[dt,w > 1] +0 .5 I[dt,w > 1.5 ∧ τt,w < 1]) . (7) If worker w is inactive in round t, risk decays as: 
+
+γt+1 ,w = max(0 , γ t,w − 0.5) . (8)  
+
+> •
+
+Validator score. ϕt,w measures whether worker w’s whole profile appears structurally suspicious: 
+
+ϕt,w = min(1 , 0.4 et,w + 0 .3 ht,w + 0 .3 ot,w ) , (9) where et,w is the frequency of extreme ratings (near the two ends of the scale), ht,w indicates whether w has given the target item a clear positive rating (near the positive end of the scale), and ot,w measures fake-user overlap, i.e., the fraction of w’s rated items also rated by at least two other fake users. Unlike τt,w and γt,w , which track recent actions, ϕt,w evaluates profile-level suspicion. 
+
+Environment signals. These signals summarize how the victim model and platform are reacting to the campaign at each round. Unlike worker signals, which describe the status of individual fake users, environment signals capture global progress, possible defensive behavior, and campaign-level risk.  
+
+> •
+
+Rank feedback. ρ(t) and ∆ρ(t) denote the current mean target rank and its recent change. Together, they indicate whether the campaign is effectively promoting the target item or has started to stall. A consistent improvement in 
+
+ρ(t) suggests that the current strategy is working, whereas a weak or negative ∆ρ(t) may suggest that AGAS should adjust its strategy, increase exploration, or switch workers to safer roles.  
+
+> •
+
+Acceptance rate. ηt is the recent ratio of accepted to attempted actions by active workers. It measures whether injected interactions are still being incorporated by the victim system. A sudden drop in ηt may indicate silent fil-tering, discounting, or defensive suppression, even with-out an explicit alert.  
+
+> •
+
+Suppression signal. ξt = (qt, s t) denotes the round-level suppression signal, where qt ∈ [0 , 1] is the overall suspicion score and st is the campaign-level suppression streak. The streak st increases when the current round shows signs of filtering, discounting, or weak target-rank improvement. Let Wt be the active fake workers at round t. Let Atry  
+
+> t
+
+, Adrop  
+
+> t
+
+, Aacc  
+
+> t
+
+, and Atar  
+
+> t
+
+denote the attempted, dropped, accepted, and target-related actions in that round. We define: 
+
+ˆdt = |A drop  
+
+> t
+
+|
+
+max(1 , |A try  
+
+> t
+
+|) ,
+
+ˆδt = min 
+
+1, 12|A acc  
+
+> t
+
+|
+
+X
+
+> a∈A acc
+> t
+
+δ(a)
+
+ ,
+
+ˆmt = 1max(1 , |A tar  
+
+> t
+
+|)
+
+X
+
+> a∈A tar
+> t
+
+I[∆ ρtar (a) < ϵ ρ],
+
+ˆst = min(1 , s t/3) .
+
+(10) Here, ˆdt is the dropped-action ratio, ˆδt is the normalized discount magnitude, ˆmt is the weak target-movement ratio, and ˆst is the normalized suppression streak. δ(a)
+
+is the estimated discount applied to accepted action a,
+
+∆ρtar (a) is the target-rank improvement after action a,and ϵρ is the minimum improvement threshold. We also compute a round-level group-overlap score: 
+
+At,w = {items rated by worker w at round t},gt = max 
+
+> u,v ∈W t, u ̸=v
+
+|At,u ∩ At,v ||At,u ∪ At,v | . (11) This captures whether fake workers are acting too sim-ilarly in the same round. To avoid over-tuning the sup-pression score, we give the five components equal weight and use a simple linear combination to compute qt. The final round-level suspicion score is: 
+
+qt = min 
+
+
+
+1, 0.2 ˆdt +0 .2ˆδt +0 .2 ˆ mt +0 .2ˆ st +0 .2gt
+
+
+
+. (12) A large qt means the campaign is likely being filtered, discounted, or detected at the environment level.  
+
+> •
+
+Alert flag. at ∈ {0, 1} is the round-level alert flag. AGAS sets at = 1 when the current round creates an abnormal target spike, unusually high worker overlap, or a sharp drop in action acceptance. This is a coarse practical trigger rather than a formal detector. It indicates a high-risk state and encourages the Coordinator to slow down, pause, or switch to safer strategies. Before the campaign begins, AGAS evaluates the clean victim once to obtain the initial target rank ρ(0) . Since no fake action has been injected, ∆ρ(0) = 0 . For each worker w,the Worker signals are initialized as τ0,w = 0 , γ0,w = 0 , and 
+
+ϕ0,w = 0 . The round-level Environment signals also start from neutral values: η0 = 1 , ξ0 = ( q0, s 0) = (0 , 0) , and a0 = 0 . The 
+
+Worker signals indicate which fake users are still effective or becoming risky. The Environment signals summarize whether the victim platform appears to be accepting the campaign or entering a defensive state. Based on this feedback, the Coordinator decides whether to explore, attack, slow down, pause, or switch roles before selecting the next strategy. 
+
+B. Workers 
+
+Each worker keeps its own memory. This lets each worker decide what item to rate next from its own action history. Group-level coordination is still maintained by the Coordina-tor. The worker memory supports item-level decisions. 
+
+Profiler (PR). PR is the exploration role. It uses a few safe interactions on filler items , i.e., popular or related non-target items that normal users would reasonably rate, to test whether the platform is accepting actions and whether suppression or throttling is emerging. When feedback suggests a graph-style victim, it prioritizes bridge items , i.e., an intermediate item that links the target to real users through shared preferences, to find receptive users and expand the attack path. 
+
+Camouflageur (CA). CA is the stealth role. It passively rates filler items instead of aggressively pushing the target, making the fake-user history look more like normal activity than coordinated promotion. This role dilutes suspicious behavior, helps rebuild trust after risky rounds, and keeps the fake-user pool active when the Coordinator slows down. 
+
+Sniper (SN). SN is the payload role, assigned to high-trust and low-risk workers because it creates the strongest rank movement but also the highest detection pressure. For embedding-based victims such as GMF, SN directly promotes the target item. For graph-based victims such as LightGCN, SN uses bridge items discovered by PR to form useful two-hop paths between the target and receptive real-user neigh-borhoods, strengthening collaborative propagation through the interaction graph. 
+
+Inactive (IN). The Inactive role means that the worker does not act in the current round. This role is necessary because a suspicious worker should disappear completely instead of continuing weak benign behavior. 
+
+C. Strategy 
+
+For each round, the Coordinator selects one strategy and assigns one role to each worker. 
+
+1. Victim Probe. In the first few rounds, the Coordinator assigns some workers to PR to probe the victim family. If direct target-related actions improve the mean target rank ρ(t)
+
+or produce a favorable rank change ∆ρ(t), the victim is treated as more likely embedding-based. Otherwise, it is treated as more likely graph-based. This is sufficient to guide later role allocation, as supported in §V-E. 
+
+2. Bridge Building. For graph-based victims, PR workers build a bridge-item pool by ranking non-target items according to how often they are rated by real users connected to the target. Items that produce favorable rank feedback for the target are added to the pool. These bridge items help SN create stronger two-hop paths to the target. 
+
+3. Warm-up. After probing, the Coordinator avoids early over-attack. It usually assigns one PR and a small number of CA so the campaign can build worker trust τt,w and collect clean feedback before using SN. 
+
+4. First Push. After warm-up, the Coordinator launches the first coordinated payload. A small number of SN workers attack together while at least one CA remains active as cover. This step aims to improve ρ(t) and ∆ρ(t) without making the whole worker pool look synchronized. 
+
+5. Silent Slowdown. If the acceptance rate ηt falls below the early baseline while no alert is raised (at = 0) , the plat-form may be silently suppressing the attack. The Coordinator reduces campaign-level pressure by shifting only the cleanest high-trust workers with larger τt,w toward CA behavior, while others may keep baseline roles, including SN. This keeps AGAS less visible while it observes whether stronger attack is needed. 
+
+6. Profile Cleanup. If worker risk ϕt,w rises, suppression ξt =(qt, s t) increases, or an alert appears (at = 1) , the Coordinator sanitizes the active pool. It freezes the most suspicious SN, avoids profiles with strong fake-user overlap, and only nudges the cleanest IN into CA mode to preserve benign throughput. This strategy mainly removes detectable profiles. 
+
+7. Safe Replacement. If the environment enters a high-risk state, indicated by at = 1 or a large round-level suspicion score qt, the Coordinator substitutes suspicious workers with rested ones that have lower risk γt,w and assigns these re-placements to safer roles. This keeps the campaign operational while avoiding repeated use of the same exposed workers. The number of SN workers remains the same as before, but they are more likely to be trusted and less likely to be detected. 
+
+8. Main Attack. If no strong suspicious signals appear and the target is still far from top-K according to ∆ρ(t), the best available worker is assigned the SN role. The Coordinator prefers workers with higher trust τt,w and lower risk γt,w ,and continues pushing until the target reaches top-K or the environment signals indicate stronger defense. 
+
+D. Complexity Analysis 
+
+Let T denote the number of attack rounds, |U f | the fake-user pool size, L the per-user action budget, V the victim-query cost, and cC , c W the costs of one Coordinator and workers’ calls. For embedding-based victims, V = O(|U f |d), with d
+
+the embedding dim. For graph-based victims, V = O(( |R| +
+
+| ˜R(≤t)|)dK ) with K propagation layers. The complexity of Alg. 1 is: O T (cC + |U f |(cW + L) + V ), with only O(T )TABLE I: Unpopular-target promotion on embedding-based (top) and graph-based (bottom) victims. Mean ±95% CI over 5 runs ( ×10 3). Best / second-best. 
+
+Method ML-100K ML-1M Amazon Genome 2021 Netflix MF (BPR) NeuMF GMF NCF MF (BPR) NCF GMF NeuMF MF (BPR) NeuMF HR@10 NDCG@10 HR@10 NDCG@10 HR@10 NDCG@10 HR@10 NDCG@10 HR@10 NDCG@10 HR@10 NDCG@10 HR@10 NDCG@10 HR@10 NDCG@10 HR@10 NDCG@10 HR@10 NDCG@10 NoneAttack 1.8 ±0.2 0.7 ±0.5 2.2 ±0.2 0.9 ±0.6 0.9 ±0.1 0.4 ±0.3 0.8 ±0.1 0.3 ±0.2 0.4 ±0.1 0.1 ±0.2 0.5 ±0.1 0.2 ±0.2 0.2 ±0.1 0.1 ±0.2 0.5 ±0.1 0.2 ±0.2 0.6 ±0.1 0.2 ±0.2 0.7 ±0.1 0.3 ±0.2 RandomAttack [5] 4.1 ±0.3 1.6 ±0.6 4.7 ±0.3 1.8 ±0.6 2.4 ±0.2 1.0 ±0.5 2.0 ±0.2 0.8 ±0.4 1.2 ±0.1 0.5 ±0.3 1.3 ±0.1 0.5 ±0.3 0.7 ±0.1 0.3 ±0.2 1.3 ±0.1 0.5 ±0.3 1.8 ±0.2 0.7 ±0.4 2.0 ±0.2 0.8 ±0.5 BandwagonAttack [5] 6.2 ±0.3 2.5 ±0.7 6.8 ±0.3 2.7 ±0.8 3.4 ±0.2 1.4 ±0.6 2.9 ±0.2 1.2 ±0.5 2.0 ±0.1 0.8 ±0.4 2.2 ±0.1 0.9 ±0.4 1.2 ±0.1 0.5 ±0.3 2.0 ±0.1 0.8 ±0.4 2.7 ±0.2 1.1 ±0.5 3.0 ±0.2 1.2 ±0.5 AUSH [6] 10.6 ±0.6 4.3 ±1.2 10.0 ±0.5 4.1 ±1.1 6.5 ±0.4 2.6 ±0.9 4.3 ±0.3 1.8 ±0.7 3.3 ±0.3 1.3 ±0.6 3.1 ±0.3 1.2 ±0.6 1.9 ±0.2 0.8 ±0.5 2.8 ±0.3 1.1 ±0.6 4.2 ±0.3 1.7 ±0.7 4.5 ±0.3 1.8 ±0.8 PoisonRec [12] 13.4 ±0.7 5.3 ±1.6 11.5 ±0.6 4.7 ±1.5 7.6 ±0.5 3.0 ±1.1 5.5 ±0.4 2.1 ±0.9 5.8 ±0.5 2.3 ±1.0 4.8 ±0.3 1.9 ±0.8 2.3 ±0.3 0.9 ±0.6 3.2 ±0.3 1.3 ±0.7 5.6 ±0.4 2.2 ±1.0 5.7 ±0.4 2.3 ±1.0 PGA [8] 11.5 ±0.6 4.6 ±1.3 12.2 ±0.6 5.0 ±1.4 8.4 ±0.5 3.4 ±1.1 6.0 ±0.4 2.4 ±0.9 4.3 ±0.3 1.7 ±0.8 4.0 ±0.3 1.6 ±0.7 2.8 ±0.2 1.1 ±0.6 3.8 ±0.3 1.5 ±0.7 5.5 ±0.4 2.2 ±1.0 6.0 ±0.5 2.4 ±1.0 AgentSA [14] 12.7 ±0.6 5.2 ±1.4 12.5 ±0.6 5.1 ±1.4 8.2 ±0.4 3.3 ±1.0 7.2 ±0.4 2.9 ±1.0 5.6 ±0.3 2.2 ±0.9 4.9 ±0.3 1.9 ±0.8 2.9 ±0.2 1.1 ±0.6 4.2 ±0.3 1.7 ±0.7 6.3 ±0.4 2.5 ±1.0 6.5 ±0.4 2.6 ±1.0 AgentAttack [15] 13.6 ±0.7 5.5 ±1.5 12.1 ±0.6 4.9 ±1.4 8.8 ±0.5 3.5 ±1.1 6.8 ±0.4 2.7 ±1.0 5.7 ±0.3 2.2 ±0.9 5.2 ±0.3 2.0 ±0.9 2.7 ±0.2 1.0 ±0.6 4.5 ±0.3 1.8 ±0.8 6.1 ±0.4 2.4 ±1.0 6.9 ±0.5 2.8 ±1.0 
+
+AGAS (Ours) 40.0 ±0.2 16.1 ±0.3 35.0 ±0.2 14.2 ±0.3 22.6 ±0.1 9.0 ±0.2 17.6 ±0.1 7.1 ±0.2 16.1 ±0.1 6.3 ±0.2 15.0 ±0.1 5.9 ±0.2 8.2 ±0.1 3.2 ±0.2 11.5 ±0.1 4.6 ±0.2 18.2 ±0.1 7.3 ±0.2 19.6 ±0.1 7.9 ±0.2 Improvement 187.8% 182.5% 186.9% 184.0% 162.8% 164.7% 155.1% 153.6% 177.6% 173.9% 172.7% 168.2% 192.9% 190.9% 161.4% 155.6% 198.4% 192.0% 192.5% 192.6% 
+
+Douban Movie NGCF LightGCN SimGCL XSimGCL EGCF LightCCF NGCF LightGCN NGCF LightGCN HR@10 NDCG@10 HR@10 NDCG@10 HR@10 NDCG@10 HR@10 NDCG@10 HR@10 NDCG@10 HR@10 NDCG@10 HR@10 NDCG@10 HR@10 NDCG@10 HR@10 NDCG@10 HR@10 NDCG@10 NoneAttack 1.9 ±0.2 0.8 ±0.5 2.4 ±0.2 1.0 ±0.6 0.8 ±0.1 0.3 ±0.2 0.9 ±0.1 0.4 ±0.3 0.4 ±0.1 0.2 ±0.2 0.5 ±0.1 0.2 ±0.2 0.2 ±0.1 0.1 ±0.2 0.3 ±0.1 0.1 ±0.2 0.7 ±0.1 0.3 ±0.2 0.6 ±0.1 0.2 ±0.2 RandomAttack [5] 4.5 ±0.3 1.8 ±0.6 5.0 ±0.3 2.0 ±0.7 1.8 ±0.2 0.7 ±0.4 2.2 ±0.2 0.9 ±0.5 1.1 ±0.1 0.4 ±0.3 1.2 ±0.1 0.5 ±0.3 0.6 ±0.1 0.2 ±0.2 0.6 ±0.1 0.2 ±0.2 2.0 ±0.2 0.8 ±0.5 1.9 ±0.2 0.7 ±0.4 BandwagonAttack [5] 5.9 ±0.3 2.4 ±0.7 6.7 ±0.3 2.7 ±0.8 2.4 ±0.2 1.0 ±0.5 2.9 ±0.2 1.2 ±0.6 1.8 ±0.2 0.7 ±0.4 1.9 ±0.2 0.8 ±0.4 1.1 ±0.1 0.4 ±0.3 1.0 ±0.1 0.4 ±0.3 2.8 ±0.2 1.1 ±0.6 2.7 ±0.2 1.1 ±0.5 GSPAttack [9] 11.0 ±0.6 4.5 ±1.3 11.5 ±0.6 4.7 ±1.3 4.8 ±0.3 1.9 ±0.8 5.8 ±0.4 2.3 ±0.9 3.2 ±0.3 1.3 ±0.6 3.4 ±0.3 1.4 ±0.6 2.0 ±0.2 0.8 ±0.5 1.8 ±0.2 0.7 ±0.5 5.0 ±0.3 2.0 ±0.8 4.8 ±0.3 1.9 ±0.8 TargetedAttack [43] 11.9 ±0.6 4.8 ±1.3 12.6 ±0.6 5.1 ±1.4 5.4 ±0.4 2.2 ±0.8 6.4 ±0.4 2.5 ±1.0 4.7 ±0.3 1.9 ±0.7 4.5 ±0.3 1.8 ±0.7 2.5 ±0.2 1.0 ±0.6 2.2 ±0.2 0.9 ±0.5 5.4 ±0.4 2.2 ±0.8 5.2 ±0.3 2.1 ±0.8 CLeaR [10] 13.1 ±0.7 5.4 ±1.4 13.9 ±0.7 5.7 ±1.5 6.4 ±0.4 2.6 ±0.9 7.7 ±0.5 3.1 ±1.0 4.6 ±0.3 1.8 ±0.7 5.2 ±0.4 2.1 ±0.8 2.9 ±0.3 1.2 ±0.6 2.8 ±0.2 1.1 ±0.6 5.8 ±0.4 2.3 ±0.9 5.5 ±0.3 2.2 ±0.9 AgentSA [14] 13.8 ±0.6 5.6 ±1.4 14.2 ±0.7 5.8 ±1.5 6.1 ±0.4 2.4 ±0.8 8.4 ±0.5 3.3 ±1.0 4.5 ±0.3 1.8 ±0.7 5.4 ±0.3 2.2 ±0.8 2.8 ±0.2 1.1 ±0.6 2.9 ±0.2 1.1 ±0.6 5.4 ±0.3 2.2 ±0.8 5.8 ±0.4 2.3 ±0.9 AgentAttack [15] 14.4 ±0.7 5.9 ±1.5 14.0 ±0.7 5.6 ±1.5 6.6 ±0.4 2.6 ±0.9 8.0 ±0.5 3.1 ±1.0 4.9 ±0.3 1.9 ±0.7 5.0 ±0.3 2.0 ±0.8 3.1 ±0.3 1.2 ±0.6 2.5 ±0.2 1.0 ±0.5 6.0 ±0.4 2.4 ±0.9 5.5 ±0.3 2.2 ±0.9 
+
+AGAS (Ours) 38.8 ±0.3 17.0 ±0.3 40.5 ±0.2 16.5 ±0.3 16.8 ±0.1 6.7 ±0.2 20.7 ±0.1 8.2 ±0.2 13.1 ±0.1 5.2 ±0.2 13.8 ±0.1 5.4 ±0.2 8.9 ±0.1 3.4 ±0.2 7.8 ±0.1 3.1 ±0.2 17.0 ±0.1 6.8 ±0.2 16.9 ±0.1 6.7 ±0.2 Improvement 181.7% 193.1% 189.3% 194.6% 162.5% 157.7% 155.6% 156.2% 178.7% 173.7% 165.4% 157.1% 196.7% 183.3% 178.6% 181.8% 193.1% 195.7% 196.5% 191.3% 
+
+heavy Coordinator calls and O(T |U f |) short worker calls. AGAS keeps the heavy LLM cost linear in T , whereas Agen-tAttack [15] first generates C candidate profiles per worker and runs over a surrogate recommender, adding O(|U f |C)
+
+generation plus surrogate retraining. The linear-in-|U f | gap explains the token and runtime savings of AGAS in §V-F. V. E XPERIMENTS 
+
+We design experiments to answer the following research questions (RQs): 
+
+• RQ1 (Performance). How does AGAS perform across different victim models and popularity regimes? 
+
+• RQ2 (Stealthiness). Can AGAS promote target items while preserving realistic user behavior? 
+
+• RQ3 (Detector). How do anomaly detectors perform against AGAS? 
+
+• RQ4 (Ablation). How does each component in AGAS contribute to overall performance? 
+
+• RQ5 (Efficiency). How effectively and efficiently does AGAS scale as a benchmarking and stress-testing tool for RecSys? 
+
+A. Experimental Setup 
+
+AGAS is a layered LLM-agent system inspired by Re-Act [51] and Reflexion [52]. Fake-user workers use a ReAct-style loop to reason over profile states and execute rating actions, while the Coordinator uses a Reflexion-style loop to aggregate signals, update campaign memory, and adapt future roles and strategies. 
+
+Datasets. We evaluate AGAS on public recommendation datasets that are commonly used for CF research and shilling-attack evaluation. These datasets cover a range of domains, sizes, and interaction patterns: 
+
+• MovieLens-100K (ML-100K) [53]. 
+
+• MovieLens-1M (ML-1M) [53]. 
+
+• MovieLens Tag Genome 2021 (Genome 2021) [54]. 
+
+• Netflix Prize (Netflix) [55]. 
+
+• Douban Movie (Douban) [56]. 
+
+• Amazon Reviews 2018 (Amazon) [57]. 
+
+Evaluation Metrics. We report HR@ K and NDCG@ K for the target item itar on test users Utest , where: 
+
+HR@ K = 1
+
+|U test |
+
+X
+
+u∈U test 
+
+I[itar ∈ TopK( u)] , (13) 
+
+NDCG@ K = 1
+
+|U test |
+
+X
+
+u∈U test 
+
+I[itar ∈ TopK( u)] log 2(rank( itar | u, I \ I +
+
+u ) + 1) 
+
+(14) To verify that AGAS preserves recommendation quality for test users, we report Rec@K on their held-out interactions. For each u ∈ U test , we check whether itest 
+
+u appears in the poisoned model’s top-K list: 
+
+Rec@ K = 1
+
+|U test |
+
+X
+
+u∈U test 
+
+I[itest 
+
+u ∈ TopK( u)] (15) A high Rec@K indicates that the poisoned model continues to serve genuine users well. This suggests that AGAS promotes the target item without corrupting the broader recommendation behavior. Stealth is measured by detector performance (Ac-curacy, Precision, Recall, F1) under representative anomaly checks. Lower scores mean the attack is harder to detect. 
+
+Victim Models. We evaluate across CF recommenders spanning matrix factorization, graph convolution, and con-trastive paradigms: MF [1], MF (BPR) [42], NeuMF [2], GMF [2], NCF [2], NGCF [3], LightGCN [4], SimGCL [33], XSimGCL [34], EGCF [35], and LightCCF [36]. 
+
+Attack Baselines. We compare against representative shilling and poisoning baselines spanning heuristic, optimization-based, and agentic methods: NoneAttack, RandomAttack [5], BandwagonAttack [5], AUSH [6], PoisonRec [12], GSPAt-tack [9], CLeaR [10], PGA [8], TargetedAttack [43], AgentSA [14], and AgentAttack [15]. 
+
+Comparison Protocol. Unless a section explicitly studies TABLE II: Detection performance (Accuracy / Recall / Precision / F1). Lower values are harder to detect. Results are shown for PoisonRec, AgentSA, AgentAttack, and AGAS. Best / second within each block. 
+
+Detector Method ML-100K ML-1M Netflix Amazon Genome 2021 Accuracy Recall Precision F1 Accuracy Recall Precision F1 Accuracy Recall Precision F1 Accuracy Recall Precision F1 Accuracy Recall Precision F1 BaseDetect [44] PoisonRec [12] 0.942 0.920 0.915 0.917 0.938 0.915 0.910 0.912 0.932 0.910 0.905 0.907 0.926 0.905 0.900 0.902 0.930 0.907 0.903 0.905 AgentSA [14] 0.932 0.905 0.895 0.900 0.928 0.900 0.890 0.895 0.920 0.892 0.882 0.887 0.914 0.885 0.875 0.880 0.918 0.888 0.878 0.883 AgentAttack [15] 0.918 0.892 0.880 0.886 0.913 0.886 0.875 0.880 0.905 0.878 0.866 0.872 0.900 0.872 0.860 0.866 0.904 0.875 0.864 0.870 
+
+AGAS (Ours) 0.385 0.345 0.360 0.352 0.372 0.330 0.348 0.339 0.360 0.315 0.335 0.325 0.352 0.305 0.325 0.315 0.365 0.320 0.340 0.330 
+
+DHAGCN [45] PoisonRec [12] 0.934 0.910 0.903 0.906 0.930 0.905 0.898 0.901 0.924 0.900 0.892 0.896 0.918 0.895 0.888 0.891 0.908 0.872 0.860 0.866 AgentSA [14] 0.924 0.895 0.882 0.888 0.920 0.890 0.878 0.884 0.912 0.882 0.870 0.876 0.906 0.875 0.862 0.868 0.918 0.885 0.872 0.878 AgentAttack [15] 0.910 0.880 0.868 0.874 0.906 0.876 0.864 0.870 0.898 0.868 0.855 0.861 0.892 0.860 0.847 0.853 0.912 0.880 0.866 0.873 
+
+AGAS (Ours) 0.372 0.330 0.350 0.340 0.360 0.315 0.338 0.326 0.348 0.300 0.325 0.312 0.340 0.290 0.315 0.302 0.352 0.305 0.330 0.317 
+
+PCASelectUsers [46] PoisonRec [12] 0.922 0.790 0.945 0.861 0.892 0.748 0.920 0.825 0.909 0.770 0.935 0.845 0.880 0.730 0.912 0.811 0.906 0.765 0.932 0.840 AgentSA [14] 0.912 0.775 0.935 0.848 0.906 0.765 0.930 0.839 0.898 0.755 0.925 0.831 0.892 0.745 0.920 0.823 0.896 0.750 0.922 0.827 AgentAttack [15] 0.898 0.760 0.920 0.832 0.910 0.770 0.935 0.845 0.884 0.738 0.910 0.815 0.896 0.750 0.922 0.828 0.882 0.732 0.908 0.812 
+
+AGAS (Ours) 0.355 0.295 0.375 0.330 0.345 0.285 0.365 0.320 0.335 0.275 0.352 0.309 0.328 0.265 0.342 0.299 0.332 0.272 0.355 0.308 
+
+GAGE [47] PoisonRec [12] 0.805 0.630 0.840 0.720 0.795 0.615 0.830 0.707 0.780 0.600 0.818 0.692 0.770 0.585 0.805 0.678 0.782 0.598 0.815 0.690 AgentSA [14] 0.930 0.905 0.940 0.922 0.925 0.900 0.935 0.917 0.918 0.895 0.930 0.912 0.912 0.890 0.925 0.907 0.920 0.895 0.930 0.912 AgentAttack [15] 0.880 0.755 0.892 0.818 0.870 0.738 0.882 0.804 0.860 0.722 0.870 0.788 0.852 0.708 0.862 0.778 0.864 0.722 0.872 0.792 
+
+AGAS (Ours) 0.400 0.310 0.360 0.333 0.390 0.295 0.348 0.319 0.380 0.280 0.335 0.305 0.372 0.270 0.325 0.295 0.382 0.285 0.340 0.310 
+
+MD-CBA [48] PoisonRec [12] 0.790 0.615 0.830 0.707 0.780 0.600 0.820 0.693 0.765 0.585 0.808 0.679 0.870 0.738 0.875 0.802 0.768 0.585 0.805 0.678 AgentSA [14] 0.935 0.910 0.945 0.927 0.930 0.905 0.940 0.922 0.923 0.900 0.935 0.917 0.917 0.895 0.930 0.912 0.925 0.900 0.935 0.917 AgentAttack [15] 0.860 0.738 0.875 0.802 0.852 0.722 0.866 0.788 0.842 0.708 0.858 0.776 0.755 0.572 0.798 0.668 0.846 0.710 0.860 0.779 
+
+AGAS (Ours) 0.392 0.300 0.355 0.325 0.382 0.285 0.342 0.311 0.372 0.270 0.330 0.297 0.365 0.260 0.320 0.287 0.370 0.275 0.332 0.301 
+
+Fig. 3: t-SNE on ML-100K. Left: red = distance to target, black = distance to ground-truth items (smaller is stealthier). Right: 
+
+clean (blue) vs. fake (star) user aggregate histories on poisoned victims. More scattered stars indicate better stealth. 
+
+Fig. 4: Summary of Head/Mid attack performance across representative victims: GMF (MF), LightGCN (graph convo-lution), and XSimGCL (graph contrastive). 
+
+Fig. 5: Benign Rec@10 on three representative victims. The gray segment shows the gap to NoneAttack. Higher is better. budget scaling, all methods are evaluated under the same fake-user budget and target-item set for each dataset–victim pair. For agentic methods, the interaction budget is matched by 
+
+Fig. 6: Strategy ablation heatmap on four datasets. Columns correspond to three representative victims from MF, graph convolution, and graph contrastive families. imposing the same upper limit on injected actions across fake users. After each poisoned dataset is constructed, the victim is retrained using the same retraining protocol. 
+
+Feedback Protocol. AGAS follows an offline-transfer pro-tocol. During attack generation, the Coordinator observes rank movement only through recommendation lists returned to probe workers, typically PR/CA workers that have not rated the target. The evaluated victims are then trained from scratch on the clean matrix and on the poisoned matrix 
+
+R′ = [ R; ˜R] (Eq. 4). AGAS never queries evaluated victims using Utest .Fig. 7: Component ablation across backbone size classes on four datasets. Large , Medium , and Small denote the size of the underlying language model. TABLE III: Backbone ablation grouped into size tiers, follow-ing the taxonomy of [49], [50]. Values are mean ±95% CI over 5 runs ( ×10 3). Best / second within each model block.                                                              
+
+> Model Method HR@10 NDCG@10 Rec@50
+> Frontier (closed-source)
+> Claude Opus 4.5 AgentSA 34.4 ±1.6 14.5 ±1.4 82.8 ±1.9 AgentAttack 35.2 ±1.6 14.9 ±1.4 84.3 ±1.9
+> AGAS 41.5 ±0.5 17.6 ±0.3 95.0 ±1.1
+> GPT-5.1 AgentSA 34.5 ±1.5 14.6 ±1.3 82.6 ±1.9 AgentAttack 33.8 ±1.6 14.3 ±1.4 81.4 ±2.0
+> AGAS 40.6 ±0.5 17.2 ±0.3 92.8 ±1.1
+> Large ( ≥50B)
+> Llama 3.3 70B AgentSA 30.6 ±1.7 12.9 ±1.5 74.6 ±2.0 AgentAttack 31.2 ±1.7 13.2 ±1.5 75.9 ±2.0
+> AGAS 37.0 ±0.6 15.7 ±0.4 84.8 ±1.3
+> DeepSeek-V3 AgentSA 33.4 ±1.5 14.0 ±1.3 80.2 ±1.9 AgentAttack 33.0 ±1.6 13.9 ±1.4 79.4 ±2.0
+> AGAS 39.5 ±0.5 16.7 ±0.3 90.5 ±1.1
+> Medium ( ∼10–30B)
+> Phi-4 (14B) AgentSA 26.5 ±1.8 11.4 ±1.5 62.4 ±2.0 AgentAttack 27.0 ±1.8 11.1 ±1.5 61.2 ±2.0
+> AGAS 31.6 ±0.7 13.3 ±0.5 71.8 ±1.6
+> Small ( <10B)
+> Gemma 2 2B AgentSA 17.8 ±2.0 7.5 ±1.7 41.2 ±2.2 AgentAttack 18.6 ±2.0 7.9 ±1.7 42.8 ±2.2
+> AGAS 22.4 ±1.0 9.4 ±0.6 51.0 ±2.0
+
+B. Performance 
+
+To address RQ1 (Performance) , we evaluate AGAS against baselines on diverse datasets, victim models, and metrics under the matched protocol of §V. Table I shows that AGAS achieves the best result in every Tail-regime (Unpopular Items, Fig. 1) setting, with sizable gains over the strongest baseline across matrix factorization, graph convolution, and graph contrastive victim families. It stays effective without attacking aggressively in every round, since it may probe the victim early, slow down as suppression signals increase, or pause when the campaign becomes risky. Such non-myopic behavior is beneficial: temporarily reducing intensity preserves workers, avoids unstable promotion patterns, and produces more reliable long-term target movement. On the Head/Mid regimes (Popular Items, Fig. 1), Fig. 4 shows AGAS dominant on every axis. AgentAttack and AgentSA are the closest baselines, but the gap remains consistent across victim types and popularity regimes, indicating that AGAS is not tied to one target regime or one victim family. 
+
+C. Stealthiness 
+
+To address RQ2 (Stealthiness) , we examine whether AGAS promotes targets while preserving normal preference structure. 
+
+Fig. 8: Round-wise trade-off between HR@10 and runtime (minutes). Error bars show 95% CI. 
+
+Fig. 9: Bars show HR@10 on the left axis, and lines show total runtime (minutes) on the right axis. Fig. 3 reports two t-SNE views: the left measures per-user preference preservation , where the target should move closer to the user without pulling the user away from ground-truth items; the right measures global distributional camouflage ,where fake histories should overlap with benign users rather than form separate clusters. AGAS is the only method that keeps both target and ground-truth distances small, showing that it promotes the target while preserving the user’s orig-inal preference region. It also spreads fake histories more diffusely within the benign embedding cloud, whereas other methods form more concentrated fake clusters. This stealth behavior comes from AGAS’s round-level adaptation and role-switching, which prevent fake users from collapsing into repetitive attack patterns. 
+
+D. Detector 
+
+To address RQ3 (Detector) , we evaluate AGAS against five representative shilling detectors: BaseDetect [44], 
+
+DHAGCN [45], PCASelectUsers [46], and two group-level detectors, GAGE [47] and MD-CBA [48]. Table II reports Accuracy, Recall, Precision, and F1, where lower values mean the attack is harder to detect. Non-group detectors identify PoisonRec and AgentSA through profile statistics, graph neighborhoods, and PCA-aligned outliers, while group detectors capture cross-user overlap in AgentSA’s prompt-driven histories. AgentAttack reduces duplicate-like behavior by mixing several attack families, but pre-trained templates still leave residual group signatures. AGAS instead lowers all metrics across all five detectors by distributing payload actions Fig. 10: Left: bar chart (log scale) of the average number of LLM tokens until the target first enters the Top-10. Right: the corresponding wall-clock seconds for each dataset. 
+
+Fig. 11: Each panel reports performance as the injected fake-user budget grows: 0.5–3.0% of the user population. across roles and rounds. PR and CA build benign-looking context anchored to receptive benign users (§V-C), SN is used only by cleaner workers, and IN breaks synchronized activity, so both per-profile outliers and group-overlap signatures be-come weaker. Fig. 5 further shows that AGAS stays closest to the NoneAttack Rec@10 ceiling across all victims, preserving benign Top-10 quality while promoting the target. Together with §V-B, these results suggest that current detectors struggle with adaptive agentic campaigns. 
+
+E. Ablation 
+
+To address RQ4 (Ablation) , we ablate AGAS at the strategy and backbone levels. In Fig. 6, removing Silent Slowdown ,
+
+Profile Cleanup , Safe Replacement , or Main Attack causes the largest drops, so AGAS needs both strong promotion and risk control. Bridge Building is graph-specific, hurting LightGCN and LightCCF more than NeuMF because it supports two-hop attack paths. Table III shows that stronger backbones improve the attack, yet AGAS stays best across all model blocks and metrics and degrades gracefully with smaller ones. Removing the Coordinator , Memory , or Signals is sharpest on Gemma 2 2B (Fig. 7): for a small language model with small reasoning capacity, AGAS may have to lean more heavily on coordination, persistent memory, and explicit feedback. 
+
+F. Efficiency 
+
+To address RQ5 (Efficiency) , we evaluate round-wise trade-offs, runtime, and fake-user budget scaling. HR@10 keeps rising with more rounds (Fig. 8). We set 18 rounds as the AGAS budget because later rounds become increasingly costly, adding wall-clock time and slightly wider 95% confi-dence intervals. This horizon also gives the Coordinator time to adjust roles before stronger promotion, making AGAS appear more normal (§V-C) and harder to detect (§V-D). Fig. 9 and Fig. 10 show that AGAS reaches the highest HR@10 at modest cost, about 24 minutes and tens of thousands of tokens to push the target into the Top-10, whereas AgentAttack needs millions of tokens and other methods hours of training. AGAS fits no GAN, solves no bi-level objective, retrains no per-target surrogate, and pre-generates no profile library. Its cost is one Coordinator decision plus short worker calls per round, so runtime and token use grow approximately linearly with rounds and fake users. Gains stay steady as the budget grows from 0.5% to 3.0% , with smaller gains on Amazon indicating that harder datasets require more attack pressure (Fig. 11). AGAS is thus budget-aware : rounds, tokens, and fake-user portion can be tuned to trade cost for HR@10, making it a 
+
+cost-aware benchmark framework for RecSys robustness. VI. C ONCLUSION 
+
+This paper introduced AGAS, a black-box agentic frame-work that orchestrates coordinated group shilling attacks through dynamic role switching and multi-stage campaigns. The Coordinator manages attack escalation, slowdown, paus-ing, replacement, and round-level adaptation across a group of fake-user workers. Across diverse datasets and CF-based victim models, AGAS achieves stronger target promotion than prior baselines while preserving more realistic user behavior and benign recommendation quality under matched evaluation budgets. It runs end-to-end without costly fine-tuning or re-peated surrogate retraining, reaches strong attacks at modest runtime and token cost, and transfers across victim families, making it both a practical threat model and a reusable bench-mark for stress-testing recommender robustness. Future work should extend AGAS to more complex victims such as multi-modal recommenders, or LLM-empowered recommenders. As Agentic Web capabilities spread, recommender systems must defend against attacks that adapt to their defenses at scale. ACKNOWLEDGMENT 
+
+This work was partially supported by the Australian Re-search Council through the Discovery Project (Grant Nos. DP260100326 and DP240101108), the Linkage Projects (Grant Nos. LP230200892 and LP250200778), and the DE-CRA Project (Grant No. DE260100673). REFERENCES [1] Y. Koren, R. Bell, and C. Volinsky, “Matrix factorization techniques for recommender systems,” IEEE Computer , 2009. [2] X. He, L. Liao, H. Zhang, L. Nie, X. Hu, and T.-S. Chua, “Neural collaborative filtering,” in WWW , 2017. [3] X. Wang, X. He, M. Wang, F. Feng, and T.-S. Chua, “Neural graph collaborative filtering,” in SIGIR , 2019. [4] X. He, K. Deng, X. Wang, Y. Li, Y. Zhang, and M. Wang, “Lightgcn: Simplifying and powering graph convolution network for recommenda-tion,” in SIGIR , 2020. [5] M. P. O’Mahony, N. J. Hurley, and G. C. M. Silvestre, “Recommender systems: attack types and strategies,” in AAAI , 2005. [6] C. Lin, S. Chen, H. Li, Y. Xiao, L. Li, and Q. Yang, “Attacking recommender systems with augmented user profiles,” in CIKM , 2020. [7] F. Wu, M. Gao, J. Yu, Z. Wang, K. Liu, and X. Wang, “Ready for emerging threats to recommender systems? a graph convolution-based generative shilling attack,” Information Sciences , 2021. [8] B. Li, Y. Wang, A. Singh, and Y. Vorobeychik, “Data poisoning attacks on factorization-based collaborative filtering,” in NeurIPS , 2016. [9] T. N. Thanh, N. D. K. Quach, T. T. Nguyen, T. T. Huynh, V. H. Vu, P. L. Nguyen, J. Jo, and Q. V. H. Nguyen, “Poisoning GNN-based recommender systems with generative surrogate-based attacks,” TOIS ,2023. [10] Z. Wang, J. Yu, M. Gao, H. Yin, B. Cui, and S. Sadiq, “Unveiling vul-nerabilities of contrastive recommender systems to poisoning attacks,” in KDD , 2024. [11] Y. Zhao, T. Chen, J. Yu, K. Zheng, L. Cui, and H. Yin, “Diversity-aware dual-promotion poisoning attack on sequential recommendation,” in SIGIR , 2025. [12] J. Song, Z. Li, Z. Hu, Y. Wu, Z. Li, J. Li, and J. Gao, “Poisonrec: An adaptive data poisoning framework for attacking black-box recom-mender systems,” in ICDE , 2020. [13] W. Fan, T. Derr, X. Zhao, Y. Ma, H. Liu, J. Wang, J. Tang, and Q. Li, “Attacking black-box recommendations via copying cross-domain user profiles,” in ICDE , 2021. [14] S. Gu, J. Liu, D. Li, G. Zhang, M. Han, H. Gu, P. Zhang, N. Gu, L. Shang, and T. Lu, “LLM agent-based shilling attack on recommender systems,” in WSDM , 2026. [15] C. Li, Z. Wang, H. Ma, W. Li, H. Wu, Y. Song, and M. Gao, “Agentat-tack: LLM agents for multi-strategy shilling attacks in recommenders,” 
+
+Expert Systems with Applications , 2026. [16] L.-b. Ning, S. Wang, W. Fan, Q. Li, X. Xu, H. Chen, and F. Huang, “Cheatagent: Attacking llm-empowered recommender systems via llm agent,” in KDD , 2024. [17] S. Yang, Z. Hu, X. Li, C. Wang, T. Yu, X. Xu, L. Zhu, and L. Yao, “Drunkagent: Stealthy memory corruption in llm-powered recommender agents,” in WWW , 2026. [18] S. Wang, W. Fan, X.-Y. Wei, X. Mei, S. Lin, and Q. Li, “Multi-agent attacks for black-box social recommendations,” TOIS , 2024. [19] I. Goodfellow, J. Pouget-Abadie, M. Mirza, B. Xu, D. Warde-Farley, S. Ozair, A. Courville, and Y. Bengio, “Generative adversarial networks,” 
+
+CACM , 2020. [20] S. K. Lam and J. Riedl, “Shilling recommender systems for fun and profit,” in WWW , 2004. [21] Y. Yang, M. Ma, Y. Huang, H. Chai, C. Gong, H. Geng, Y. Zhou, Y. Wen, M. Fang, M. Chen, S. Gu, M. Jin, C. Spanos, Y. Yang, P. Abbeel, D. Song, W. Zhang, and J. Wang, “Agentic web: Weaving the next web with AI agents,” arXiv:2507.21206 , 2025. [22] T. Berners-Lee and S. Witt, This Is for Everyone: The Unfinished Story of the World Wide Web . Farrar, Straus and Giroux, 2025. [23] I. Arghire, “Google DeepMind researchers map web attacks against AI agents,” SecurityWeek , 2026. [24] L. Wang, C. Ma, X. Feng, Z. Zhang, H. Yang, J. Zhang, Z. Chen, J. Tang, X. Chen, Y. Lin, W. X. Zhao, Z. Wei, and J.-R. Wen, “A survey on large language model based autonomous agents,” Frontiers of Computer Science , 2024. [25] K. T. Pham, T. H. Nguyen, J. Jo, Q. V. H. Nguyen, and T. T. Nguyen, “Multilingual text-to-sql: Benchmarking the limits of language models with collaborative language agents,” in Australasian Database Conference . Springer, 2025. [26] T. Pham, T. T. Nguyen, V. Huynh, H. Yin, and Q. V. H. Nguyen, “An efficient and effective evaluator for text2sql models on unseen and unlabeled data,” in ICDE . IEEE, 2026. [27] T. Pham, V. Huynh, H. Yin, Q. V. H. Nguyen, and T. T. Nguyen, “Learning to evaluate: Cost-effective model evaluation on unlabeled data with meta-learning,” in SIGKDD , 2026. [28] T. T. Nguyen, T. Pham, V. Huynh, M. H. Nguyen, B. Vo, L. Qu, J. Li, H. Yin, and Q. V. H. Nguyen, “A survey of social network simulation in the llm era: From classical models to generative agents,” Knowledge-Based Systems , 2026. [29] K. M. Le, T. Pham, T. Quan, and A. T. Luu, “Lampat: Low-rank adaption for multilingual paraphrasing using adversarial training,” AAAI , 2024. [30] T. Pham, K. Le, and A. T. Luu, “UniBridge: A unified approach to cross-lingual transfer learning for low-resource languages,” in ACL , 2024. [31] F. Ricci, L. Rokach, B. Shapira, and P. B. Kantor, Eds., Recommender Systems Handbook . Springer, 2011. [32] D. D. Lee and H. S. Seung, “Algorithms for non-negative matrix factorization,” in NeurIPS , 2000. [33] J. Yu, H. Yin, X. Xia, T. Chen, L. Cui, and Q. V. H. Nguyen, “Are graph augmentations necessary? simple graph contrastive learning for recommendation,” in SIGIR , 2022. [34] J. Yu, X. Xia, T. Chen, L. Cui, Q. V. H. Nguyen, and H. Yin, “Xsimgcl: Towards extremely simple graph contrastive learning for recommendation,” TKDE , 2023. [35] Y. Zhang, Y. Zhang, L. Sang, and V. S. Sheng, “Simplify to the limit! embedding-less graph collaborative filtering for recommender systems,” 
+
+TOIS , 2024. [36] Y. Zhang, Y. Zhang, Y. Zhang, L. Sang, and Y. Yang, “Unveiling contrastive learning’s capability of neighborhood aggregation for col-laborative filtering,” in SIGIR , 2025. [37] H. Ma, Z. Gao, C. Seng, and L. Mao, “Stealthy attack on graph recommendation system,” Expert Systems with Applications , 2024. [38] L. Zhang, N. Chen, H. Ren, Y. Zhou, L. Wu, and Z. Zeng, “Adversarial injection attacks against recommender systems,” in ACM Conference on Recommender Systems , 2024. [39] F. Zhang, “Analysis of bandwagon and average hybrid attack model against trust-based recommender system,” in Fifth International Confer-ence on Management of e-Commerce and e-Government , 2011. [40] J. Yu, M. Gao, W. Rong, W. Li, Q. Xiong, and J. Wen, “Hybrid attacks on model-based social recommender systems,” Physica A: Statistical Mechanics and its Applications , 2017. [41] Y. Zhang, L. Yao, C. Wang, X. Xu, and L. Zhu, “Incorporated model-agnostic profile injection attacks on recommender systems,” in ICDM ,2023. [42] S. Rendle, C. Freudenthaler, Z. Gantner, and L. Schmidt-Thieme, “Bpr: Bayesian personalized ranking from implicit feedback,” in UAI , 2009. [43] S. Guo, T. Bai, and W. Deng, “Targeted shilling attacks on GNN-based recommender systems,” in CIKM , 2023. [44] C. A. Williams, B. Mobasher, and R. Burke, “Defending recommender systems: detection of profile injection attacks,” Service Oriented Com-puting and Applications , 2007. [45] Y. Hao, G. Meng, J. Wang, and C. Zong, “A detection method for hybrid attacks in recommender systems,” Information Systems , 2023. [46] B. Mehta and W. Nejdl, “Unsupervised strategies for shilling detection and robust collaborative filtering,” User Modeling and User-Adapted Interaction , 2009. [47] F. Zhang, Y. Qu, Y. Xu, and S. Wang, “Graph embedding-based ap-proach for detecting group shilling attacks in collaborative recommender systems,” Knowledge-Based Systems , 2020. [48] Y. Xu, P. Zhang, H. Yu, and F. Zhang, “Detecting group shilling attacks in recommender systems based on user multi-dimensional features and collusive behaviour analysis,” The Computer Journal , 2023. [49] W. X. Zhao, K. Zhou, J. Li, T. Tang, X. Wang, Y. Hou, Y. Min, B. Zhang, J. Zhang, Z. Dong, Y. Du, C. Yang, Y. Chen, Z. Chen, J. Jiang, R. Ren, Y. Li, X. Tang, Z. Liu, P. Liu, J.-Y. Nie, and J.-R. Wen, “A survey of large language models,” arXiv:2303.18223 , 2023. [50] F. Wang, Z. Zhang, X. Zhang, Z. Wu, T. Mo, Q. Lu, W. Wang, R. Li, J. Xu, X. Tang, Q. He, Y. Ma, M. Huang, and S. Wang, “A comprehensive survey of small language models in the era of large language models: Techniques, enhancements, applications, collaboration with llms, and trustworthiness,” TIST , 2025. [51] S. Yao, J. Zhao, D. Yu, N. Du, I. Shafran, K. Narasimhan, and Y. Cao, “ReAct: Synergizing reasoning and acting in language models,” in ICLR ,2023. [52] N. Shinn, F. Cassano, A. Gopinath, K. Narasimhan, and S. Yao, “Re-flexion: Language agents with verbal reinforcement learning,” NeurIPS ,2023. [53] F. M. Harper and J. A. Konstan, “The movielens datasets: History and context,” TiiS , 2015. [54] D. Kotkov, A. Medlar, U. R. Satyal, A. Maslov, M. Neovius, and D. Glowacka, “Revisiting the tag relevance prediction problem,” in 
+
+SIGIR , 2021. [55] J. Bennett and S. Lanning, “The netflix prize,” in KDD Cup and Workshop , 2007. [56] Z. Wang, H. Liu, Y. Du, Z. Wu, and X. Zhang, “Unified embedding model over heterogeneous information network for personalized recom-mendation,” in IJCAI , 2019. [57] J. Ni, J. Li, and J. McAuley, “Amazon review data (2018),” 2018.
