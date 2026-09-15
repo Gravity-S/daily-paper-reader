@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-14</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-15</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 6 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 19 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>2</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>4</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>7</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-14 22:57:54 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-15 22:22:16 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,7 +62,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日精选6篇Agent安全论文，精读聚焦并行工具调用错误恢复基准与智能体越狱攻防全景。最值得关注的是ParaRecover对工具调用链错误定位的量化评估，以及越狱攻击在Agent时代的新形态与防御考量。普通读者可优先了解Agent在复杂任务中的容错机制与安全边界，再逐步深入攻防细节。</p>
+<p>今天共筛出19篇AI代理安全进展，精读7篇、速读12篇，核心聚焦可信Agentic AI、注册时注入攻击与工具授权。</p>
+<p>最值得看两篇9.0精读：可信Agentic AI的网络安全与系统综述，以及“欺骗性简历”在集中式多智能体系统中注册时注入、误导规划者的攻击。</p>
+<p>普通读者下一步可优先关注代理权限边界、监督/执行缺口和工具授权架构，把“简历/注册信息验证”和最小权限当成落地检查项。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -71,12 +73,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">2 篇</strong>
+    <strong class="dpr-home-dashboard-count">7 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="ParaRecover: A Process-Level Benchmark for Error Localization and Recovery in Parallel Tool-Use Agents">ParaRecover: A Process-Level Benchmark for Error Localization and Recovery in Parallel Tool-Use Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="SoK: Rethinking Jailbreaking in the Era of Agentic AI: Attacks, Defenses, and Practical Consideration">SoK: Rethinking Jailbreaking in the Era of Agentic AI: Attacks, Defenses, and Practical Consideration</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Trustworthy Agentic AI: A Comprehensive Cybersecurity and Systems Survey on Threat Landscapes, Defense Architectures, and Open Challenges">Trustworthy Agentic AI: A Comprehensive Cybersecurity and Systems Survey on Threat Landscapes, Defense Architectures, and Open Challenges</span></li><li><span class="dpr-home-dashboard-paper-title" title="Misleading the Planner through Deceptive Resumes: Registration-Time Injection in Centralized Multi-Agent Systems">Misleading the Planner through Deceptive Resumes: Registration-Time Injection in Centralized Multi-Agent Systems</span></li><li><span class="dpr-home-dashboard-paper-title" title="When Malicious Instructions Persist: Persistent Memory Poisoning Attack on Harness-Based Agents">When Malicious Instructions Persist: Persistent Memory Poisoning Attack on Harness-Based Agents</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>1</strong></span><span class="dpr-home-dashboard-tag">mas-security <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>6</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -84,12 +86,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">4 篇</strong>
+    <strong class="dpr-home-dashboard-count">12 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Your Agent Says Yes: Interpreting Adversarial Market Behavior Beyond Individual Transactions">Your Agent Says Yes: Interpreting Adversarial Market Behavior Beyond Individual Transactions</span></li><li><span class="dpr-home-dashboard-paper-title" title="Guardrailed Meta-Agent Loops: Stress-Testing Policy Pinning, Budget Bounds, and Crash Recovery">Guardrailed Meta-Agent Loops: Stress-Testing Policy Pinning, Budget Bounds, and Crash Recovery</span></li><li><span class="dpr-home-dashboard-paper-title" title="Safe Harness Self-Evolution: A Theoretical Analysis of Feasibility and Limits">Safe Harness Self-Evolution: A Theoretical Analysis of Feasibility and Limits</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Why LLM Agents Collapse Without Oversight: The Enforcement Gap as the Mechanism Behind Emergence World Failures">Why LLM Agents Collapse Without Oversight: The Enforcement Gap as the Mechanism Behind Emergence World Failures</span></li><li><span class="dpr-home-dashboard-paper-title" title="Authorization Architectures for Tool-Using AI Agents">Authorization Architectures for Tool-Using AI Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="SkillAtlas: An Attack Trace Library for Agent Skills">SkillAtlas: An Attack Trace Library for Agent Skills</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>2</strong></span><span class="dpr-home-dashboard-tag">mas-security <strong>2</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>6</strong></span><span class="dpr-home-dashboard-tag">mas-security <strong>6</strong></span></div>
 </section>
 </div>
 
