@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-15</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-16</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 19 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 14 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>7</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>3</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>11</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-15 22:22:16 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-16 22:40:46 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,9 +62,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今天共筛出19篇AI代理安全进展，精读7篇、速读12篇，核心聚焦可信Agentic AI、注册时注入攻击与工具授权。</p>
-<p>最值得看两篇9.0精读：可信Agentic AI的网络安全与系统综述，以及“欺骗性简历”在集中式多智能体系统中注册时注入、误导规划者的攻击。</p>
-<p>普通读者下一步可优先关注代理权限边界、监督/执行缺口和工具授权架构，把“简历/注册信息验证”和最小权限当成落地检查项。</p>
+<p>今日筛出 14 篇 AI 安全与 Agent 论文，精读 3 篇、速读 11 篇，聚焦 Agent 可信与运行时管控。最值得看的是满分综述《Trustworthy Agentic AI》梳理威胁、防御与开放难题，以及《AcquireBound》提出的 Agent 资源获取运行时授权机制。普通读者可先读这两篇，建立“Agent 安全=威胁建模+运行时授权”的基本框架。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -73,12 +71,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">7 篇</strong>
+    <strong class="dpr-home-dashboard-count">3 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Trustworthy Agentic AI: A Comprehensive Cybersecurity and Systems Survey on Threat Landscapes, Defense Architectures, and Open Challenges">Trustworthy Agentic AI: A Comprehensive Cybersecurity and Systems Survey on Threat Landscapes, Defense Architectures, and Open Challenges</span></li><li><span class="dpr-home-dashboard-paper-title" title="Misleading the Planner through Deceptive Resumes: Registration-Time Injection in Centralized Multi-Agent Systems">Misleading the Planner through Deceptive Resumes: Registration-Time Injection in Centralized Multi-Agent Systems</span></li><li><span class="dpr-home-dashboard-paper-title" title="When Malicious Instructions Persist: Persistent Memory Poisoning Attack on Harness-Based Agents">When Malicious Instructions Persist: Persistent Memory Poisoning Attack on Harness-Based Agents</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Trustworthy Agentic AI: A Comprehensive Cybersecurity and Systems Survey on Threat Landscapes, Defense Architectures, and Open Challenges">Trustworthy Agentic AI: A Comprehensive Cybersecurity and Systems Survey on Threat Landscapes, Defense Architectures, and Open Challenges</span></li><li><span class="dpr-home-dashboard-paper-title" title="AcquireBound: Runtime Authorization for Resources Acquired by AI Agents">AcquireBound: Runtime Authorization for Resources Acquired by AI Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="ActGuard: Pre-execution Action Auditing against Indirect Prompt Injection in LLM Agents">ActGuard: Pre-execution Action Auditing against Indirect Prompt Injection in LLM Agents</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>6</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>3</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -86,12 +84,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">12 篇</strong>
+    <strong class="dpr-home-dashboard-count">11 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Why LLM Agents Collapse Without Oversight: The Enforcement Gap as the Mechanism Behind Emergence World Failures">Why LLM Agents Collapse Without Oversight: The Enforcement Gap as the Mechanism Behind Emergence World Failures</span></li><li><span class="dpr-home-dashboard-paper-title" title="Authorization Architectures for Tool-Using AI Agents">Authorization Architectures for Tool-Using AI Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="SkillAtlas: An Attack Trace Library for Agent Skills">SkillAtlas: An Attack Trace Library for Agent Skills</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Architecting the Secure AI-SOC: A Neurosymbolic Framework for Pipeline Integrity and Threat Mitigation">Architecting the Secure AI-SOC: A Neurosymbolic Framework for Pipeline Integrity and Threat Mitigation</span></li><li><span class="dpr-home-dashboard-paper-title" title="LLM Agent Capabilities Should Follow Task Intent and Context Source">LLM Agent Capabilities Should Follow Task Intent and Context Source</span></li><li><span class="dpr-home-dashboard-paper-title" title="HazardAuditor: From Executable Threats to Safer Computer-Use Agents">HazardAuditor: From Executable Threats to Safer Computer-Use Agents</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>6</strong></span><span class="dpr-home-dashboard-tag">mas-security <strong>6</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>10</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>1</strong></span></div>
 </section>
 </div>
 
