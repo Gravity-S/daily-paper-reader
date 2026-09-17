@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-16</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-17</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 14 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 19 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>3</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>11</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>7</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-16 22:40:46 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-17 22:20:49 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,7 +62,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日筛出 14 篇 AI 安全与 Agent 论文，精读 3 篇、速读 11 篇，聚焦 Agent 可信与运行时管控。最值得看的是满分综述《Trustworthy Agentic AI》梳理威胁、防御与开放难题，以及《AcquireBound》提出的 Agent 资源获取运行时授权机制。普通读者可先读这两篇，建立“Agent 安全=威胁建模+运行时授权”的基本框架。</p>
+<p>今天从19篇中精读7篇、速读12篇，最亮眼的是10分《Trust propagation and structural containment in Multi-agent LLM pipelines》和9分《Trustworthy Agentic AI》安全综述。</p>
+<p>最值得看的是“多智能体LLM流水线中的信任传播与结构围堵”，以及智能体安全威胁、防御架构全景；速读中的AgentGuard、BLINDSPOT和Cognitive Admission Control也在补执行护栏、拒绝校准与风险准入。</p>
+<p>普通读者可先从信任传播和Agent安全综述入手，再顺着护栏与风险准入类工作理解如何把安全落到执行环节。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -71,12 +73,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">3 篇</strong>
+    <strong class="dpr-home-dashboard-count">7 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Trustworthy Agentic AI: A Comprehensive Cybersecurity and Systems Survey on Threat Landscapes, Defense Architectures, and Open Challenges">Trustworthy Agentic AI: A Comprehensive Cybersecurity and Systems Survey on Threat Landscapes, Defense Architectures, and Open Challenges</span></li><li><span class="dpr-home-dashboard-paper-title" title="AcquireBound: Runtime Authorization for Resources Acquired by AI Agents">AcquireBound: Runtime Authorization for Resources Acquired by AI Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="ActGuard: Pre-execution Action Auditing against Indirect Prompt Injection in LLM Agents">ActGuard: Pre-execution Action Auditing against Indirect Prompt Injection in LLM Agents</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Trust propagation and structural containment in Multi-agent LLM pipelines">Trust propagation and structural containment in Multi-agent LLM pipelines</span></li><li><span class="dpr-home-dashboard-paper-title" title="Trustworthy Agentic AI: A Comprehensive Cybersecurity and Systems Survey on Threat Landscapes, Defense Architectures, and Open Challenges">Trustworthy Agentic AI: A Comprehensive Cybersecurity and Systems Survey on Threat Landscapes, Defense Architectures, and Open Challenges</span></li><li><span class="dpr-home-dashboard-paper-title" title="Emergence World: Adversarial Stress-Testing of Long-Horizon Multi-Agent Systems">Emergence World: Adversarial Stress-Testing of Long-Horizon Multi-Agent Systems</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>3</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>6</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -84,12 +86,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">11 篇</strong>
+    <strong class="dpr-home-dashboard-count">12 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Architecting the Secure AI-SOC: A Neurosymbolic Framework for Pipeline Integrity and Threat Mitigation">Architecting the Secure AI-SOC: A Neurosymbolic Framework for Pipeline Integrity and Threat Mitigation</span></li><li><span class="dpr-home-dashboard-paper-title" title="LLM Agent Capabilities Should Follow Task Intent and Context Source">LLM Agent Capabilities Should Follow Task Intent and Context Source</span></li><li><span class="dpr-home-dashboard-paper-title" title="HazardAuditor: From Executable Threats to Safer Computer-Use Agents">HazardAuditor: From Executable Threats to Safer Computer-Use Agents</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="AgentGuard: Learning Execution Guardrails from Anomalous Coding-Agent Trajectories">AgentGuard: Learning Execution Guardrails from Anomalous Coding-Agent Trajectories</span></li><li><span class="dpr-home-dashboard-paper-title" title="BLINDSPOT: A Benchmark for Safety and Refusal Calibration in Long-Horizon Tool-Using Agents">BLINDSPOT: A Benchmark for Safety and Refusal Calibration in Long-Horizon Tool-Using Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="Cognitive Admission Control: Risk-Conditioned Assurance for Consequential Actions in Agentic Distributed Systems">Cognitive Admission Control: Risk-Conditioned Assurance for Consequential Actions in Agentic Distributed Systems</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>10</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>10</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>2</strong></span></div>
 </section>
 </div>
 
