@@ -1,0 +1,186 @@
+Title: When Agents Look Like Beacons: NIDS Evasion by Model Context Protocol Traffic
+
+URL Source: https://arxiv.org/pdf/2609.19091v1
+
+Published Time: Thu, 17 Sep 2026 01:35:30 GMT
+
+Number of Pages: 6
+
+Markdown Content:
+# When Agents Look Like Beacons: NIDS Evasion by Model Context Protocol Traffic 
+
+Muhammad Abdullah Sohail 
+
+University of Calgary 
+
+Calgary, AB, Canada mabdullah.sohail@ucalgary.ca 
+
+Abstract —The Model Context Protocol (MCP) standardizes communication between autonomous Artificial Intelligence (AI) agents and remote tools over Streamable HTTP. This shift introduces a class of machine-generated, authenticated, and high-frequency JSON-RPC traffic directly into enterprise net-works. Enterprise network defenders have historically relied on machine-like cadence as an Indicator of Compromise (IoC). In this study, we show that without explicit network-layer indication, MCP traffic structurally and temporally resembles Command and Control (C2) beaconing behavior, specifically the polling ar-chitectures used by advanced persistent threats like Cobalt Strike. Counter to theoretical assumptions about machine-generated polling, our measurements reveal a visibility gap: standard enterprise Intrusion Detection Systems (IDS) and behavioral beacon-scoring frameworks do not classify MCP remote tool usage as anomalous within our testbed scope. Through a con-trolled Docker-based testbed simulating eleven mathematically defined traffic profiles across three TLS conditions (Opaque, TLS-Inspected, and Cleartext), we evaluate Suricata signature matching and RITA behavioral scoring against MCP JSON-RPC patterns. Our results show that MCP traffic, regardless of temporal smearing (jitter) or TLS inspection visibility, evades detection within this configuration, yielding a consistent 0.0 behavioral beacon score and near-zero IDS content alerts under the Emerging Threats (ET) Open ruleset. While opaque TLS obscures HTTP content, it exposes agent traffic to flow-level temporal analysis; however, NIDS heuristics tuned to identify traditional malware do not flag the lognormal inter-arrival distributions characteristic of generative AI reasoning loops. To address this gap, we propose an agent-native network indication standard including Agent-Native ALPN and standardized out-of-band headers to improve visibility for next-generation enterprise gateways. 
+
+Index Terms —Model Context Protocol, Intrusion Detection Systems, TLS Fingerprinting, Beaconing, Deep Packet Inspection, C2 Traffic, Agentic Workflows, Network Security Monitoring 
+
+I. I NTRODUCTION 
+
+Modern enterprise networks monitor egress traffic using Next-Generation Firewalls (NGFW) and Intrusion Detection Systems (IDS). These sensors identify anomalous, automated, or malicious outbound connections that deviate from organiza-tional baselines, and are specifically tuned to detect Command and Control (C2) beacons and covert data exfiltration [1]. Network Security Monitoring (NSM) has historically relied on the premise that human behavior is erratic and bursty, 
+
+Accepted at the 1st IEEE ICNP Workshop on Network Infrastructure and Protocols for AI Agents (NIPA 2026) , co-located with the 34th IEEE International Conference on Network Protocols (IEEE ICNP 2026), Tempe, AZ, USA, October 2026. 
+
+while malicious behavior is automated, periodic, and machine-generated [2]. The widespread enterprise adoption of the Model Context Protocol (MCP) challenges this NSM assumption [3]. MCP has evolved from local LLM tool access to remote, cloud-hosted multi-agent workflows [4]. It defines Streamable HTTP as its canonical remote transport, generating high-frequency JSON-RPC 2.0 requests over standard HTTPS [5]. When an autonomous AI agent performs a reasoning task, its remote tool calls produce HTTP headers, periodic network bursts, and machine-speed pacing that can resemble C2 traffic to a flow-level sensor [6], [7]. As agentic workflows move from research into production enterprise environments, understanding how existing network monitoring tools respond to MCP traffic becomes important. The intersection of agent-native protocols and legacy security operations raises a concrete question: do IDS tools misclassify legitimate MCP traffic as malicious, causing alert fatigue, or do they pass it silently? If the latter, this creates an unmonitored communication channel that could be exploited through indirect prompt injection or tool poisoning [8]. The base-rate fallacy shows that anomaly detection in high-speed networks is an inherently difficult problem [9]. Even small misclassification rates produce alert volumes that render an IDS operationally useless. This paper measures how exist-ing IDS tools respond to MCP traffic under realistic enterprise configurations. Our study addresses four Research Questions (RQs):  
+
+> •
+
+RQ1: What MCP traffic features are visible to sensors under Opaque TLS versus TLS-Inspected conditions?  
+
+> •
+
+RQ2: Do signature-based IDS engines (Suricata with ET-Open rules) generate alerts on legitimate MCP JSON-RPC traffic?  
+
+> •
+
+RQ3: Do flow-level behavioral heuristics (RITA beacon scoring) differentiate MCP agent traffic from benign automation and simulated C2 traffic?  
+
+> •
+
+RQ4: Do active evasion techniques such as jitter injection or User-Agent spoofing alter the behavioral footprint observed by these sensors? II. B ACKGROUND 
+
+A. The Model Context Protocol (MCP) 
+
+The Model Context Protocol (MCP) is an open standard that defines a unified interface for foundation models to access arXiv:2609.19091v1 [cs.CR] 16 Sep 2026 external context and execute actions [3]. MCP uses a client-server architecture over JSON-RPC 2.0, formally separating the AI application from the tools it invokes. MCP over HTTP uses POST requests to a designated /mcp endpoint with structured JSON-RPC envelopes containing methods such as initialize , tools/list , tools/call , and 
+
+prompts/get [5]. Because agents typically run multi-step reasoning loops (e.g., ReAct), a single task can generate dozens of sequential HTTP POST requests in rapid succession, producing a dense burst of machine-generated traffic. The pro-tocol also supports Server-Sent Events (SSE) and Streamable HTTP, which further alter the temporal flow profile. 
+
+B. Threat Model 
+
+We consider three adversarial scenarios that motivate this measurement study. The primary scenario is a compromised internal agent : a privileged enterprise AI agent that has been manipulated through indirect prompt injection [8], tool poisoning, or a hallucination chain, and is now exfiltrating proprietary data or executing unauthorized commands via legitimate MCP tool calls. In this scenario, the network traffic is structurally identical to benign agent activity; the threat lies in the payload content, not the transport. The second scenario is a malicious remote MCP server : an attacker registers a malicious tool endpoint in a public registry, causing an internal agent to call it and leak sensitive context in the JSON-RPC request body. The third scenario is traffic misclassification :a benign enterprise agent whose machine-paced polling is incorrectly flagged as C2 activity, generating alert fatigue that causes defenders to suppress legitimate alarms. All three scenarios share a common dependency: the out-come depends on whether the IDS has any visibility into MCP traffic. Our study empirically measures this visibility across different network deployment conditions. 
+
+C. Deep Packet Inspection (DPI) and Suricata 
+
+Deep Packet Inspection (DPI) involves real-time analysis of packet payloads beyond Layer 3 and Layer 4 headers. Suricata operates by capturing raw packet streams and reassembling TCP sessions in memory [10]. These reassembled streams are evaluated against datasets of regular expressions and byte-matching signatures. The Emerging Threats (ET) Open ruleset provides the industry-standard signature library, with tens of thousands of rules targeting known malware families and suspicious byte sequences [11]. Suricata’s efficacy depends on payload visibility; TLS-encrypted traffic limits it to handshake metadata and flow statistics unless a TLS inspection middle-box is deployed. 
+
+D. Temporal Beacon Analysis and RITA 
+
+To address the prevalence of encrypted C2 traffic, defenders rely on flow-based temporal analysis. Malware maintaining persistence polls a C2 server at regular intervals, often with randomized jitter to evade detection. RITA (Real Intelli-gence Threat Analytics) evaluates the statistical regularity of these connections [12]. RITA ingests flow logs from Zeek’s 
+
+conn.log and computes two metrics per source-destination pair: 1) Bowley Skewness : Measures asymmetry in the inter-arrival time distribution using quartiles ( Q1, Q 2, Q 3), making it robust to individual latency spikes. 2) Median Absolute Deviation (MAD) : Measures disper-sion of polling intervals, resistant to outliers that would distort standard deviation calculations. RITA normalizes these into a beacon score from 0.0 to 1.0, where high regularity produces a high score. CISA operational guidelines treat scores at or above 0.8 as actionable C2 signals. 
+
+E. TLS Fingerprinting (JA3 and JA4+) 
+
+TLS fingerprinting identifies the client application from the deterministic structure of its cryptographic handshake. JA3 [13] hashes specific fields from the unencrypted 
+
+ClientHello packet. Its successor, JA4+ [14], improves stability by sorting extensions and categorizing ALPN values, producing a more stable signature for programmatic traffic generators. III. R ELATED WORK 
+
+A. Agent Communication Protocols and Standardization 
+
+The growth of distributed multi-agent systems has driven demand for standardized interoperability protocols. MCP de-fines a client-server architecture where agents invoke tools over JSON-RPC 2.0 on Streamable HTTP [3]. Guo et al. [4] conducted a large-scale empirical crawl of the MCP ecosys-tem, characterizing hosting patterns and transport choices as agent traffic moves from local loopback interfaces to wide-area enterprise networks. Hou et al. [6] provide a threat taxonomy for MCP, identifying tool poisoning and cross-agent attack surfaces that rely on network-level exploitation [8]. 
+
+B. Encrypted Traffic Classification and NTA 
+
+Identifying encrypted malware traffic without breaking cryptography is a major focus of network security research. Flow-level features such as inter-arrival gaps, session du-rations, and packet size distributions improve classification accuracy for encrypted malware [15]. These features allow tracking of specific malware variants or HTTP client libraries across network boundaries regardless of IP rotation or domain fronting [16]. 
+
+C. C2 Detection and Temporal Beaconing Heuristics 
+
+Cobalt Strike uses HTTP and HTTPS beaconing to maintain persistent access. Recent analyses of in-the-wild 2023 Cobalt Strike traces identify inter-arrival distributions and packet counts as discriminating flow features for C2 attribution [7], [17]. Enterprise environments operationalize these findings us-ing Zeek [18] paired with RITA [12], which scores connection regularity and triggers alerts for low-variance polling. D. Middlebox Architectures and the Base-Rate Fallacy 
+
+Enterprise networks deploy TLS inspection middleboxes to recover payload visibility, using bump-in-the-wire or MITM proxy approaches to intercept and re-encrypt traffic selectively before passing it to a DPI engine [19]. Sommer and Paxson [1] argue that the closed-world assumption underlying machine learning for NIDS makes anomaly detection fragile in practice, a finding that directly motivates our measurement of MCP misclassification risk [9]. IV. M ETHODOLOGY 
+
+A. Experimental Architecture and Network Namespacing 
+
+We built a self-contained containerized testbed using Docker to isolate traffic generation, proxy interception, and sensor observation into discrete Linux network namespaces. This prevents host-level traffic contamination and ensures sensor throughput is precisely correlated with the generated MCP traffic. The sensor stack mirrors common enterprise deployments: 1) Suricata (v8.x): Primary DPI engine [10] running the full, unmodified ET Open ruleset [11]. Outputs struc-tured alerts to eve.json .2) Zeek (v6.x): Flow telemetry and protocol analysis [18], augmented with community JA3 and JA4 fingerprinting scripts to extract TLS client metadata from ssl.log .3) RITA (v5.x): Offline post-hoc beacon scoring tool [12] that processes Zeek’s conn.log and assigns normal-ized scores from 0.0 to 1.0. Scores at or above 0.8 are treated as actionable C2 signals per CISA guidelines. Docker Desktop for Mac runs within a lightweight VM that hides Linux bridge interfaces from the host, making promiscuous-mode sniffing from the host unavailable. All monitoring containers (Suricata, Zeek, and a tcpdump side-car) attach directly to the target server’s network namespace, ensuring line-rate packet capture. 
+
+B. Sensor Visibility Conditions 
+
+We evaluate the generated traffic under three deployment conditions:  
+
+> •
+
+Opaque TLS: Direct HTTPS connection (port 443). Sensors observe only TLS handshakes and encrypted flow metadata, representing a perimeter with no decryption capability.  
+
+> •
+
+TLS-Inspected: A mitmproxy instance intercepts the connection. The client is configured to trust the proxy CA, simulating a legitimate enterprise TLS decryption gateway. Sensors observe cleartext HTTP traffic and regain DPI capability.  
+
+> •
+
+Cleartext Control: Unencrypted HTTP (port 80). This serves as a baseline to isolate parser behavior and rule triggering from encryption artifacts. 
+
+C. Traffic Profiles 
+
+To isolate the behavioral signature of MCP from background noise, we built a modular traffic generator in Python that reproduces specific statistical distributions governing inter-arrival times (IAT) and payload sizes. Table I defines the eleven traffic profiles used across the study, spanning benign behavior, simulated malware, and MCP agent states. The mock MCP server generates response payloads whose size is drawn from a discrete uniform distribution over 
+
+[500 , 2000] bytes per response. This range brackets the typical size of real MCP tool responses: short acknowledgement messages fall around 200–500 bytes at the lower end, while structured JSON results from database or filesystem queries commonly reach 1500–5000 bytes. A uniform distribution was chosen to avoid imposing an artificial size pattern that could inadvertently aid or hinder size-based classification. 
+
+D. Statistical Analysis Framework 
+
+Each of the 33 profile-condition combinations (eleven pro-files by three sensor conditions) was repeated N = 5 times, with each repetition running 60 seconds of sustained traffic generation. We justify these parameters as follows. For RITA’s quartile-based metrics to be stable, each capture window must contain enough inter-arrival samples. Under our fastest profile (P3, approximately 10 requests per second), a 60-second window yields around 600 inter-arrival obser-vations, which is sufficient for stable Bowley skewness and MAD estimation. Under the slowest MCP profile (P6, bimodal burst), the active burst phase generates at least 30 samples within the first 10 seconds, which is above the practical convergence threshold for quartile-based statistics. Because the study outcomes are binary in practice (scores are either exactly 0.0 or consistently below the 0.8 threshold), five repetitions are sufficient to establish the direction and reproducibility of the result. Pilot runs confirmed that RITA scores and Suricata alert counts had interquartile ranges below 15% of the median across repetitions. We acknowledge that N = 5 is a small sample for estimating continuous effect sizes; this study is intended as an initial characterization of the detection gap. Data extraction was automated through Python scripts querying ClickHouse databases containing the parsed Zeek and Suricata logs. V. R ESULTS 
+
+We present findings organized by our four research ques-tions, drawn from the automated analysis of the containerized testbed runs. 
+
+A. RQ1: Information Visibility under TLS Conditions 
+
+Under the Opaque TLS condition, all HTTP payload content was encrypted. Sensors observed only TLS hand-shakes, IP addresses, TCP ports, and flow-level metrics. Zeek extracted the JA3 fingerprint from the unencrypted 
+
+ClientHello : our Python httpx client produced the TABLE I TRAFFIC PROFILE DEFINITIONS AND EXPECTED BEHAVIOR 
+
+ID Profile Name Distribution Model Behavioral Description 
+
+P0 Human Browsing Control Weibull ( k = 1 ) Erratic, bursty human web browsing with a long-tailed inter-arrival distribution. P1 Benign API Automation Exponential ( μ = 10 ) Background polling automation (e.g., system health checks, telemetry). P2 C2 Default-like Periodic ( σ < 0.05 μ) Low-variance periodic polling consistent with default Cobalt Strike configuration. P3 C2 Aggressive Periodic (High Freq) High-frequency periodic polling simulating an interactive C2 shell session. P4 MCP Task-Driven Lognormal ( μ = 1 .5, σ = 0 .5) Single-agent reasoning loop, modeling inference delays between consecutive tool calls. P5 MCP Orchestrated Periodic (Machine-Speed) Pipelined multi-agent system issuing continuous high-frequency requests. P6 MCP InitBurst Bimodal / Burst Rapid concurrent initialization queries followed by an idle period. P7 MCP Orchestrated + Jitter Smeared Periodic ( 20% Jitter) P5 with intentional temporal smearing to simulate C2 eva-sion behavior. P8 MCP HTTP/2/ALPN Multiplexed Stream HTTP/2 stream multiplexing to assess impact on flow-based NIDS analysis. P9a MCP+BrowserUA Evasive User-Agent Negative control using Chrome/Safari User-Agent strings for header-based evasion. P10 MCP Large Payload Lognormal IAT + Weibull Size Large tool responses simulating unpaginated database dumps. 
+
+hash cf712d3b01ab6bfd22ca983b4748ab2f . Cross-referencing this against the Abuse.ch SSLBL threat intelli-gence database returned zero malicious associations. The traf-fic is identifiably programmatic rather than browser-originated, but carries no established threat reputation. Under the TLS-Inspected condition, mitmproxy termi-nated the TLS session and re-encrypted it on behalf of the client. Sensors on the proxy-to-server segment observed cleartext HTTP/1.1 and HTTP/2 traffic, exposing the full MCP JSON-RPC payload structure including method names (initialize , tools/list , tools/call ) and nested parameters containing terminal commands, SQL queries, and local file paths. 
+
+B. RQ2: Content-Based Detection and Signature Matching (Suricata) 
+
+Appendix A reports full Suricata alert counts per profile and TLS condition. Suricata produced zero actionable alerts across all MCP profiles under the ET Open ruleset (44,236 active rules) for both Opaque TLS and TLS-Inspected conditions. The sole exception was a low-volume match in P6 and P7 under the Cleartext condition, averaging 0.25 alerts per run across N = 5 repetitions. Manual PCAP inspection identified this as a generic HTTP protocol anomaly caused by a missing request header in our traffic generator, not a C2 or malware detection. No C2-category or data exfiltration rule ID fired in any run across any profile. MCP JSON-RPC traffic contains no byte sequences or struc-tural patterns matching existing ET Open malware signatures. The absence of false positives is operationally beneficial, but the corresponding absence of detection for potentially malicious payloads represents a gap: unauthorized tool calls, remote command execution, or data exfiltration over MCP will not generate Suricata alerts under the current ruleset without custom rules targeting the MCP JSON-RPC state machine. Human Browsing Benign API C2 Baseline (Threshold) MCP Task-Driven MCP Orchestrated MCP InitBurst 0.0 0.2 0.4 0.6 0.8 1.0 
+
+> RITA Score (0 to 1)
+> 0.85 (Detected) 0.0 (Evaded) 0.0 (Evaded) 0.0 (Evaded)
+> RITA Beacon Scores: C2 Baseline vs. MCP Pro fi les
+> RITA C2 Threshold (0.8)
+
+Fig. 1. RITA beacon scores across representative traffic profiles. The horizontal dashed line at 0.85 marks the CISA operational detection threshold, shown as a reference point from a calibration run using a known C2 packet trace [7]. All MCP profiles (P4–P10) score 0.0. The synthetic C2 profiles (P2 and P3) also score 0.0 due to a RITA boundary condition explained in Section V-C. 
+
+C. RQ3: Temporal Behavioral Evasion (Zeek and RITA) 
+
+The central finding of this study is that RITA assigned a beacon score of 0.0 to all eleven profiles across all TLS conditions, including the highly periodic MCP Orchestrated profile (P5) and the synthetic C2 profiles (P2 and P3). This is illustrated in Figure 1. The 0.0 scores for P2 and P3 require clarification. In our testbed, each 60-second run of P2 and P3 produced fewer than 12 unique source-destination connection records in Zeek’s 
+
+conn.log . RITA requires a minimum connection count per pair to compute stable quartiles; below this threshold it reports 0.0 rather than an indeterminate value. This is a known boundary condition of RITA’s statistical model, not an indication that periodic traffic is undetectable by the tool. The 0.85 reference line in Figure 1 was drawn from a separate calibration run using a published C2 packet trace [7]; it is not an observed score from any profile in our testbed. For the MCP profiles (P4 through P10), the 0.0 scores reflect a genuine detection gap. The lognormal inter-arrival times of P4, driven by LLM inference latency, produce high Bowley skewness and high MAD values. Because RITA’s normalization model was calibrated on low-skewness, low-MAD periodic malware, high skewness and high variance push the normalized output toward 0.0 rather than 1.0. As shown in Figure 2, the lognormal shape of MCP traffic falls structurally outside the parameter space where RITA’s temporal heuristics detect anomalies. 
+
+D. RQ4: Evasion and Mitigation Techniques 
+
+Because baseline MCP profiles already produce 0.0 RITA scores and zero Suricata alerts, active evasion techniques (P7 jitter injection, P9a User-Agent spoofing) produced no measurable change in sensor output. Temporal smearing in P7 had no effect because the underlying IAT distribution was already outside RITA’s detection range. User-Agent spoofing in P9a altered the HTTP header observed under TLS inspec-tion but did not affect flow-level analysis. Active evasion is unnecessary against the tested sensor configuration; the protocol’s default behavior already falls outside the detection scope of both tools within this testbed. 0.0 2.5 5.0 7.5 10.0 12.5 15.0 17.5 20.0  
+
+> Inter-Arrival Gap (seconds)
+> 0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0
+> Density
+> Inter-Arrival Time Distribution Pro fi les
+> Human Browsing (Weibull) MCP Orchestrated (Lognormal) C2 Aggressive (Periodic)
+> Fig. 2. Conceptual density of inter-arrival times across traffic classes. The lognormal distribution of MCP task-driven profiles (P4) differs structurally from strict periodic C2 polling, which explains why RITA’s quartile-based metrics do not flag it as anomalous.
+
+VI. D ISCUSSION 
+
+This study measured whether existing IDS tools would misclassify MCP traffic as malicious (false positives) or permit it silently (false negatives). Within the scope of our testbed, the results fall into the latter category: neither Suricata’s signature engine nor RITA’s temporal scoring treated MCP traffic as anomalous. 
+
+A. The Security Gap in Zero-Trust Agentic Workflows 
+
+In the threat scenarios described in Section II-B, a compro-mised agent exfiltrating data over MCP would produce traffic that looks identical to a benign agent at the network layer. The JSON-RPC payloads are carried over standard HTTPS on port 443, the JA3 fingerprint carries no malicious reputation, the lognormal IAT pushes the RITA score to 0.0, and no ET Open signature matches the payload structure. The network monitoring stack as tested produces no alert. This does not imply MCP creates a novel attack vector; rather, it shows that the tool-call payloads traveling across enterprise network boundaries are not currently subject to automated inspection by widely deployed IDS configurations. For defenders, the practical implication is that MCP traffic requires dedicated monitoring rules rather than reliance on heuristics tuned for traditional malware. 
+
+B. Architectural Mitigations and Standards Proposals 
+
+Two mitigations follow from the measurement results: 1) Agent-Native ALPN Standardization: Standardizing an MCP-specific ALPN token (e.g., mcp/1.0 or 
+
+agent/rpc ) in the TLS handshake allows enterprise gateways to identify and policy-route agent flows at the handshake layer without full payload decryption. This avoids the legal and computational cost of broad TLS inspection. 2) Schema-Aware Stateful Inspection Rules: Suricata Lua scripts or Zeek protocol analyzers designed to parse the MCP JSON-RPC state machine could detect anoma-lous tool arguments, excessive remote execution calls, or payload patterns consistent with data exfiltration, directly at the network edge. Both proposals require coordination between MCP speci-fication maintainers and IDS vendors. A governance mech-anism, such as a formal liaison between the MCP working group and the ET Open ruleset maintainers, would be a practical starting point for operationalizing these mitigations. VII. C ONCLUSION 
+
+This measurement study characterized the network visibil-ity of MCP Streamable HTTP traffic under enterprise IDS configurations. Using eleven mathematically defined traffic profiles across three TLS conditions, we measured Suricata signature alert rates and RITA behavioral beacon scores in a reproducible containerized testbed. Within the scope of this study, default MCP remote tool-call patterns produced 0.0 RITA scores and near-zero Suricata alerts. This represents a gap in current enterprise monitor-ing coverage: agent workflows executing sensitive operations across network boundaries do not trigger alerts from the IDS configurations tested here. We propose Agent-Native ALPN standardization and schema-aware inspection rules as two concrete steps toward addressing this gap. Broader validation across additional IDS configurations, rule sets, and real-world traffic volumes remains future work. REFERENCES [1] R. Sommer and V. Paxson, “Outside the Closed World: On Using Machine Learning for Network Intrusion Detection,” in 2010 IEEE Symposium on Security and Privacy . IEEE, 2010, pp. 305–316. [2] M. Abu Rajab, J. Zarfoss, F. Monrose, and A. Terzis, “A Multifaceted Approach to Understanding the Botnet Phenomenon,” in Proceedings of the 6th ACM SIGCOMM Internet Measurement Conference (IMC) .ACM, 2006, pp. 41–52. [3] Anthropic / Agentic AI Infrastructure Foundation, “Model Context Protocol Specification (2025-06-18),” https://spec.modelcontextprotocol. io/specification/2025-06-18, Linux Foundation Agentic AI Infrastructure Foundation, Tech. Rep., 2025. [4] W. Guo et al. , “A Measurement Study of Model Context Protocol,” 
+
+arXiv preprint arXiv:2509.25292 , 2025. [5] JSON-RPC Working Group, “JSON-RPC 2.0 Specification,” https:// www.jsonrpc.org/specification, 2013. [6] X. Hou et al. , “Model Context Protocol (MCP): Landscape, Se-curity Threats, and Future Research Directions,” arXiv preprint arXiv:2503.23278 , 2025. [7] C. Parssegny, J. Mazel, O. Levillain, and P. Chifflier, “Striking Back at Cobalt: Using Network Traffic Metadata to Detect Cobalt Strike Masquerading Command and Control Channels,” in International Con-ference on Availability, Reliability and Security (ARES 2025) . Springer, 2025. [8] K. Greshake, S. Abdelnabi, S. Mishra, C. Endres, T. Holz, and M. Fritz, “Not What You’ve Signed Up For: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection,” in Proceedings of the 16th ACM Workshop on Artificial Intelligence and Security (AISec ’23) . ACM, 2023, pp. 79–90. [9] S. Axelsson, “The Base-Rate Fallacy and the Difficulty of Intrusion Detection,” ACM Transactions on Information and System Security (TISSEC) , vol. 3, no. 3, pp. 186–205, 2000. [10] Open Information Security Foundation (OISF), “Suricata: Open Source IDS/IPS/NSM Engine,” https://suricata.io, 2010. [11] Proofpoint / Emerging Threats, “Emerging Threats Open Ruleset for Suricata,” https://rules.emergingthreats.net/open/suricata/rules/, 2024. [12] Active Countermeasures / SsoT AG, “RITA: Real Intelligence Threat Analytics,” https://github.com/activecm/rita, 2024. [13] J. B. Althouse, J. Atkinson, and J. Atkins, “Open Sourcing JA3: SSL/TLS Client Fingerprinting for Malware Detection,” Salesforce Engineering Blog, 2017. [14] J. B. Althouse, “JA4+: Network Fingerprinting,” FoxIO Blog, 2023. [15] B. Anderson and D. McGrew, “Identifying Encrypted Malware Traffic with Contextual Flow Data,” in Proceedings of the 2016 ACM Workshop on Artificial Intelligence and Security (AISec) . ACM, 2016, pp. 35–46. [16] I. A. Alwhbi, C. C. Zou, and R. N. Alharbi, “Encrypted Network Traf-fic Analysis and Classification Utilizing Machine Learning,” Sensors ,vol. 24, no. 11, p. 3509, 2024. [17] F. M. Ramos and X. Wang, “A Machine Learning Based Approach to Detect Stealthy Cobalt Strike C&C Activities from Encrypted Network Traffic,” ResearchGate / Journal of Information Security , 2023. [18] The Zeek Project, “Zeek: The Network Security Monitor,” https://zeek. org, 2024. [19] G. S. Poh, D. M. Divakaran, H. W. Lim, J. Ning, and A. Desai, “A Sur-vey of Privacy-Preserving Techniques for Encrypted Traffic Inspection over Network Middleboxes,” arXiv preprint arXiv:2101.04338 , 2021. 
+
+APPENDIX 
+
+Table II reports mean Suricata alert counts per traffic profile and sensor visibility condition across N = 5 runs. No C2-category or data exfiltration rule IDs fired in any configuration. 
+
+TABLE II SURICATA ALERT SUMMARY BY PROFILE AND VISIBILITY CONDITION 
+
+Profile Opaque Inspected Cleartext Category 
+
+P0 0 0 0 None P1 0 0 0 None P2 0 0 0 None P3 0 0 0 None P4 0 0 0 None P5 0 0 0 None P6 0 0 0.25 Protocol anomaly P7 0 0 0.25 Protocol anomaly P8 0 0 0 None P9a 0 0 0 None P10 0 0 0 None 
+
+Alert counts are means over N = 5 runs. No C2 or malware rule IDs fired in any condition.

@@ -41,7 +41,7 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-17</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-18</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
     <strong class="dpr-home-dashboard-count">共 19 篇</strong>
@@ -51,7 +51,7 @@
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>7</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-17 22:20:49 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-18 21:50:07 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,9 +62,10 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今天从19篇中精读7篇、速读12篇，最亮眼的是10分《Trust propagation and structural containment in Multi-agent LLM pipelines》和9分《Trustworthy Agentic AI》安全综述。</p>
-<p>最值得看的是“多智能体LLM流水线中的信任传播与结构围堵”，以及智能体安全威胁、防御架构全景；速读中的AgentGuard、BLINDSPOT和Cognitive Admission Control也在补执行护栏、拒绝校准与风险准入。</p>
-<p>普通读者可先从信任传播和Agent安全综述入手，再顺着护栏与风险准入类工作理解如何把安全落到执行环节。</p>
+<p>今日共生成 19 篇推荐（精读 7 篇，速读 12 篇）</p>
+<p>精读：《Trustworthy Agentic AI: A Comprehensive Cybersecurity and Systems Survey on Threat Landscapes, Defense Architectures, and Open Challenges》（9.0/10）, 《Agentic Societies Need a Social Harness》（9.0/10）</p>
+<p>速读：《Market Signal Injection: Adversarial Context Manipulation of LLM Pricing Agents》（7.0/10）, 《The Verifiable Action Card: Trustworthy Human-in-the-Loop Control for Secure Autonomous Agents》（7.0/10）, 《Compositional Policy Violations: When Step-Level Compliance Fails In Agentic AI Workflows》（7.0/10）</p>
+<p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -76,9 +77,9 @@
     <strong class="dpr-home-dashboard-count">7 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Trust propagation and structural containment in Multi-agent LLM pipelines">Trust propagation and structural containment in Multi-agent LLM pipelines</span></li><li><span class="dpr-home-dashboard-paper-title" title="Trustworthy Agentic AI: A Comprehensive Cybersecurity and Systems Survey on Threat Landscapes, Defense Architectures, and Open Challenges">Trustworthy Agentic AI: A Comprehensive Cybersecurity and Systems Survey on Threat Landscapes, Defense Architectures, and Open Challenges</span></li><li><span class="dpr-home-dashboard-paper-title" title="Emergence World: Adversarial Stress-Testing of Long-Horizon Multi-Agent Systems">Emergence World: Adversarial Stress-Testing of Long-Horizon Multi-Agent Systems</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Trustworthy Agentic AI: A Comprehensive Cybersecurity and Systems Survey on Threat Landscapes, Defense Architectures, and Open Challenges">Trustworthy Agentic AI: A Comprehensive Cybersecurity and Systems Survey on Threat Landscapes, Defense Architectures, and Open Challenges</span></li><li><span class="dpr-home-dashboard-paper-title" title="Agentic Societies Need a Social Harness">Agentic Societies Need a Social Harness</span></li><li><span class="dpr-home-dashboard-paper-title" title="Contagion on the Trading Floor: How Adversarial Signals Spread in Multi-Agent Trading Systems">Contagion on the Trading Floor: How Adversarial Signals Spread in Multi-Agent Trading Systems</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>6</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>5</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>2</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -89,7 +90,7 @@
     <strong class="dpr-home-dashboard-count">12 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="AgentGuard: Learning Execution Guardrails from Anomalous Coding-Agent Trajectories">AgentGuard: Learning Execution Guardrails from Anomalous Coding-Agent Trajectories</span></li><li><span class="dpr-home-dashboard-paper-title" title="BLINDSPOT: A Benchmark for Safety and Refusal Calibration in Long-Horizon Tool-Using Agents">BLINDSPOT: A Benchmark for Safety and Refusal Calibration in Long-Horizon Tool-Using Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="Cognitive Admission Control: Risk-Conditioned Assurance for Consequential Actions in Agentic Distributed Systems">Cognitive Admission Control: Risk-Conditioned Assurance for Consequential Actions in Agentic Distributed Systems</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Market Signal Injection: Adversarial Context Manipulation of LLM Pricing Agents">Market Signal Injection: Adversarial Context Manipulation of LLM Pricing Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="The Verifiable Action Card: Trustworthy Human-in-the-Loop Control for Secure Autonomous Agents">The Verifiable Action Card: Trustworthy Human-in-the-Loop Control for Secure Autonomous Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="Compositional Policy Violations: When Step-Level Compliance Fails In Agentic AI Workflows">Compositional Policy Violations: When Step-Level Compliance Fails In Agentic AI Workflows</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>10</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>2</strong></span></div>
 </section>
