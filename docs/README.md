@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-18</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-19</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 19 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 5 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>7</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>4</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-18 21:50:07 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-19 21:04:07 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,10 +62,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日共生成 19 篇推荐（精读 7 篇，速读 12 篇）</p>
-<p>精读：《Trustworthy Agentic AI: A Comprehensive Cybersecurity and Systems Survey on Threat Landscapes, Defense Architectures, and Open Challenges》（9.0/10）, 《Agentic Societies Need a Social Harness》（9.0/10）</p>
-<p>速读：《Market Signal Injection: Adversarial Context Manipulation of LLM Pricing Agents》（7.0/10）, 《The Verifiable Action Card: Trustworthy Human-in-the-Loop Control for Secure Autonomous Agents》（7.0/10）, 《Compositional Policy Violations: When Step-Level Compliance Fails In Agentic AI Workflows》（7.0/10）</p>
-<p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
+<p>今日精选 5 篇 AI 安全与可信研究，其中一篇 10.0 分综述全面梳理 Agentic AI 的威胁全景与防御架构。最值得关注的是智能体安全防护体系和企业 AI 助手在压力下的可信度问题。建议普通读者优先了解 AI 智能体可能面临的安全风险，再关注企业落地时的信任评估方法。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -74,12 +71,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">7 篇</strong>
+    <strong class="dpr-home-dashboard-count">1 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Trustworthy Agentic AI: A Comprehensive Cybersecurity and Systems Survey on Threat Landscapes, Defense Architectures, and Open Challenges">Trustworthy Agentic AI: A Comprehensive Cybersecurity and Systems Survey on Threat Landscapes, Defense Architectures, and Open Challenges</span></li><li><span class="dpr-home-dashboard-paper-title" title="Agentic Societies Need a Social Harness">Agentic Societies Need a Social Harness</span></li><li><span class="dpr-home-dashboard-paper-title" title="Contagion on the Trading Floor: How Adversarial Signals Spread in Multi-Agent Trading Systems">Contagion on the Trading Floor: How Adversarial Signals Spread in Multi-Agent Trading Systems</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Trustworthy Agentic AI: A Comprehensive Cybersecurity and Systems Survey on Threat Landscapes, Defense Architectures, and Open Challenges">Trustworthy Agentic AI: A Comprehensive Cybersecurity and Systems Survey on Threat Landscapes, Defense Architectures, and Open Challenges</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>5</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>2</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -87,12 +84,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">12 篇</strong>
+    <strong class="dpr-home-dashboard-count">4 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Market Signal Injection: Adversarial Context Manipulation of LLM Pricing Agents">Market Signal Injection: Adversarial Context Manipulation of LLM Pricing Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="The Verifiable Action Card: Trustworthy Human-in-the-Loop Control for Secure Autonomous Agents">The Verifiable Action Card: Trustworthy Human-in-the-Loop Control for Secure Autonomous Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="Compositional Policy Violations: When Step-Level Compliance Fails In Agentic AI Workflows">Compositional Policy Violations: When Step-Level Compliance Fails In Agentic AI Workflows</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="PACT: Can Enterprise AI Assistants Be Trusted Under Pressure?">PACT: Can Enterprise AI Assistants Be Trusted Under Pressure?</span></li><li><span class="dpr-home-dashboard-paper-title" title="Governing at Machine Speed: An Adaptive Intelligence Architecture for Real-Time AI Policy Enforcement">Governing at Machine Speed: An Adaptive Intelligence Architecture for Real-Time AI Policy Enforcement</span></li><li><span class="dpr-home-dashboard-paper-title" title="A Unified Evaluation Framework for Trustworthy Large Language Models, Agentic AI, and Multimodal Systems">A Unified Evaluation Framework for Trustworthy Large Language Models, Agentic AI, and Multimodal Systems</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">mas-security <strong>10</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>2</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>2</strong></span><span class="dpr-home-dashboard-tag">mas-security <strong>2</strong></span></div>
 </section>
 </div>
 
