@@ -1,0 +1,807 @@
+Title: Brain API: An Intent-Aware Control Plane for Policy-Governed Agentic Systems
+
+URL Source: https://arxiv.org/pdf/2609.21299v1
+
+Published Time: Mon, 21 Sep 2026 00:28:29 GMT
+
+Number of Pages: 29
+
+Markdown Content:
+# BRAIN API: A N INTENT -A WARE CONTROL PLANE FOR 
+
+# POLICY -G OVERNED AGENTIC SYSTEMS 
+
+A P REPRINT 
+
+Alexander Chernov 
+
+Independent Researcher, Toronto, ON, Canada September 21, 2026 
+
+Preprint. 
+
+## ABSTRACT 
+
+Contemporary cloud and distributed systems expose control through resource-centric abstractions: services, deployments, network flows, execution graphs. Agentic and tool-augmented systems have meanwhile shifted application logic toward intent-driven, adaptive execution. Existing control planes, workflow engines and service meshes lack abstractions for intent-level decision governance: they cannot represent high-level goals as first-class control objects, cannot enforce policy over the mapping from intent to execution plan, and cannot produce auditable records of why one execution path was chosen over its alternatives. Control logic is therefore embedded in application code, leaving systems brittle, opaque and hard to govern. We propose Brain API , an intent-aware control plane for policy-governed agentic systems. Its central contribution is the decision artifact : a durable, versioned, auditable record of how an intent became an executable plan, capturing which policies applied, which capabilities were evaluated, which alternatives were rejected, and why. A motivating use case is agentic datasets : datasets participating as policy-governed capabilities under residency, compliance and cost constraints. We evaluate a prototype of the decision layer against two external policy corpora we did not author. On the OPA Gatekeeper constraint library it agrees with the library’s own published verdicts on 42 of 42 encodable cases, 19 admit and 23 deny. On Cedar example policies, labeled by differential testing against its reference implementation, a deliberately dissimilar domain exposed three defects in our model, including a default-allow assumption that would have inverted every authorization policy. The evaluation covers policy filtering and selection; context-signal and ranking remain design claims, and decision latency under load is unquantified. 
+
+How to cite: Chernov, Alexander. 2026. Brain API: An Intent-Aware Control Plane for Policy-Governed Agentic Systems . arXiv preprint. 
+
+Keywords Brain API · Control Plane · Intent-Aware Systems · Decision Artifacts · Policy Governance · Agentic Systems 
+
+## 1 Introduction 
+
+Distributed systems have traditionally been controlled through resource-centric abstractions such as services, deploy-ments, jobs, and tasks. Control planes in systems such as Kubernetes, service meshes, and workflow engines focus on scheduling, placement, scaling, and connectivity of these resources [Burns et al., 2016, Verma et al., 2015, Schwarzkopf arXiv:2609.21299v1 [cs.DC] 18 Sep 2026 Brain API A P REPRINT 
+
+et al., 2013, Hindman et al., 2011]. While this model has proven effective for managing infrastructure and stateless request flows, it becomes increasingly strained in the presence of agentic and tool-augmented applications that operate over high-level goals, adapt their behavior at runtime, and compose heterogeneous capabilities dynamically. 
+
+Running example. To ground the discussion, we use a concrete scenario throughout the paper. A compliance officer submits the intent: “Prepare a regulatory report for dataset D.” Fulfilling this intent requires selecting among candidate capabilities (an on-premise cluster, a managed cloud service, a compliance-certified environment), enforcing governance policies (data residency constraints, access class requirements, cost ceilings), and reusing prior results only if they are sufficiently fresh and produced under the same policy regime. The system must record why a particular execution path was chosen—not just what executed—so that the decision can be audited independently of its outcome. We use this scenario to illustrate each layer of Brain API as it is introduced, and revisit it in full in the use cases (§10.1). Recent systems that integrate large language models, planners, and tool execution frameworks exemplify the broader shift toward intent-driven execution [Yao et al., 2023, Schick et al., 2023]. Instead of executing a fixed pipeline or a statically defined workflow, such systems reason over intent —as in our running example—and decompose it into a sequence of actions that may involve services, tools, and other agents. In practice, however, the control logic governing this process is embedded inside application code or orchestration scripts. Policies related to safety, compliance, cost, or data locality are enforced in an ad hoc manner, if at all. Observability is similarly limited: operators can inspect resource metrics and logs, but rarely the decisions that led to a particular execution path. This situation creates three systemic problems. First, intent-level control is fragmented across applications, making it difficult to enforce global policies or reason about system-wide behavior. Second, decision-making logic is opaque and tightly coupled to execution, hindering auditing, debugging, and governance. Third, the lack of a shared control-plane abstraction prevents reuse and composition across different agentic systems and execution backends. We argue that these problems stem from a missing abstraction: a control plane that treats intent and policy as first-class concerns, rather than as application-level conventions. To address this gap, we propose Brain API , an intent-aware control plane for policy-governed agentic systems. Brain API introduces a decision layer that sits between intent submission and execution, explicitly representing policies, capabilities, and routing logic. This layer determines what should be done and under what constraints before any concrete action is taken, and it produces an execution plan that can be carried out by heterogeneous backends. 
+
+What Brain API uniquely contributes. A natural question is whether Brain API’s functionality can be assembled from existing components—for example, by combining OPA for policy evaluation, a service mesh for routing, a workflow engine for execution, and an LLM tool router for intent decomposition. We argue it cannot, for three reasons; the first two are empirical and we test them in §11, and the third is an architectural argument that we do not claim as a measured result. First, none of these systems produce a decision artifact : a first-class, versioned, auditable record that captures why aspecific execution path was chosen, which policies applied, which alternatives were considered, and under what context. Without decision artifacts, governance is retrospective at best—operators can observe what executed but not the control logic that led there. Measured over the corpus decisions, a decision artifact answers all six of our audit questions while an admission-control log answers two (§11.3). Second, none enforce policy at intent level : policies in existing systems govern individual requests, network flows, or resource states. Brain API enforces policy over the mapping from a high-level goal to a complete execution plan— before any action is taken—and propagates policy obligations through plan synthesis. We should be precise about what this does and does not distinguish: admission control also runs before execution, so pre-execution timing is not the difference. The difference is that admission control adjudicates one proposed object, whereas intent-level enforcement selects among alternatives. Where a compliant alternative exists, Brain API reaches it in a single pass; the admission baseline rejects the proposal it was handed and, because its log names no alternative, cannot itself route to the compliant one (§11.4). Third, there is no unified control-plane abstraction for agentic systems : each existing system addresses one layer (infrastructure, network, workflow, or tool invocation) and exposes a different model. Brain API provides a single abstraction layered across all of them, making intent, policy, and decision-making reusable and independently evolvable across heterogeneous backends. This is a claim about system structure and modularity, and we argue rather than measure it. 
+
+Scope. We define the model and interfaces precisely and evaluate a prototype implementation of the decision layer against an external policy corpus. The evaluation uses two independent policy corpora: the OPA Gatekeeper constraint library, 49 production Kubernetes admission policies whose test suites publish for each sample object whether it should be admitted; and the Cedar policy language’s published example policies, labeled by differential testing against its 
+
+2Brain API A P REPRINT 
+
+reference implementation. We author the encoding of each policy into our rule grammar; we author neither the objects nor the verdicts, so an incorrect encoding manifests as disagreement with the corpus rather than as a favorable result. Two limits on that scope should be stated at the outset. First, the corpus exercises the policy-filtering and selection stages; the context-signal and ranking stages (§7.4–§7.5) are not evaluated here, because pass/fail admission decisions provide no ranking ground truth. Second, one of the three arguments we make in this section against assembling Brain API from existing components is architectural rather than empirical, and we mark it as such rather than counting it among the results. 
+
+Contributions. The contributions of this paper are as follows: 1. Problem formulation : We articulate the limitations of resource-centric control planes for agentic and intent-driven systems and formulate the need for an intent-aware, policy-governed control layer. 2. System model : We present a system model that elevates intent, policy, capability, and decision to first-class control-plane primitives. 3. Architecture : We describe the architecture of Brain API, including its separation of decision-making from execution and its integration with existing execution environments. 4. Control interfaces and semantics : We define the core control-plane interfaces and decision semantics that enable semantic routing, governed execution, and decision-level observability. 5. Illustrative scenarios : We present representative use cases that demonstrate how Brain API simplifies the construction and governance of adaptive, multi-step, agentic systems. 6. An expressiveness result obtained from a production policy corpus : We measure which real gover-nance policies the decision layer’s rule grammar can express. A rule language of scalar field/operator/value comparisons—the form the model was first specified with—covers 3 of 49 Gatekeeper policies, because real policies quantify over collections ("every container’s image must come from an allowed repository"). Adding bounded quantification raises coverage to 28 of 49; aggregation and general regular expressions remain out of reach and we report them as such (§11.2). 7. Empirical evaluation of the two testable claims above : conformance of the policy stage against the corpus’s published verdicts (42 of 42 encodable cases, on a near-balanced allow/deny split); auditability of the decision artifact against an admission-control log (six of six audit questions versus two, with every decision re-derivable from its artifact alone); and selection among alternatives (§11.3–§11.4). 
+
+## 2 Background and Problem Statement 
+
+Control planes in modern distributed systems are primarily designed around managing resources and request flows. Systems such as Kubernetes provide declarative mechanisms for describing desired resource states, while service meshes and API gateways focus on traffic routing, resilience, and security at the level of network requests [Burns et al., 2016, Istio Authors, 2026, Envoy Authors, 2026, Linkerd Authors, 2026]. Workflow engines and schedulers extend this model to multi-step computations, but they typically rely on statically defined graphs or imperative orchestration logic [Deelman et al., 2005, Argo Project, 2026, Temporal Technologies, 2026]. In parallel, agentic and tool-augmented systems have introduced a different execution paradigm. Instead of executing a fixed plan, these systems operate over high-level goals and iteratively decide which actions to take based on intermediate results, context, and external constraints. The execution path is not fully known in advance and may involve heterogeneous capabilities, including microservices, data processing jobs, external APIs, and human-in-the-loop steps. While this approach increases flexibility, it also exposes a gap between what the system is trying to achieve and 
+
+how the underlying infrastructure is controlled .Today, this gap is typically bridged in one of two ways. In the first approach, developers encode decision logic directly into application code, often intertwined with tool invocation and error handling. Policies related to cost, data governance, or safety are implemented as conditional checks scattered throughout the codebase. In the second approach, developers rely on workflow engines or orchestration frameworks, but these systems still require explicit enumeration of steps and transitions, pushing adaptive behavior back into application logic or external controllers. Both approaches suffer from common limitations. Decision-making is tightly coupled to execution, making it difficult to inspect, audit, or evolve independently. Policies are enforced implicitly and locally, rather than as global, declarative constraints. Observability focuses on resource usage and request metrics, but provides little insight into why aparticular execution path was chosen. As a result, agentic systems become difficult to govern, especially in regulated or cost-sensitive environments. 
+
+3Brain API A P REPRINT 
+
+At the same time, existing control planes lack primitives for representing intent, policy, or semantic suitability of capabilities. Routing decisions are typically based on static rules, labels, or low-level metrics, rather than on high-level goals and constraints. Memory and context, when used, are treated as application-specific concerns rather than as inputs to control decisions. This forces each agentic system to reinvent its own control logic, leading to fragmentation and duplicated effort. The core problem we address in this paper is therefore the absence of a unifying control-plane abstraction for intent-driven, policy-governed execution. We seek a model in which intent submission, policy enforcement, capability selection, and execution planning are explicit, inspectable, and reusable across systems and environments. Such a model should integrate with existing distributed execution substrates while providing a higher-level decision layer that makes agentic behavior governable and observable. One motivating class of applications for this model is agentic datasets , where datasets are no longer treated as passive storage but as policy-governed participants in multi-step reasoning pipelines—for example, selecting processing strategies, enforcing data residency and compliance constraints, or reusing prior results under freshness and similarity requirements. In such systems, datasets expose capabilities (e.g., query, transform, summarize, validate), and their participation in an execution is mediated by the same intent, policy, and decision mechanisms described in this paper. While agentic datasets provide a concrete and compelling use case, the Brain API model itself is intentionally general and applies to any domain in which high-level intent must be mapped to governed execution across heterogeneous capabilities. 
+
+## 3 Design Goals and Non-Goals 
+
+Brain API is designed to serve as a control plane for intent-driven and agentic systems operating in heterogeneous distributed environments. Our design is guided by the following goals. 
+
+Intent-first control. The primary unit of interaction with the control plane is an intent , representing a high-level goal rather than a specific sequence of actions. The system should reason over intents and derive concrete execution plans from them. 
+
+Policy as a first-class primitive. Policies governing safety, compliance, cost, data locality, or operational constraints must be explicit and declarative. The control plane should enforce these policies during decision-making rather than relying on ad hoc checks in application code [Open Policy Agent Community, 2026a, Abadi et al., 1993, DeTreville, 2002]. 
+
+Separation of decision and execution. Decision-making about what to do and where to do it should be logically separated from the act of execution. This separation enables independent evolution of policies, routing logic, and execution backends, and it supports auditing and inspection of decisions. 
+
+Heterogeneous capability integration. The system must support a diverse set of capabilities, including services, batch jobs, tools, and other agents, without imposing a single execution model. Capabilities should be discoverable and selectable based on semantic and policy-relevant attributes. 
+
+Decision-level observability. Operators should be able to observe and audit not only resource usage and execution outcomes, but also the decisions that led to a particular execution path, including which policies were applied and which alternatives were considered [Sigelman et al., 2010, Buneman et al., 2001, Cheney et al., 2009]. 
+
+Pluggable context and memory. While context and memory may influence routing and planning decisions, the control plane should not mandate a specific storage or representation. Instead, it should provide hooks for integrating different context and memory providers. We also explicitly state several non-goals. Brain API is not intended to: • Replace existing execution engines, workflow systems, or orchestration platforms. It complements them by providing a higher-level decision layer. Existing backends are treated as interchangeable executors. • Function as a real-time, low-latency scheduler. Introducing a decision layer adds indirection. Workloads with sub-millisecond routing requirements are better served by data-plane mechanisms such as service meshes or load balancers. • Prescribe a specific policy language or engine. The architecture is compatible with OPA Rego, Cedar, Datalog-based systems, or custom rule engines. The choice is left to the deploying organization. 
+
+4Brain API A P REPRINT 
+
+• Provide policy verification or formal analysis. Brain API enforces policies at runtime but does not statically verify that a policy set is consistent, complete, or free of conflicts. Policy authoring tooling is a complementary concern. • Serve as a human-in-the-loop workflow engine. While policies may insert approval steps into an execution plan, Brain API does not itself implement human task management or case-management interfaces. • Implement planners or large language models. These are pluggable components that may back the decision engine; Brain API defines the control-plane contract around them, not their internals. 
+
+## 4 System Model 
+
+In this section, we present the system model underlying Brain API. The model introduces a set of first-class abstractions— 
+
+Intent , Policy , Capability , Context , Decision , and Execution Plan —that together define how high-level goals are transformed into governed, observable actions in a distributed environment. The purpose of this model is not to prescribe a specific implementation, but to provide a precise conceptual framework that separates decision-making from execution while remaining compatible with existing distributed systems substrates. 
+
+4.1 Core Entities 
+
+We define the following core entities. 
+
+Intent. An intent represents a high-level goal or objective submitted to the control plane. Unlike a request in a traditional API, an intent does not specify a concrete sequence of actions. Instead, it captures what the user or system wishes to achieve, possibly accompanied by parameters, constraints, or preferences. Examples include “analyze this dataset,” “generate a compliance report,” or “triage this incident.” Intents are treated as declarative statements of desired outcomes. 
+
+Policy. A policy is a declarative constraint or rule that governs how intents may be realized. Policies may encode requirements related to safety, compliance, cost, data locality, security, performance, or organizational governance. In Brain API, policies are not embedded in application logic; they are explicit inputs to the decision process and are evaluated whenever an intent is mapped to concrete actions. 
+
+Capability. A capability represents an executable unit that can contribute to satisfying an intent. Capabilities may correspond to microservices, batch jobs, tools, external APIs, or other agents. Each capability is described by metadata that characterizes its semantics, requirements, and operational properties, such as input and output types, cost model, trust level, data access constraints, or performance characteristics. 
+
+Context. Context captures dynamic information relevant to decision-making, including runtime state, environmental conditions, user attributes, historical execution traces, or external signals. Context is distinct from policy in that it describes what is currently true , rather than what must always hold . Context may influence which capabilities are suitable for a given intent at a particular moment. 
+
+Decision. A decision is the outcome of applying policies and context to an intent and a set of available capabilities. It represents a resolved choice about how an intent will be realized, including which capabilities will be used, in what order, and under which constraints. Decisions are first-class artifacts in Brain API and are subject to inspection, auditing, and observability. 
+
+Definition (Decision Artifact). A decision artifact is a durable control-plane object that records the complete reasoning process used to transform an intent into an executable plan. A decision artifact contains: 1. Intent reference — the submitted intent, including its parameters and preferences. 2. Policy versions — the set of policies evaluated, identified by version, so that policy evolution can be tracked. 3. Context snapshot — the context signals that were active at decision time (e.g., region, cost envelope, sensitivity level). 4. Candidate set — all capabilities considered, before and after policy filtering. 5. Selected plan — the execution plan that was chosen, including the sequence and structure of steps. 6. Rejected alternatives — capabilities or plans that were eliminated, each annotated with the policy or criterion that caused rejection. 7. Decision rationale — scoring or ranking evidence that explains why the selected plan was preferred over remaining alternatives. 
+
+5Brain API A P REPRINT 
+
+Decision artifacts are persistent objects in the control plane, not transient log entries. They can be retrieved, replayed under a modified policy, and compared across time. A concrete schema is given in §6.8. This definition distinguishes Brain API from traditional control planes, which record events (what happened) but not decisions (why it happened that way). The consequences are substantial: decision artifacts enable post-hoc compliance auditing, reproducible reasoning, forensic debugging, and governance-driven policy refinement in ways that event logs alone cannot support. 
+
+Execution Plan. An execution plan is a concrete, executable representation derived from a decision. It specifies the sequence or structure of actions to be carried out by one or more execution backends. While a decision captures the rationale and constraints, the execution plan captures the operational steps that will be performed. 
+
+4.2 Decision Function 
+
+At the heart of the model is a decision function that maps intents to execution plans under policy and context constraints. Conceptually, this can be expressed as: Decision = F(Intent, Policies, Context, Capabilities) where the function F produces both a decision artifact and an associated execution plan. This function is not assumed to be purely static or purely deterministic; it may incorporate ranking, filtering, or optimization over available capabilities. However, the outcome of the function is always an explicit decision that can be inspected and reasoned about. This formulation makes several properties explicit. First, policy enforcement is an integral part of decision-making rather than a post-hoc validation step. Second, context is treated as a first-class input that may influence routing, selection, or decomposition of actions. Third, capabilities are not invoked directly by the intent submitter, but are selected by the control plane based on semantic and policy-relevant attributes. 
+
+4.3 Separation of Concerns 
+
+The system model enforces a clear separation between three concerns: 1. Intent specification 
+
+• Captures the desired outcome without committing to an execution strategy. 2. Decision-making 
+
+• Resolves the intent into a governed and context-aware plan using policies and capability metadata. 3. Execution 
+
+• Carries out the plan using concrete backends and runtime systems. This separation allows policies and routing logic to evolve independently of execution mechanisms, and it enables the system to expose decision-level observability without entangling it with low-level operational details. 
+
+4.4 Determinism, Adaptivity, and Re-evaluation 
+
+The model permits both deterministic and adaptive behavior. For a fixed set of inputs—intent, policies, context, and capabilities—the decision function may be deterministic, yielding reproducible decisions that support auditability and debugging. At the same time, changes in context or policy may trigger re-evaluation, leading to different decisions for the same intent at different times. Importantly, re-evaluation is an explicit and observable process: when a decision is revised due to changing context or policy, the system produces a new decision artifact and, if necessary, a new execution plan. This makes adaptation a controlled and inspectable aspect of the control plane rather than an implicit side effect of application logic. 
+
+4.5 Relationship to Distributed Execution Substrates 
+
+The system model does not assume a specific execution substrate. Execution plans may target container orchestrators, workflow engines, serverless platforms, or external services [Burns et al., 2016, Verma et al., 2015, Schwarzkopf et al., 2013, Deelman et al., 2005]. From the perspective of the model, these substrates are interchangeable backends that consume execution plans and produce outcomes. This abstraction boundary allows Brain API to integrate with existing distributed systems while introducing a higher-level, intent- and policy-aware decision layer above them. 
+
+6Brain API A P REPRINT 
+
+In summary, the system model establishes intent, policy, capability, context, and decision as explicit control-plane concepts. By making the transformation from intent to execution both governed and observable, it provides the conceptual foundation for the architecture and interfaces described in the following sections. 
+
+4.6 Decision Artifacts vs. Prior Control-Plane Primitives 
+
+A central conceptual contribution of Brain API is elevating decisions to the same status that resources, tasks, and deployments occupy in traditional control planes. Table 1 contrasts what existing systems store as their primary control-plane objects with what Brain API introduces. Table 1: Primary control-plane objects in existing systems vs. Brain API. Brain API is the first control plane to record the complete reasoning process—not just outcomes or states—as a durable, first-class object.             
+
+> System Primary control-plane object What it records
+> Kubernetes Resource (Pod, Deployment, Job) Desired and actual state Workflow engine (Argo, Temporal) Task / activity state Execution progress and outcomes Policy engine (OPA) Rule evaluation result Pass / deny for a single request Service mesh (Istio, Linkerd) Traffic policy Network-level routing rules
+> Brain API Decision artifact Why a plan was chosen: intent, policies, context, candidates, rationale
+
+The distinction between recording an event ("summarizer_v2 was invoked at 10:15") and recording a decision ("sum-marizer_v2 was selected because summarizer_v1 failed the trust-level policy and the cloud alternative failed the data-residency policy, given the EU-west context and a medium cost ceiling") is what enables the governance, repro-ducibility, and auditability properties we claim. Event logs tell you what happened; decision artifacts tell you why, and allow the why to be independently audited, replayed, and contested. 
+
+## 5 Architecture Overview 
+
+In this section, we present the high-level architecture of Brain API and describe how its components realize the system model introduced in the previous section. The architecture follows a control-plane / data-plane separation, in which intent interpretation and decision-making are centralized in a control plane, while concrete actions are carried out by heterogeneous execution backends [Burns et al., 2016, Verma et al., 2015, Schwarzkopf et al., 2013]. This separation allows Brain API to introduce intent- and policy-aware control without replacing existing distributed execution substrates. 
+
+5.1 Architectural Principles 
+
+The architecture is guided by three principles. First, decision-making is explicit and inspectable : the system produces first-class decision artifacts before any execution occurs. Second, policy enforcement is centralized in the control plane rather than scattered across applications and tools [Open Policy Agent Community, 2026a, Abadi et al., 1993, DeTreville, 2002]. Third, execution is delegated to existing systems, which are treated as interchangeable backends consuming execution plans. These principles ensure that Brain API can be integrated incrementally into existing environments while providing a coherent control layer for agentic and intent-driven workloads. 
+
+5.2 Component Overview 
+
+At a high level, the architecture consists of the following components: 
+
+Intent Ingress. The intent ingress provides the external interface through which users or systems submit intents to the control plane. It is responsible for validating intent schemas, authenticating callers, and normalizing requests into a canonical internal representation. 
+
+Policy Engine. The policy engine stores and evaluates declarative policies. Given an intent and relevant context, it determines which constraints apply and how they restrict the set of admissible execution strategies. The policy engine does not execute actions; it produces constraints and decisions that shape routing and planning. 
+
+Capability Registry. The capability registry maintains metadata about available capabilities, including their semantic descriptions and operational properties. This registry enables the control plane to reason about which capabilities are suitable candidates for satisfying a given intent under current policies and context. 
+
+7Brain API A P REPRINT Audit Store / Ledger (append-only) Observability Plane (Events + Metrics + Traces) Data Plane Backend (K8s / Workflow / Tool) Execution Adapter Control Plane (Decision + Policy + Registry + Context) Intent Ingress Client / User      
+
+> Audit Store / Ledger (append-only) Observability Plane (Events + Metrics + Traces) Data Plane Backend (K8s / Workflow / Tool) Execution Adapter Control Plane (Decision + Policy + Registry + Context) Intent Ingress Client / User
+> alt [Success]
+> [Failure / Obligation Violation]
+> SubmitIntent(intent_spec)
+> 1
+> Emit Event: IntentSubmitted (intent_id)
+> 2
+> Append Record: Intent (intent_id, timestamp)
+> 3
+> Create/Update Intent (intent_id)
+> 4
+> Start Trace Span: Decide (intent_id)
+> 5
+> Generate Candidates Apply Policies Incorporate Context Rank & Select Synthesize Plan
+> 6
+> Emit Event: DecisionCreated (intent_id, decision_id, plan_id)
+> 7
+> Append Record: Decision (decision_id, policy_versions, context_refs)
+> 8
+> Dispatch ExecutionPlan (plan_id, decision_id)
+> 9
+> Emit Event: PlanDispatched (plan_id, adapter, backend)
+> 10
+> Append Record: PlanDispatch (plan_id, adapter, backend)
+> 11
+> Execute(plan)
+> 12
+> Emit Traces/Metrics/Logs (intent_id, decision_id, plan_id)
+> 13
+> Status/Result Updates (execution_id, status) 14
+> Emit Event: ExecutionUpdated (execution_id, status)
+> 15
+> Append Record: ExecutionUpdate (execution_id, status, timestamps)
+> 16
+> Outcome(success, outputs) 17
+> Emit Event: ExecutionCompleted (execution_id, success)
+> 18
+> Append Record: Outcome (execution_id, success, outputs_refs)
+> 19
+> Outcome(failure, reason) 20
+> Emit Event: ExecutionFailed (execution_id, reason)
+> 21
+> Append Record: Outcome (execution_id, failure, reason)
+> 22
+> Emit Event: ReevaluationTriggered (intent_id, prior_decision_id)
+> 23
+> Append Record: ReevaluationLink (prior_decision_id -> new_decision_id)
+> 24
+> Signals back to Context (perf, failures, reuse candidates) 25
+
+Figure 1: Decision-level observability and audit trail across control and data planes. Brain API emits correlated events and traces for intent submission, decision creation, plan dispatch, and execution outcomes using stable identifiers (intent, decision, plan, execution). Decision inputs (policy versions and context references) and outputs (decision and execution plan artifacts) are persisted as append-only audit records, enabling post hoc reconstruction of why an execution path was chosen and under which constraints. Numbered markers indicate the chronological sequence of control- and data-plane events from intent submission through execution, outcome recording, and possible re-evaluation. 
+
+Decision Engine. The decision engine is the core of the control plane. It combines the intent, applicable policies, current context, and available capabilities to produce a decision artifact and an associated execution plan. This component embodies the decision function defined in the system model and is responsible for selection, composition, and ordering of capabilities. 
+
+Execution Adapters. Execution adapters translate execution plans into concrete actions on specific backends, such as container orchestrators, workflow engines, serverless platforms, or external services [Deelman et al., 2005, Argo Project, 2026, Temporal Technologies, 2026]. Each adapter implements the interface required to submit, monitor, and, if necessary, cancel or modify executions on its target substrate. 
+
+Observability Plane. The observability plane collects and exposes information about decisions and executions. It records which intents were submitted, which policies were applied, which alternatives were considered, and which execution plans were produced, as well as the outcomes of their execution [Sigelman et al., 2010, Buneman et al., 2001, Cheney et al., 2009]. This plane enables auditing, debugging, and governance at the level of decisions rather than only at the level of resources or requests. 
+
+Context Providers. Context providers supply dynamic information used during decision-making, such as runtime state, environmental signals, historical traces, or external annotations. They are pluggable components that allow the control plane to incorporate domain-specific knowledge without hard-coding it into the decision logic. Figure 1 illustrates the end-to-end control and execution lifecycle. The numbered steps indicate the chronological sequence: (1) intent submission, (2–4) intent registration, (5–8) decision synthesis, (9–11) plan dispatch, (12–16) execution and status reporting, (17–22) outcome recording for both the success and failure paths, and (23–25) re-evaluation and the signals fed back to context. This sequence highlights how decision artifacts and execution telemetry are correlated and persisted for auditability. 
+
+8Brain API A P REPRINT 
+
+5.3 Control Plane and Data Plane 
+
+Brain API enforces a clear separation between the control plane and the data plane. The control plane comprises the intent ingress, policy engine, capability registry, decision engine, and observability plane. Its responsibility is to interpret intents, apply policies, select and compose capabilities, and produce execution plans and decision artifacts. The data plane consists of the execution backends and the execution adapters that interface with them. Its responsibility is to carry out the actions specified in execution plans and to report outcomes and status back to the control plane. This separation allows the control plane to remain agnostic to the details of execution environments while still exerting governance and providing observability over the system’s behavior. 
+
+5.4 Execution Flow 
+
+A typical execution proceeds as follows. An intent is submitted through the intent ingress and normalized. The decision engine queries the capability registry to obtain candidate capabilities and consults context providers to gather relevant dynamic information. The policy engine evaluates applicable policies and produces constraints. The decision engine then applies the decision function to derive a decision artifact and an execution plan that satisfies the policies and is appropriate for the current context. The execution plan is handed off to the appropriate execution adapters, which submit it to the chosen backends. Throughout this process, the observability plane records the intent, the applied policies, the decision, and the execution outcomes. 
+
+5.5 Integration with Existing Systems 
+
+The architecture is designed to integrate with existing distributed systems rather than to replace them. Brain API can sit alongside container orchestrators, workflow engines, and service meshes, providing an additional control layer that governs how these systems are used in response to high-level intents. By treating execution substrates as backends and exposing decisions as first-class artifacts, the architecture enables incremental adoption and coexistence with established infrastructure. In summary, the architecture of Brain API realizes the system model by introducing an explicit, policy-aware decision layer between intent submission and execution. This layer provides a unifying control plane for agentic systems while leveraging existing data-plane technologies for scalable and reliable execution. 
+
+## 6 Brain API: Control Plane Interfaces 
+
+In this section, we describe the core control-plane interfaces exposed by Brain API. These interfaces define how intents, policies, and capabilities are registered and managed, how decisions are produced and inspected, and how executions are observed. The goal is not to prescribe a concrete wire protocol or implementation language, but to specify the minimal set of operations required to realize the system model and architecture described in the previous sections. 
+
+6.1 Design Principles 
+
+The interface design follows three principles: 1. Intents, policies, and capabilities are first-class objects 
+
+• Can be created, updated, and queried independently. 2. Decisions are explicit artifacts 
+
+• Can be retrieved and inspected before and after execution. 3. Execution is observable and controllable 
+
+• Achieved through uniform abstractions, regardless of the underlying backend. 
+
+6.2 Intent Interface 
+
+The intent interface allows clients to submit, query, and manage intents. Conceptually, it provides operations of the following form: • SubmitIntent(intent_spec) -> intent_id 
+
+9Brain API A P REPRINT 
+
+• GetIntent(intent_id) -> intent_spec 
+
+• ListIntents(filter) -> [intent_id] 
+
+An intent_spec describes the desired outcome and may include parameters, constraints, or preferences. The submission of an intent does not directly trigger execution; instead, it initiates the decision-making process in the control plane. The returned intent_id serves as a stable handle for tracking the lifecycle of the intent, its associated decisions, and any resulting executions. 
+
+6.3 Policy Interface 
+
+The policy interface manages declarative constraints that govern decision-making. It provides operations such as: • RegisterPolicy(policy_spec) -> policy_id 
+
+• UpdatePolicy(policy_id, policy_spec) 
+
+• GetPolicy(policy_id) -> policy_spec 
+
+• ListPolicies(filter) -> [policy_id] 
+
+A policy_spec encodes rules or constraints over intents, capabilities, context, or execution environments. Policies are evaluated by the policy engine during decision-making and are not embedded in application logic. This separation allows policies to be evolved, audited, and reasoned about independently of the code that submits intents or executes actions. 
+
+6.4 Capability Interface 
+
+The capability interface exposes operations for registering and discovering executable capabilities: • RegisterCapability(capability_spec) -> capability_id 
+
+• UpdateCapability(capability_id, capability_spec) 
+
+• GetCapability(capability_id) -> capability_spec 
+
+• ListCapabilities(filter) -> [capability_id] 
+
+A capability_spec describes the semantics and operational properties of an executable unit, such as its inputs and outputs, cost model, trust level, or data access constraints. This metadata enables the decision engine to reason about suitability and compatibility when selecting capabilities for a given intent under applicable policies. 
+
+6.5 Decision Interface 
+
+The decision interface provides visibility into the outcomes of the control plane’s decision-making process. Typical operations include: • GetDecision(intent_id) -> decision_artifact 
+
+• ListDecisions(filter) -> [decision_id] 
+
+A decision_artifact records the selected capabilities, the structure of the execution plan, the policies that were applied, and, optionally, alternative candidates that were considered and rejected. By exposing decisions as first-class objects, Brain API enables auditing, debugging, and governance at the level of control logic rather than only at the level of execution outcomes. 
+
+6.6 Execution Interface 
+
+The execution interface allows clients and operators to observe and, when necessary, control the execution of plans derived from decisions. Conceptual operations include: • GetExecution(decision_id) -> execution_status 
+
+• ListExecutions(filter) -> [execution_id] 
+
+• CancelExecution(execution_id) 
+
+10 Brain API A P REPRINT 
+
+The execution_status includes information about progress, success or failure, and any intermediate results exposed by the underlying execution backend. While the specifics of execution management depend on the backend, Brain API provides a uniform abstraction for tracking and governing executions across heterogeneous systems. 
+
+6.7 Introspection and Audit 
+
+In addition to the interfaces above, Brain API exposes introspection and audit capabilities that allow operators to query how and why particular decisions were made. This includes retrieving the set of policies that were in force at the time of decision-making, the context inputs that were considered, and the rationale for selecting one capability or plan over alternatives. These interfaces are essential for compliance, debugging, and post hoc analysis in regulated or safety-critical environments. 
+
+6.8 Illustrative Artifact Schemas 
+
+To ground the interface specification, we provide illustrative JSON schemas for the three primary artifact types. These are representative and non-normative; implementations may use different serialization formats. 
+
+Intent specification (intent_spec ): 
+
+{"intent_id": "i-7f3a1b", "submitter": "user:alice", "goal": "produce-regulatory-summary", "parameters": { "dataset": "ds://compliance/q4-2025", "output_format": "pdf", "deadline_iso": "2026-03-05T18:00:00Z" }, "preferences": { "max_cost_usd": 5.00 }}
+
+Capability specification (capability_spec ): 
+
+{"capability_id": "cap-summarize-v2", "name": "Regulatory Summarizer", "input_types": ["tabular", "text"], "output_types": ["pdf", "json"], "trust_level": "elevated", "cost_model": { "type": "per-call", "usd": 1.20 }, "data_residency": ["eu-west-1", "ca-central-1"] }
+
+Decision artifact (decision_artifact ): 
+
+{"decision_id": "d-9c21f0", "intent_id": "i-7f3a1b", "timestamp": "2026-03-04T10:15:00Z", "policy_versions": ["pol-data-residency@v3", "pol-cost-ceiling@v1"], "context_refs": ["ctx-user-profile", "ctx-cluster-load"], "selected_capability": "cap-summarize-v2", "rejected_candidates": [ { "capability_id": "cap-summarize-v1", "reason": "trust_level insufficient" }, { "capability_id": "cap-cloud-summarizer", "reason": "data_residency violation" } ], "execution_plan_id": "ep-f41b88" }
+
+11 Brain API A P REPRINT 
+
+The decision artifact is the primary audit record: it links the selected plan to the policies and context that governed the choice, and preserves rejected alternatives with rejection reasons. 
+
+6.9 Discussion 
+
+Together, these interfaces define the contract between clients, operators, and the Brain API control plane. By making intents, policies, capabilities, decisions, and executions explicit and independently addressable, the API supports a clean separation of concerns and enables governed, observable, and evolvable agentic systems. 
+
+## 7 Decision and Routing Semantics 
+
+This section specifies the semantics by which Brain API maps intents to governed execution plans. We describe the stages of candidate generation, policy filtering, ranking and selection, and plan synthesis, and we clarify the role of context and memory in these stages [Yao et al., 2023, Schick et al., 2023]. The goal is to make decision-making explicit, reproducible, and inspectable while permitting adaptive behavior under changing conditions. 
+
+7.1 Inputs and Artifacts 
+
+The decision process consumes four classes of inputs: an intent submitted by a client, a set of active policies , the current context (including optional memory-derived signals), and the set of registered capabilities . It produces two first-class artifacts: a decision artifact and an associated execution plan . The decision artifact records the rationale and constraints; the execution plan encodes operational steps. 
+
+7.2 Candidate Generation 
+
+Given an intent, the control plane first generates a set of candidate capability compositions. This stage is intentionally permissive: it considers all capabilities whose semantic descriptors are compatible with the intent’s objective and parameters. Compatibility is determined by schema-level and semantic predicates (e.g., input/output types, declared effects, trust domains). Candidate generation may yield single-step candidates or multi-step compositions when the intent requires decomposition. The output of this stage is a candidate set C = { c1, c2, . . . , cn}, where each ci denotes a potential plan skeleton (possibly partial) annotated with capability metadata. 
+
+7.3 Policy Filtering 
+
+Policies are then applied to restrict the candidate set. Each policy evaluates predicates over the intent, context, and candidate metadata. Candidates that violate any mandatory policy are eliminated. Policies may also attach obligations or conditions to remaining candidates (e.g., required isolation level, data locality constraints, approval steps), which are propagated forward into plan synthesis. Formally, let P be the set of active policies and FP (C) the filtering operator induced by P . The filtered set C′ = FP (C)
+
+contains only candidates that satisfy all mandatory constraints, with accumulated obligations recorded for subsequent stages. 
+
+7.4 Contextual Constraints and Memory Signals 
+
+Context and memory-derived signals influence both filtering and ranking. Contextual constraints (e.g., current load, incident state, user attributes) may eliminate candidates that are otherwise policy-compliant. Memory signals (e.g., recent outcomes, cached results, historical performance) provide additional features that inform preference but do not, by default, override mandatory policies [Lewis et al., 2020, Khandelwal et al., 2020]. The model therefore treats context and memory as first-class inputs whose effects are explicit and recorded in the decision artifact. 
+
+7.5 Ranking and Selection 
+
+From the filtered set C′, the decision engine computes a ranking using a scoring function s : C′ × Γ → R that aggregates multiple criteria, such as estimated cost, latency, reliability, compliance risk, or semantic suitability. The scoring function is configurable and may incorporate context- and memory-derived features. The top-ranked candidate 
+
+12 Brain API A P REPRINT 
+
+(or a small Pareto-optimal set, depending on configuration) is selected [Hwang and Yoon, 1981, Marler and Arora, 2004]. Importantly, the ranking phase is advisory rather than permissive: policies define hard constraints enforced in §7.3, while ranking expresses preferences within the admissible set. The decision artifact records both the selected candidate and a summary of alternatives and their scores to support auditability. 
+
+7.5.1 Formal Properties of the Decision Function 
+
+While the specific implementation of F may vary across deployments, we require the following properties to hold for any conforming implementation. 
+
+Policy soundness. The selected execution plan π∗ satisfies all mandatory policy constraints: for every mandatory policy 
+
+p ∈ P , π∗ ∈ Admissible( p). The system must never select a non-compliant candidate regardless of its score. 
+
+Best-effort completeness. If the filtered candidate set C′ = FP (C) is non-empty, F returns a selected plan. If C′ = ∅,
+
+F signals an unsatisfiable intent rather than silently selecting a non-compliant alternative. Callers must be able to distinguish a refused intent from a failed execution. 
+
+Monotone filtering. Adding a policy can only restrict the admissible set: for any additional policy p, FP ∪{ p}(C) ⊆
+
+FP (C). This ensures that stricter policy regimes cannot inadvertently re-admit previously excluded candidates. 
+
+Score independence from hard constraints. The scoring function s is evaluated only over the filtered set C′; it cannot promote a policy-violating candidate above a compliant one. 
+
+Reproducibility. For a fixed input tuple (I, P, Γ, C) and a fixed scoring configuration σ, F is deterministic. Changes to any input produce a new, distinctly versioned decision artifact. These properties establish a minimal contract for any implementation of F . They are sufficient to guarantee policy safety and auditability while leaving the scoring strategy and planner implementation open to domain-specific choices. 
+
+7.6 Plan Synthesis 
+
+The selected candidate is then transformed into a concrete execution plan. Plan synthesis resolves obligations attached during policy filtering (e.g., inserting approval steps, selecting specific regions or trust domains), binds abstract capability references to concrete endpoints or adapters, and orders steps according to declared dependencies. The result is an executable structure consumable by the appropriate execution adapter. 
+
+7.7 Determinism and Reproducibility 
+
+For a fixed tuple (Intent, P, Context, Capabilities) and a fixed scoring configuration, the decision process can be deterministic, yielding reproducible decisions. Brain API records the inputs, policy versions, and scoring configuration used, enabling post hoc reconstruction and audit. When any of these inputs change, the system may re-evaluate and produce a new decision artifact, which is explicitly linked to the prior one. 
+
+7.8 Failure, Fallbacks, and Re-routing 
+
+If execution fails or violates obligations at runtime, the control plane may trigger re-evaluation. In such cases, the prior decision artifact and execution outcomes become part of context, and the process repeats from candidate generation or from ranking, depending on policy. This enables controlled fallbacks and re-routing while preserving an auditable trail of decisions and outcomes. 
+
+7.9 Summary 
+
+Decision and routing in Brain API proceed through explicit stages: candidate generation, policy filtering, contextual constraint application, ranking and selection, and plan synthesis. By separating hard constraints from preferences and by recording both inputs and outcomes, the control plane provides governed, adaptive, and inspectable routing semantics suitable for agentic and intent-driven systems. 
+
+13 Brain API A P REPRINT 
+
+## 8 Execution Model 
+
+This section describes the execution model of Brain API and its interaction with heterogeneous backends. We define how execution plans are realized, how progress and outcomes are reported, and how failures and policy-driven adaptations are handled. The model emphasizes a clear boundary between decision-making and execution while preserving end-to-end observability and governance. 
+
+8.1 Plan Realization 
+
+An execution begins when the control plane hands an execution plan to an appropriate execution adapter. The adapter binds abstract steps in the plan to concrete backend operations and translates control-plane constructs into backend-specific representations while preserving the structure and constraints of the plan. In practice, backends span a wide range of execution substrates. A Kubernetes -backed adapter submits steps as Jobs or Pods with resource limits and node selectors derived from policy constraints; data residency requirements become node affinity rules, and cost ceilings become resource quotas [Burns et al., 2016]. An Argo Workflows adapter maps a multi-step execution plan directly to a DAG or steps workflow, where each Brain API step becomes a workflow template invocation; branching and conditional steps in the plan translate to Argo’s when expressions, and the resulting workflow manifest is submitted via the Argo API [Argo Project, 2026]. A Temporal adapter wraps each plan step as an Activity within a Workflow, leveraging Temporal’s durable execution guarantees for long-running or failure-prone steps; policy-mandated retries and timeouts are expressed as Temporal retry policies and activity options [Temporal Technologies, 2026]. An API gateway adapter translates single-step plans into HTTP or gRPC calls with appropriate authentication and rate-limit headers derived from the decision artifact. Execution plans may be linear, branching, or iterative, depending on the decomposition produced during decision-making. The execution model does not require a single global runtime; instead, it treats each backend as an autonomous executor that reports status and results back to the control plane through a uniform interface. 
+
+8.2 Synchronous and Asynchronous Steps 
+
+The model supports both synchronous and asynchronous steps. Synchronous steps block the plan’s progression until completion and return a result or error. Asynchronous steps return a handle that can be polled or subscribed to for updates, allowing the plan to proceed concurrently or to wait on multiple outstanding operations. The execution adapter mediates these interactions and normalizes backend-specific notions of progress and completion into a common status model. 
+
+8.3 State, Progress, and Checkpointing 
+
+During execution, the control plane maintains a logical execution state that records the status of each step, interme-diate results, and any policy-relevant annotations (e.g., approvals obtained, constraints satisfied). This state enables checkpointing and partial recovery: if execution is interrupted, the control plane can resume from the last consistent checkpoint or trigger re-evaluation according to policy. 
+
+8.4 Failure Semantics 
+
+Failures may occur at multiple levels, including step-level errors, backend unavailability, or violations of obligations attached during plan synthesis. The execution model distinguishes between recoverable failures , which permit retries or alternative choices, and terminal failures , which require aborting the plan and reporting an error to the caller. Upon a recoverable failure, the control plane records the outcome and consults policy to determine the next action. Options include retrying the same step, selecting an alternative capability, or re-running the decision process with updated context. Terminal failures produce a final execution state and a corresponding decision outcome that is exposed through the observability plane. 
+
+8.5 Policy-Driven Adaptation 
+
+Policies may mandate adaptive behavior at runtime, such as escalating to a higher-trust backend upon repeated failures, switching regions under latency constraints, or inserting approval steps before proceeding. The execution model supports such adaptations by allowing the control plane to pause execution, re-evaluate the decision with updated context, and either continue with a revised plan or terminate according to policy. 
+
+14 Brain API A P REPRINT 
+
+Crucially, adaptations are not implicit side effects: each adaptation results in a new or amended decision artifact linked to the prior one, preserving an auditable chain of control decisions. 
+
+8.6 Concurrency and Coordination 
+
+Execution plans may express parallelism across independent steps. The execution model allows multiple steps to be dispatched concurrently, with coordination constructs (e.g., joins, barriers) expressed in the plan. The control plane tracks dependencies and ensures that downstream steps are activated only when their prerequisites have completed successfully or when policy allows alternative paths. 
+
+8.7 Outcomes and Result Propagation 
+
+Upon completion, the execution produces an outcome that includes success or failure status, outputs of completed steps, and any policy-relevant annotations. This outcome is associated with the originating intent and decision artifact and is made available to clients through the execution interface. The outcome may also be persisted and fed back into context and memory providers to inform future decisions. 
+
+8.8 Adapter Responsibilities and Backend Contracts 
+
+Regardless of the underlying backend, every execution adapter must satisfy the same contract with the control plane: (1) accept a typed execution plan and return a handle; (2) report step-level status updates via a uniform progress interface; (3) surface failures with enough context for the control plane to classify them as recoverable or terminal; and (4) return a typed outcome when execution completes. This contract is intentionally thin so that adapters for new backends can be added without modifying the core control plane. For the running example— "Prepare a regulatory report for dataset D" —the selected adapter would likely target an Argo Workflows or Temporal backend, depending on whether the plan is primarily a DAG of data-processing steps (favoring Argo’s workflow-as-code model) or a long-running activity requiring durable retry semantics (favoring Temporal’s event-driven workflow engine). A Kubernetes Job adapter could alternatively be used if report generation is a self-contained batch workload. In all three cases, Brain API has already enforced data residency and cost policies 
+
+before the adapter is invoked; the adapter simply realizes the compliant plan that the decision engine produced, without needing to re-implement governance logic. 
+
+8.9 Summary 
+
+The execution model of Brain API provides a uniform, policy-aware abstraction over heterogeneous backends including Kubernetes, Argo Workflows, Temporal, and API-based services. By treating execution as the realization of explicit plans, recording progress and outcomes, and enabling controlled adaptation under policy, the model preserves a strict separation between decision-making and execution while supporting the needs of adaptive, agentic systems. Each backend is encapsulated behind a thin adapter contract, enabling incremental adoption and coexistence with established infrastructure. 
+
+## 9 Observability and Governance 
+
+This section describes how Brain API provides observability and governance at the level of intents, decisions, and policies, rather than only at the level of resources or requests. We argue that decision-level visibility is essential for operating, auditing, and governing agentic systems, and we outline the mechanisms by which the control plane records, exposes, and enforces such visibility. 
+
+9.1 Decision-Level Telemetry 
+
+Traditional observability stacks focus on metrics, logs, and traces associated with resource usage and request flows [Sigelman et al., 2010]. Brain API extends this model by introducing decision-level telemetry . For each intent, the control plane records the inputs to the decision process (intent, policy versions, relevant context), the produced decision artifact, and the derived execution plan. This information is emitted as structured events that can be correlated with execution traces from underlying backends. 
+
+15 Brain API A P REPRINT 
+
+Decision-level telemetry enables operators to answer questions such as: which policies were applied to a given intent, which alternatives were considered, and why a particular plan was selected. This shifts observability from a purely operational view to a control-centric view that exposes the system’s reasoning process. 
+
+9.2 Tracing Across Control and Data Planes 
+
+Brain API integrates control-plane and data-plane tracing by propagating identifiers from intents and decisions into execution steps. Each execution adapter attaches the corresponding intent and decision identifiers to backend-specific traces, enabling end-to-end correlation. As a result, operators can reconstruct not only what actions were executed and 
+
+where , but also which decision led to those actions and under which policies .This unified tracing model supports root-cause analysis that spans decision-making and execution, which is particularly important in adaptive systems where behavior may change in response to context or policy updates. 
+
+9.3 Auditing and Compliance 
+
+Governance requirements in regulated or safety-critical environments often demand a durable audit trail of control decisions [Buneman et al., 2001, Cheney et al., 2009]. Brain API treats decision artifacts as auditable records. Each artifact includes references to the intent, the policy set and versions in force, the context inputs used, and the selected execution plan. These records can be stored in an append-only log or ledger and queried for compliance, forensic analysis, or reporting. Policies may also specify audit obligations, such as mandatory approval steps, segregation-of-duties constraints, or retention requirements for decision records. The control plane enforces these obligations during plan synthesis and execution, ensuring that governance is not merely observational but also prescriptive. 
+
+9.4 Metrics at the Control Layer 
+
+In addition to traditional infrastructure metrics, Brain API exposes metrics at the control layer. Examples include intent throughput, decision latency, policy evaluation cost, frequency of re-evaluation, distribution of selected capabilities, and rates of fallback or re-routing. These metrics provide visibility into the behavior and performance of the decision process itself, enabling capacity planning and policy tuning. 
+
+9.5 Policy Enforcement and Escalation 
+
+Governance is not limited to post hoc observation. Policies may require runtime enforcement actions, such as blocking certain classes of intents, requiring human approval before proceeding, or escalating execution to higher-trust environments. The control plane supports such actions by integrating policy checks into both the decision and execution phases. Violations or near-violations can trigger alerts, pauses, or re-evaluations according to policy. 
+
+9.6 Explainability and Inspection 
+
+Because decisions are first-class artifacts, Brain API can expose explainability interfaces that summarize the factors contributing to a decision, including applicable policies, relevant context, and comparative scores of alternatives. While the exact form of explanation may vary by implementation, the architectural requirement is that sufficient information is preserved to support meaningful inspection by operators and auditors. 
+
+9.7 Summary 
+
+By elevating observability and governance to the level of intents, decisions, and policies, Brain API provides a control-centric view of system behavior. This approach complements traditional infrastructure observability and enables auditing, compliance, and operational understanding of adaptive, agentic systems at scale. 
+
+## 10 Use Cases 
+
+In this section, we illustrate how Brain API can be applied to representative scenarios that highlight the benefits of intent-first control, policy-governed decision-making, and decision-level observability. The examples are intentionally abstracted from specific products or implementations to emphasize the generality of the approach. 
+
+16 Brain API A P REPRINT 
+
+10.1 Agentic Datasets as Policy-Governed Capabilities Traditional vs. agentic datasets. In traditional systems, a dataset is a passive artifact: it stores data and responds to queries, but takes no part in deciding whether, how, or where it is used. In an agentic system, a dataset becomes an active capability node : it exposes what operations are possible, what constraints govern its use, and what context signals are available to the decision engine—allowing the control plane to reason about the dataset alongside services, tools, and other agents. 
+
+Definition. An agentic dataset is a dataset that registers with the Brain API control plane by exposing four elements: (1) 
+
+capabilities (operations that callers may request, e.g., query, transform, summarize, validate, export); (2) context signals 
+
+(dynamic observables such as freshness, size, sensitivity label, and workload); (3) policies (governance constraints that restrict when and how each capability may be invoked); and (4) a decision interface through which the control plane discovers, evaluates, and selects the dataset as a participant in an execution plan. This is precisely the structure of a 
+
+capability_spec (§6.8), extended with a kind: agentic_dataset marker and a structured affordances field. 
+
+Dataset descriptor. The following descriptor shows how the EU Regulatory Corpus would register with Brain API: 
+
+{"capability_id": "ds-regulatory-corpus-eu", "name": "EU Regulatory Corpus", "kind": "agentic_dataset", "affordances": ["query", "summarize", "validate", "export"], "input_types": ["intent", "filter_spec"], "output_types": ["tabular", "pdf", "json"], "trust_level": "elevated", "policies": ["eu_data_residency", "pii_restricted", "cost_ceiling_5usd"], "context_signals": { "freshness_hours": 4, "size_gb": 120, "sensitivity": "high" }, "cost_model": { "type": "per-query", "usd": 0.50 }, "data_residency": ["eu-west-1"] }
+
+The affordances field enumerates dataset affordances : the actions the dataset enables that are semantically meaningful to the decision engine. Unlike raw API endpoints, affordances are declared at the intent level— summarize means "produce a summary suitable for an intent," not a specific API call. This allows the decision engine to match a high-level intent against affordances across heterogeneous dataset types without requiring schema-level knowledge of each backend. 
+
+Decision flow. Consider the running example: "Prepare a regulatory report for dataset D." With the descrip-tor above registered, the decision engine’s evaluation proceeds as follows. First, candidate generation identi-fies ds-regulatory-corpus-eu (along with any other registered summarization capabilities) as relevant to the 
+
+summarize affordance implied by the intent. Second, policy filtering removes non-compliant candidates: a US-hosted summarization service is eliminated by eu_data_residency ; a cheaper cloud model is eliminated by 
+
+pii_restricted . Third, ranking scores the remaining candidates—including the dataset’s own summarize affordance (reusing a prior result if freshness allows) and an on-premise summarization job that reads from the corpus—by cost, latency, and trust level. Fourth, the decision artifact records which candidate was selected and why, and the execution plan is dispatched. In this scenario, the dataset is not merely the input to a computation: it is one of the capability nodes in the decision graph, evaluated on equal footing with services and tools. 
+
+Architecture relationship. Brain API acts as the decision control plane; agentic datasets act as decision-aware data nodes within it. At the architectural level: • Brain API provides intent parsing, policy enforcement, capability selection, and decision artifact production. • Agentic datasets provide structured capability declarations, context signals, and governance metadata that the control plane reasons over. • Existing data infrastructure (storage systems, query engines, data catalogs) is unchanged; the agentic dataset layer is a thin registration and context-exposure wrapper that makes existing datasets visible to the control plane. 
+
+17 Brain API A P REPRINT 
+
+This relationship is composable: a single execution plan may combine dataset nodes, model nodes, tool nodes, and workflow nodes, all governed uniformly by the same decision layer. Datasets become agentic not by embedding control logic in storage systems, but by participating in a decision-centric control plane that governs how and when their capabilities are used. 
+
+10.2 Agentic Data Processing Pipeline 
+
+Consider an organization that operates a heterogeneous data platform comprising batch processing jobs, interactive analytics services, and external data providers. A user submits the intent: “Analyze dataset D and produce a quality report.” In a traditional system, this would require either a predefined workflow or bespoke orchestration logic embedded in application code. With Brain API, the intent is submitted to the control plane, which evaluates policies related to data governance, cost ceilings, and execution locality. The capability registry advertises multiple processing options, including an on-premise cluster, a managed cloud service, and a specialized compliance-certified environment. Based on current context (e.g., cluster load, data sensitivity labels) and policies (e.g., data residency requirements), the decision engine selects an appropriate composition of capabilities and produces an execution plan. The observability plane records not only the execution outcomes, but also why a particular environment and toolchain were chosen. 
+
+10.3 Policy-Constrained Tool-Augmented Agent 
+
+Consider an agent that assists analysts by invoking tools such as document search, data extraction, and report generation. The high-level intent might be "Prepare a regulatory summary for case X." Policies specify that certain data sources require elevated trust levels and that external APIs may only be used if cost and privacy constraints are satisfied. In this scenario, Brain API mediates tool selection. Candidate tools are generated based on semantic compatibility with the intent. Policies filter out tools that do not meet trust or compliance requirements, and ranking prefers tools with lower estimated cost and latency. The resulting decision and plan are recorded, enabling auditors to verify that only approved tools and data sources were used. If a tool invocation fails or violates a constraint, policy may trigger re-evaluation and selection of an alternative tool. 
+
+10.4 Multi-Backend Routing and Fallback 
+
+Consider a service that can be fulfilled by multiple backends with different cost and performance profiles, such as a local deployment, a regional cloud service, and a globally replicated service. The intent “Process request R under latency L and cost C constraints” is submitted. Policies encode budget limits and availability requirements, while context provides real-time load and health information. Brain API generates candidates for each backend, filters them by policy, and ranks them based on current conditions. The selected plan may initially target the local deployment. If execution fails or latency thresholds are exceeded, policy may require a fallback to a regional or global backend. Each such transition is driven by explicit re-evaluation and produces a new decision artifact, preserving an auditable trail of routing choices. 
+
+10.5 Semantic Memory and Result Reuse (Preview) 
+
+In some domains, repeated or semantically similar intents may benefit from reusing prior results. For example, an intent such as “Summarize dataset D with parameters P” may be close to a previously executed intent. A memory or caching subsystem can expose signals indicating similarity and freshness of past outcomes. Within Brain API, such signals appear as context inputs to the decision process. Policies may allow reuse only if similarity exceeds a threshold and results are sufficiently fresh. The decision engine can then prefer a plan that retrieves a prior result over recomputing it, or it can select recomputation if constraints are not met. Importantly, this behavior is expressed and governed at the control-plane level, and the decision artifact records whether reuse or recomputation was chosen and why. A dedicated semantic memory plane can further specialize this pattern, which we leave to future work. 
+
+10.6 Summary 
+
+These use cases demonstrate how Brain API generalizes control over heterogeneous, adaptive, and policy-sensitive systems. By making intent, policy, and decision-making explicit, the control plane supports scenarios that would otherwise require ad hoc orchestration logic, while preserving observability and governance across diverse execution environments. 
+
+18 Brain API A P REPRINT 
+
+## 11 Evaluation 
+
+We evaluate a prototype of the decision layer against an external policy corpus. The prototype implements the five-stage pipeline of §7 in approximately 1,600 lines of Rust and is exercised by the experiments below. 
+
+11.1 Method and corpus 
+
+The evaluation constraint that governs this section is that the workload must not define the property it measures. We therefore take both the policies and the expected outcomes from a third party: the OPA Gatekeeper constraint library [Open Policy Agent Community, 2026b], a set of Kubernetes admission policies in production use. It comprises 49 constraint templates, 69 parameterized constraint instances, and 180 sample objects, each of which the library’s own test suite labels with the verdict it expects: 
+
+cases: - name: example-allowed object: samples/ingress-https-only/example_allowed.yaml assertions: - violations: no - name: example-disallowed object: samples/ingress-https-only/example_disallowed.yaml assertions: - violations: yes 
+
+We author the encoding of each policy into the rule grammar of §6.3. We author neither the sample objects nor the verdicts. An incorrect encoding therefore surfaces as disagreement with the corpus, not as a favorable measurement — and, as §11.2 records, this is precisely how one deficiency in the rule grammar was found. The domain is a deliberate fit rather than a convenient one: Kubernetes admission control is pre-execution policy gating, which is the regime this paper argues about. A second and deliberately dissimilar domain — Cedar authorization — is evaluated in §11.6. We considered and rejected an alternative corpus. The Cedar policy language [Cutler et al., 2024] ships 7,600 integration tests, each carrying an authorization decision and the identity of the policies that produced it — an appealing oracle, since the latter is ground truth for artifact content. On inspection the corpus is generated by coverage-guided fuzzing, and its policies are correspondingly degenerate ( permit(principal, action, resource) when { true } ) or adversarial. It is well suited to testing an implementation of Cedar and unsuited to standing in for governance policy, so we did not use it. 
+
+11.2 Expressiveness: what real policies require 
+
+Our first result concerns the rule grammar itself, and it is negative. As originally specified, a policy rule is a comparison of one field against one value, optionally guarded by a condition. Measured against the corpus, that grammar expresses 3 of 49 policies . The reason is uniform: real governance policies quantify over collections. The commonest shape in the corpus is 
+
+container := input.review.object.spec.containers[_] not strings.any_prefix_match(container.image, input.parameters.repos) 
+
+— "every container’s image must come from an allowed repository" — which no scalar comparison can express. Across the corpus, 45 of 49 templates quantify and 19 aggregate. We therefore extended the grammar with bounded quantification : a rule may range over a collection path with an 
+
+All or Any quantifier, comparing a field of each element. With list-valued membership and a negated match operator, coverage rises to 28 of 49 . Aggregation (counting, summing, arithmetic over resource quantities) and general regular expressions remain outside the grammar; we report the 21 policies that need them rather than adjusting the boundary to improve the figure. A second deficiency was found by the corpus rather than by inspection. An initial conformance run agreed with 37 of 42 cases, and all five disagreements were exemption cases. The library’s shared exempt_container module excuses a container whose image appears on an exemption list, so the policy is properly read as "deny if any container is privileged 
+
+and its image is not exempt" — a conjunction over the same quantified element. The rule-level condition of §6.3 cannot 
+
+19 Brain API A P REPRINT 
+
+express this, because it is evaluated against the capability rather than against the element under examination. We added per-element conditions accordingly. We draw attention to this because the sequence matters more than the fix. Both extensions were forced by an external corpus; neither was anticipated when the model was specified. A design validated only against scenarios of its authors’ construction would have retained both defects, and the second was invisible to inspection. 
+
+11.3 Decision artifacts and auditability 
+
+We now test the first of the two empirical claims of §1: that existing systems do not produce a decision artifact. The comparison is against admission control as it is actually deployed — a checker that receives one proposed object, admits or rejects it, and emits a log record. We grant the baseline the violation messages it genuinely produces, since Gatekeeper does explain its rejections; understating it would make the comparison worthless. We pose six questions that an auditor asks after the fact, and ask which can be answered from a record alone , without re-running the engine and without access to the policy set:               
+
+> Question Decision artifact Admission log Q1 Was the request admitted? yes yes Q2 Which capability served it? yes no Q3 What else was considered? yes no Q4 Why was each rejected alternative rejected? yes yes Q5 Was a compliant alternative available? yes no Q6 Can the decision be re-derived and checked? yes no
+
+Averaged over the corpus decisions, the decision artifact answers 6.0 of 6 and the admission log 2.0 of 6. The four questions the log cannot answer follow from what it holds: one proposal and one verdict. Two concern alternatives, which an admission controller is never offered and so cannot report; the other two ask which capability was chosen from among several, and whether the decision can be reproduced from the record, neither of which a single verdict carries. Q6 is the strongest of the six and the only one whose evaluation is immune to any choice of ours, because it judges nothing — it merely reproduces. Given the artifact alone, we re-derive the selection (the top-ranked candidate that passed policy) and check it against the decision actually taken. This succeeded for 10 of 10 decisions. An auditor can therefore verify a Brain API decision without the engine, the policies, or the original inputs. 
+
+11.4 Selection among alternatives 
+
+The second claim requires more care than it is usually given. Admission control also runs before execution, so pre-execution timing is not what distinguishes intent-level enforcement. The distinction is that an admission controller adjudicates one proposed object, whereas the decision layer selects among alternatives. The corpus supplies the alternatives without our inventing them. Ten policies ship both a compliant and a non-compliant sample object for the same constraint — third-party-authored variants of the same capability, with third-party labels. We present both as candidate capabilities for a single intent, under both orderings so that nothing depends on which is offered first, and give the candidates neutral positional names so that no label is visible to the engine. Brain API selected the capability the corpus labels compliant in 20 of 20 trials , in one pass, with no failures to decide. The baseline is handed one proposal. Where that proposal is compliant it is admitted; where it is not, it is rejected with an explanation, and reaching a compliant execution requires a further admission round trip — and only if something upstream happens to offer the other variant, since the log names no alternative. Over the same trials this averages 1.50 round trips per intent against 1.00, with 10 rejections from which the record affords no route forward. We state plainly what this does and does not show. It does not show that Brain API enforces policy more accurately than Gatekeeper; Gatekeeper is correct here by construction, and evaluates a strictly larger policy language than ours. What it shows is that adjudicating a proposal and selecting among alternatives are different operations, and that a system built for the former cannot perform the latter however well it performs its own. 
+
+11.5 Conformance of the policy stage 
+
+Underlying both experiments is the question of whether the policy stage decides correctly at all. Over the encodable fragment, the prototype agrees with the corpus’s published verdicts on 42 of 42 cases , comprising 19 admit and 23 
+
+20 Brain API A P REPRINT 
+
+deny. We report the class balance because without it the figure would be uninterpretable: an encoding that admitted everything would score 45 per cent. Nine cases were not evaluated, for two identified reasons, which we report rather than omit. One policy requires case-insensitive comparison; another requires quantification nested two levels deep, over volume mounts within containers, where the grammar quantifies over one. Conformance establishes that the policy stage is sound , not that it is superior. It is a precondition for the results of §11.3 and §11.4 rather than a claim in its own right. 
+
+11.6 A second domain: authorization 
+
+Everything above is Kubernetes admission control. To test whether any of it generalizes we repeated the exercise on a domain chosen to differ in vendor, in paradigm and in subject matter: the Cedar policy language, whose published example policies are business scenarios — document sharing, streaming entitlements, tax-document access — and whose model is principal/action/resource authorization rather than object admission. Cedar’s examples ship policies and entities but no expected decisions, so we obtained labels by differential testing against the Cedar CLI, the reference implementation of the language. Requests are the exhaustive principal × action ×
+
+resource cross-product of each example’s entity file; we choose which questions to ask, and a third-party implementation answers every one of them. The domain repaid the effort before a single request was evaluated, by exposing three gaps that Gatekeeper could not — because Gatekeeper happens to share the shape the model was built around. 
+
+Polarity. Cedar permits a request only when some permit matches and no forbid does. Our model was default-allow throughout: PolicyAction::Allow produced no violation and therefore changed no outcome, making it inert. Under default-allow semantics every Cedar policy would admit whatever its forbid statements failed to catch — a silent and total inversion of intent. Admission control is default-allow and authorization is default-deny; a control plane claiming to unify governance across heterogeneous backends must represent both, and we had assumed one. 
+
+Conjunctive guards. A Cedar permit scope conjoins principal type, action and resource type before any when or 
+
+unless clause. Our rule form carried a single optional guard, which cannot encode even the simplest such policy. Guards are now a conjunctive list. 
+
+Cross-entity comparison , which we did not fix. Cedar routinely compares one entity’s attributes against another’s: 
+
+principal.assigned_orgs.contains( { organization: resource.owner.organization, serviceline: resource.serviceline, location: resource.location }) 
+
+Our rules compare a field against a constant and have no variable binding across entities. This is the dominant blocker — 24 of 35 statements — and closing it means introducing an expression language, not extending a rule form. We record it as the boundary of the design rather than crossing it. By static triage, 8 of 35 policy conditions (23 per cent) fall inside the extended grammar, against 28 of 49 for Gatekeeper. On the encodable fragment of the streaming-entitlement example, over 81 requests:      
+
+> Agreement with the Cedar CLI 78 / 81 — on Cedar’s denials 71 / 71 — on Cedar’s allows 7 / 10 Requests we admit that Cedar denies 0
+> Requests we deny that Cedar admits 3
+
+We report agreement on allows separately because the aggregate flatters: the request set is dominated by denials, which a default-deny encoding reproduces for free. All three disagreements are requests permitted by time-gated statements we could not encode, and in every case the divergence is conservative — the prototype never admits a request the reference implementation refuses. The honest summary of this domain is mixed, and we prefer it to a second easy result. The decision layer’s structure transfers: the same engine, extended twice, reproduces a different vendor’s authorization semantics on the fragment it can express, and errs safe where it cannot. The rule language transfers poorly: authorization policy is substantially about relations between entities, and a grammar of field-against-constant comparisons reaches under a quarter of it. 
+
+21 Brain API A P REPRINT 
+
+11.7 Threats to validity Domain coverage. Two domains are better than one, but both are policy adjudication. Neither is the multi-step regulated-reporting workflow used as this paper’s running example, and the mapping to that scenario remains argued rather than demonstrated. 
+
+Differential labels. In the second domain the labels come from a reference implementation rather than from human-authored expectations. This is standard practice and it removes our judgement from the answers, but it inherits whatever that implementation does — including on requests its own authors never considered. 
+
+Encoding authorship. We wrote the policy encodings. A systematically favorable encoding is conceivable in principle; conformance against third-party verdicts is what constrains it, and the 37-of-42 run that exposed the exemption defect is evidence that the constraint binds. 
+
+Scale. Ten alternative-pairs and 42 conformance cases are a small evaluation. The results are consistent and the mechanisms are structural rather than statistical, but we do not claim tight estimates from them. 
+
+Stages not evaluated. The context-signal and ranking stages are untested here, because pass/fail admission decisions supply no ranking ground truth. Claims about those stages remain design claims. 
+
+## 12 Discussion and Limitations 
+
+In this section, we discuss the implications of the Brain API design, analyze its limitations, and outline trade-offs inherent in introducing an intent- and policy-aware control plane. While the proposed approach provides a unifying abstraction for governed, adaptive systems, it also introduces new considerations in scalability, complexity, and operational practice. 
+
+12.1 Scalability and Performance Overhead 
+
+Introducing a decision layer adds latency and computational cost relative to direct invocation of execution backends. Policy evaluation, candidate generation, and ranking incur overhead that must be managed carefully in high-throughput or latency-sensitive environments. Caching of decisions, incremental re-evaluation, and tiered policy checks can mitigate these costs, but they introduce additional engineering complexity. In practice, the suitability of Brain API for a given workload depends on the acceptable trade-off between control-plane sophistication and end-to-end latency. 
+
+12.2 Policy Complexity and Maintainability 
+
+Elevating policy to a first-class control-plane primitive improves governance but also raises challenges in policy authoring, validation, and evolution. Large organizations may accumulate complex policy sets with interacting constraints and exceptions. Without careful tooling, such policies risk becoming difficult to reason about or debug. While Brain API provides the structural hooks for policy management, effective policy engineering practices and supporting tools remain essential and are outside the scope of this paper. To ground this concern concretely, consider the following three policies that a regulated financial organization might define independently: • P1 (Data Residency): "Data classified as eu-personal must not be processed outside eu-west-1 or 
+
+eu-central-1 ." 
+
+• P2 (Trust Level): "Processing of data classified as sensitive-financial must use a capability with 
+
+trust_level = elevated . The only registered elevated-trust capability is deployed in us-east-1 ." 
+
+• P3 (Cost Gate): "Any capability invocation with an estimated cost exceeding $5.00 must be pre-approved by a human reviewer." 
+
+A dataset that carries both eu-personal and sensitive-financial labels will produce an unsatisfiable intent under P1 and P2 taken together: P1 restricts execution to EU regions, while P2 requires a capability that exists only in 
+
+us-east-1 . The filtered candidate set C′ = ∅, and the system signals an unsatisfiable intent. Without static analysis of the joint policy set, this conflict is only discovered at request time—potentially surfacing as an opaque failure in a production environment. A second class of subtle interaction involves ordering and precedence. Consider adding: 
+
+22 Brain API A P REPRINT 
+
+• P4 (Result Reuse): "Prefer cached results when semantic similarity exceeds 0.85." 
+
+• P5 (Regulatory Override): "Intents with goal produce-regulatory-summary must always use fresh computation; cached results are not admissible." 
+
+P4 and P5 interact: for regulatory intents, P5 overrides P4. If the policy engine applies P4 first and P5 is evaluated later as an additional filter, the outcome may depend on evaluation order—a fragile property that makes the system difficult to reason about and audit. These examples illustrate two canonical failure modes: mutual exclusion (no candidate satisfies all policies simultane-ously) and implicit ordering dependence (correct behavior depends on evaluation order among policies). Both are practically significant and require dedicated tooling—conflict detection, satisfiability checking, and policy simulation— to manage at scale. Brain API’s architecture makes these failure modes observable (the decision artifact records C′ = ∅
+
+and which policies filtered which candidates), but detecting and resolving them proactively is a policy engineering problem that the control plane cannot solve alone. 
+
+12.3 Debuggability and Explainability 
+
+Decision artifacts and decision-level telemetry improve transparency, but they also expose the need for clear explanation mechanisms. As decision functions incorporate multiple criteria, context signals, and historical data, the rationale for a particular choice may become non-trivial to summarize. Providing concise, operator-friendly explanations is an important practical concern. Our architecture preserves the information required for explanation, but the presentation and user experience of such explanations are left to implementation. 
+
+12.4 Consistency and Distributed State 
+
+Brain API assumes access to policies, capability metadata, and context that may be distributed or replicated. Ensuring consistency across these inputs is a non-trivial problem in large-scale systems. Stale context or divergent policy views can lead to suboptimal or inconsistent decisions. Techniques from distributed systems, such as versioning, snapshotting, and eventual consistency with reconciliation, can be applied, but they introduce additional design choices and trade-offs. 
+
+12.5 Scope Boundaries 
+
+Brain API is not intended to replace existing orchestration, workflow, or scheduling systems. Instead, it composes with them by providing a higher-level control plane. For workloads that are fully static, latency-critical, or trivially orches-trated, the additional abstraction may not be justified. Similarly, Brain API does not prescribe specific implementations for planners, memory systems, or policy languages, which means that the quality of decisions ultimately depends on the components integrated beneath the control plane. 
+
+12.5.1 Security and Trust Considerations 
+
+Brain API introduces a control plane through which all intent-to-execution decisions flow, which makes it both a natural enforcement point and an attractive attack surface. We outline the primary threat categories and the architectural mitigations the design provides. 
+
+Threat 1: Unauthorized or malicious intent submission. A malicious entity could submit intents that attempt to invoke sensitive capabilities, exfiltrate data, or exhaust resources. The intent ingress is the first line of defense: it is responsible for authenticating the caller and validating the intent’s schema and authorization scope before the intent reaches the decision engine. The capability registry augments this by attaching trust-level requirements to each capability (as illustrated by the trust_level field in §6.8). A caller with insufficient trust cannot be routed to elevated-trust capabilities; attempting to do so results in either policy filtering eliminating all compliant candidates (§7.3) or an unsatisfied intent signal rather than silent execution. 
+
+Threat 2: Policy bypass via capability manipulation. An adversary with write access to the capability registry could register a malicious capability with falsely declared properties (e.g., an inflated trust level), causing the decision engine to select it for sensitive intents. The mitigation is to treat the capability registry as a trusted, access-controlled system: only authorized operators may register or update capabilities, and policy evaluation occurs over the declared metadata. Implementations should additionally consider out-of-band validation or attestation of capability metadata. 
+
+Threat 3: Context poisoning. Context providers supply inputs that influence ranking and, in some cases, filtering. A compromised context provider could manipulate signals (e.g., reporting false load or sensitivity labels) to cause the decision engine to select a suboptimal or non-compliant plan. The architecture mitigates this by (a) treating context 
+
+23 Brain API A P REPRINT 
+
+signals as advisory inputs to ranking, not as overrides to hard policy constraints (§7.5.1, Score independence property), and (b) recording all context references in the decision artifact, creating an auditable record that can detect anomalous context values post hoc. 
+
+Threat 4: Decision artifact tampering. If decision artifacts are mutable, an adversary could retroactively alter the recorded rationale to conceal a governance violation. The observability plane should persist decision artifacts as append-only records with cryptographic integrity guarantees, making tampering detectable. 
+
+Scope note. A full cryptographic security analysis, access-control model, and threat model formalization are outside the scope of this design proposal and represent important directions for future work. The intent here is to demonstrate that the architecture has natural enforcement points for the most prominent threat categories and to flag the areas where deployment-time security engineering is required. 
+
+12.6 Summary 
+
+The Brain API approach introduces a principled control layer for intent-driven, policy-governed systems, but it also shifts complexity into the control plane. Understanding and managing the trade-offs in performance, policy engineering, distributed state, and security is essential for practical adoption. These limitations highlight both the challenges and the opportunities for future work in control-plane design for agentic systems. 
+
+12.7 Evaluation Criteria 
+
+The evaluation in §11 covers policy filtering and selection; the questions below define what a fuller evaluation would address. Grounding these questions now serves two purposes: it makes the design commitments testable, and it provides a concrete experimental agenda for follow-on work. 
+
+EQ1 — Decision latency. What is the end-to-end latency of the control-plane decision cycle (intent submission →
+
+decision artifact → execution dispatch), and how does it scale with the number of candidate capabilities, the complexity of the policy set, and the depth of the context graph? A practical threshold is that control-plane overhead should remain below 10% of median backend execution latency for the workloads it governs. Micro-benchmarks should isolate candidate generation, policy filtering, and scoring as independent contributors. 
+
+EQ2 — Policy compliance rate. What fraction of executed plans satisfy all applicable policies, as verified by post-hoc audit of the decision artifact against the policy set? Under correct operation the compliance rate should be 1.0; deviations indicate implementation bugs or policy ambiguity. A secondary question is the false-rejection rate: how often does the policy filter eliminate a candidate that a human auditor would have approved? These two metrics jointly characterize the precision and recall of the policy enforcement layer. 
+
+EQ3 — Routing optimality. How close is the selected execution plan to the oracle-optimal plan with respect to the declared objective function (e.g., minimum cost, minimum latency, or maximum capability score)? Optimality gap can be measured against an exhaustive search baseline on small candidate sets, and approximation quality can be characterized as candidate-set size and policy complexity grow. This evaluation question assesses whether the scoring and ranking mechanism ( s : C′ × Γ → R and selection function F ) produce decisions that are coherent with the declared objectives. 
+
+EQ4 — Cost efficiency. In domains where execution has measurable cost (compute, API calls, data transfer), does Brain API’s policy-governed selection produce lower total cost than baseline approaches such as round-robin dispatch, static routing rules, or unconstrained LLM tool selection? Cost efficiency should be measured under budget-constraint policies and compared against a policy-free baseline to quantify the value of intent-level governance. 
+
+EQ5 — Decision artifact utility. Can the decision artifact support after-the-fact auditing, debugging, and policy refinement? Qualitative evaluation should assess whether practitioners can (a) determine from the artifact alone why a given candidate was selected or rejected, (b) replay the decision under a modified policy without re-running execution, and (c) detect policy conflicts from artifact analysis. This question evaluates the observability and governance value of the decision layer independently of its routing quality. 
+
+EQ6 — Policy evaluation overhead and capability selection complexity. What is the computational cost of policy evaluation as a function of policy set size |P |, candidate set size |C′|, and the structural complexity of individual policies (e.g., conjunctive depth, number of context attributes referenced)? Similarly, how does candidate generation complexity grow with registry size |C|? In the worst case, candidate generation is O(|C|) and policy filtering is O(|C| · | P |);empirical evaluation should characterize constant factors and identify the regime at which caching or incremental evaluation becomes necessary. These measurements inform practical deployment decisions about registry sharding, policy indexing, and tiered evaluation strategies. 
+
+24 Brain API A P REPRINT 
+
+EQ7 — Scaling characteristics. How does the control plane behave under increasing load across three dimensions: (a) intent throughput —requests per second at which decision latency degrades beyond the EQ1 threshold; (b) registry scale —number of registered capabilities at which candidate generation becomes a bottleneck; and (c) policy set scale —number of active policies at which evaluation cost dominates the decision cycle. Scaling curves along each dimension, measured independently and jointly, characterize the operational envelope of a Brain API deployment and identify where horizontal scaling, caching, or architectural changes are required. Together, EQ1–EQ7 span five dimensions: correctness (EQ2), performance (EQ1, EQ4), optimality (EQ3), governability (EQ5), and scalability (EQ6, EQ7). A prototype evaluation addressing all seven would provide strong empirical grounding for the claims made in this paper and a complete characterization of the control plane’s operational properties. 
+
+12.8 Future Work: Agentic Datasets as a Specialization Impact. Traditional data platforms treat datasets as passive artifacts that are queried by external agents but do not participate in decision-making about their own use. Agentic datasets invert this relationship: by registering capabilities, exposing context signals, and declaring governance policies, datasets become active participants in control-plane reasoning. This enables dynamic data-driven workflows that adapt to freshness and cost constraints without hard-coded routing logic, governance-aware data use in which compliance obligations are enforced before any query is issued, and autonomous analytical pipelines in which the control plane composes dataset nodes with model and tool nodes to fulfil complex intents end-to-end. 
+
+Architecture positioning. Brain API and agentic datasets are mutually reinforcing abstractions. Brain API provides the decision control plane—intent parsing, policy enforcement, capability selection, decision artifact production, and execution dispatch. Agentic datasets provide decision-aware data nodes: structured capability declarations, real-time context signals, and governance metadata that the control plane reasons over. The relationship is layered: • Brain API governs how and when dataset capabilities are invoked, without requiring datasets to embed control logic. • Agentic datasets extend the capability registry with dataset-specific semantics (affordances, freshness, lineage), without requiring the control plane to understand storage internals. • Existing data infrastructure is unchanged; the agentic dataset abstraction is a thin registration and context-exposure layer over existing backends. This positions agentic datasets as a natural extension of the Brain API system model, not as a separate system. Viewed more broadly, Brain API can serve as a shared decision control plane for a research stack that also includes observability tooling (which monitors the decision plane), simulation environments (which exercise the policy engine under synthetic workloads), and domain-specific agents (which submit intents). Agentic datasets populate the capability registry for the data-centric tier of this stack. 
+
+Concrete future directions. A full treatment of agentic datasets would address: (a) a dataset descriptor schema (extending capability_spec with kind , affordances , and lineage fields, as outlined in §10.1); (b) an affordance matching algorithm that maps intent semantics to dataset affordances without requiring schema-level knowledge of each backend; (c) lineage-aware context providers that expose result freshness and provenance graphs as inputs to the decision engine; (d) governance-driven reuse policies that permit result reuse only when lineage and policy equivalence can be certified; and (e) empirical evaluation against the criteria defined in §12.7, using a realistic dataset registry as the experimental substrate. We view this as the primary implementation and evaluation agenda following the foundational design presented here. 
+
+## 13 Related Work 
+
+Brain API intersects multiple research and engineering domains, including distributed systems control planes, workflow and orchestration systems, policy engines, service meshes and API gateways, and agentic and tool-augmented AI systems. We briefly position our work relative to these areas and highlight the distinctions of an intent- and policy-aware control plane. 
+
+13.1 Distributed Systems Control Planes 
+
+Systems such as Kubernetes, Mesos, and Borg introduced the separation of control plane and data plane for managing large-scale distributed resources [Burns et al., 2016, Hindman et al., 2011, Verma et al., 2015, Schwarzkopf et al., 2013]. 
+
+25 Brain API A P REPRINT 
+
+Kubernetes, in particular, provides declarative resource specifications and reconciliation loops for maintaining desired state. However, these systems focus primarily on resource state (e.g., pods, services, deployments) rather than intent or 
+
+decision-making . Brain API builds on the control-plane concept but elevates intent, policy, and capability selection to first-class concerns, targeting decision-level governance rather than only resource management. 
+
+13.2 Workflow and Orchestration Engines 
+
+Workflow systems such as Airflow, Argo Workflows, Temporal, and Step Functions provide mechanisms for defining and executing multi-step computations [Deelman et al., 2005, Argo Project, 2026, Temporal Technologies, 2026]. These systems typically rely on statically defined graphs or imperative orchestration logic, with limited support for dynamic, policy-driven reconfiguration at runtime. While they excel at reliable execution and state management, the control logic that determines which workflow or path to execute is usually external to the system. Brain API complements these engines by providing a decision layer that selects and synthesizes execution plans under explicit policy constraints, and by treating these decisions as auditable artifacts. 
+
+13.3 Service Meshes and API Gateways 
+
+Service meshes and API gateways, such as Istio, Linkerd, and Envoy-based systems, provide traffic management, security, and observability at the network request level [Istio Authors, 2026, Linkerd Authors, 2026, Envoy Authors, 2026]. Routing decisions are typically based on static rules, labels, or low-level metrics. While these systems offer powerful operational controls, they do not expose abstractions for reasoning over high-level intent or for governing tool and service selection based on semantic and policy considerations. Brain API operates at a higher semantic level, using intent and policy to drive routing and composition beyond individual network requests. 
+
+13.4 Policy Engines 
+
+Policy engines such as Open Policy Agent (OPA) and Cedar provide declarative frameworks for expressing and evaluating authorization and governance rules [Open Policy Agent Community, 2026a, Cutler et al., 2024, Abadi et al., 1993, DeTreville, 2002]. These systems are widely used to enforce access control and compliance constraints. Brain API is complementary: it treats policy as a first-class input to control-plane decision-making, but it does not mandate a specific policy language or engine. Instead, it focuses on how policy evaluation is integrated into intent resolution, capability selection, and plan synthesis. 
+
+13.5 Agentic and Tool-Augmented Systems 
+
+Recent agentic systems and tool-augmented frameworks integrate planners, large language models, and tool invocation to achieve high-level goals [Yao et al., 2023, Schick et al., 2023]. Examples include systems that perform tool routing, multi-step reasoning, and adaptive execution based on intermediate results. While these systems demonstrate the feasibility of intent-driven behavior, their control logic is often embedded in application code or framework-specific runtimes, and policy enforcement and observability are typically ad hoc. Brain API generalizes these patterns into an explicit control plane, separating decision-making from execution and providing governance and auditability as first-class features. 
+
+13.5.1 Agent Orchestration Frameworks 
+
+Several frameworks have emerged that partially address the orchestration concern. Microsoft Semantic Kernel 
+
+[Microsoft, 2026] provides a plugin and planner model in which a kernel selects and composes functions to satisfy a goal. The planning step overlaps conceptually with Brain API’s candidate generation and ranking stages. However, Semantic Kernel does not expose a declarative policy layer or produce auditable decision artifacts; governance logic must be embedded in plugins or host code. LangGraph [LangChain Authors, 2026] introduces explicit stateful control-flow graphs over LLM-based agents, enabling branching and looping that go beyond linear chains. Its graph edges model conditional transitions that can approximate policy-driven routing, but policies are expressed implicitly through branching logic rather than as first-class, independently auditable objects. OpenAI Assistants API [OpenAI, 2026] provides server-side tool routing and thread management, moving some orchestration logic out of client code. Yet policies, capability metadata, and routing rationale remain opaque to callers. Brain API differs from all of these frameworks in that it exposes intent, policy, capability, and decision as independently addressable, first-class control-plane primitives. The decision process is observable and auditable independent of the planner or LLM implementation beneath it. 
+
+26 Brain API A P REPRINT 
+
+13.6 Why Not Compose Existing Systems? 
+
+A recurring objection to a new abstraction is whether the same goals could be achieved by composing existing tools: OPA for policy evaluation, a service mesh for routing, a workflow engine for execution, and an LLM-based tool router for intent decomposition. We address this directly. 
+
+The decision artifact does not exist in any component. OPA evaluates a policy predicate and returns allow/deny; it does not produce a structured artifact that records the intent, the full policy set evaluated, context inputs used, and alternatives considered. A service mesh emits traces and metrics for requests that have already been dispatched—it cannot represent the reasoning that selected one capability over another before dispatch. Workflow engines record execution history, not decision history. Assembling these components produces operational observability but not 
+
+decision-level observability. 
+
+Policy operates at the wrong layer in every component. OPA governs individual authorization checks. Service mesh policies govern network-level traffic rules. Workflow engine conditions govern graph transitions. None of these enforce policy over the mapping from a high-level intent to a complete, multi-step execution plan—the level at which agentic governance is needed. Brain API’s policy layer is evaluated once per intent, before any action is dispatched, and its constraints propagate through plan synthesis. This is architecturally distinct from per-request or per-transition policy evaluation. 
+
+No shared semantic for capability selection exists. In a composed stack, the workflow engine, tool router, and service mesh each have their own models for what a "capability" is and how to select one. Brain API’s capability registry provides a unified, semantically annotated abstraction over all of these, enabling intent-driven selection across heterogeneous backends under a single policy and decision model. 
+
+Integration creates fragmentation, not unification. Each additional component introduces its own observability model, API surface, and failure semantics. Correlating a decision rationale across OPA logs, service mesh traces, and workflow execution records requires bespoke integration work that must be repeated for each deployment. Brain API provides this correlation as a first-class architectural property through stable identifiers that span intent, decision, plan, and execution. 
+
+13.7 Semantic Routing and Caching 
+
+Work on semantic routing, vector-based retrieval, and result caching explores how similarity metrics and learned representations can accelerate or adapt execution [Lewis et al., 2020, Khandelwal et al., 2020]. Such techniques are increasingly used in AI-assisted systems to reuse prior results or select tools based on semantic compatibility. Brain API does not prescribe a particular semantic mechanism, but it provides a control-plane context in which semantic signals can influence routing and planning under policy constraints. We view dedicated semantic memory or caching planes as complementary extensions to the core control-plane model presented here. 
+
+13.8 Comparative Summary 
+
+Table 2 contrasts Brain API against the systems surveyed above across six dimensions that are central to the problem Brain API addresses. A checkmark ( ✓) indicates native support; a partial mark ( ◦) indicates partial or ad hoc support that requires application-level code; and a dash (–) indicates the concern is out of scope for the system. Table 2: Comparison of Brain API against related systems across six control-plane dimensions. ✓ = native support; ◦ =partial/ad hoc support; – = out of scope.                                                 
+
+> System Intent as primitive First-class decl. policy Auditable decision artifacts Decision-level telemetry Heterogeneous backends Semantic capability routing
+> Kubernetes / Borg / Mesos –◦––✓–Workflow engines (Airflow, Argo, Temporal) –◦◦◦✓–Service meshes / API gateways (Istio, Envoy) –◦–✓◦–Policy engines (OPA, Cedar) –✓◦–––Semantic Kernel ◦–––◦◦
+> LangGraph ◦–––◦◦
+> OpenAI Assistants API ◦––––◦
+> Brain API (proposed) ✓✓✓✓✓✓
+
+The table shows that individual systems address at most two or three of these dimensions natively. Systems in the distributed infrastructure column (Kubernetes, service meshes) handle heterogeneous backends and some observability but lack intent and semantic routing. Agentic frameworks (Semantic Kernel, LangGraph) provide partial intent and 
+
+27 Brain API A P REPRINT 
+
+routing support but have no declarative policy primitives or auditable decision artifacts. Policy engines provide strong policy evaluation but are silent on the remaining dimensions. Brain API is distinguished by addressing all six dimensions within a single, unified control-plane abstraction—a combination that does not exist in any currently deployed system surveyed here. 
+
+## 14 Conclusion and Future Work 
+
+In this paper, we proposed and argued for Brain API, an intent-aware control plane for policy-governed agentic systems. The central contribution is the introduction of decision artifacts as a new primitive in distributed systems control planes. Traditional control planes manage resources, tasks, deployments, and services; Brain API manages decisions —durable, auditable objects that record the complete reasoning process used to transform a high-level intent into an executable plan, including which policies applied, which capabilities were evaluated, and why a particular execution path was chosen over its alternatives. By elevating decisions to first-class control-plane objects, Brain API enables a class of governance capabilities that existing systems cannot provide: post-hoc compliance auditing against specific policy versions, reproducible reasoning that can be replayed under evolved policies, forensic debugging of unexpected system behavior, and intent-level governance that enforces constraints before any action is taken. We detailed the core control-plane interfaces, the decision and routing semantics, and the execution model that together form the proposed architecture for governed, adaptive, and observable behavior across heterogeneous backends. Through representative scenarios, we illustrated how Brain API simplifies the construction and governance of agentic systems that would otherwise require ad hoc orchestration logic and fragmented policy enforcement. We then evaluated a prototype of the decision layer against a corpus of production policies whose expected outcomes are published by a third party (§11). Two findings deserve restating. The first is negative and concerns our own design: a rule language of scalar comparisons expressed 3 of 49 real policies, because governance policies quantify over collections, and a subsequent conformance failure revealed a second deficiency—the absence of per-element conjunction—that no amount of inspection had surfaced. Both were corrected, and both were found only because the corpus was not ours. The second is that decision artifacts and admission logs differ in what an auditor can recover from them: six of six audit questions against two, with every decision re-derivable from its artifact alone. The questions an admission log cannot answer are exactly those about alternatives, which is a structural consequence of adjudicating one proposal rather than selecting among several. Several directions for future work follow. First, richer semantic memory and result-reuse mechanisms can be integrated as first-class context providers, enabling more sophisticated forms of reuse, caching, and learning from prior executions under explicit policy control. Second, more formal policy languages and verification techniques could be applied to reason about the correctness, safety, and completeness of policy sets and decision procedures; the aggregation and regular-expression constructs currently outside our rule grammar are a concrete starting point. Third, the evaluation here covers policy filtering and selection on a single domain; the context-signal and ranking stages remain design claims, and quantifying decision latency and policy-evaluation cost under production load is the most immediate next step. More broadly, we believe that elevating decisions to durable control-plane objects opens a path toward distributed agentic systems that are not only scalable and reliable, but also governable, inspectable, and auditable by design. Brain API represents a step in this direction: a unifying decision-centric control plane in which intent, policy, and reasoning are first-class concerns, and in which every execution path is traceable to the decision that produced it. 
+
+## References 
+
+Brendan Burns, Brian Grant, David Oppenheimer, Eric Brewer, and John Wilkes. Borg, omega, and kubernetes. ACM Queue , 2016. Abhishek Verma, Luis Pedrosa, Madhukar Korupolu, David Oppenheimer, Eric Tune, and John Wilkes. Large-scale cluster management at google with borg. In EuroSys , 2015. Malte Schwarzkopf, Andy Konwinski, Michael Abd-El-Malek, and John Wilkes. Omega: Flexible, scalable schedulers for large compute clusters. In EuroSys , 2013. Benjamin Hindman et al. Mesos: A platform for fine-grained resource sharing in the data center. In NSDI , 2011. Shunyu Yao et al. React: Synergizing reasoning and acting in language models. In ICLR , 2023. Timo Schick et al. Toolformer: Language models can teach themselves to use tools. arXiv preprint arXiv:2302.04761 ,2023. Istio Authors. Istio: An open platform to connect, manage, and secure microservices. https://istio.io/ , 2026. Accessed 2026-02-05. 
+
+28 Brain API A P REPRINT 
+
+Envoy Authors. Envoy proxy. https://www.envoyproxy.io/ , 2026. Accessed 2026-02-05. Linkerd Authors. Linkerd: Ultra light, ultra simple service mesh. https://linkerd.io/ , 2026. Accessed 2026-02-05. Ewa Deelman et al. Pegasus: a framework for mapping complex scientific workflows onto distributed systems. Scientific Programming , 2005. Argo Project. Argo workflows: Kubernetes-native workflows. https://argoproj.github.io/ , 2026. Accessed 2026-02-05. Temporal Technologies. Temporal: A workflow orchestration engine. https://temporal.io/ , 2026. Accessed 2026-02-05. Open Policy Agent Community. Open policy agent. https://www.openpolicyagent.org/ , 2026a. Accessed 2026-02-05. Martin Abadi, Michael Burrows, Butler Lampson, and Gordon Plotkin. A calculus for access control in distributed systems. ACM TOPLAS , 1993. John DeTreville. Binder, a logic-based security language. In IEEE Symposium on Security and Privacy , pages 105–113, 2002. Benjamin H. Sigelman et al. Dapper, a large-scale distributed systems tracing infrastructure. Technical report, Google Research, 2010. Peter Buneman, Sanjeev Khanna, and Wang-Chiew Tan. Why and where: A characterization of data provenance. In 
+
+ICDT , 2001. James Cheney, Stephen Chong, Nate Foster, Margo Seltzer, and Stijn Vansummeren. Provenance: a future history. In Proceedings of the 24th ACM SIGPLAN Conference Companion on Object Oriented Programming Systems Languages and Applications , 2009. Patrick Lewis et al. Retrieval-augmented generation for knowledge-intensive nlp tasks. In NeurIPS , 2020. Urvashi Khandelwal et al. Generalization through memorization: Nearest neighbor language models. In ICLR , 2020. C.-L. Hwang and K. Yoon. Multiple Attribute Decision Making: Methods and Applications . Springer, Berlin, 1981. R. Timothy Marler and Jasbir S. Arora. Survey of multi-objective optimization methods for engineering. Structural and Multidisciplinary Optimization , 26(6):369–395, 2004. Open Policy Agent Community. The OPA Gatekeeper policy library. https://github.com/open-policy-agent/ gatekeeper-library , 2026b. Accessed 2026-02-05. Joseph W. Cutler, Craig Disselkoen, Aaron Eline, Shaobo He, Kyle Headley, Michael Hicks, Kesha Hietala, Eleftherios Ioannidis, John Kastner, Anwar Mamat, Darin McAdams, Matt McCutchen, Neha Rungta, Emina Torlak, and Andrew M. Wells. Cedar: A new language for expressive, fast, safe, and analyzable authorization. Proceedings of the ACM on Programming Languages , 8(OOPSLA1), 2024. doi: 10.1145/3649835. Microsoft. Semantic kernel: An open-source SDK for integrating AI models into applications. https://github. com/microsoft/semantic-kernel , 2026. Accessed 2026-02-05. LangChain Authors. LangGraph: Building stateful, multi-actor applications with LLMs. https://github.com/ langchain-ai/langgraph , 2026. Accessed 2026-02-05. OpenAI. OpenAI assistants API. https://platform.openai.com/docs/assistants/overview , 2026. Accessed 2026-02-05. 
+
+29

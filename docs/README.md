@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-08-23 ~ 2026-09-21</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-21</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 27 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 17 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>27</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>5</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-21 02:58:06 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-21 22:21:50 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>本期速读27篇，零精读，三篇满分论文全部指向多智能体系统的安全与风险。</p>
-<p>最值得看的方向是跨组织部署多智能体的风险控制框架，以及多智能体LLM系统的安全失效与对抗压力测试这两条线索。</p>
-<p>建议普通读者先从&quot;智能体们一起失败&quot;这类安全主题入手，不必逐篇细读，等有精读版再深入。</p>
+<p>今日扫完 17 篇 AI 智能体安全新作，精读 5 篇、速读 12 篇，重点集中在多智能体失控与欺骗性注入风险。最值得看的是《Why LLM Agents Collapse Without Oversight》提出的“执行缺口”机制（9.0 分），以及《Misleading the Planner through Deceptive Resumes》揭示的注册阶段注入攻击（8.0 分）。普通读者可优先了解多智能体系统的监督与准入校验，别只看单模型能力。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -80,12 +78,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">0 篇</strong>
+    <strong class="dpr-home-dashboard-count">5 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Why LLM Agents Collapse Without Oversight: The Enforcement Gap as the Mechanism Behind Emergence World Failures">Why LLM Agents Collapse Without Oversight: The Enforcement Gap as the Mechanism Behind Emergence World Failures</span></li><li><span class="dpr-home-dashboard-paper-title" title="Misleading the Planner through Deceptive Resumes: Registration-Time Injection in Centralized Multi-Agent Systems">Misleading the Planner through Deceptive Resumes: Registration-Time Injection in Centralized Multi-Agent Systems</span></li><li><span class="dpr-home-dashboard-paper-title" title="Authorization Architectures for Tool-Using AI Agents">Authorization Architectures for Tool-Using AI Agents</span></li></ul>
   </div>
-
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-safety <strong>3</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>2</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -93,12 +91,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">27 篇</strong>
+    <strong class="dpr-home-dashboard-count">12 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Risks and Controls for Multi-Agent Systems: an analytical framework for deployment of AI agents across organisational boundaries">Risks and Controls for Multi-Agent Systems: an analytical framework for deployment of AI agents across organisational boundaries</span></li><li><span class="dpr-home-dashboard-paper-title" title="SoK: When Safe Agents Fail Together: The Security of Multi Agent LLM Systems">SoK: When Safe Agents Fail Together: The Security of Multi Agent LLM Systems</span></li><li><span class="dpr-home-dashboard-paper-title" title="Emergence World: Adversarial Stress-Testing of Long-Horizon Multi-Agent Systems">Emergence World: Adversarial Stress-Testing of Long-Horizon Multi-Agent Systems</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Safety Signals to Verify NetOps Agents with Action-Level Granularity">Safety Signals to Verify NetOps Agents with Action-Level Granularity</span></li><li><span class="dpr-home-dashboard-paper-title" title="Cognitive Admission Control: Risk-Conditioned Assurance for Consequential Actions in Agentic Distributed Systems">Cognitive Admission Control: Risk-Conditioned Assurance for Consequential Actions in Agentic Distributed Systems</span></li><li><span class="dpr-home-dashboard-paper-title" title="Trust propagation and structural containment in Multi-agent LLM pipelines">Trust propagation and structural containment in Multi-agent LLM pipelines</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-safety <strong>20</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>7</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>7</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>5</strong></span></div>
 </section>
 </div>
 
