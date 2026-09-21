@@ -1,0 +1,923 @@
+Title: Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+URL Source: https://arxiv.org/pdf/2609.17930v1
+
+Published Time: Thu, 17 Sep 2026 00:22:11 GMT
+
+Number of Pages: 37
+
+Markdown Content:
+# Locating Hidden Failures Makes Long-Horizon Agents More Reliable 
+
+Salman Rahman †,1,2 , Yubin Kim 3, Mihir Parmar 3, A. Ali Heydari 3, Genglin Liu 1, Simon A. Lee 1, Weizhi Zhang 3,Arian Hosseini 4, Ahmed A. Metwally 3, Yuzhe Yang 3, Baharan Mirzasoleiman 1, Xin Liu 3, Pavel Izmailov 2,Saadia Gabriel 1, Mark Malhotra 3, Shwetak Patel 3, Daniel McDuff 3 and Hamid Palangi †,3     
+
+> †Corresponding Authors, 1University of California, Los Angeles, 2New York University, 3Google Research, 4Google DeepMind
+
+As AI agents take on long, autonomous tasks, we increasingly oversee rather than perform the work, yet we still judge them almost entirely by whether they finally succeed. An outcome cannot reveal where a run went wrong, whether the agent recovered, or the irreversible harm it caused along the way, and where long-horizon agents fail remains unmapped. We study 2,518 agent trajectories across software engineering, computer use, and science, close to real deployment, and classify 6,967 mistakes into 78 
+
+failure types. Failure follows a recurring signature: after its first mistake an agent often fails to recover and rarely catches the error itself, so the run continues unchecked while still looking correct; whether an agent recovers depends on the task and the environment’s feedback, not on the agent framework running it. Long-horizon agents can do real harm on the way to a passing result: even runs scored as solved delete data, corrupt systems, or fabricate success rather than earning it. We release these human-verified annotations as Traverse, a benchmark on which six frontier judges struggle to locate failure regardless of scale: even the strongest correctly identifies the first mistake in fewer than a third of runs. Yet Scout, a 4B verifier we trained, locates failure far better than these judges and transfers to domains it never saw. Used at test time to select among an agent’s candidate runs, it raises task success above the agent’s own single-attempt performance, without retraining the agent. By making failure cheap to locate and correct, this work is a foundation for more trustworthy long-horizon agents that learn from their own mistakes, and a practical path to overseeing increasingly autonomous AI. 
+
+1. Introduction 
+
+Language models have moved beyond just answering questions (Brown et al., 2020) to reasoning, planning, and acting on their own as autonomous agents (Anthropic, 2026; GLM-5-Team et al., 2026; Wang et al., 2024). Given a goal, an agent now works across hundreds of steps in real environments: repairing software repositories (Chu et al., 2026; Jimenez et al., 2024), operating computers (Merrill et al., 2026; Xie et al., 2024), and running research end to end, from idea to result (Gottweis et al., 2026; Lu et al., 2026; Rank et al., 2026; Swanson et al., 2025; Wang et al., 2023; Xin et al., 2025). The reach is widening fast: agents now attempt long, cross-application tasks once handled by skilled professionals (Sun et al., 2026; Vidgen et al., 2026), and each model generation lengthens the horizon they can sustain, carrying them from a single answer to an entire project. As agents take on more of this work with little human oversight, what matters is no longer the final answer alone but everything the agent did to reach it. Yet we judge these agents almost entirely by their outcome: whether the final answer passes (Jimenez et al., 2024; Kalai et al., 2026; Merrill et al., 2026). A pass or fail is a single bit; it collapses 
+
+> Corresponding author(s): salman@cs.ucla.edu, hamidpalangi@google.com
+> © 2026 Google. All rights reserved arXiv:2609.17930v1 [cs.LG] 15 Sep 2026 Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+Figure 1 | Outcomes hide how long-horizon agents fail; a small verifier can locate it. (a) Two real agent runs that pass their outcome check and are scored solved , yet cause silent, irreversible harm: one deletes the only copy of an experiment to free disk space, the other fabricates a result instead of computing it. Each row shows the agent’s thought (T), action (A), and observation (O); the harmful step is highlighted. (b) Traverse , our benchmark, labels by hand the first mistake in 2,518 real agent runs. Asked to find that first mistake, frontier models locate it in fewer than a third of runs, and larger models do no better. (c) Scout , a 4B verifier trained on these labels, locates the first mistake more accurately than the much larger frontier models; using it to pick the best among an agent’s candidate runs raises task success (light bar: agent alone; dark bar: agent with Scout ). an entire trajectory into one verdict, like judging a household robot only on whether the coffee was made, blind to the kitchen it set ablaze to make it. Such a score cannot reveal where a run first went wrong, whether the agent noticed its error and recovered, or the irreversible damage it did on the way to a passing result. As agents take on longer, more autonomous work, much of it in high-stakes domains such as healthcare (Hager et al., 2024; Moor et al., 2023) and law, this trajectory-level view is exactly what we most need and least have. We see this directly in the runs we study (Figure 1a). Tasked with building a project, an agent hits “No space left on device” and, to make room, clears the largest directory it can find. Every step is locally reasonable, and the run is scored as solved. Yet that directory held the only copy of a long-running experiment, and weeks of computation are irretrievably lost. This is failure at its most dangerous: silent, confident, and irreversible, a destructive action buried in a run the outcome marks as success. Acting on its own, an agent can take such a step with nothing to stop it, and the more consequential the setting, the more a single irreversible action costs: the same pattern that erases checkpoints here can drop a production database, corrupt a financial ledger, or, as agents begin to 
+
+> 2Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+run healthcare workflows end to end (Alber et al., 2025; Chen et al., 2026), alter a patient’s record beyond recovery. Nor is the harm always accidental: under pressure, agents can deceive, reporting success they never achieved (Greenblatt et al., 2024; Köbis et al., 2025; Park et al., 2024; Scheurer et al., 2023). No domain is immune, but the risk is sharpest where a wrong or fabricated result leaves no error and no traceback: in autonomous scientific research, a single false finding can pass into the literature as genuine discovery (Farquhar et al., 2024; Tang et al., 2025) and contaminate the shared record the field builds on. Catching these failures means understanding how long-horizon agents fail, and understanding it holistically: step by step rather than only at the outcome, across multiple long-horizon domains close to real-world use, across the many models and tool harnesses that run them, and covering not only task errors but also the safety violations a run can commit along the way. No prior work offers this. Existing failure studies sort errors into modular taxonomies on short or synthetic agent benchmarks (Zhu et al., 2025), focus on multi-agent systems (Cemri et al., 2026), or diagnose how accuracy degrades with the horizon (Wang et al., 2026); none gives a step-level account of how realistic long-horizon agents fail across many domains, models, and harnesses, or of the safety risks they create along the way. Understanding failure is only half of the problem; what matters in practice is locating it , pinpointing where a long run goes wrong. Humans cannot do this at scale, not for trajectories hundreds of steps long, nor for the volume of runs agents now produce, which is the problem of scalable oversight (Bowman et al., 2022; Rahman et al., 2026): supervising systems whose work is too long or complex for people to check in full. A method that could locate a mistake automatically and reliably would matter far beyond analysis, because the same judgment can serve debugging, trajectory-level evaluation, the reward models used to train agents, test-time selection among an agent’s candidate runs, and safety auditing; one that generalizes would carry these gains across domains. Yet whether any model can locate failure in long, realistic trajectories has not been measured by any existing benchmark. We close these gaps. We begin by mapping how long-horizon agents actually fail. The settings where agents now do genuinely long-horizon work are neither toy nor synthetic: frontier coding agents already author a large fraction of production code, and the length of task they complete unsupervised is doubling roughly twice a year (Favaro and Clark, 2026); AI systems run scientific studies end to end, from hypothesis to result (Boiko et al., 2023; Lu et al., 2026; M. Bran et al., 2024; Rank et al., 2026; Szymanski et al., 2023); and computer-use agents drive real terminals and applications (Merrill et al., 2026; Xie et al., 2024). This motivates the three domains we study, chosen to sit as close to real deployment as possible: agentic software engineering (Jimenez et al., 2024), computer use (Merrill et al., 2026), and AI-for-science (Mitchener et al., 2025). Across these three domains we collect 2 ,620 real trajectories spanning a mix of closed-source and open-weight frontier models (Claude, GPT-5, Gemini, DeepSeek, Qwen, and Kimi) and agent harnesses (mini-SWE-agent, SWE-agent, OpenHands, Terminus 2, and ReAct-style agents), and human annotators label every step of every run as correct or incorrect and mark its first mistake, the step where the run begins to go wrong. 
+
+> 3Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+We find that long-horizon failure is characterizable. Sorting 6 ,967 mistakes into 78 categories in 10 families, from high-level reasoning and planning to memory and perception, we uncover a recurring signature: after its first mistake, an agent recovers in only 30 .5% of runs and never detects the error at all in 38 .5%, yet keeps acting either way, so one early error runs to the end while the run still looks correct. What fails most is not what causes failure. Invalid actions are the most common mistakes, but they are mostly symptoms, the fallout of an earlier error rather than its source. The mistakes that actually start a failure, and most often doom the run, are errors of reasoning and planning. Once made, an error spreads: a single wrong step makes the next roughly 11 to 14 times likelier to be wrong, so the later a run goes, the more of it is inherited error rather than fresh mistakes. How this unfolds depends on the domain and task: software-engineering agents are blind to their mistakes yet recover, because rich feedback from the environment catches what their reasoning misses, whereas computer-use agents notice the error but, without such feedback, stay stuck. And failure is not the only danger. Prior failure analyses stop at task errors (Cemri et al., 2026; Wang et al., 2026; Zhu et al., 2025); we are the first to audit safety, and find that task success is not the same as safety: some runs scored as solved take irreversible, destructive actions, and a recurring cluster of agents fabricate success outright rather than earning it (Geirhos et al., 2020). Our contribution goes beyond mapping failure. The failed trajectories we collected, paired with successful ones, form a benchmark for evaluating whether a model can catch failure. We cast each agent step as a thought, an action, and an observation, label it correct or incorrect, and use annotators to mark the first mistake of every failed run (annotators agree with Cohen’s 𝜅 = 0.77 on whether a run failed and 0 .73 on where), so any model that claims to catch failure can be graded against human ground truth. We center the benchmark on the first mistake because that is the natural target for process-level verification (Zheng et al., 2025) and, as our own analysis shows, the step that decides the run. Existing process-verifier benchmarks locate such an error only in single-step reasoning or short tasks (Chae et al., 2026; Li et al., 2026a; Lù et al., 2025; Men et al., 2025; Song et al., 2025); ours, released as Traverse , is the first to pair long-horizon trajectories (20 to 200 steps), naturally occurring failures, and human first-mistake localization across multiple domains and scaffolds (Table 5). Because each run also carries its final task outcome, Traverse grades not only step-level localization but also outcome-level verification, the pass-or-fail judgment an outcome reward model must make. With this instrument we test whether today’s models can locate failure, and they cannot. We evaluate six frontier judges, four proprietary (Gemini 3.1 Pro, Gemini 3 Flash, Claude Opus 4.6, GPT-5.5) and two open-weight (DeepSeek V4 Pro, Qwen 3.5-397B). Even the strongest locates the first mistake on just 26 .8% of software-engineering runs and 32 .3% of computer-use runs, none exceeds a third on either, the open-weight judges perform no better than the proprietary ones, and accuracy falls further as trajectories lengthen. Detecting only whether a run failed, the outcome-level judgment, is easier, but no judge does even that cleanly: every one is biased, either over-flagging correct runs or missing real failures. We also show that locating failure is learnable. Reformulating the failed and successful trajectories into step-level training data, we train a 4B-parameter verifier, Scout , with supervised learning 
+
+> 4Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+and then reinforcement learning; it locates failure better than frontier judges many times its size. It also avoids their bias: frontier judges skew systematically, some over-flagging correct steps and others missing real mistakes, whereas Scout stays balanced. It transfers: trained only on coding and computer-use trajectories, it still locates failure in an unseen long-horizon scientific discovery domain. And it improves agents at test time, with best-of-𝑁 selection as one use case: scoring an agent’s candidate trajectories with Scout and keeping the best raises task success from 81 .8% to 90 .2% on Terminal-Bench, from 75 .6% to 78 .0% on SWE-bench, and from 50 .1% to 53 .2% on BixBench, above every frontier verifier and lifting agents far larger than itself, with no retraining of the agent. We release the benchmark, the training data and recipe, and the verifier, to help the field build more reliable long-horizon agents. Our contributions are the following. • A characterization of how long-horizon agents fail. We give the first holistic, step-level account of failure in realistic long-horizon agents, across domains, models, and harnesses. It comprises a taxonomy of 78 failure types in 10 families; a recurring failure signature in which an agent, after its first mistake, usually neither recovers nor notices while the run still ends looking correct; and the finding that reasoning and planning faults are the fatal origins of failure and faulty actions their downstream symptoms. A safety audit adds what prior failure studies omit: task success is not safety, solved runs take irreversible, destructive actions, and some agents fabricate success rather than earn it. • Traverse, a tool that makes failure measurable. We introduce Traverse , a human-verified benchmark of 1 ,423 agent trajectories and 44 ,341 steps, each step labelled correct or incorrect and the first mistake of every failed run marked by hand. It grades, against human ground truth, the two judgments long-horizon oversight depends on: process-level verifiers, which must locate the first mistake in a trajectory, and outcome reward models, which must decide whether a run succeeded. Unlike prior process-verifier benchmarks, confined to single-step reasoning or short tasks, it spans long-horizon trajectories with naturally occurring failures across multiple domains and scaffolds. • Locating failure is a learnable skill that frontier scale lacks. Frontier models struggle to locate failure on Traverse : even the strongest of six judges, proprietary and open-weight alike, locates the first mistake on fewer than a third of long runs, and all detect failure only with systematic bias, so scale does not confer the skill. Yet Scout , a 4B-parameter verifier trained on the annotations and refined with reinforcement learning, locates failure better than judges many times its size, transfers to an unseen scientific domain, and, selecting among an agent’s candidate trajectories at test time, raises task success above every frontier verifier and above the agents’ own pass@1, with no retraining of the agent. As AI agents take on longer, higher-stakes work with less human oversight, a holistic understanding of how they fail, not merely a verdict on whether they succeed, is what will make them trustworthy: only by locating where a run goes wrong can we catch its errors, repair them, and keep the agent safe. A reliable, low-cost way to locate failure is also a building block for the rest of the pipeline: it 
+
+> 5Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+sharpens debugging, grounds the judges and reward models used to evaluate and train agents, tells which candidate trajectories to trust at test time, and lets an agent learn from its own mistakes, a step toward agents that continually improve themselves. Together, our failure analysis, safety audit, measurement instrument, and recipe for training small, reliable verifiers chart a practical path to building, and overseeing, increasingly autonomous AI that is capable, reliable, and safe (Bengio et al., 2024). 
+
+2. Methods 
+
+2.1. Collecting long-horizon agent trajectories 
+
+To study how long-horizon agents fail, we observe how they behave, and where they go wrong, at scale, on real tasks, across diverse models and tool harnesses. Failures that matter arise over long horizons, where one early error compounds across many later dependent steps; yet prior failure analysis has largely studied short- and mid-horizon tasks, leaving long-horizon failure poorly characterized (Wang et al., 2026; Zhu et al., 2025). We therefore collect trajectories from three domains where autonomous agents are already being deployed and where their failures carry real cost: agentic software engineering (SWE-bench, resolving real GitHub issues (Deng et al., 2025; Jimenez et al., 2024; Rashid et al., 2025; Zan et al., 2026)), agentic computer use (TerminalBench, solving tasks in an interactive terminal (Merrill et al., 2026)), and agentic science (BixBench, real bioinformatics data analysis (Mitchener et al., 2025)). Each is a standard benchmark for its domain, and together they span the settings where long-horizon agents are most consequential today. 
+
+Sources, models, and harnesses. We assemble a corpus of [2,518] trajectories spanning many model backbones and agent harnesses (Table 6), so that the failures we analyze reflect agent behavior broadly rather than the quirks of a single system. For software engineering and computer use we draw on existing agent trace datasets (Deshpande et al., 2025; Li et al., 2026b), which together cover several backbones (Claude, GPT, DeepSeek, Qwen, and Kimi models) run under harnesses such as SWE-agent, OpenHands, mini-SWE-agent, and Terminus. For science we generate trajectories ourselves, running eight frontier models from the Claude, Gemini, and GPT families on BixBench under two agent harnesses. This yields the corpus we analyze for failure: [1,851] TerminalBench, [565] SWE-bench, and [102] BixBench trajectories. 
+
+Trajectory representation. We reformulate every collected trajectory into a uniform representation. An agent solving a task produces a trajectory 𝜏 = (𝑠 1, . . . , 𝑠 𝑇 ), an ordered sequence of steps , where each step 𝑠 𝑡 = (𝜃 𝑡 , 𝑎 𝑡 , 𝑜 𝑡 ) comprises a thought 𝜃 𝑡 , an action 𝑎 𝑡 , and the resulting observation 𝑜 𝑡 returned by the environment. These trajectories are long-horizon: steps average 28 on SWE-bench, 33 on TerminalBench, and 10 on BixBench, reaching up to 200 (Table 4), far beyond the short reasoning and web tasks of prior analysis. 
+
+> 6Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+2.2. Analyzing failures Labeling errors. We label each trajectory step by step. A step is an error when three conditions hold: it is a state-changing decision, a thought or action the agent commits to rather than a passive read of the environment; it is wrong on the evidence available at that point, judged on what the agent knew then and not in hindsight; and it sends the task away from any path that could still solve it. The observation, the environment’s response, is not judged; only the agent’s own thought and action are. Each step is thus labelled correct or incorrect, and the first mistake 𝑚 is the earliest incorrect step (𝑚 = ⊥ when every step is correct). Correctness is local: a trajectory may contain an error and still succeed if a later step offsets it, which is what makes recovery a measurable quantity rather than a synonym for failure. Two annotators independently locate the first mistake in every trajectory using a custom annotation interface (Appendix ?? ), agreeing both on whether a run contains one (Cohen’s  
+
+> 𝜅
+
+= 0.77) and on which step it is ( 𝜅 = 0.73); a third annotator resolves disagreements, and the few unresolved trajectories are discarded. For software engineering and computer use we verify and standardize the full per-step labels against the source trace datasets (Deshpande et al., 2025; Li et al., 2026b); agentic science is graded only on its final answer, so we annotate its first mistake but not every step, and it enters the first-mistake analyses below but not those that require the full sequence. 
+
+Deterministic analyses. Several measures follow from the gold labels alone, with no judge in the loop. A run that makes a first mistake recovers when it nonetheless solves the task, and fails to recover otherwise; we score recovery by the final task outcome rather than by a return to locally correct steps, since only the former rescues the run. Crossing the task outcome with whether a run has a localizable first mistake sorts every trajectory into four cells, two of which bound the first-mistake framing: runs solved despite a flagged mistake, where the mistake proved survivable, and runs that fail with no single decisive mistake, a diffuse failure that the first-mistake analyses exclude. We measure how errors propagate with a stickiness ratio, the probability that a step is incorrect when the previous step was incorrect relative to that probability when the previous step was correct. And we call a failure 
+
+silent when a run that does not solve the task ends on a step labelled correct, so its final state carries no sign of what went wrong. 
+
+The failure taxonomy. To characterize how agents fail, we type every labelled mistake against a fixed codebook of 88 categories grouped into 10 families (Table 3). We fixed the codebook before judging, drafting it from an initial reading of failed trajectories and the literature on agent errors and including modes we anticipated but had not yet seen; 10 of the 88 categories indeed never occur, so the scheme maps the space of failures rather than being fitted to it. An LLM judge ( gemini-3.1-pro-preview ;high reasoning effort, temperature 0, schema-validated output) reads each full trajectory with the gold step labels and, for every mistake those labels mark, returns its family and fine category, whether it is a root fault (a fresh, originating error) or a cascade (a downstream consequence of an earlier mistake, with the causing step recorded), and the third of the run in which it falls (early, middle, or late, by step position relative to the run’s length). The judge thus types the mistakes the annotators located; it does not decide which steps are mistakes. Because two independent judges (the above and 
+
+> 7Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+gemini-3.5-flash ) agree well on coarse labels but diverge on the finest ones (Cohen’s 𝜅 = 0.66 for family, 0 .64 for root versus cascade and 0 .81 for phase, but only 0 .30 for the single fine category), we draw conclusions at the family, root/cascade, or phase level rather than from single fine categories; all judged analyses below use both judges, with rates that shift between them reported as ranges. 
+
+Self-detection, persistence, and safety. Using the same judges, we score self-detection: for each first mistake, a judge reads the reasoning that follows and records whether the agent ever acknowledges going wrong, and whether that acknowledgement is genuine introspection or only a reaction to an error the environment printed; because it requires a visible reasoning channel, the measured blindness is a lower bound. We likewise score behavioural persistence, whether, after the first mistake, the agent keeps committing fresh faults, declares the task done, repeats an action unchanged, or never verifies its work. Together with recovery, self-detection and persistence define the failure signature, which a run shows in full when it fails to recover, never self-detects and persists at once. A separate safety audit covers every run, including those graded as solved: a keyword scan proposes candidate unsafe actions and a judge adjudicates each over the full trajectory, recording whether it was necessary, reversible and taken with the risk acknowledged, along with its class and severity; because the two judges differ most on this rare, sensitive judgement, we report its prevalence as a range. Finally, mistakes that fit no codebook category are open-coded, which is how we surfaced the emergent deception and reward-hacking cluster (Section 3.1). 
+
+2.3. From failure analysis to a benchmark 
+
+As agents take on longer and more consequential tasks, locating where they fail becomes central to making them reliable. This single capability underlies a range of needs. (i) Debugging : as software engineers work through AI coding agents and scientists run agents on biomedical analyses (Huang et al., 2025), a single early misstep can derail an entire run, so identifying where it went wrong is what lets the error be caught and fixed rather than silently inherited. (ii) Evaluation : using one model to judge another is now standard practice (Zheng et al., 2023), yet existing setups grade only the final outcome, and whether a judge can pinpoint where a long trajectory went wrong is untested. (iii) 
+
+Post-training : optimizing an agent with reinforcement learning relies on a reward model or verifier to score its behavior, and a verifier is only as good as its ability to tell correct steps from incorrect ones (Lightman et al., 2024; Rahman et al., 2025). (iv) Test-time scaling : agent performance can be improved at inference by ranking or scoring candidate trajectories with a verifier and acting on its feedback (Lifshitz et al., 2025; Singhi et al., 2025), which again reduces to judging where each trajectory fails. (v) Learning from failure : an agent that can locate its mistakes, on its own or with the help of a verifier, can learn from them, a foundation for continual and self-improving agents that refine their behavior over time. 
+
+A benchmark for failure localization. Despite its importance, there is no comprehensive benchmark for evaluating whether models can locate failure in long-horizon agent trajectories. Prior process-level benchmarks fall short on the axes that we discussed in this work. ProcessBench (Zheng et al., 
+
+> 8Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+2025) and PRMBench (Song et al., 2025) target single-turn reasoning rather than interactive agents; ToolPRMBench (Li et al., 2026a) and Web-Shepherd (Chae et al., 2026) cover agentic tasks but only over short horizons; and agent reward benchmarks (Lù et al., 2025; Men et al., 2025) judge whole trajectories without identifying where they go wrong. Across these, the tasks tend to be narrow or templated, and failures are often introduced synthetically, rather than reflecting the open-ended work and naturally arising mistakes agents encounter in deployment. Following single-turn failure-localization benchmarks (Zheng et al., 2025), we formulate the analogous task for long-horizon agents and assemble it into a benchmark, Traverse . Given a trajectory 𝜏 = (𝑠 1, . . . , 𝑠 𝑇 ) of steps  
+
+> 𝑠 𝑡
+
+= (𝜃 𝑡 , 𝑎 𝑡 , 𝑜 𝑡 ), the task is to decide whether the trajectory contains a mistake and, if so, predict the first-mistake index ˆ 𝑚 . We focus on the first mistake because, as our analysis shows, a long-horizon run typically derails at a single step, after which every later step inherits the corrupted state; the first mistake is the decisive event, and locating it is what serves the uses above. A trajectory may also be entirely correct, so the task tests both recognizing clean runs and locating the first error in failed ones. Traverse is drawn from real agent runs across multiple domains, including agentic software engineering, computer use, and science, so its trajectories reflect deployment conditions and its failures occur naturally. To our knowledge, it is the first benchmark to combine long-horizon trajectories, naturally occurring failures, and human-verified first-mistake localization across these domains and harnesses (Extended Data Table 5). We release it with full step-level labels. 
+
+Selection and statistics. From the larger analyzed corpus (Section 2.1) we select the trajectories best suited to first-mistake localization, discarding those with malformed or missing steps, such as an action with no recorded thought, and balancing correct against failed runs so the task is non-trivial in both directions. The resulting benchmark contains 600 agentic software engineering trajectories (SWE-bench; 306 failed, 294 correct), 721 agentic computer use trajectories (TerminalBench; 541 failed, 180 correct), and 102 agentic science trajectories (BixBench; 38 failed, 64 correct), with full step-level labels (Table 4). First mistakes are spread across a wide range of step indices rather than concentrated at any one position (Extended Data Fig. 6), so no fixed positional guess succeeds and a judge must read the trajectory to find the error. 
+
+2.4. Training a failure-localization verifier 
+
+The frontier judging gap (Section 3) shows that even the strongest general-purpose models struggle to locate failure, pinpointing the first mistake on only a minority of long trajectories. We therefore ask whether the ability can instead be learned , and whether a small set of high-quality annotations is enough to teach it. We train a small open model, Scout , on our annotated long-horizon trajectories from agentic software engineering and computer use, holding out agentic science entirely to later test transfer (Section 3). A small model that surpasses far larger general-purpose judges would show two things: that failure localization is a learnable skill rather than a property of scale, and that high-quality annotations, together with the right training recipe, can build a specialized localizer that outperforms the strongest off-the-shelf models. Scout analyzes a trajectory step by step with chain-of-thought reasoning, labeling each step correct or incorrect, and is trained in two stages: supervised fine-tuning 
+
+> 9Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+followed by reinforcement learning. 
+
+Model. We build Scout on Qwen3-4B-Thinking-2507 (Team, 2025), a 4B-parameter reasoning model. To show that the recipe is not specific to one backbone, we additionally train it on Gemma-3n-E4B-it (Farabet and Lacombe, 2026); unless noted, results refer to the Qwen3-4B-Thinking model. 
+
+Training data. Our training trajectories carry only per-step correct/incorrect labels 𝑦 𝑡 , so we generate the reasoning for why each step is correct or incorrect. We produce that reasoning with Gemini-3 Flash: for each trajectory we provide the steps together with their gold labels and prompt the model to write a step-by-step chain-of-thought analysis 𝑐 that judges every step. Conditioning on the gold labels keeps the reasoning accurate, unlike the analysis models produce unaided; we parse the verdicts from 𝑐 and regenerate it until they exactly match the gold labels, keeping only label-faithful analyses. Each training example is a pair (𝜏, 𝑐 ): the trajectory 𝜏 as input and the analysis 𝑐 , ending in a per-step verdict ˆ 𝑦 = ( ˆ𝑦 1, . . . , ˆ𝑦 𝑇 ), as the target. This yields 2 ,416 label-faithful trajectories, which we release; from these we train Scout on a 1 ,904-trajectory subset (Table 7). The distribution of incorrect steps per trajectory is in Figure 13. 
+
+Supervised fine-tuning. We first fine-tune Scout on the (𝜏, 𝑐 ) pairs. The input 𝑥 is the trajectory together with the judging rubric and output format, and the target is the analysis 𝑐 = (𝑐 1, . . . , 𝑐 |𝑐 | ),which reasons through every step and ends in the per-step verdicts ˆ 𝑦 = ( ˆ𝑦 1, . . . , ˆ𝑦 𝑇 ). Supervised fine-tuning minimizes the next-token loss over the target tokens only, 
+
+LSFT (𝜃 ) = − 𝔼 (𝑥,𝑐 )∼D SFT 
+
+> |𝑐 |
+
+∑︁ 
+
+> 𝑡 =1
+
+log 𝜋 𝜃 (𝑐 𝑡 | 𝑥, 𝑐 <𝑡 ),
+
+with the loss masked on the prompt tokens so the model learns to produce the analysis rather than reproduce the input. We fine-tune all parameters for 3 epochs at a learning rate of 1 ×10 −5, with a 128K-token context to fit the long trajectories. This teaches Scout the analysis format and the basic skill of judging a trajectory step by step from accurate demonstrations; the reinforcement-learning stage below then optimizes its judgments directly. The supervised fine-tuning training loss is shown in Extended Data Fig. 14. 
+
+Reinforcement learning. Supervised fine-tuning trains Scout to imitate fixed demonstrations, but it never learns from its own analyses. We therefore further train it with reinforcement learning on the same trajectories: Scout generates its own analyses, and we reward those whose verdicts match the gold labels, reinforcing accurate judgments and suppressing inaccurate ones. We use Group Relative Policy Optimization (GRPO) (Guo et al., 2025; Shao et al., 2024). For each trajectory 𝜏 we sample a group of 𝐺 analyses {𝑜 1, . . . , 𝑜 𝐺 } from the current policy 𝜋 𝜃 old , score each against the gold labels with the reward 𝑟 𝑖 below, and form the group-normalized advantage ˆ 𝐴 𝑖 = (𝑟 𝑖 − mean ({ 𝑟 𝑗 }))/ std ({ 𝑟 𝑗 }) .
+
+> 10 Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+GRPO then maximizes 
+
+JGRPO (𝜃 ) = 𝔼 𝜏 ∼D , {𝑜 𝑖 }∼ 𝜋 𝜃 old 
+
+"
+
+1
+
+𝐺 
+
+> 𝐺
+
+∑︁ 
+
+> 𝑖 =1
+
+1
+
+|𝑜 𝑖 | 
+
+> |𝑜 𝑖 |
+
+∑︁ 
+
+> 𝑡 =1
+
+min  𝜌 𝑖,𝑡 ˆ𝐴 𝑖 , clip (𝜌 𝑖,𝑡 , 1−𝜖, 1+𝜖 ) ˆ𝐴 𝑖 
+
+ − 𝛽 𝐷 KL (𝜋 𝜃 ∥ 𝜋 ref )
+
+#
+
+,
+
+where 𝜌 𝑖,𝑡 = 𝜋 𝜃 (𝑜 𝑖,𝑡 | 𝜏, 𝑜 𝑖,<𝑡 )/ 𝜋 𝜃 old (𝑜 𝑖,𝑡 | 𝜏, 𝑜 𝑖,<𝑡 ) is the policy ratio and 𝛽 weights a KL penalty to a fixed reference policy 𝜋 ref . We sample 𝐺 =4 analyses for each of 32 trajectories per step (128 rollouts), with responses up to 8K tokens, and train for 8 epochs at an actor learning rate of 1 ×10 −6 and KL coefficient 𝛽 =0.001. We implement training in verl (Sheng et al., 2024). 
+
+Reward design. The reward maps an analysis to a scalar by comparing its per-step verdicts to the gold labels. Write the verifier’s recall on the truly-correct steps as 𝑅 c and on the truly-incorrect steps as 
+
+𝑅 i. The natural choices fail on long trajectories. Requiring every step to match gives almost no signal: one wrong label among many zeroes the reward, so the model rarely sees a gradient. Averaging the two recalls, (𝑅 c + 𝑅 i)/ 2, has the opposite flaw: labeling every step correct gives 𝑅 c=1 and 𝑅 i=0, scoring 0 .5 while catching no mistakes, and because most steps are in fact correct (Table 7), this degenerate strategy is hard to beat. This is exactly the over-flagging we measure in frontier judges (Section 3), reappearing as a reward-hacking trap. We instead score steps by the product 𝑅 c · 𝑅 i, which is high only when the model both leaves correct steps alone and catches real mistakes: labeling every step correct sets 𝑅 i=0 and labeling every step incorrect sets 𝑅 c=0, collapsing the reward either way. The product alone, however, is 0 on a failed trajectory until the model catches at least one real mistake, so when no sampled analysis in a GRPO group does, all rewards are 0 and the group provides no gradient. We therefore add a coarse trajectory-level term rewarding a correct overall verdict, giving the full reward 
+
+𝑟 = 0.7 · 𝑅 step + 0.3 · 𝟙 [ˆ𝑔 = 𝑔 ], 𝑅 step =
+
+
+
+𝑅 c · 𝑅 i failed trajectory ,
+
+𝟙 [all steps labeled correct ] correct trajectory ,
+
+(1) where 𝟙 [ˆ𝑔 = 𝑔 ] is 1 when the predicted trajectory verdict matches the gold. On correct trajectories the product is undefined, since there are no incorrect steps for 𝑅 i, so the step score instead rewards labeling every step correct. The verdict term gives an early, learnable signal before the model can localize. As a format requirement, an analysis with no parseable verdict receives reward 0. 
+
+2.5. Evaluation protocol 
+
+We evaluate first-mistake localization and error detection in two ways: across frontier models judging the full Traverse benchmark, which measures how well current models locate failure, and for the trained Scout on a held-out test set, which measures what the recipe learns. We then evaluate test-time performance separately: whether a verifier, used to select among an agent’s candidate trajectories, improves the agent’s success on real tasks. 
+
+First-mistake localization. A verifier reads a trajectory 𝜏 and predicts the first-mistake index ˆ 𝑚 , the step at which the run first goes wrong. On failed trajectories we score ˆ 𝑚 against the gold first mistake  
+
+> 11 Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+> 𝑚
+
+by exact match 𝟙 [ ˆ𝑚 = 𝑚 ], within-𝑘 tolerance 𝟙 [| ˆ𝑚 − 𝑚 | ≤ 𝑘 ] for 𝑘 ∈ { 1, 3}, and mean absolute error 
+
+| ˆ𝑚 − 𝑚 |. We evaluate six frontier models as judges on the full Traverse benchmark to measure how well current models localize failure. We then evaluate the trained Scout (SFT-only and SFT+RL) on a decontaminated held-out test set of 258 trajectories (207 TerminalBench, 51 SWE-bench) disjoint from its training data, comparing it against frontier verifiers. The same evaluations run on agentic science (BixBench), which Scout never sees in training, testing whether the ability transfers from coding to long-horizon AI-for-science tasks. 
+
+Error detection. The same prediction yields a trajectory-level judgment, 𝑔 (𝜏 ) = 𝟙 [ ˆ𝑚 ≠ ⊥] , of whether the run failed at all. We score it over all trajectories by precision, recall, and F1, reporting F1 because a useful detector must both flag failed runs and leave correct ones unflagged. As with localization, we evaluate frontier judges on the full benchmark and the trained Scout on the held-out test set (133 failed, 125 correct), in and out of domain. Because detection reduces to one verdict per trajectory, it also measures the quality of LLM-as-a-judge and verifiers acting as outcome reward models. 
+
+Test-time performance. Another common way to measure a verifier’s effectiveness is its effect on agent performance at test time, through best-of-𝑁 selection: ranking an agent’s candidate trajectories with the verifier and acting on the highest-ranked one(Zhang et al., 2025). Given 𝑁 candidate trajectories for a task, we score each by Scout ’s probability of judging it correct, 𝑃 (Yes ), select the highest-scoring one, and check whether it passed. We evaluate on four benchmarks: for SWE-bench Verified (500 instances, 1 ,498 trajectories) and Terminal-Bench 2.0 (89 tasks, 445 trajectories) we use the trajectories of Kwok et al. (2026), and for DeepSWE and BixBench we generate 𝑁 =16 candidates per task ourselves, which we release. We compare Scout against the same frontier models used as verifiers, and mark two reference lines: single-sample success, the expected result of one randomly chosen trajectory, and oracle selection, which picks a passing trajectory whenever one exists. A useful verifier moves success from the single-sample floor toward the oracle ceiling. 
+
+3. Results 
+
+3.1. How long-horizon agents fail A fine-grained taxonomy of long-horizon failure. To characterize how long-horizon agents fail, we use multiple LLM judges (Methods, Section 2.2) to classify every mistake in every failed trajectory against a fixed, pre-registered codebook of 88 categories in 10 families (Fig. 2; definitions in Table 3). We compiled the codebook before judging, from an initial analysis of failed trajectories and the LLM-agent literature; it is exhaustive by design, with 10 of its 88 categories defined in advance yet never observed, so it covers the space of failures rather than being fitted to the data. Across 6 ,967 classified mistakes from software-engineering and computer-use trajectories, failure concentrates in how an agent acts and plans: action and planning faults make up about 69% of all mistakes (45 .1% and 24 .0%), while the five rarest families together account for under 9%. The single most common 
+
+> 12
+
+Locating Hidden Failures Makes Long-Horizon Agents More Reliable ACTION · execution 45.1% · 14 cats PLANNING & STRATEGY 24.0% · 8 cats 
+
+REASONING & INFERENCE 10.8% · 10 cats 
+
+TOOL & ENVIRONMENT 6.9% · 11 cats 
+
+METACOGNITION 4.3% · 2 cats 
+
+TERMINATION 2.7% · 7 cats 
+
+VERIFICATION & TESTING 2.6% · 6 cats 
+
+PERCEPTION 1.5% · 8 cats 
+
+MEMORY & CONTEXT 1.2% · 8 cats 
+
+OUTPUT / FORMATTING 0.9% · 4 cats                                                                                              
+
+> invalid / rejected 12.7% n=887 L
+> wrong parameters 6.4% n=445 L
+> repeated same action 6.4% n=445 L
+> malformed syntax 3.8% n=267 M
+> action ≠ intent 3.1% n=213 L
+> wrong target 3.0% n=212 M
+> incomplete edit 2.8% n=195 L
+> no-op / ineffective 2.3% n=159 M
+> destructive action 1.2% n=82 L
+> wrong tool chosen 1.1% n=74 M
+> other (<1% each) 2.4% n=165 L
+> flawed strategy 14.8% n=1029 L
+> drifted off task 4.5% n=316 L
+> ignored a constraint 1.9% n=132 L
+> over-complicated 1.3% n=89 M
+> other (<1% each) 1.6% n=108 L
+> false assumption 3.6% n=253 M
+> misdiagnosed cause 1.8% n=128 M
+> hallucinated facts 1.4% n=98 E
+> ignored evidence 1.2% n=85 M
+> other (<1% each) 2.7% n=185 L
+> wrong env assumption 3.5% n=241 E
+> tool / API misuse 1.3% n=89 M
+> other (<1% each) 2.1% n=149 E
+> failed to adapt 3.7% n=260 L
+> other (<1% each) 0.5% n=37 L
+> premature 'done' 1.1% n=79 L
+> other (<1% each) 1.6% n=110 L
+> other (<1% each) 2.6% n=182 L
+> other (<1% each) 1.5% n=102 L
+> other (<1% each) 1.2% n=86 L
+> other (<1% each) 0.9% n=65 L
+
+EMERGENT · deception / reward-hacking 
+
+> 32 of 101 emergent proposals describe agents FABRICATING success instead of solving (8/21 at the first mistake):
+> faked solution · simulated completion · fabricated output · fake verification · placeholder / mock · task evasion
+> almost all in Computer Use (terminal) science-style tasks — the same place unsafe actions concentrate (see safety figure).
+
+How to read each row       
+
+> bar = root (solid) + cascade (faded) phase: Eearly Mmid Llate
+> Bar length = category share of all classified mistakes. Categories below 1% share are pooled into 'other (<1% each)'; the header '· N cats' counts all observed categories in that family. Each bar is split into root (fresh) vs cascade (downstream) fraction; the phase tag (E/M/L) marks where along the horizon it most often occurs.
+
+Figure 2 | A fine-grained taxonomy of long-horizon agent failures. The 88 failure categories (78 observed; 10 defined a priori but never observed, shown greyed), grouped into 10 families, span all 6 ,967 classified mistakes from agentic software-engineering (SWE-bench) and computer-use (TerminalBench) trajectories; agentic science (BixBench) is characterized at the first-mistake level. Each row is one category: bar length is its share of all classified mistakes, split into a root fraction (solid, a new fault) and a cascade fraction (faded, fallout from an earlier error); the phase tag (E, M, L) marks whether it lands in the first, middle, or last third of the run. Each family header gives the family’s share and its number of categories. Full category definitions are in Table 3. mistake is a flawed high-level strategy, an approach that cannot solve the task; invalid or rejected commands and repeated actions lead the action family; and setup faults, such as assuming a tool or version that is not there, cluster early in a run. But what fails most is not what causes failure. We distinguish each mistake as either a root fault, a fresh error the agent originates, or a cascade , a downstream consequence of an earlier one. Action, the largest family, is only 35% root: its invalid commands and repeated actions are usually cascades, symptoms of a fault made several steps earlier. The originating faults sit upstream, in reasoning (69% root), tool and environment (75%), and memory (74%): the false beliefs and faulty assumptions that set off a cascade the rest of the run inherits. 
+
+The failure signature. Once an agent makes its first mistake, the earliest step it gets wrong, three things tend to follow, and together they form the failure signature (Fig. 3b). The agent never recovers, and so never solves the task, in 69 .5% of these runs; it never notices the mistake in 38 .5%; and it keeps going, issuing new actions or declaring the task done, in 72 .6%. All three happen in the same run in 13 .7%. That first mistake is most often a reasoning or planning error, one of the root faults identified above, in 46% of the runs that go wrong (Fig. 3a). And when an agent does notice its mistake, it is usually only after the environment flags it with an error message; on its own, with nothing visibly broken, it catches the mistake in only about one run in seven. The real danger of a long-horizon task is therefore not that agents make more mistakes, but that they so rarely catch and correct the first one: left unnoticed, or noticed but not undone, it carries through to the end of the run. This pattern describes runs that hinge on a single first mistake; in about 43% of the runs that fail the task there is no such turning point, and the failure builds up gradually instead. We characterize these runs separately (Extended Data Fig. 7). 
+
+13 Locating Hidden Failures Makes Long-Horizon Agents More Reliable 
+
+Errors cascade, and the run ends silently. An uncorrected first mistake rarely stays isolated. Each step in a run is labelled correct or incorrect. From these labels alone, with no LLM judge: after a correct step the agent’s next step is wrong only 3 .0% of the time in software engineering and 5 .3% in computer use, but right after a wrong step it is wrong 40 .4% and 58 .1%, a 13 .7× and 10 .9× jump (Fig. 3d). Because one error makes the next far more likely, the longer a run goes the more of its mistakes are inherited rather than fresh: the share that are root (fresh) faults rather than cascade 
+
+(inherited) ones falls from 58% in the first third of the run to 39% in the last (Fig. 3e), and the late steps fill with faults in wrapping the task up, wrongly checking the work or declaring it done (Extended Data Fig. 8). And yet these failures are silent. By the same labels, in 84 .1% of failed software-engineering and computer-use runs the final step looks correct on its own, showing no error or sign that anything went wrong (Fig. 3f). The run ends as if it had succeeded, even though the task was never solved. 
+
+Different domains fail for different reasons. Software engineering and computer use fail in opposite ways, and the difference is the environment (Fig. 3c). Software-engineering agents miss their mistakes, their own reasoning overlooking the error in 76% of cases, yet they solve the task 72% of the time, because the environment checks their work for them: a failing test or a traceback catches the error, and a passing test confirms the fix, even when their reasoning does not. Computer-use agents are the reverse: they usually notice the mistake but solve only 19% of the time, because their environment does not provide the same rich feedback, so noticing a problem rarely turns into a verified fix. Agentic science, which we measure at the first-mistake level, fails on both counts at once, missing its mistakes and failing to fix them. The signature recurs under all four harnesses we examine (mini-SWE-agent, OpenHands, Terminus2 and SWE-agent), so it is a property of long-horizon agency, not of any one model or scaffold. Where the harnesses differ, the differences follow the tasks and domains each was run on, not the harness design: how an agent fails depends on the task and the feedback its environment provides, not the scaffold around it. 
+
+Task success is not safety. A task scored as solved can still do real harm. A safety audit flagged 65 unsafe actions across the trajectories: every one was unnecessary for the task, 97% were taken without the agent acknowledging any risk, and 75% were irreversible. Most were high-severity destructive operations on files, data, or databases. Many arose under pressure: late in a long run, as the context filled, the agent cleared files or freed resources to keep going. In one run it deleted its environment’s installed packages; in another it killed the process recording its own session, with the task still scored as solved. The action cannot be undone, so the loss is permanent, and because the run ends clean, no error ever marks it. These actions mostly escape simple checks: a regex scan misses 77% of them, so only a full read of the trajectory catches them (Extended Data Fig. 9). Reading the trajectories also turned up a hazard we had not anticipated: agents that fake success instead of earning it, writing placeholder or mock solutions, simulating a finished run, or forging a passing check, most often in open-ended, science-style tasks with no automatic check to expose the fake. A passing trajectory can thus hide irreversible harm or faked success, so the outcome alone cannot tell a safe, genuine solution from a dangerous or hollow one. 
+
+> 14 Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+Table 1 | First-mistake localization on incorrect trajectories, across three long-horizon domains: SWE-bench (Jimenez et al., 2024), TerminalBench (Merrill et al., 2026), and BixBench (Mitchener et al., 2025). Exact = predicted step matches ground truth (%), ±1 and ±3 = prediction within 1 or 3 steps (%), MAE = Mean Absolute Error (lower is better).                                                                                       
+
+> SWE-bench TerminalBench BixBench Judge Model Exact ↑±1↑±3↑MAE ↓Exact ↑±1↑±3↑MAE ↓Exact ↑±1↑±3↑MAE ↓
+> Gemini 3.1 Pro 26.80 37.25 45.75 7.62 29.94 37.71 53.23 7.36 57.89 76.32 81.58 1.84 Gemini 3.0 Flash 12.09 21.90 30.72 11.20 32.16 42.14 54.16 7.09 50.00 68.42 81.58 1.95 Claude Opus 4.6 7.19 11.76 17.32 14.28 24.58 31.28 41.90 8.60 39.47 57.89 76.32 2.08 GPT-5.5 21.90 33.66 48.69 6.90 32.34 41.45 53.53 6.74 63.16 73.68 78.95 1.47
+> DeepSeek V4 Pro 17.88 23.84 31.46 10.72 27.73 35.67 46.77 8.01 36.84 65.79 84.21 2.18 Qwen 3.5-397B 19.06 23.41 32.44 10.06 22.74 29.21 39.93 8.89 52.63 71.05 84.21 1.89
+
+3.2. Frontier models cannot locate failure Locating failure is hard. A long-horizon failure originates at a single step and then propagates through the rest of the run (Section 3.1), so locating that step is what makes a failure understandable and what underlies debugging, evaluation, and the reward models used to train and scale agents (Methods, Section 2.3). We test whether current models can do this, evaluating six frontier judges: four proprietary (Gemini 3.1 Pro, Gemini 3.0 Flash, Claude Opus 4.6, GPT-5.5) and two frontier open-weight models (DeepSeek V4 Pro, Qwen 3.5-397B). Across the long-horizon coding domains they pinpoint the first mistake on only a minority of runs, and often far fewer: on agentic software engineering (SWE-bench) exact-match accuracy ranges from 7 .2% (Claude Opus 4.6) to 26 .8% (Gemini 3.1 Pro), and on agentic computer use (TerminalBench) from 22 .7% to 32 .3% (GPT-5.5), with no model exceeding a third on either (Table 1). They struggle on agentic science (BixBench) as well, the strongest reaching only 63 .2% despite its much shorter runs. The models sense roughly where a run derails but rarely land on it: relaxing the criterion to a three-step tolerance nearly doubles accuracy, with GPT-5.5 rising from 21 .9% to 48 .7% on software engineering and Gemini 3.1 Pro from 26 .8% to 45 .8%, so the models often place the mistake within a few steps of the true one but not on it. No single model leads across domains, and the large frontier open-weight models (DeepSeek V4 Pro, Qwen 3.5-397B) struggle as much as the proprietary judges, reaching only 17 .9% and 19 .1% exact match on software engineering, so locating failure is a capability none of these models has acquired regardless of scale. 
+
+Difficulty grows with the horizon. Localization gets harder as trajectories lengthen. Exact-match accuracy, which does not depend on trajectory length, falls from 63 .2% on the short agentic science runs (BixBench) to at most 26 .8% on the long software engineering runs; mean error rises in parallel, from 1 .47 steps for GPT-5.5 on science to 6 .9 for the same model on software engineering and up to 14 .3 across models. Because length and domain vary together here, we confirm the effect within each domain: holding the domain fixed, localization error is largest on the longest trajectories [Extended Data Fig. X: exact match and MAE vs. trajectory length, per domain], so the horizon itself, not the 
+
+> 15 Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+domain, drives the difficulty. Locating failure is therefore a genuine open capability, and hardest on the longest trajectories, exactly the long-horizon runs that real-world agent deployments depend on. 
+
+Detecting failure is easier than locating it. If models cannot say where a run failed, can they at least tell whether the entire trajectory is correct or incorrect? This binary judgment is far easier, and it matters in its own right: it is exactly the signal an outcome reward model provides, the judgment of whether a trajectory succeeded that is used to score and reinforce policies when training long-horizon agents (GLM-5-Team et al., 2026). Detection F1 reaches 69 .9% on agentic software engineering (GPT-5.5), 88 .2% on agentic computer use (Claude Opus 4.6), and 80 .0% on agentic science (GPT-5.5, Table 2), well above the corresponding exact-localization rates: knowing that a trajectory went wrong is a much easier judgment than knowing where. Unlike localization, detection difficulty does not track the horizon: agentic computer use (TerminalBench) trajectories are as long as software engineering ones yet are detected far more reliably ( ∼88% versus ∼70% F1). Yet no judge detects failure cleanly: every model is systematically biased, trading the failures it catches against the correct runs it wrongly flags. 
+
+Every judge is biased toward over- or under-flagging. The bias appears in the trade-off between precision (of the runs a model flags as failed, how many truly failed) and recall (of the runs that truly failed, how many it catches), and the models sit at opposite extremes. GPT-5.5 is the most sensitive detector, with the highest recall on both coding domains (82 .0% on software engineering, 97 .8% on computer use), but it over-flags: its software-engineering precision falls to 60 .9%, so roughly two in five of the runs it calls failed were in fact correct. Claude Opus 4.6 is the opposite, highly precise (66 .0% on software engineering, and 100% on science, where every run it flagged as failed truly had) but missing most real failures, with software-engineering recall of just 31 .7%, so it overlooks roughly two-thirds of failed runs and its F1 collapses to 42 .8%. One model raises false alarms, the other stays silent through real failures, and none balances the two. This asymmetry undermines every use that depends on a reliable verdict: a judge that over- or under-flags misleads debugging when it points to the wrong runs, degrades inference-time selection when it ranks candidates by a biased score, and distorts the reward signal when used as an outcome reward model in reinforcement learning. The over-flagging in particular is the same failure mode that a naive training reward reproduces (Methods, Section 2.4), and closing this gap is what a trained verifier must do. 
+
+> 16 Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+Table 2 | Error detection: distinguishing correct from incorrect trajectories. Positive class = trajectory contains an error. Precision, recall, and F1 (%) are computed over all trajectories. 
+
+SWE-bench TerminalBench BixBench Judge Model Prec. ↑ Recall ↑ F1 ↑ Prec. ↑ Recall ↑ F1 ↑ Prec. ↑ Recall ↑ F1 ↑
+
+Gemini 3.1 Pro 60.34 70.59 65.06 80.65 97.04 88.09 67.39 81.58 73.81 Gemini 3.0 Flash 65.29 62.09 63.65 82.79 93.35 87.75 85.71 63.16 72.73 Claude Opus 4.6 65.99 31.70 42.83 84.47 92.18 88.16 100.00 57.89 73.33 GPT-5.5 60.92 82.03 69.92 78.62 97.77 87.16 81.08 78.95 80.00 
+
+DeepSeek V4 Pro 63.69 66.23 64.94 79.30 92.05 85.20 63.41 68.42 65.82 Qwen 3.5-397B 58.20 73.58 64.99 80.46 84.47 82.42 69.23 71.05 70.13 SCOUT  
+
+> Verifier
+> Gemini 3.1 Pro Verifier
+> Gemini 3.0 Flash Verifier
+> Opus 4.6 Pass@1
+> GPT 5.4 Pass@1
+> Gemini 3.5 Flash Pass@1
+> Terminal-Bench 2.0
+
+90.2% 84.3% 80.9% 81.8% 81.8% 67.4%  
+
+> SWE-Bench Verified
+
+78.0% 75.8% 77.4% 75.6% 76.2% 76.8% 
+
+Figure 4 | A small trained verifier improves long-horizon agents more than frontier verifiers. 
+
+Best-of-𝑁 task success (%) when each verifier selects among an agent’s candidate trajectories, on Terminal-Bench 2.0 and SWE-Bench Verified. Scout , a 4B-parameter verifier (highlighted), is compared against two frontier verifiers (Gemini 3.1 Pro and Gemini 3.0 Flash) and, as a reference, the single-sample pass@1 of three frontier agents (Claude Opus 4.6, GPT-5.4, Gemini 3.5 Flash). Selecting with Scout raises success to 90 .2% on Terminal-Bench 2.0 and 78 .0% on SWE-Bench Verified, above every frontier verifier and above the pass@1 of agents far larger than itself, with the candidate trajectories held fixed across all selectors. 
+
+3.3. Trained verifiers improve long-horizon agents Selecting with the verifier raises agent success. We use Scout to improve agent performance at test time: given the several candidate trajectories an agent produces for a task, it scores each and we keep the highest-scoring one, on the candidate sets described in Methods (Section 2.5). Selecting with Scout raises task success to 90 .2% on Terminal-Bench 2.0 and 78 .0% on SWE-Bench Verified (Fig. 4), above the pass@1 of the frontier agents themselves, including Claude Opus 4.6 (81 .8% and 75 .6%): a 4B verifier, by choosing among an agent’s attempts, yields higher success than agents far larger than it reach on their own. Compared against much larger general-purpose frontier models used as the verifier, Scout still selects best, exceeding Gemini 3.1 Pro (84 .3% and 75 .8%) and Gemini 3.0 Flash (80 .9% and 77 .4%) on both benchmarks, with all selectors drawing from the 
+
+> 17 Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+same fixed pool of candidates so that the gain reflects the quality of Scout ’s judgment rather than the candidates available. The margin is larger on Terminal-Bench 2.0 than on SWE-Bench Verified, consistent with most of Scout ’s training trajectories coming from the terminal domain. Even so, the result shows that a small model trained on high-quality failure annotations (Section 2.4) can improve long-horizon agents purely at test time, with no retraining of the agent. 
+
+4. Discussion 
+
+The central lesson of this work is that long-horizon failure is not primarily a problem of error frequency. Agents on long tasks do not fail because they make more mistakes than they do on short ones; they fail because a single early mistake is rarely caught and rarely reversed. Our characterization shows that once an agent makes its first mistake it seldom recovers and rarely even detects it, continuing on a corrupted state to the end of the run [recovery and self-detection rates]. The difficulty of a long horizon is therefore one of irreversibility and self-blindness: the agent cannot see the error it has made, and so cannot find its way back. This reframes what reliability requires. Making long-horizon agents reliable is less a matter of lowering their error rate than of catching and correcting the first error before it compounds, and that, in turn, depends on being able to locate it. The rest of our findings show that this is feasible: the first mistake can be located, the skill of locating it is learnable by a small and inexpensive model rather than a property of frontier scale, and a model with this skill measurably improves real agents. Reliability at long horizons is thus achievable not by building agents that never err, but by building the means to find and correct the first error when they do. Building that means depends on measuring it, and this is where the step-level record becomes more than a description of failure. The same signal that maps how agents fail, a human-verified first-mistake label on every trajectory, also grades any model that tries to catch those failures: a verifier, an LLM judge, or an outcome reward model is scored not on whether it agrees with the final outcome but on whether it identifies where a run went wrong. This matters because of how agents are now built. They are increasingly trained with reinforcement learning and scaled at test time, and both rely on a verifier or reward model to score behavior, yet those models have themselves been evaluated almost only on outcomes. An outcome-accurate reward model can still be wrong about every step that produced the outcome, and our results show frontier judges routinely are, biased toward over- or under-flagging in ways that an outcome-level score never reveals. Process-level training and test-time selection need a verifier that is right about where , and that is precisely the axis our instrument measures. By grading the tools on the same signal that characterizes the phenomenon, the record turns failure localization from an unmeasured assumption into a quantity the field can optimize. These claims rest on choices that bound them, and we state the main ones plainly. The first concerns the labels themselves: the first mistake in a trajectory is a human judgment, and although our annotators agree substantially (Cohen’s 𝜅 = 0.77 on whether a run failed, 0 .73 on where), agreement is not perfect, and the notion of a single first mistake is cleanest when a run derails at an identifiable step and least clean when the failure is diffuse, building gradually across several weak decisions 
+
+> 18 Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+rather than one wrong one. This is also a modeling choice: by locating failure at one decisive index we capture the common case in which an early error compounds, but we necessarily simplify failures that are genuinely multi-causal or that have no single point of origin. Our evidence is also bounded in scope. We study three domains in which long-horizon agents are already deployed, but agentic work extends to embodied, multimodal, and multi-user settings we do not test, and whether the patterns we report hold there is open. Finally, we distinguish what the data firmly support from what we report as directional. The failure taxonomy and the frontier localization gap rest on large, human-verified samples and are robust; the recovery and self-detection finding and the cross-domain contrasts are based on smaller samples and we present them as directional, developing them further below [pending the recovery and cross-domain analyses]. We are explicit about this boundary so that the strongest claims of the paper are not read as resting on its most preliminary measurements. What this opens is more consequential than what it closes. If the first mistake can be located, it can be caught while a run is still in progress: a verifier that flags the decisive error as it happens lets an agent stop, reconsider, and back out before the error compounds, turning the irreversibility we document into something correctable. This speaks directly to the failure we identify, that agents do not recover on their own; an external signal can supply the recovery they lack. The same step-level signal also points beyond test-time correction to how agents are trained. Reinforcement learning for long-horizon agents today rests largely on outcome rewards, which give one late, sparse signal for an entire trajectory; a verifier that is accurate about where a run goes wrong is exactly the dense, process-level reward such training needs, crediting the steps that were right and penalizing the one that was not. The furthest reach is to fold this capability inward. The verifier we train is external to the agent, but the ability it embodies, reading a trajectory and finding where it broke, is one an agent could eventually turn on itself, closing the gap between making a mistake and seeing it. An agent that can locate its own failures is an agent that can learn from them, and the tools we release is a step toward measuring, and then building, that capability. 
+
+References 
+
+D. A. Alber, Z. Yang, A. Alyakin, E. Yang, S. Rai, A. A. Valliani, J. Zhang, G. R. Rosenbaum, A. K. Amend-Thomas, D. B. Kurland, et al. Medical large language models are vulnerable to data-poisoning attacks. Nature Medicine , 31(2):618–626, 2025. Anthropic. Claude fable 5 and claude mythos 5. https://www.anthropic.com/news/[exact-slug] ,June 2026. Accessed: 2026-06-22. Y. Bengio, G. Hinton, A. Yao, D. Song, P. Abbeel, T. Darrell, Y. N. Harari, Y.-Q. Zhang, L. Xue, S. Shalev-Shwartz, et al. Managing extreme ai risks amid rapid progress. Science , 384(6698):842–845, 2024. D. A. Boiko, R. MacKnight, B. Kline, and G. Gomes. Autonomous chemical research with large language models. Nature , 624(7992):570–578, 2023. S. R. Bowman, J. Hyun, E. Perez, E. Chen, C. Pettit, S. Heiner, K. Lukoši¯ ut˙ e, A. Askell, A. Jones, 
+
+> 19 Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+A. Chen, et al. Measuring progress on scalable oversight for large language models. arXiv preprint arXiv:2211.03540 , 2022. T. Brown, B. Mann, N. Ryder, M. Subbiah, J. D. Kaplan, P. Dhariwal, A. Neelakantan, P. Shyam, G. Sastry, A. Askell, et al. Language models are few-shot learners. Advances in neural information processing systems , 33:1877–1901, 2020. M. Cemri, M. Z. Pan, S. Yang, L. A. Agrawal, B. Chopra, R. Tiwari, K. Keutzer, A. Parameswaran, D. Klein, K. Ramchandran, et al. Why do multi-agent llm systems fail? Advances in Neural Information Processing Systems , 38, 2026. H. Chae, S. Kim, J. Cho, S. Kim, S. Moon, G. Hwangbo, D. Lim, M. Kim, Y. Hwang, M. Gwak, et al. Web-shepherd: Advancing prms for reinforcing web agents. Advances in Neural Information Processing Systems , 38:63314–63356, 2026. H. Chen, D. Metelski, L. Qi, T. Xia, J. Lee, S. Brown, K. Riley, F. Wang, T. Liu, H. C. MD, et al. Chi-bench: Can ai agents automate end-to-end, long-horizon, policy-rich healthcare workflows? arXiv preprint arXiv:2605.16679 , 2026. E. Chu, R. Agarwal, A. Thangamuthu, B. Graham, J. Mattern, F. Jiang, P. Cento, S. Jain, M. Abbasi, M. H. Rezaei, G. Wang, A. Zhang, S. Guo, K. Nguyen, D. Liu, A. Bidgoli, A. Dalmia, A. Dankar, A. Vaddela, C. Chen, K. Kumar, K. Vaish, N. Pour, R. Kondra, S. Badiyani, S. Giri, S. Das, S. Gaikwad, S. Shah, V. Dilawari, and V. Agarwal. Frontierswe. Proximal Blog , 2026. https://frontierswe.com/blog. X. Deng, J. Da, E. Pan, Y. Y. He, C. Ide, K. Garg, N. Lauffer, A. Park, N. Pasari, C. Rane, et al. Swe-bench pro: Can ai agents solve long-horizon software engineering tasks? arXiv preprint arXiv:2509.16941 ,2025. D. Deshpande, V. Gangal, H. Mehta, J. Krishnan, A. Kannappan, and R. Qian. Trail: Trace reasoning and agentic issue localization. arXiv preprint arXiv:2505.08638 , 2025. C. Farabet and O. Lacombe. Gemma 4: Byte for byte, the most capable open models. URL https://blog. google/innovation-and-ai/technology/developers-tools/gemma-4 , 2026. S. Farquhar, J. Kossen, L. Kuhn, and Y. Gal. Detecting hallucinations in large language models using semantic entropy. Nature , 630(8017):625–630, 2024. M. Favaro and J. Clark. When ai builds itself: Our progress toward recursive self-improvement, and its implications. https://www.anthropic.com/institute/recursive-self-improvement , 2026. Accessed: 2026-06-23. R. Geirhos, J.-H. Jacobsen, C. Michaelis, R. Zemel, W. Brendel, M. Bethge, and F. A. Wichmann. Shortcut learning in deep neural networks. Nature Machine Intelligence , 2(11):665–673, 2020. GLM-5-Team, A. Zeng, et al. Glm-5: from vibe coding to agentic engineering, 2026. URL https: //arxiv.org/abs/2602.15763 .
+
+> 20 Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+J. Gottweis, W.-H. Weng, A. Daryin, T. Tu, P. Sirkovic, A. Myaskovsky, G. Glowaty, F. Weissenberger, A. Orlandi, D. Popovici, et al. Accelerating scientific discovery with co-scientist. Nature , pages 1–3, 2026. R. Greenblatt, C. Denison, B. Wright, F. Roger, M. MacDiarmid, S. Marks, J. Treutlein, T. Be-lonax, J. Chen, D. Duvenaud, et al. Alignment faking in large language models. arXiv preprint arXiv:2412.14093 , 2024. D. Guo, D. Yang, H. Zhang, J. Song, P. Wang, Q. Zhu, R. Xu, R. Zhang, S. Ma, X. Bi, et al. Deepseek-r1 incentivizes reasoning in llms through reinforcement learning. Nature , 645(8081):633–638, 2025. P. Hager, F. Jungmann, R. Holland, K. Bhagat, I. Hubrecht, M. Knauer, J. Vielhauer, M. Makowski, R. Braren, G. Kaissis, et al. Evaluation and mitigation of the limitations of large language models in clinical decision-making. Nature medicine , 30(9):2613–2622, 2024. K. Huang, S. Zhang, H. Wang, Y. Qu, Y. Lu, Y. Roohani, R. Li, L. Qiu, G. Li, J. Zhang, et al. Biomni: A general-purpose biomedical ai agent. biorxiv , 2025. C. E. Jimenez, J. Yang, A. Wettig, S. Yao, K. Pei, O. Press, and K. Narasimhan. Swe-bench: Can language models resolve real-world github issues? In International Conference on Learning Representations ,volume 2024, pages 54107–54157, 2024. A. T. Kalai, O. Nachum, S. S. Vempala, and E. Zhang. Evaluating large language models for accuracy incentivizes hallucinations. Nature , pages 1–3, 2026. N. Köbis, Z. Rahwan, R. Rilla, B. I. Supriyatno, C. Bersch, T. Ajaj, J.-F. Bonnefon, and I. Rahwan. Delegation to artificial intelligence can increase dishonest behaviour. Nature , 646(8083):126–134, 2025. J. Kwok, S. Li, P. Atreya, Y. Liu, M. Pavone, I. Stoica, and A. Mirhoseini. Llm-as-a-verifier: A general-purpose verification framework, 2026. Notion Blog. D. Li, Y. Yao, Z. Tan, H. Liu, and R. Guo. Toolprmbench: Evaluating and advancing process reward models for tool-using agents. arXiv preprint arXiv:2601.12294 , 2026a. H. Li, Y. Yao, L. Zhu, R. Feng, H. Ye, J. Wang, Y. He, P. Zou, L. Zhang, X. Lei, et al. Codetracer: Towards traceable agent states. arXiv preprint arXiv:2604.11641 , 2026b. S. Lifshitz, S. A. McIlraith, and Y. Du. Multi-agent verification: Scaling test-time compute with multiple verifiers. arXiv preprint arXiv:2502.20379 , 2025. H. Lightman, V. Kosaraju, Y. Burda, H. Edwards, B. Baker, T. Lee, J. Leike, J. Schulman, I. Sutskever, and K. Cobbe. Let’s verify step by step. In International Conference on Learning Representations ,volume 2024, pages 39578–39601, 2024. C. Lu, C. Lu, R. T. Lange, Y. Yamada, S. Hu, J. Foerster, D. Ha, and J. Clune. Towards end-to-end automation of ai research. Nature , 651(8107):914–919, 2026. 
+
+> 21 Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+X. H. Lù, A. Kazemnejad, N. Meade, A. Patel, D. Shin, A. Zambrano, K. Stańczak, P. Shaw, C. J. Pal, and S. Reddy. Agentrewardbench: Evaluating automatic evaluations of web agent trajectories. arXiv preprint arXiv:2504.08942 , 2025. A. M. Bran, S. Cox, O. Schilter, C. Baldassari, A. D. White, and P. Schwaller. Augmenting large language models with chemistry tools. Nature machine intelligence , 6(5):525–535, 2024. T. Men, Z. Jin, P. Cao, Y. Chen, K. Liu, and J. Zhao. Agent-RewardBench: Towards a unified benchmark for reward modeling across perception, planning, and safety in real-world multimodal agents. In W. Che, J. Nabende, E. Shutova, and M. T. Pilehvar, editors, Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 17521–17541, Vienna, Austria, July 2025. Association for Computational Linguistics. ISBN 979-8-89176-251-0. doi: 10.18653/v1/2025.acl-long.857. URL https://aclanthology.org/2025.acl-long.857/ .M. A. Merrill, A. G. Shaw, N. Carlini, B. Li, H. Raj, I. Bercovich, L. Shi, J. Y. Shin, T. Walshe, E. K. Buchanan, et al. Terminal-bench: Benchmarking agents on hard, realistic tasks in command line interfaces. arXiv preprint arXiv:2601.11868 , 2026. L. Mitchener, J. M. Laurent, A. Andonian, B. Tenmann, S. Narayanan, G. P. Wellawatte, A. White, L. Sani, and S. G. Rodriques. Bixbench: a comprehensive benchmark for llm-based agents in computational biology. arXiv preprint arXiv:2503.00096 , 2025. M. Moor, O. Banerjee, Z. S. H. Abad, H. M. Krumholz, J. Leskovec, E. J. Topol, and P. Rajpurkar. Foundation models for generalist medical artificial intelligence. Nature , 616(7956):259–265, 2023. P. S. Park, S. Goldstein, A. O’Gara, M. Chen, and D. Hendrycks. Ai deception: A survey of examples, risks, and potential solutions. Patterns , 5(5), 2024. S. Rahman, S. Gorantla, A. Gupta, S. Roy, N. Peng, and Y. Liu. Spark: Stepwise process-aware rewards for reference-free reinforcement learning. arXiv preprint arXiv:2512.03244 , 2025. S. Rahman, S. Issaka, A. Suvarna, G. Liu, J. Shiffer, J. Lee, M. R. Parvez, H. Palangi, S. Feng, N. Peng, et al. Ai debate aids assessment of controversial claims. Advances in Neural Information Processing Systems , 38:170218–170297, 2026. B. Rank, H. Bhatnagar, A. Prabhu, S. Eisenberg, K. Nguyen, M. Bethge, and M. Andriushchenko. Posttrainbench: Can llm agents automate llm post-training? 2026. URL https://arxiv.org/abs/ 2603.08640 .M. S. Rashid, C. Bock, Y. Zhuang, A. Buchholz, T. Esler, S. Valentin, L. Franceschi, M. Wistuba, P. T. Sivaprasad, W. J. Kim, et al. Swe-polybench: A multi-language benchmark for repository level evaluation of coding agents. arXiv preprint arXiv:2504.08703 , 2025. J. Scheurer, M. Balesni, and M. Hobbhahn. Large language models can strategically deceive their users when put under pressure. arXiv preprint arXiv:2311.07590 , 2023. 
+
+> 22 Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+Z. Shao, P. Wang, Q. Zhu, R. Xu, J. Song, X. Bi, H. Zhang, M. Zhang, Y. Li, Y. Wu, et al. Deepseek-math: Pushing the limits of mathematical reasoning in open language models. arXiv preprint arXiv:2402.03300 , 2024. G. Sheng, C. Zhang, Z. Ye, X. Wu, W. Zhang, R. Zhang, Y. Peng, H. Lin, and C. Wu. Hybridflow: A flexible and efficient rlhf framework. arXiv preprint arXiv: 2409.19256 , 2024. N. Singhi, H. Bansal, A. Hosseini, A. Grover, K.-W. Chang, M. Rohrbach, and A. Rohrbach. When to solve, when to verify: Compute-optimal problem solving and generative verification for llm reasoning. arXiv preprint arXiv:2504.01005 , 2025. M. Song, Z. Su, X. Qu, J. Zhou, and Y. Cheng. PRMBench: A fine-grained and challenging benchmark for process-level reward models. In W. Che, J. Nabende, E. Shutova, and M. T. Pilehvar, editors, 
+
+Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 25299–25346, Vienna, Austria, July 2025. Association for Computational Linguistics. ISBN 979-8-89176-251-0. doi: 10.18653/v1/2025.acl-long.1230. URL https:// aclanthology.org/2025.acl-long.1230/ .Y. Sun, X. Han, W. Zhang, Y. Pang, T. Wang, Y. Cao, Y. Huang, C. Duroiu, H. Zhang, J. Lin, et al. Agents’ last exam. arXiv preprint arXiv:2606.05405 , 2026. K. Swanson, W. Wu, N. L. Bulaong, J. E. Pak, and J. Zou. The virtual lab of ai agents designs new sars-cov-2 nanobodies. Nature , 646(8085):716–723, 2025. N. J. Szymanski, B. Rendy, Y. Fei, R. E. Kumar, T. He, D. Milsted, M. J. McDermott, M. Gallant, E. D. Cubuk, A. Merchant, et al. An autonomous laboratory for the accelerated synthesis of inorganic materials. Nature , 624(7990):86, 2023. X. Tang, Q. Jin, K. Zhu, T. Yuan, Y. Zhang, W. Zhou, M. Qu, Y. Zhao, J. Tang, Z. Zhang, et al. Risks of ai scientists: prioritizing safeguarding over autonomy. Nature Communications , 16(1):8317, 2025. Q. Team. Qwen3 technical report, 2025. URL https://arxiv.org/abs/2505.09388 .B. Vidgen, A. Mann, A. Fennelly, J. W. Stanly, L. Rothman, M. Burstein, J. Benchek, D. Ostrofsky, A. Ravichandran, D. Sur, et al. Apex-agents. arXiv preprint arXiv:2601.14242 , 2026. H. Wang, T. Fu, Y. Du, W. Gao, K. Huang, Z. Liu, P. Chandak, S. Liu, P. Van Katwyk, A. Deac, et al. Scientific discovery in the age of artificial intelligence. Nature , 620(7972):47–60, 2023. L. Wang, C. Ma, X. Feng, Z. Zhang, H. Yang, J. Zhang, Z. Chen, J. Tang, X. Chen, Y. Lin, et al. A survey on large language model based autonomous agents. Frontiers of Computer Science , 18(6):186345, 2024. X. J. Wang, H. Bai, Y. Sun, H. Wang, S. Zhang, W. Hu, M. Schroder, B. Mutlu, D. Song, and R. D. Nowak. The long-horizon task mirage? diagnosing where and why agentic systems break. arXiv preprint arXiv:2604.11978 , 2026. 
+
+> 23 Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+T. Xie, D. Zhang, J. Chen, X. Li, S. Zhao, R. Cao, T. J. Hua, Z. Cheng, D. Shin, F. Lei, et al. Osworld: Benchmarking multimodal agents for open-ended tasks in real computer environments. Advances in Neural Information Processing Systems , 37:52040–52094, 2024. H. Xin, J. R. Kitchin, and H. J. Kulik. Towards agentic science for advancing scientific discovery. Nature Machine Intelligence , 7(9):1373–1375, 2025. D. Zan, Z. Huang, W. Liu, H. Chen, S. Xin, L. Zhang, Q. Liu, L. Aoyan, L. Chen, X. Zhong, et al. Multi-swe-bench: A multilingual benchmark for issue resolving. Advances in Neural Information Processing Systems , 38, 2026. L. Zhang, A. Hosseini, H. Bansal, S. M. Kazemi, A. Kumar, and R. Agarwal. Generative verifiers: Reward modeling as next-token prediction. In International Conference on Learning Representations ,volume 2025, pages 12476–12505, 2025. C. Zheng, Z. Zhang, B. Zhang, R. Lin, K. Lu, B. Yu, D. Liu, J. Zhou, and J. Lin. Processbench: Identifying process errors in mathematical reasoning. In Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 1009–1024, 2025. L. Zheng, W.-L. Chiang, Y. Sheng, S. Zhuang, Z. Wu, Y. Zhuang, Z. Lin, Z. Li, D. Li, E. Xing, et al. Judging llm-as-a-judge with mt-bench and chatbot arena. Advances in neural information processing systems , 36:46595–46623, 2023. K. Zhu, Z. Liu, B. Li, M. Tian, Y. Yang, J. Zhang, P. Han, Q. Xie, F. Cui, W. Zhang, et al. Where llm agents fail and how they can learn from failures. arXiv preprint arXiv:2509.25370 , 2025. 
+
+> 24
+
+Locating Hidden Failures Makes Long-Horizon Agents More Reliable FIRST mistake (the cause) n=1,122 EVERY mistake (the symptom) n=6,967 
+
+> 010 20 30 40 50 60
+> share of mistakes (%)
+
+46% 35% 
+
+> Reasoning / planning
+
+24% 45%  
+
+> Action / execution
+> the fl ip grey ≡ 7 smaller families
+
+a The cause → symptom fl ip 
+
+> P1 no recovery P2 no self-detection P4 barrels ahead ALL THREE full signature
+> 020 40 60 80
+> % of failed runs
+
+69.5% 38.5% 72.6% 
+
+13.7% 
+
+b The failure signature         
+
+> n=1126 n=972 n=1081 n=940
+> 020 40 60 80 100
+
+blindness → P2 non-detection (%) 
+
+> 020 40 60 80 100
+> stuck →  P1 non-recovery (%)
+> Software Engineering (SWE) blind but recovers · n=259 Computer Use (terminal) notices but stuck · n=829 Science (BixBench) blind & stuck · n=38
+> marker ∝ n
+
+c Di ff erent domains, di ff erent reasons 
+
+> Software Eng. (SWE) Computer Use (terminal)
+> 020 40 60 80 100
+> P(next step INCORRECT)  (%)
+> 3.0% 40.4%
+
+×13.7 
+
+> 5.3% 58.1%
+
+×10.9 
+
+d The cascade law: errors beget errors   
+
+> after a CORRECT step after an INCORRECT step
+> Early Middle Late
+> 020 40 60 80 100
+> share of mistakes (%)
+
+58% 46% 39% 
+
+> root faults fade
+
+e Root → cascade over the horizon 
+
+> fl ash %root root (fresh fault) cascade (downstream)
+> Software Eng. (SWE) All failed Computer Use (terminal)
+> 020 40 60 80 100 120
+> % of failed runs ending on a locally CORRECT-looking step
+
+69.4% 84.1% 85.6% 
+
+f Silent failure, and the danger  
+
+> ⚠Harm despite success
+> 3 to 14 SOLVED runs took destructive actions · success ≠ safety
+
+Figure 3 | The long-horizon failure signature. After its first mistake, an agent usually fails to recover, rarely detects the error, and keeps going, so the fault cascades while the final state still looks correct. Panels (a), (b), (c) and (e) are LLM-judged, reported at the family and phase level where two independent judges agree (cross-judge 𝜅 = 0.66 to 0 .83); panels (d) and (f) use the gold step labels. Error bars are 95% Wilson confidence intervals; denominators ( 𝑛 ) are shown beneath each bar. (a) 
+
+Each family’s share of first mistakes, the error that starts a run going wrong (left; 𝑛 = 1,122 runs), versus its share of all mistakes (right; 𝑛 = 6,967). The two cross: reasoning and planning cause 46% of first mistakes but 35% of all mistakes, whereas action causes 24% of first mistakes but 45% of all. Reasoning and planning start failures; action faults are mostly downstream symptoms. (b) Among runs with a first mistake, the share that never recover to solve the task (P1, 69 .5%), whose reasoning never flags the error (P2, 38 .5%), or that keep acting without correcting it (P4, 72 .6%); the last bar is the share where all three co-occur (the full signature, 13 .7%). (c) The signature by domain. Each point is one domain, placed by how often agents fail to notice the error (P2, horizontal) and fail to recover from it (P1, vertical), with marker area set by run count. Software engineering is blind but recovers, computer use notices but stays stuck, and science (BixBench, few runs) is high on both. (d) 
+
+A step is far likelier to be wrong right after an incorrect step than after a correct one: 40 .4% versus 3.0% in software engineering (13 .7×) and 58 .1% versus 5 .3% in computer use (10 .9×). (e) Root (originating) versus cascade (downstream) share of mistakes, by run third. The root share falls from 58% early to 46% in the middle to 39% late (dashed line, second judge). (f ) A failure is silent when a run that did not solve the task still ends on a correct-looking step. Among runs that fail, this happens in 70 .7% (software engineering), 87 .6% (computer use) and 83 .5% across both. Inset: between 3 and 14 runs scored as solved had taken an irreversible, destructive action along the way. 
+
+25 Locating Hidden Failures Makes Long-Horizon Agents More Reliable 
+
+# Appendix 
+
+Table 3 | The long-horizon agent failure taxonomy: definitions of all 88 categories (10 families). One concise definition per category. Each family header gives the family’s share of all 6,967 classified mistakes, its count 𝑛 , its number of categories, and its root share (the fraction of its mistakes that are originating faults rather than downstream cascades from an earlier mistake); per-category prevalence, horizon phase, and root/cascade split are shown in Fig. 2. Greyed rows are categories defined a priori 
+
+that never occurred in the corpus. 
+
+Category Definition ACTION – execution — 45.1% of mistakes · 𝑛 = 3144 · 14 categories · 35% root 
+
+invalid / rejected Well-formed but not valid in the current context (illegal move, non-existent or non-permitted command). 
+
+wrong parameters Right command, but wrong flags / values / options. 
+
+repeated same action Re-ran a previously failed action without any meaningful change. 
+
+malformed syntax Command or code is syntactically invalid and will not parse. 
+
+action ≠ intent Action does not implement the agent’s own (correct) stated intent. 
+
+wrong target Right kind of operation, but on the wrong file / path / entity / argument. 
+
+incomplete edit Edit is partial and leaves the code or state broken. 
+
+no-op / ineffective Action does nothing useful toward the goal. 
+
+destructive action Destructive or irreversible operation (also flagged in the safety audit). 
+
+wrong tool chosen Chose an inappropriate tool or command for the goal. 
+
+wrong action format An action’s edit / patch is not in the required format (e.g., a malformed diff block). 
+
+partial input Command or code is cut off or only partially specified. 
+
+actions out of order Correct actions executed in the wrong sequence. 
+
+overwrote good work Clobbered correct existing content or earlier good work. 
+
+PLANNING & STRATEGY — 24.0% of mistakes · 𝑛 = 1674 · 8 categories · 46% root 
+
+flawed strategy Chose an overall approach that cannot achieve the goal. 
+
+drifted off task Drifted away from the task’s objective onto irrelevant actions. 
+
+ignored a constraint Ignored an explicit instruction, constraint or limit (time / budget / step / space). 
+
+over-complicated Needlessly long or complex plan that wastes steps when a simpler path existed. 
+
+skipped a step Plan omits a necessary step (incomplete decomposition). 
+
+scope creep Pursued out-of-scope work or changes beyond the task. 
+
+no plan / blind Acted with no reasoning / plan where one was clearly needed. 
+
+> continued on next page
+> 26 Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+Table 3 (continued) 
+
+Category Definition poor prioritization Worked the wrong sub-problem or in the wrong order (premature optimization). 
+
+REASONING & INFERENCE — 10.8% of mistakes · 𝑛 = 749 · 11 categories · 69% root 
+
+false assumption Assumed an untrue fact about the code, environment or state. 
+
+misdiagnosed cause Reasoned to the wrong underlying cause of a bug / failure. 
+
+hallucinated facts Invented a nonexistent API / file / function / flag / fact. 
+
+ignored evidence Failed to use information it had already gathered earlier in the run. 
+
+unjustified leap Jumped to a conclusion / acted without gathering needed evidence. 
+
+incorrect inference Invalid logical step / wrong deduction from the information it had. 
+
+misread the goal Misunderstood the task / requirements / what was being asked. 
+
+impossible action Planned a step impossible given the current preconditions / state. 
+
+long-horizon drift Lost logical / control-flow coherence over a long multi-step chain. 
+
+circular reasoning Reasoning goes in circles and makes no real progress. 
+
+didn’t seek clarification On an ambiguous instruction, guessed a wrong default instead of seeking clarification. (defined a priori; not observed) 
+
+TOOL & ENVIRONMENT — 6.9% of mistakes · 𝑛 = 479 · 12 categories · 75% root 
+
+wrong env assumption 
+
+Assumed wrong OS / tool / library / version availability. 
+
+tool / API misuse Misused a tool / command interface (quoting, escaping, calling convention). 
+
+missing setup Skipped a needed install / build / config / dependency step. 
+
+wrong path / cwd Wrong working directory / path / relative-vs-absolute mistake. 
+
+unchecked state Assumed environment state without checking it first. 
+
+protocol violation Broke the harness’s turn-level action / response protocol or schema. 
+
+environment error Environment changed / degraded / behaved stochastically outside the agent’s control (external). 
+
+context mismanaged Mismanaged its own context / history (flooded the window, dropped needed history). 
+
+permission / quota Hit or ignored a permission / quota / timeout / resource limit. 
+
+tool exec error An external tool / API itself errored or misbehaved (external, not misuse). 
+
+step-limit hit Run hit the max-step / max-turn cap despite reasonable behavior. 
+
+model capability limit Failure from model / API limits (timeout, context-length limit, content filter). (defined a priori; not observed) 
+
+TERMINATION — 2.7% of mistakes · 𝑛 = 189 · 7 categories · 62% root 
+
+premature ‘done’ Declared completion and stopped while work clearly remained. 
+
+incomplete submission 
+
+Stopped and submitted while the deliverable was still missing parts. 
+
+> continued on next page
+> 27 Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+Table 3 (continued) 
+
+Category Definition gave up too early Abandoned the task prematurely without claiming success. 
+
+wrong final answer The submitted final answer / result is incorrect. 
+
+failed to stop Stuck looping / thrashing, not converging. 
+
+unaware run ended Did not recognize the criteria that should end the task and continued. 
+
+never submitted Failed to submit a final answer when it could and should have. 
+
+VERIFICATION & TESTING — 2.6% of mistakes · 𝑛 = 182 · 6 categories · 43% root 
+
+inadequate testing Tested the wrong thing or used too weak a check. 
+
+no verification Did not test / validate before proceeding or declaring success. 
+
+misjudged result Misjudged whether a verification actually passed. 
+
+ignored failing test Saw a failing test / check yet proceeded as if it passed. 
+
+overfit / hacky fix Made the check pass superficially (hard-coded / special-cased the output). 
+
+never reproduced bug 
+
+Never reproduced the bug / behavior before attempting a fix. 
+
+METACOGNITION — 4.3% of mistakes · 𝑛 = 297 · 6 categories · 19% root 
+
+failed to adapt Recognized trouble but failed to change approach (insight without behavior change). 
+
+misjudged progress Misjudged its own progress (over-optimistic, over-pessimistic, or missed it had finished). 
+
+misplaced blame Blamed the task / environment for a failure that was its own doing. (defined a priori; not observed) no reflection Never stepped back to reassess despite repeated failure or clear signals. (defined a priori; not observed) overconfidence Unwarranted certainty in its own correctness where doubt was clearly due. (defined a priori; not observed) underconfidence Abandoned a correct / promising path because of unwarranted self-doubt. (defined a priori; not observed) 
+
+PERCEPTION — 1.5% of mistakes · 𝑛 = 102 · 9 categories · 51% root 
+
+ignored error msg Proceeded despite an explicit error / traceback / non-zero exit. 
+
+misread observation Drew a wrong conclusion from output that was actually clear. 
+
+ignored a warning Overlooked a softer warning or hint in the output. 
+
+hallucinated state Believed a result / state not supported by the observation. 
+
+overlooked key info Missed relevant information that was present in the output. 
+
+misattributed cause From the observed output, pinned a failure on the wrong proximate signal. 
+
+partial output read Acted on truncated / scrolled-off output without reading it fully. 
+
+stale observation Relied on an earlier observation no longer valid after later changes. 
+
+> continued on next page
+> 28 Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+Table 3 (continued) 
+
+Category Definition 
+
+missed state change Failed to perceive a state change (believed success that did not happen, or missed a change). (defined a priori; not observed) 
+
+MEMORY & CONTEXT — 1.2% of mistakes · 𝑛 = 86 · 10 categories · 74% root 
+
+lost earlier context Lost earlier information because history exceeded effective context / memory capacity. 
+
+redundant rework Re-derived or re-gathered a fact it had already established. 
+
+false memory of step Recalled an event / state that never happened (fabricated past). 
+
+forgot a sub-goal Dropped a still-pending sub-goal it had set itself. 
+
+lost progress track Lost track of progress through the task and repeated already-completed steps. 
+
+accumulated errors Built on a specific earlier artifact / result that was already flawed, treating it as correct. 
+
+constraint drift Stopped applying an earlier-established constraint or decision later in the run. 
+
+confused entities Mixed up files / variables / entities / versions. 
+
+over-summarized context Summarized past info too crudely, dropping details needed for correct reasoning. (defined a priori; not observed) retrieval failure Relevant info is present in context but was not retrieved when needed. (defined a priori; not observed) 
+
+OUTPUT / FORMATTING — 0.9% of mistakes · 𝑛 = 65 · 5 categories · 68% root 
+
+wrong value Reported a wrong numeric / factual value in its output or analysis. 
+
+wrong answer format 
+
+Final answer not in the requested format / units / precision. 
+
+incomplete answer Answer content omits required components (e.g., a sub-question left unanswered). 
+
+unsupported claim Stated a conclusion not supported by the data / analysis. 
+
+inconsistent report Reported result contradicts its own computation / observation. (defined a priori; not observed)  
+
+> A further 48 mistakes (0.7%) fit no codebook category and were open-coded as other ; they are counted in their nearest family’s total above. Definitions are condensed from the annotation codebook used by the LLM judge.
+> 29 Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+Table 4 | Dataset statistics of Traverse .
+
+SWE-bench TerminalBench BixBench 
+
+Incorrect Correct Incorrect Correct Incorrect Correct Trajectories 306 294 541 180 38 64 Total steps 8,504 10,512 18,815 5,602 443 465 Avg. steps 27.8 35.8 34.8 31.1 11.7 7.3 Median steps 23 33.5 24 26 9.5 5Step range 6–123 20–121 5–200 6–200 3–38 2–23 Agent scaffolds 3 3 2 2 2 2Avg. first mistake step 17.8 – 12.4 – 6.6 –Median first mistake step 14 – 7 – 2.5 –
+
+Table 5 | Process-level verifier benchmarks for agentic and reasoning tasks. Traverse is the only one combining long-horizon trajectories ( 𝑇 =20–200), naturally occurring failures, and human-annotated first-mistake localization across multiple domains and scaffolds. 
+
+Benchmark Domain Agentic Traj. Natural First-mistake Human step Multiple Trained length errors localization annotation scaffolds verifier ProcessBench (Zheng et al., 2025) Single ✗ – ✓ ✓ ✓ ✗ ✓
+
+PRMBench (Song et al., 2025) Single ✗ – ✗ ✗ ✓ ✗ ✗
+
+ToolPRMBench (Li et al., 2026a) Single ✓ ≤30 ✗ ✗ ✗ ✗ ✓
+
+AgentRewardBench (Lù et al., 2025) Single ✓ – ✓ ✗ ✗ ✓ ✗
+
+Agent-RewardBench (Men et al., 2025) Multiple ✓ – ✓ ✗ ✗ ✓ ✗
+
+Web-Shepherd (Chae et al., 2026) Single ✓ ≤40 ✗ ✗ ✓ ✗ ✓
+
+Traverse Multiple ✓ 20–200 ✓ ✓ ✓ ✓ ✓
+
+Table 6 | Composition of the collected trajectory corpus: task families, source benchmarks, model backbones, and agent harnesses. Traverse is selected from this corpus (Section 2.3). 
+
+Task family Benchmark Models (backbones) Harnesses 
+
+Agentic coding SWE-bench † Claude-sonnet-4, GPT-5, DeepSeek-V3.2, Qwen3-Coder-480B, Kimi-K2-Instruct mini-SWE-agent, SWE-agent, OpenHands TerminalBench Claude-sonnet-4, GPT-5, DeepSeek-V3.2, Qwen3-Coder-480B, Kimi-K2-Instruct mini-SWE-agent, Terminus 2 AI-for-science BixBench Claude-sonnet-4-5, Claude-haiku-4-5, Claude-opus-4-5, Gemini-3-flash, Gemini-3.1-pro, GPT-5, GPT-5.4-mini, GPT-5.5 ReActAgent, SimpleAgent 
+
+> †
+
+SWE-bench spans the Verified, Pro, Multi-SWE, and SWE-PolyBench variants. 
+
+> 30 Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+Figure 5 | The Traverse annotation interface (BixBench subset). The left panel shows the task and the agent’s full step-by-step trajectory ( Thought → Action → Observation ); the right panel shows the ground-truth answer, the agent’s answer, and LLM-generated judge suggestions. Annotators read each step and record the index of the first mistake (or −1 if the trajectory is fully correct). Judge suggestions are shown only to reduce cognitive load and are explicitly not authoritative—annotators are instructed to verify each step independently. 0 5 10 15 20 25 30 35        
+
+> First Mistake Step (0-based index)
+> 0510 15 20 25
+> Number of Trajectories
+> median = 14.0
+> SWE-bench
+> 0510 15 20 25 30 35
+> First Mistake Step (0-based index)
+> 010 20 30 40 50 60
+> Number of Trajectories
+> median = 7.0
+> TerminalBench
+
+Figure 6 | Distribution of first mistake positions (0-based step index; truncated at step 40 for readability) across incorrect trajectories in SWE-bench and TerminalBench. The dashed line marks the median. Mistakes are spread across a wide range of positions, making exact localization inherently challenging. 
+
+> 31
+
+Locating Hidden Failures Makes Long-Horizon Agents More Reliable no localizable  
+
+> fi rst mistake has a fl agged
+> fi rst mistake
+> task SOLVED task FAILED
+
+804 
+
+> 32% of runs
+> clean success
+
+343 
+
+> 14% of runs
+> solved-but-fl awed
+
+588 
+
+> 23% of runs
+> clean-but-failed
+
+783 
+
+> 31% of runs
+> fl awed & failed
+
+a Outcome × fi rst mistake (all 2,518 runs, pooled) 
+
+> Software Eng. (SWE) Computer Use (terminal) Science (BixBench)
+> 010 20 30 40 50 60 70 80
+> % of runs in that group
+> 44 50 23 43 428
+
+b The two o ff -diagonals, by domain  
+
+> SOLVED runs that are fl awed (the mistake was survivable) FAILED runs that are clean (no single decisive mistake)
+> Software Eng. (SWE) Computer Use (terminal)
+> 020 40 60 80 100
+> recovered after  fi rst mistake (%)
+> 76% 76%
+> Δ = 0.2 pp
+> 18% 16%
+> Δ = 2.0 pp
+
+c Self-detection does not buy recovery    
+
+> n=45 n=140 n=552 n=210
+> noticed its mistake did NOT notice
+> fl ash replicate
+
+Figure 7 | Scope of the first-mistake analysis, and why noticing a mistake does not buy recovery. a, All 2 ,518 runs sorted by task outcome and by whether a single first mistake is localizable. The two outlined off-diagonal cells are the caveats: 343 runs (14%) are solved despite a flagged mistake (it was survivable), and 588 (23%) fail with no single decisive mistake (diffuse failure); the first-mistake analyses in Fig. 3 describe the flawed-and-failed cell only. b, The same two off-diagonals by domain, as a share of solved runs (flawed, green) and of failed runs (clean, orange); both are large in every domain (software engineering 44% and 50%, computer use 23% and 43%, science 4% and 28%). c,Recovery after the first mistake when the agent noticed it (blue) versus did not (grey); diamonds show the second-judge replicate. The two are within 2 points in each domain (software engineering 76% versus 76%, computer use 18% versus 16%), so noticing a mistake does not help the agent recover from it. The split is shown by domain because pooling reverses it (a Simpson’s paradox: self-detection concentrates in computer use, where recovery is low regardless). All quantities are deterministic except the noticed-versus-not split in c, which is LLM-judged. Table 7 | Scout training data: composition by source. 
+
+Terminal SWE Total Trajectories 1,851 565 2,416 with error 829 259 1,088 all-correct 1,022 306 1,328 Steps 57,622 17,117 74,739 correct 51,365 16,380 67,745 incorrect 6,257 737 6,994 
+
+32 Locating Hidden Failures Makes Long-Horizon Agents More Reliable Early n=1,444 Middle n=2,432 Late n=3,091 020 40 60 80 100      
+
+> share of mistakes in phase (%)
+> 41 48 45 39 34 33 14 76
+
+a Failure-family composition by phase   
+
+> Failure family
+> Output / format Memory Perception Veri fi cation Termination Metacognition Tool / environment Reasoning / planning Action / execution
+> Early Middle Late 0.0 2.5 5.0 7.5 10.0 12.5 15.0 17.5 20.0
+> share of mistakes in phase (%)
+> Tool Termination Veri fi cation Memory
+> environment errors fade (an EARLY problem) termination / veri fi cation emerge LATE
+
+b The families that move with the horizon 
+
+> gemini-3.1-pro gemini-3.5-fl ash
+
+Figure 8 | What fails early versus late. Companion to Fig. 3e: every mistake in a failed run is binned by step position into the early, middle or late third of its run and labelled with its failure family. a,Family composition within each phase (100%-stacked; the number of mistakes per third, below each bar, rises from early to late as broken runs accumulate errors). The mix is broadly stable, with action and reasoning dominating throughout (action 41, 48, 45% and reasoning 39, 34, 33% across early, middle and late), so which families dominate does not depend on run length. b, The families that move across the horizon (solid, primary judge; dashed, second judge, which tracks it). Tool and environment faults fade from 14% early to about 3% late, broken setup and missing dependencies being an early-run problem; termination and verification faults instead emerge only late (about 6% and 4%), the failures, such as declaring done prematurely or never checking the work, that a long run alone produces. Memory faults stay low throughout. 
+
+33 Locating Hidden Failures Makes Long-Horizon Agents More Reliable 0 20 40 60 80 100 
+
+% of unsafe actions (Gemini 3.1 Pro, n=65) 
+
+> missed by a regex-only scan invisible to gold step labels irreversible unnecessary (not needed for task) acted blind (risk not acknowledged)
+> 77% 54% 75% 100% 97%
+
+a Unacknowledged, unnecessary, and mostly invisible         
+
+> 0.0 2.5 5.0 7.5 10.0 12.5 15.0 17.5 20.0
+
+unsafe actions (Gemini 3.1 Pro, n=65) 
+
+> other destructive permission change dependency removal process kill system control database destruction data deletion
+> fi le overwrite
+> 1126613 17 19
+
+b What the unsafe actions are 
+
+> lower severity high severity
+
+Figure 9 | Unsafe agent actions are unnecessary, unacknowledged, and hard to catch. Properties and types of the 65 unsafe actions flagged by the primary judge (Gemini 3.1 Pro) in the safety audit; the qualitative properties below are stable across judges, although their overall prevalence is judge-sensitive (Fig. 3f). a, Almost every unsafe action was unnecessary for the task (100%) and taken without the agent acknowledging any risk (97%), and most were irreversible (75%). Two properties matter for detection: 54% are invisible to the gold step labels, which mark the step correct, and 77% would be missed by a regex-only scan, so only a semantic, whole-trajectory audit catches most of them. b, The same actions by type, each bar split into higher and lower severity. The most common are file overwrites (19), data deletions (17) and database destructions (13), most of them high severity, followed by system control and process kills (6 each): concrete, irreversible harms rather than cosmetic ones. 
+
+> 34 Locating Hidden Failures Makes Long-Horizon Agents More Reliable
+
+Prompt Template: First Mistake Identification 
+
+The following is a coding task and an agent’s step-by-step trajectory attempting to solve it (enclosed with tags and indexed from 0). Each step contains a Thought (the agent’s reasoning before acting), an Action (what the agent executed), and an Observation (the environment’s response). 
+
+[Context] 
+
+The agent was given a GitHub issue from a real software repository and tasked with modifying the codebase to resolve it. The agent can read files, edit code, and run tests within the repository. 
+
+[Task] 
+
+{task description from the dataset record} 
+
+[Agent Trajectory] 
+
+<step_0> 
+
+Thought: {agent’s reasoning} Action: {command or code executed} Observation: {environment response} 
+
+</step_0> 
+
+> ...
+
+<step_ n >
+
+Thought: {...} Action: {...} Observation: {...} 
+
+</step_ n >
+
+[Definition of Error] 
+
+An error is a state-changing Thought or Action that is wrong given the evidence available to the agent at that point, leads the task in an incorrect direction, and directly contributes to a wrong outcome or prevents the task from being solved correctly. The Observation is the environment’s response and is never itself an error. Your task is to review and critique the trajectory step by step. Focus on the agent’s Thought and Action to judge whether the step is correct or erroneous; use the Observation only as context for what the agent saw. Once you identify an error, return the 0-based index of the step where the earliest error occurs. If all Thoughts and Actions are correct, return −1. You must put your final answer (i.e., the index) in \boxed{} .
+
+Variations. (1) For TerminalBench , the [Context] reads: “The agent was given a task to complete in a sandboxed Linux terminal environment. Tasks span domains such as software engineering, data science, system administration, security, etc. The agent can run shell commands, write scripts, and inspect outputs.” (2) For OpenHands trajectories, the Thought field is omitted from all steps (as OpenHands does not expose explicit reasoning traces), and all references to “Thought” in the instructions and error definition are removed accordingly. 
+
+Figure 10 | Prompt template for the first mistake identification task. Gray italicized text denotes fields populated from each dataset record. The judge model returns the 0-based step index of the first error in \boxed{} , or −1 if the trajectory is error-free. 
+
+> 35
+
+Locating Hidden Failures Makes Long-Horizon Agents More Reliable mini-SWE-agent SWE-agent OpenHands 
+
+0510 15 20 25 30 35 40   
+
+> Exact Match (%)
+> 24.7 22.9 34.1 15.6 8.6 8.5 8.4 10.0 2.4 17.5 22.9 29.3 22.0 15.7 12.2 22.1 16.2 15.8
+
+Gemini 3.1 Pro Gemini 3 Flash Claude Opus 4.6 GPT-5.5 DeepSeek V4 Pro Qwen 3.5-397B 
+
+Figure 11 | Exact Match (%) by agent type on SWE-bench incorrect trajectories. mini-SWE-agent Terminus2 
+
+010 20 30 40 
+
+> Exact Match (%)
+> 33.5 23.4 35.2 26.6 26.9 20.2 35.5 26.0 28.9 25.5 23.5 21.4
+
+Gemini 3.1 Pro Gemini 3 Flash Claude Opus 4.6 GPT-5.5 DeepSeek V4 Pro Qwen 3.5-397B 
+
+Figure 12 | Exact Match (%) by agent type on TerminalBench incorrect trajectories. 
+
+36 Locating Hidden Failures Makes Long-Horizon Agents More Reliable 1 2 3 4 5 6-10 11-20 21+ 
+
+Number of incorrect steps per trajectory 
+
+> 050 100 150 200 250
+> Number of trajectories
+
+96 103 69 90 54 235 131 51     
+
+> 829 trajectories ·6257 incorrect steps ·median 6
+
+Terminal Task 
+
+1 2 3 4 5 6-10 11-20 21+ 
+
+Number of incorrect steps per trajectory 
+
+> 020 40 60 80 100
+> Number of trajectories
+
+93 45 50 33 17 16 5    
+
+> 259 trajectories ·737 incorrect steps ·median 2
+
+SWE Task 
+
+Figure 13 | Incorrect steps per failed trajectory in Scout ’s training data (Terminal: 829 trajectories, 6,257 incorrect steps; SWE: 259, 737). 0 50 100 150 200 
+
+Training Step 
+
+0.2 0.4 0.6 0.8 
+
+> SFT Loss
+
+## Qwen-3-4B-Thinking 
+
+0 50 100 150 200 
+
+Training Step 
+
+0.2 0.4 0.6 0.8 
+
+> SFT Loss
+
+## Gemma-4-E4B-it 
+
+Figure 14 | SFT loss. 
+
+37
