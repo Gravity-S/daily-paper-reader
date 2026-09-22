@@ -1,0 +1,2537 @@
+Title: Human-guided physics-constrained AI agents construct an auditable model of soil-plug evolution
+
+URL Source: https://arxiv.org/pdf/2609.23360v1
+
+Published Time: Tue, 22 Sep 2026 01:42:17 GMT
+
+Number of Pages: 77
+
+Markdown Content:
+# Human-guided physics-constrained AI agents construct an auditable model of soil-plug evolution 
+
+Jie Shi a, Yimin Lu b, ∗, Zhongkun Ouyang a, ∗∗ 
+
+> aInstitute of Ocean Engineering, Shenzhen International Graduate School, Tsinghua University, Shenzhen 518055, China
+> bDepartment of Civil, Environmental, and Construction Engineering, Texas Tech University, USA
+
+Abstract 
+
+Engineering predictions require physical mechanisms to be translated consistently into equa-tions, discretization, code, and validation, yet errors can propagate despite local checks. Artificial-intelligence (AI) agents automate scientific tasks, but coordinating and indepen-dently auditing the theory-to-solver process under physical constraints and human oversight remains unresolved. We introduce a human-in-the-loop, physics-constrained multi-agent workflow where human experts define admissible physics and modeling boundaries, while agents retrieve evidence, derive equations, implement solvers, and audit the theory-to-code chain. Applied to soil-plug evolution during suction-caisson installation, the workflow gen-erated and audited 6 formulations in 2.9 h of agent execution once physical knowledge and inputs were prepared. Among these formulations, adding seepage-driven soil void-ratio evo-lution to the geometric baseline reduced mean absolute final-heave error from 58.4% to 9.0% across 14 profiles; the selected model further incorporated near-wall dilation and achieved mean absolute percentage errors of 12.4% across 9 final-state cases and 4.2% at the end-points of 5 process histories. Beyond predictive performance, blinded replay recovered all 9 target problems, while an independent audit uncovered 5 implementation problems after 36 predefined checks had passed. Overall, this work extends multi-agent AI beyond task automation toward human-governed engineering solvers.     
+
+> ∗Corresponding author
+> ∗∗ Corresponding author
+> Email addresses: Yimin.Lu@ttu.edu (Yimin Lu ), ouyangzk@sz.tsinghua.edu.cn (Zhongkun Ouyang )
+
+1arXiv:2609.23360v1 [cs.CE] 20 Sep 2026 Introduction 
+
+Engineering models become actionable when physical understanding can be translated into executable and validated predictions. This need is especially acute for offshore renewable-energy infrastructure, where rapid deployment must be matched by reliable foundation de-sign under uncertain construction and loading conditions[1, 2, 3, 4, 5]. Current practice often requires a compromise between case-specific, resource-intensive experiments or high-fidelity simulations and more efficient, generalizable analytical models [5, 6, 7]. Developing such models is not a single reasoning task, but a sequence of interdependent decisions span-ning problem formulation, mechanism selection, governing-equation derivation, constitutive closure, discretization, code implementation, verification, and benchmark evaluation (Fig-ure 1(a)) [8, 9, 10]. Each stage draws on distinct expertise, and subtle inconsistencies in assumptions, notation, boundary conditions, or state updates can propagate through the workflow and remain concealed until validation. This long and fragile theory-to-solver pro-cess is not unique to offshore engineering; it also arises in physics-intensive problems such as additive-manufacturing process design, wearable-sensor development, and advanced battery design [11, 12, 13]. Suction caissons make this general difficulty concrete. These foundations use a pressure difference across the caisson lid to drive penetration into the seabed, offering installation advantages in energy demand, noise, and soil disturbance [5, 6]. However, during installation in sand, soil entering the caisson can rise above the surrounding seabed and form a hidden internal plug. Its continued growth may impede penetration, leave the caisson short of its design depth, and introduce uncertainty into foundation performance [5, 14, 15, 16, 17]. Predicting this evolution requires the simultaneous treatment of a moving boundary, suction-induced seepage, changes in effective stress and soil state, and shear and dilatancy along the soil–caisson interface (Figure 1(b)) [18, 19]. Since these processes occur inside a buried and evolving domain, experimental observations are incomplete, high-fidelity simulations are often case-specific, and reduced-order theory is difficult to formulate and implement consistently. These challenges raise the following question: can we establish an efficient, 2generalizable, physics-constrained, and auditable theory-to-solver framework by leveraging existing knowledge and emerging artificial-intelligence (AI) techniques? Seabed       
+
+> Offshore wind turbine Suction anchor
+> Pump
+> Lid Skirt
+> Design Depth Actual Depth
+> Seawater
+> Pump
+> Soil plug
+> Suction
+> ∆𝐀
+> Hidden installation risk Suction-induced soil-plug evolution Suction-installed offshore foundation
+> Problem definition Mechanism screening Governing equations Constitutive closure Discretization Code generation Verification Benchmark response
+
+High expertise barrier Time consuming Error-prone & hard to trace 
+
+（a）（b）
+
+> Geometry & boundary Workflow bottlenecks Representative mechanics-intensive applications
+
+Wearable sensor development 
+
+> Additive-manufacturing process design Advanced battery design Large deformation and moving boundary Hydraulic response Suction-induced seepage Soil state evolution Effective stress and void-ratio evolution Interface behavior Interface dilatancy and shear transfer Coupled physical processes Soil plug Depth shortfall Installation failure risk
+
+Offshore foundation engineering 
+
+Figure 1. The theory-to-solver bottleneck and its demonstration problem. (a) Model development in physics-intensive engineering traverses interdependent stages from problem definition and mechanism selection to governing equations, constitutive closure, discretization, code implementation, verification, and benchmark evaluation. Representative applications illustrate the associated expertise, time, and error-traceability chal-lenges. (b) Soil-plug evolution during suction-caisson installation in sand provides the demonstration prob-lem. The hidden response couples large deformation and a moving boundary, suction-induced seepage, effective-stress and void-ratio evolution, and soil–caisson interface behavior. 
+
+Large language models (LLMs) and LLM-driven multi-agent systems offer new capabil-ities for coordinating such workflows through natural-language reasoning, tool use, infor-mation retrieval, and conversion of modeling logic into executable operations [20, 21, 22]. 3Retrieval-augmented generation (RAG) can ground model outputs in external sources [23], while skill-routed retrieval can direct the search to task-specific procedures or knowledge modules [24]. However, retrieval relevance is not equivalent to physical admissibility. Be-fore a relation can enter a mechanics model, its provenance, variables, units, assumptions, boundary conditions, and range of validity must be explicit, and it must remain compatible with the other model components. Even a relation drawn from a credible source can yield an invalid solver if it is applied outside its admissible conditions or connected incorrectly to surrounding equations. Theory implementation and code generation pose a related but distinct challenge. Re-cent studies have demonstrated the potential of LLMs to translate mathematical formu-lations into scientific-computing code, including partial-differential-equation (PDE) solvers and geotechnical finite-element models (FEMs) [25, 26]. Multi-agent architectures further decompose scientific workflows by assigning derivation, implementation, and verification to specialized roles [27, 28]. However, this decomposition also introduces handoffs among phys-ical assumptions, continuous equations, discrete updates, and code states. Errors at these interfaces can produce software that is syntactically correct and may even pass local tests while remaining inconsistent with the intended physics or obscuring the path from source evidence to prediction [29, 30, 31]. Therefore, the central methodological challenge is how knowledge retrieval, physical reasoning, numerical implementation, and validation can be coordinated under a common set of constraints and made auditable across the complete theory-to-solver chain. In this study, we introduce a human-in-the-loop, physics-constrained multi-agent work-flow for constructing, implementing, and validating engineering models across the complete theory-to-solver sequence. Human experts define the modeling objectives, admissible physi-cal knowledge, parameter-source rules, and operational boundaries, while specialized agents collaborate on knowledge retrieval, mechanism formulation, equation derivation, numeri-cal implementation, and independent audit. We demonstrate the workflow by developing a soil-plug evolution model for suction-caisson installation that unifies geometric displace-ment, seepage-induced soil-state evolution, and soil–caisson interfacial dilatancy through 4solid-volume conservation. The model-development process is examined through retained workflow records and role-separated audits, while the resulting solver is evaluated using staged benchmark evidence that covers formula reduction and volume closure, final state prediction, and continuous process prediction. The results show that the workflow can pro-duce an accurate and traceable engineering solver while identifying cross-layer inconsistencies that conventional implementation checks may overlook, providing a general framework for auditable multi-agent modeling in physics-intensive engineering. 
+
+Results 
+
+Workflow-guided model evolution yields the selected soil-plug formulation 
+
+We applied the physics-constrained multi-agent workflow to develop 6 candidate for-mulations (V1–V6) for soil-plug evolution during suction-caisson installation. Each version arose from a diagnostic question prompted by the performance of the preceding formulation and was evaluated using the same historical benchmark cases and parameter-source rules. Screening based on final-heave and process final-point errors identified V6 as the selected formulation since it retained a low final-heave error while producing the lowest process final-point error (Table 1 and Fig. 2). Model development proceeded through three diagnostic cycles. The first cycle expanded the model beyond geometric displacement to account for suction-induced changes in soil state. V1 used solid-volume conservation to calculate the geometric heave caused by skirt penetration but did not account for changes in soil void state under suction. The marked discrepancy from the measured plug heave indicated that geometric dis-placement alone could not explain the observed plug heave response. Therefore, the workflow focused the next diagnostic question on how suction-induced seepage changes the effective stress and void ratio of the soil inside the caisson. To address this question, the knowledge engine retrieved source-supported relations linking suction, seepage, effective stress and void ratio [32, 33, 34], and assembled them into V2. V2 altered the predicted plug heave only marginally. An audit of the update chain found that the vertical effective stress responded to hydraulic loading, while the lateral 5Table 1: Workflow-guided development and historical screening of candidate soil-plug formulations. 
+
+Version Diagnostic question Workflow action Screening outcome V1 Can geometric displacement caused by skirt penetration alone explain plug heave? Established a geometric baseline from solid-volume conservation and suction-caisson design relations [5]. Produced the largest final-heave and process final-point errors among the 6 versions. V2 How does suction-driven seep-age change effective stress and void ratio? Added source-supported relations linking seepage, effective stress, and void ratio to update the soil state [32, 33, 34]. Both errors decreased only slightly relative to V1. V3 How should lateral effective stress and soil rebound evolve during confined unloading? Updated lateral and mean effective stresses using relations for earth pressure at rest, stress history, and granular-soil elasticity [35, 36, 37]. Both errors decreased only modestly relative to V2. V4 Does stress-path evolution produce additional void-ratio change in dense sand? Introduced a stress-path-dependent void-ratio update based on state-parameter and state-dependent dilatancy relations [34, 38, 39]. Produced the first substantial reduction in both screening errors relative to V3. V5 Can a more compact void-ratio update improve both final-state and process-level predictions? Tested an alternative void-ratio update under the same parameter-source rules. Reduced the process final-point error but increased the final-heave error. V6 Can the admitted mechanisms be assembled to keep both final-state and process errors low? Combined the audited seepage and void-ratio re-lations with near-wall soil dilation and consistent final-state updating [40, 15, 6]. Retained a low final-heave error and achieved the lowest process final-point error; V6 was selected. 
+
+effective stress remained tied to a fixed stress ratio. Since the soil column inside the caisson is laterally constrained, the workflow next examined the evolution of lateral effective stress during vertical unloading. Relations describing earth pressure at rest, stress history, and the elastic response of granular soils were incorporated into V3, which updated the lateral and mean effective stresses along a confined-unloading path [35, 36, 37]. This revision reduced the final-heave error only modestly. Final-heave mean absolute percentage error (MAPE) remained above 70% for V1–V3 (Figure 2), indicating that the represented volumetric response remained insufficient to re-produce the measured plug heave. The audit localized the major deficiency to the conversion of stress change into void-ratio change. Then, the second diagnostic cycle examined how the distance from the critical state bounds the available volumetric change in dense sand and how movement along the stress path mobilizes that change. The knowledge engine com-6V1 V2 V3 V4 V5 V6 020 40 60 80 Final-heave MAPE (%)            
+
+> Final-state records: final-heave comparison V1 V2 V3 V4 V5 V6 0510 15 20 25 30 Final-point MAPE (%)
+> Process records: final-point comparison
+> Iteration toward lower error
+> 80 60 40 20 0Final-state records: final-heave MAPE (%) 0510 15 20 25 30 Process records: final-point MAPE (%)
+> V1 V2 V3 V4 V5 V6 12 14 16 4812 V4 V5 V6 V4-V6 zoom Final-state/process records: final-error map
+> (a) (b) (c)
+
+Figure 2. Historical screening of candidate soil-plug formulations. All 6 formulations were evaluated using the same benchmark cases and parameter-source rules. (a) Final-heave mean absolute percentage error (MAPE) across 9 final-state cases. (b) Process final-point MAPE across 5 measured heave–depth histories. (c) Joint evolution of the two errors across successive formulations; the inset enlarges the differences among V4–V6. Lower values indicate closer agreement with the benchmark observations. 
+
+bined the resulting state-parameter and state-dependent dilatancy relations to construct the stress-path-dependent void-ratio update in V4. This revision produced the first substantial improvement in both screening metrics: final-heave and process final-point MAPE fell to 12.3% and 10.3%, respectively (Figure 2). 7The third diagnostic cycle tested whether final-state and process-level performance could be improved simultaneously. Under the same parameter-source rules, V5 tested a more com-pact void-ratio update. Its process final-point MAPE decreased to 6.6%, but its final-heave MAPE increased to 15.0%, revealing a trade-off between the two evaluation targets. This trade-off motivated V6, which combined the audited seepage and void-ratio relations with near-wall soil dilation and consistent final-state updating. V6 achieved a final-heave MAPE of 12.4% and reduced the process final-point MAPE to 4.2%. Its final-heave performance remained comparable to that of V4, while its process final-point error was the lowest among the 6 formulations. This balance supported the selection of V6 for subsequent analysis. After the physical knowledge and model inputs had been prepared, development of V1– V6 required 171.5 min (2.9 h) of total agent execution time (Table 2). Of this total, derivation required 42.5 min, implementation required 82.5 min, and independent audit required 46.5 min, with implementation accounting for the largest share. Execution time for an individual formulation ranged from 19.3 min for V1 to 37.5 min for V4. Across all 6 formulations, the recorded agent used 73.07 million tokens, corresponding to an estimated API-equivalent cost of US$42.23 under the GPT-5.4 standard rates available in June 2026. These measurements cover the agent execution required to translate staged modeling questions into implemented and independently audited solver versions; they do not include the preceding preparation of physical knowledge and model inputs or the time required for human review. 
+
+Model selection remains stable across most study exclusions 
+
+After screening against the full literature pool selected V6, we performed a five-fold retrospective leave-one-study-out analysis to test whether this selection was dominated by an individual source study or by the weighting assigned to endpoint and process-curve errors. The 6 candidate formulations were fixed before this analysis. In each fold, one study was excluded, V1–V6 were rescored using the remaining four studies, and the selected version was evaluated against the held-out study. The analysis was repeated using endpoint-to-curve error weights of 75:25, 50:50, and 25:75. Figure 3(a) presents the candidate scores under the primary 75:25 weighting, Figure 3(b) compares the selections across all three weightings, 8Table 2: Agent execution time, token use, and estimated API-equivalent cost for the V1–V6 model-development. Version Derivation (min) Implementation (min) Independent audit (min) Total (min) Tokens (million) API equivalent cost (US$) V1 4.1 8.5 6.7 19.3 2.96 2.03 V2 10.8 17.6 7.4 35.7 5.14 3.82 V3 6.0 8.6 7.3 21.9 8.79 5.57 V4 5.8 21.2 10.5 37.5 15.44 8.70 V5 6.3 7.5 7.4 21.2 18.01 9.72 V6 9.4 19.1 7.3 35.8 22.72 12.39 Total 42.5 82.5 46.5 171.5 73.07 42.23 Execution time is the sum of the derivation, implementation, and independent-audit role durations recorded after the physical knowledge and model inputs had been prepared. Token totals comprise input and output tokens across the corresponding recorded agent turns; cached input is counted once within input, and reasoning tokens are included within output. API-equivalent costs use the GPT-5.4 standard rates available in June 2026: US$2.50, US$0.25, and US$15.00 per million uncached-input, cached-input, and output tokens, respectively. 
+
+and Figure 3(c) reports the held-out errors of the selected versions. Under the primary weighting, V6 was reselected in four of the five folds (Figure 3(a)). The same four folds selected V6 under all three weighting schemes (Figure 3(b)), and their held-out endpoint MAPEs ranged from 3.2% to 13.9% (Figure 3(c)). Selection changed only when the Tjelta study [41] was excluded. In this fold, the 75:25 and 50:50 weightings selected V4, whereas the 25:75 weighting, which placed greater emphasis on the process curves, selected V5 (Figure 3(b)). Tjelta provides the only full-scale field heave–depth profile in the evidence pool. Its exclusion left the candidate scores primarily determined by centrifuge and laboratory model tests, which favored V4 under endpoint-dominated evaluation and V5 under curve-dominated evaluation. When evaluated against the held-out Tjelta profile, the selected V4 produced an endpoint error of 45.5% and a curve normalized root-mean-square error (NRMSE) of 39.2%. For comparison, V6 produced corresponding errors of 8.2% and 20.4%, respectively. Overall, 9V1 V2 V3 V4 V5 V6 
+
+Candidate version                          
+
+> Kim (2020) Tran (2008) Tjelta (1995) Wang (2019) Zhao (2025)
+> Study excluded from selection
+> 37.4 35.5 33.1 15.7 11.1 7.8
+> 36.3 34.4 32.1 16.0 12.3 8.3
+> 40.6 40.2 39.5 7.0 8.1 7.8 46.5 44.3 41.5 18.9 14.7 9.9
+> 47.4 45.2 42.4 19.5 15.3 10.8
+
+(a) Score used to select a version from the other four studies (lower is better)     
+
+> Kim Tran Tjelta Wang Zhao
+
+Study excluded from selection             
+
+> 75% final point 25% curve 50% final point 50% curve 25% final point 75% curve
+> V6 V6 V4 V6 V6 V6 V6 V4 V6 V6 V6 V6 V5 V6 V6
+
+(b) Version selected under different error weights      
+
+> 010 20 30 40 50
+
+Prediction error (%) 
+
+> Kim and Kim (2020) Tran and Randolph (2008) Tjelta (1995) Wang et al. (2019) Zhao et al. (2025)
+> V6 V6 V4 V6 V6
+
+(c) Prediction error for each excluded study  
+
+> Final-point error (MAPE) Curve error (NRMSE)
+
+Figure 3. Retrospective leave-one-study-out assessment of candidate-selection stability. The 6 candidate formulations were fixed before the analysis. In each fold, one study was excluded from candidate scoring and selection, and the selected formulation was subsequently evaluated against the held-out study. (a) Scores of V1–V6 under the primary endpoint-to-curve weighting of 75:25; boxes denote the selected lowest-scoring formulations. (b) Formulations selected using endpoint-to-curve error weights of 75:25, 50:50, and 25:75. (c) Held-out endpoint MAPE and curve normalized root-mean-square error (NRMSE) of the selected formulation. 
+
+candidate selection remained stable across four of the five study exclusions and all tested weighting schemes within those four folds, but changed when the only full-scale study was removed. The relatively lower held-out errors of V6 for the Tjelta profile indicate that it provided a more consistent balance across centrifuge tests, laboratory model tests, and the available full-scale field response, supporting its retention as the selected formulation. 10 Pump 
+
+> Mudline ( y=0)
+> MG
+> Geometric displacement
+> MD
+> Interface dilatancy
+> MS
+> Seepage-stress coupling
+> Do
+> Di
+
+Qpump 
+
+hheave 
+
+> y
+> Penetration depth
+> z
+
+Lplug 
+
+Qin 
+
+itip 
+
+Soil plug 
+
+t         
+
+> ∆𝐀
+> (Suction) Plug free surface (x=0)
+> xζ0
+> Do:Caisson outer diameter
+> Di:Caisson inner diameter
+> t:Caisson wall thickness Δu:Applied suction pressure
+> Qin :Seepage inflow rate Qpump :Pump discharge rate
+> itip :Hydraulic gradient at caisson tip
+
+Figure 4. Physical structure and coordinate definitions of the selected soil-plug formulation. The fixed coordinate y is measured downward from the initial seabed, and the local coordinate x is measured downward from the current plug surface. At penetration depth z, the plug length is Lplug = z + hheave . The initial material coordinate ζ0 tracks the soil entering the internal control volume. MG, MS , and MD denote skirt-penetration-induced geometric displacement, seepage-driven soil void-ratio evolution, and near-wall soil dilation, respectively. Dashed blue curves schematically indicate the seepage paths. 
+
+The selected model integrates three plug-heave mechanisms 
+
+The selected V6 formulation predicts plug heave by combining skirt-penetration-induced geometric displacement ( MG), seepage-driven soil void-ratio evolution ( MS ), and near-wall soil dilation ( MD) (Figure 4). At penetration depth z, these three contributions are assembled through the solid-volume-conservation relation: 
+
+hheave (z) = 
+
+Z z
+
+> 0
+
+ï
+
+αA
+
+1 + e(ζ0, z )1 + e0
+
+− 1
+
+ò
+
+dζ0, (1) where ζ0 labels a soil layer by its initial depth below the seabed, and z denotes the current penetration depth. The quantity e(ζ0, z ) is the void ratio of that soil layer after the MS
+
+11 update and subsequent MD correction at penetration depth z. The initial void ratio is e0,and αA = ( Do/D i)2 is the caisson area ratio, where Do and Di are the outer and inner caisson diameters, respectively. When no void-ratio change occurs, e(ζ0, z ) = e0, and Equation (1) reduces to the geo-metric limit: 
+
+hheave (z) = ( αA − 1) z, (2) Equation (2) recovers the geometric contribution MG. In the full formulation, MS and 
+
+MD modify the predicted plug heave through their updates to e(ζ0, z ), while Equation (1) assembles these contributions into the observable response in V6. The coupled seepage, effective-stress, and void-ratio relations used to obtain e(ζ0, z ) are provided in Supplemen-tary Note 1. Supplementary Fig. 1 presents the sequence through which these component calculations are evaluated and assembled at each penetration step. 
+
+Multi-agent audits recover known and previously unflagged issues 
+
+The blinded replay tested whether the retained development records contained enough information for an isolated audit role to recover known modeling issues. With the original discussions and expected answers withheld, the audit role recovered and localized all 9 issues, reported no issues outside the target set, and completed the scored replay without human assistance (Table 3). These results show that the retained records were sufficient to identify where each known issue arose and which physical rule, computational operation, or code segment required re-examination. The derivation-to-code probes then examined whether a separate audit role could de-tect implementation problems missed by the predefined checks. Across the 5 probes, the implementation role passed all 36 fixed checks. The audit role then reported five additional findings across 4 of the 5 probes (Table 3). These findings concerned an omitted rule for refreshing the final output, branch execution, the scope of a stated rule, an incomplete audit trace, and a numerical safeguard applied to the wrong term in an equation. This indicates that the role-separated audit extended the evaluation beyond the coverage of the predefined 12 Table 3: Results of workflow audit and final code verification. 
+
+Audit task Observed result Supported conclusion Blinded replay of known issues All 9 known issues were recovered and localized; no issues outside the target set, and no human assistance was provided during the scored replay. The retained development records enabled an isolated audit role to recover and localize known issues under blinded conditions. Derivation-to-code probe audit All 36 predefined checks passed; the separate audit reported 5 additional findings across 4 of the 5 probes, with no finding in one probe. The role-separated audit identified both an omitted predefined rule and implementation issues not covered by the predefined checks. Final code verification All 37 code tests passed, comprising 
+
+33 module-level tests and 4 regression tests; all 5 independently calculated reference checks also passed. Within the checked scope, the final implementation followed the equations and calculation sequence described in the manuscript. 
+
+checks, recovering an omitted requirement and identifying implementation issues that those checks did not address. After these findings had been addressed, the final code used for benchmark evaluation passed all 37 code tests, comprising 33 module-level tests and 4 regression tests (Table 3). It also passed all 5 independently calculated reference checks. Within the scope of these tests, the results confirmed that the final implementation followed the equations and cal-culation sequence described in the manuscript. The blinded-replay and derivation-to-code probe records are provided in Supplementary Note 2, and the final-code tests and regression baselines are reported in Supplementary Note 3. 
+
+Staged benchmarks support final-state and process-level predictions 
+
+We evaluated V6 using three levels of plug-heave evaluation: formula reduction and volume closure, final state prediction, and continuous process prediction (Figure 5(a)). At the first level, final plug heave was calculated using reported changes in void ratio 13 Benchmark evidence links available data to supported claims 
+
+Source data Benchmark comparison Supported claim Evidence type 
+
+Formula closure End-state volume data Reduced formula vs. closure data Volume closure of governing equation 
+
+Final state prediction Suction input + measured final heave Predicted final heave vs. measured final heave Final plug-heave prediction 
+
+Continuous process Suction input + H(z) history Predicted trajectory vs. measured trajectory Process trend and final state 0 20 40 60 80 
+
+Measured plug heave, H (mm) 
+
+020 40 60 80 
+
+> Predicted plug heave,  H (mm)
+
+±10% band 
+
+Formula reduction and volume closure  
+
+> Koteras and Ibsen Ragni et al. ±10% band T1 T2 T3 T4 T5 T9 T3
+
+20 30 40 50 60 70 80 
+
+Final plug heave, H (cm) 
+
+T1-1 S 25g T1-2 S 50g T3-1 S 50g T4-3 S 25g TRAN-T1 TRAN-T2 TRAN-T3 TRAN-T4 TRAN-T5 
+
+> -26.9% -1.3% -12.5% -15.0% +19.0% -7.6% -28.1% -0.4% -0.6%
+
+Kim and Kim (2020) Tran and Randolph (2008) 
+
+band: 0.9 ≤ eΓ/emax ≤ 1.1 
+
+Final state prediction 
+
+> Measured final heave Central prediction Prediction band
+
+2 3 4 5 6
+
+z (m) 
+
+010 20 30  
+
+> Plug heave,  H (cm)
+> band: 0.9 ≤
+> eΓ/emax ≤ 1.1
+
+Tjelta (1995), A3 
+
+Prediction Measured Band 0.10 0.15 0.20 0.25 
+
+z (m) 
+
+0.0 2.5 5.0 7.5 band: 0.9 ≤  
+
+> eΓ/emax ≤ 1.1
+
+Wang et al. (2019) 
+
+Prediction Measured Band 0.025 0.050 0.075 0.100 0.125 
+
+z (m) 
+
+0246 band: 0.9 ≤  
+
+> eΓ/emax ≤ 1.1
+
+Zhao et al. (2025), T1 
+
+Prediction Measured Band 0.025 0.050 0.075 0.100 0.125 
+
+z (m) 
+
+0246 
+
+> Plug heave,  H (cm)
+> band: 0.9 ≤
+> eΓ/emax ≤ 1.1
+
+Zhao et al. (2025), T2 
+
+Prediction Measured Band 0.025 0.050 0.075 0.100 0.125 
+
+z (m) 
+
+0246 band: 0.9 ≤  
+
+> eΓ/emax ≤ 1.1
+
+Zhao et al. (2025), T3 
+
+Prediction Measured Band 0 5 10 
+
+Final-point error (%) 
+
+Tjelta A3 Wang Zhao T1 Zhao T2 Zhao T3 
+
+8.2 3.5 1.3 5.5 2.7 
+
+> 10%
+
+Final-point error summary 
+
+(a) (b) (c) (d) Figure 5. Staged benchmark evaluation of V6 plug-heave predictions. (a) Evidence map linking the available source data, benchmark problem, and supported claim at each evaluation level. (b) Formula reduction and volume closure for 7 cases using source-reported changes in void ratio or volumetric strain. The diagonal line represents equality between predicted and measured final heave, and the shaded region denotes the predefined ±10% comparison band. (c) Final state prediction for 9 benchmark cases. Black diamonds are measured final heave, blue points represent central predictions, and horizontal bands show the sensitivity range obtained by varying eΓ/e max from 0.9 to 1.1. Percentages report the signed errors of the central predictions. (d) Predicted and measured plug-heave–depth histories for 5 cases, together with the corresponding sensitivity bands and final-point errors. The bands in panels (c) and (d) represent prescribed parameter sensitivity rather than probabilistic confidence intervals. 
+
+14 or volumetric strain. 6 of the 7 V6 calculations fell within or close to the predefined ±10% 
+
+comparison band (Figure 5(b)). 6 cases used void-ratio changes reported by Koteras and Ibsen [42], while the Ragni et al. [15] T3 case used an image-derived volumetric strain. Only T4 showed a clear deviation, with an error of +29 .5% . This difference may reflect experimental scatter or uncertainty in the reported measurement: T4 and T5 had the same void-ratio change and similar penetration depths, but their measured final plug heaves dif-fered by 7 mm, equivalent to 16.7% of the T4 measurement. The Ragni T3 case yielded an error of +6 .6% , showing that the volume-conservation relation also reproduced the measured final heave when volumetric strain was provided directly. At the second level, V6 predicted final plug heave for each case from the initial soil state and suction-pressure history. The prediction sensitivity bands encompassed 7 of the 9 benchmark endpoints, and the central predictions yielded a MAPE of 12 .4% (Figure 5(c)). The endpoints for Kim and Kim [16] T1-1 S 25g and Tran and Randolph [14] TRAN-T3 lay outside these bands. The upper prediction bounds from the predefined sensitivity analysis reduced the respective shortfalls from 26 .9% to 11 .7% and from 28 .1% to 17 .1% , respectively. The reference endpoint for TRAN-T3 was inferred from the final digitized penetration depth under a plug-filled endpoint assumption, which introduced additional uncertainty into the endpoint comparison. Overall, V6 reproduced final plug heave for most benchmark cases, while the sensitivity analysis reduced the underprediction in the two outside-band cases. The third level extended the prediction from penetration endpoints to complete plug-heave–depth histories. Across 5 cases, V6 captured the overall increase in plug heave with penetration, and all 5 measured endpoints lay within the predefined prediction sensitivity bands (Figure 5(d)). Final-point errors ranged from 1.3% to 8.2% , giving a MAPE of 
+
+4.2% . V6 agreed most closely with the three curves reported by Zhao et al. [43], with curve normalized root-mean-square errors (NRMSEs) of 3.9% –4.3% . The Wang et al. [44] and Tjelta [41] cases yielded curve NRMSEs of 10 .8% and 20 .4% , respectively. The largest process-level discrepancy occurred during early penetration in the Tjelta case, for which V6 predicted a faster increase in plug heave than was measured. This early over-prediction is consistent with the treatment of geometric displacement in V6: soil displaced 15 by skirt penetration contributes immediately to the calculated plug heave, while under the relatively low suction present during early penetration, some displaced soil may first redis-tribute before producing measurable heave. As penetration continued, the predicted and measured responses converged and reached comparable final magnitudes. Together, the three benchmark levels support distinct aspects of V6 rather than a single undifferentiated validation claim. The first evaluates volume closure when the end-state soil response is supplied, the second evaluates final-heave prediction from the initial state and suction history, and the third evaluates the evolution and final magnitude of plug heave. Detailed case results are reported in Supplementary Table 13 for formula reduction and volume closure, Supplementary Table 14 for final state prediction, and Supplementary Tables 15 and 16 for continuous process prediction. 
+
+Discussion 
+
+We used a multi-agent workflow operating within human-defined physical boundaries to connect source-supported knowledge, theory construction, numerical implementation, audit, and benchmark evaluation. Iteration through 6 candidate formulations produced V6, which integrates skirt-penetration-induced geometric displacement, seepage-driven soil void-ratio evolution, and near-wall soil dilation through solid-volume conservation. Its central predic-tions yielded a MAPE of 12.4% across 9 final-state benchmark cases and a final-point MAPE of 4.2% across 5 measured plug-heave–penetration-depth histories. With these, this study produced two linked outcomes: a physically interpretable model of soil-plug evolution and a traceable route from its knowledge sources to its numerical implementation and evaluation. This study extends agent-assisted scientific computing from isolated retrieval, coding, or data-analysis tasks to a longer engineering-modeling chain. Existing multi-agent systems have generated computational strategies within predefined scientific machine-learning prob-lems or linked literature-grounded hypotheses to experimental data analysis [45, 46]. In the present study, no complete soil-plug model was available at the outset. In this case, the work-flow had to identify relevant physical mechanisms, derive their governing relations, discretize the equations, and implement the resulting solver. Human experts retained authority over 16 admissible knowledge sources, modeling assumptions, and model revisions. When bench-mark evaluation revealed a substantial discrepancy between predicted and measured plug heave, or a trade-off between final-heave and process errors, the agents formulated the next physical question and retrieved relevant source-supported relations. Each admitted relation was then translated into equations, numerical operations, and code implementation. The methodological contribution therefore lies not in removing human judgment, but in organiz-ing human and agent roles so that the complete modeling process remains inspectable. The evolution from V1 to V6 illustrates how predictive discrepancies can be converted into physically meaningful diagnostic questions. V1–V3 continued to underpredict plug heave after seepage and confined unloading had been introduced, indicating that their stress updates generated insufficient void-ratio change. The workflow consequently examined how movement along the stress path should be converted into volumetric response. Introducing a state-dependent volume-change relation in V4 substantially reduced both final-heave and process final-point errors. V5 further reduced the process final-point error but increased the final-heave error, revealing a trade-off between the two evaluation targets. V6 addressed this trade-off by integrating the admitted seepage, soil-state, and near-wall dilation mechanisms while maintaining consistent final-state updating. In this way, each model revision was linked to a defined physical question, supporting evidence, a mathematical expression, and an implementation path. The resulting formulation also provides a physical interpretation of plug-heave devel-opment. Skirt penetration determines the volume of soil entering the caisson, while the suction-induced stress path changes the soil state and near-wall dilation further modifies the void-ratio field. Solid-volume conservation then converts this evolving field into observable plug heave. Therefore, the plug heave can be interpreted as a process response initiated by geometric displacement and modulated by suction-driven soil-state evolution and interface behavior. Complementary benchmark evidence supported the selection of V6. Its prediction sen-sitivity bands encompassed 7 of the 9 final-state benchmark cases and the endpoints of all 5 measured plug-heave–penetration-depth histories. The retrospective leave-one-study-out 17 analysis reselected V6 in 4 of the 5 folds and under all 3 scoring schemes in those folds. Selection changed only when the full-scale Tjelta study [41] was excluded. The formula-tion selected without this field record produced substantially larger errors than V6 when evaluated against the held-out Tjelta profile. This comparison highlights the importance of full-scale process data in constraining model selection and supports the balance achieved by V6 across final-state, process-level, and experimental-scale evidence. From an engineering perspective, V6 extends the conventional geometric heave estimate to a process-level prediction controlled jointly by the suction-pressure history and evolving soil state. It retains a transparent geometric baseline while describing how plug heave devel-ops throughout penetration. The resulting formulation provides a physically interpretable reduced-order model for assessing both final plug heave and its development during suction-caisson installation. Independent role-separated auditing addresses a different question from benchmark eval-uation: whether the declared physical relations were translated consistently into equations and executable code. The blinded replay recovered and localized all 9 known problems without access to the expected answers, showing that the retained records preserved the information required for subsequent examination. The derivation-to-code audit then identi-fied 5 additional findings across 4 probes after all 36 predefined implementation checks had passed. This indicates that the separate audit role extended the coverage of the predefined checks by identifying an omitted requirement and cross-layer inconsistencies in the transi-tion from derivation to implementation. Benchmark evaluation examined what the solver predicted, while the audit examined how the solver was constructed. The evidence boundary of the current study is determined primarily by the available pro-cess data and the scope of the demonstration. Only 5 comparable plug-heave–penetration-depth histories are available, including one full-scale field record, and few studies jointly report suction-pressure history, continuous plug heave, and independently measured soil state. V6 currently applies to vertical penetration in saturated homogeneous sand and as-sumes pure soil inflow, quasi-steady Darcy seepage, and cross-sectionally averaged near-wall soil dilation. More complete field observations and explicit treatment of early soil redistri-18 bution, stratification, and three-dimensional interface behavior will further test and extend both the physical model and the workflow. In summary, this study treats engineering-model development as an inspectable scientific process rather than an unreported precursor to the final solver. The selected formulation (V6) demonstrates that this workflow can produce an engineering model with explicit phys-ical meaning, while benchmark evaluation and independent audit examine its predictive outcome and formation process, respectively. The central implication is that AI agents can participate in constructing engineering theory within explicit human-defined physical bound-aries, while the model’s knowledge sources, derivation path, numerical implementation, and predictive performance remain open to scientific scrutiny. 
+
+Methods 
+
+Human-guided physics-constrained multi-agent workflow 
+
+The human-guided physics-constrained multi-agent workflow organizes model develop-ment into five linked stages: knowledge admission, skill composition, solver construction, in-dependent audit, and benchmark evaluation (Fig. 6). These stages are implemented through the knowledge engine, constraint and skill-composition modules, execution layer, audit layer, and benchmark-validation interface. 19 B. Dynamic Retrieval 
+
+A. Static Skills 
+
+Human Experts Target Variables 
+
+Constraint layer Human-defined modeling boundaries     
+
+> lPrimary outputs
+> lState variables
+> lPhysical principles
+> lIdealizations
+
+Assumptions Admissible records Parameter Sources Prohibited operations            
+
+> lApproved skills
+> lValid theories
+> lLiterature /tests
+> lRanges & units
+> lDisallowed actions
+> lForbidden forms
+> Curated domain knowledge and models
+> lVolume conservation
+> lDarcy seepage
+> lCSL description
+> lBolton-type dilatancy
+> l...
+
+Audit layer Consistency and traceability checks Closure checklist Forward mapping Backward tracing Unit / reference tests Issue log 
+
+Benchmark evaluation and feedback 
+
+Forward validation and loop-back Analytical reductions Boundary checks Case validation Version log 
+
+Knowledge Engine 
+
+Execution layer Model assembly and implementation Endpoint validation                  
+
+> lCandidate theories
+> lCandidate mechanisms
+> lCandidate closures
+> lCandidate numerical operators
+> l... Derivation ‘’block‘’ composition (assemble under constraints) Intermediate records Implementation Solver modules
+> lMechanism record
+> lVariable table
+> lEquation set
+> lCode map
+> lDiscretization
+> lCode generation
+> lSolvers
+> lComponents
+> lMechanism assembly
+> lEquation derivation
+> Bounded retrieval / skill-RAG
+
+Implementation issue feedback Modeling feedback Figure 6. Overview of the human-guided physics-constrained multi-agent workflow. Blue and orange dashed arrows indicate feedback on physical assumptions and implementation issues, respectively. 
+
+The workflow is designed to identify and avoid errors that can enter the modeling chain before the solver is validated against benchmark problems. These errors mainly arise from three aspects: • What knowledge is admitted, e.g., an assumption used outside its admissible range. • How agents use the knowledge, e.g., a symbol that changes meaning during derivation, or a temporary iteration value recorded as a final input. • How solver outputs are verified, e.g., a failure to trace a reported prediction back to the physical relations and calculation steps that produced it. Figure 6 maps these critical aspects onto the workflow structure: the knowledge engine supplies traceable physical records; the constraint layer decides which physical laws and op-erations are admissible; the execution layer turns the admitted components into equations and code under fixed notation and state rules; and the audit layer checks consistency across 20 the physical rules, equations, and code and returns unresolved inconsistencies for human re-view. Throughout this sequence, human experts retain authority over record admission and model revision, while agents perform bounded retrieval, derivation, code implementation, and auditing tasks. The first human decision occurs in the knowledge engine, the entry point for physical information. It contains two categories of agentic skills that serve as building blocks for constructing the theoretical framework. • Static skills: human-approved physical laws, constitutive relationships, or numerical operators. An agent can add a knowledge block to the model only when its assump-tions, variables, and boundary conditions are compatible with those of its neighboring blocks. This bounded search-and-use strategy forms the skill-RAG operation of the workflow. The language model is guided by records retrieved during use [23], and the retrieval target is a task-relevant skill rather than unrestricted text [24]. • Dynamic retrieval: if the initially defined static skills do not contain everything needed for model assembly, an agent may use the LLM’s pretrained knowledge, web search, or other tools to locate candidate theories, published mechanisms, closure assumptions, or numerical operators [20]. Before use, the LLM-identified item needs to be reframed as a compatible skill block. This process requires its source to be identified, its physical relation to be defined, and its allowable use to be stated, including variables, units, assumptions, and applicable range. A human reviewer then decides whether the item is admitted as a new skill or kept only as supporting evidence. After records have been admitted, the execution layer controls how agents use them to build the solver. Agents select compatible records, assemble mechanisms, derive equations, and implement code modules under the approved assumptions and parameter rules. The execution layer also fixes numerical conventions before solver outputs are accepted, including coordinates, signs, gradient directions, and the volumetric-strain convention. It separates trial values from the accepted state, defined here as the checked version of variables, in-puts, and update history submitted for reporting. This rule ensures that version records, 21 committed histories, and reported outputs refer to the same calculation iteration. The audit layer then evaluates whether the continuous equations, discrete update rules, and code modules remain consistent. If a mismatch is found, the affected item returns to the execution layer for correction and is then checked again. Agents can identify and localize these inconsistencies, but they cannot admit new records or authorize model changes until human review. In this implementation, the derivation, coding, and audit roles were run in OpenAI Codex with GPT-5.4 as the underlying model. Codex performed bounded tasks, while humans decided whether new records could be admitted and whether the model should be revised. The retained audit materials and results are documented in Supplementary Note 2. The same loop applies after benchmark validation. After the audit layer establishes inter-nal consistency, the model parameters remain fixed while differences between predicted and reported plug heave are evaluated against two predeclared bounds: the comparison band, which defines acceptable differences from the literature data, and the prediction sensitivity band, which represents prediction variation caused by documented input uncertainty. An outside-bound prediction attributed to a missing mechanism or unsuitable assumption re-turns the model to the knowledge engine, constraint layer, and human review. A difference attributable to documented source uncertainty, benchmark definition, or declared model scope is retained as a bounded modeling limitation. 
+
+Soil-plug model-development task 
+
+To apply the workflow, we defined soil-plug evolution during vertical suction-caisson penetration in saturated, homogeneous sand as the model-development task (Fig. 1(b)). The modeled system was the soil entering the caisson and forming an internal plug during penetration, and the target response was its rise relative to the surrounding seabed. Task inputs comprised caisson geometry, initial soil state and material properties, penetration depth, and the available suction-pressure history. From these inputs, the agents were tasked with constructing an executable model to calculate plug heave as penetration progressed and at the final penetration depth. 22 At task initiation, the admitted static skills comprised solid-volume conservation, Darcy-type seepage, critical-state-line (CSL) descriptions, and Bolton-type dilatancy. These skills formed the initial knowledge base for model development. When additional physical rela-tions or closure assumptions were required during model development, they followed the knowledge-admission procedure described in the preceding subsection. Development time was recorded for the derivation, implementation, and independent audit roles after the physical knowledge and model inputs had been prepared. For each version, role duration was the elapsed time required to complete the corresponding output, and total agent execution time was the sum of the three role durations. 
+
+Workflow audit and implementation verification 
+
+To evaluate whether the workflow could detect and localize problems along the model-development chain, we used two audit tasks followed by a final code check: • Blinded audit replay: tested whether an audit role could recover known issues using only the retained development materials. • Derivation-to-code probes: tested whether a separate audit role could identify prob-lems not covered by the fixed checks after code generation. • Final code verification: checked whether the corrected code used for benchmark eval-uation followed the equations and calculation sequence described in the manuscript. In the blinded audit replay, the audit role received development materials but was not given the target issue type, location, or answer key. The task tested whether the role could recover and localize the issue from those materials alone. We first converted 9 consistency issues identified during workflow execution into audit packets that contained no answers, while retaining the corresponding answer keys separately for scoring. Each packet contained only the relevant physical relation, computational rule, and pre-correction code. An isolated audit role then reviewed one packet using a general audit instruction, without access to issue labels, answer keys, prior discussions, or any material outside the packet. Finally, we 23 compared each audit report with the corresponding answer key and scored whether the role detected and localized the issue, explained its consequences, and proposed a valid correction or follow-up check. False positives and human assistance were recorded separately. The derivation-to-code probes extended the assessment to code generation. We con-structed 5 controlled probes. For each probe, an implementation role generated code from the supplied equations and state-update rules, followed by the corresponding fixed checks. Across the 5 probes, 36 predeclared checks were completed in total. A separate audit role then received the derivation materials, generated code, and check records. It assessed equation-to-code consistency, focusing on boundary and branch handling, the timing of state and output updates, and the completeness of the check records. Full procedures for prepar-ing the audit materials, limiting the information provided to each role, and scoring the reports are described in Sections S2.1–S2.2 of Supplementary Note 2. After the audit findings had been addressed, the code used for benchmark evaluation was checked for consistency with the governing equations and calculation sequence. The check covered key calculations, repeated runs with fixed inputs, and comparisons between key outputs and independently calculated reference values. The complete test list and passing criteria are provided in Supplementary Note 3. 
+
+Benchmark evaluation and model selection Benchmark datasets 
+
+For the soil-plug case study, 3 benchmark problems were formulated according to the type of suction-response information available in the literature: reported end-state volumes, final plug heave, or complete heave–depth histories. • Formula reduction and volume closure were evaluated using 7 cases from 2 studies [42, 15]. Void ratios or volumetric strains before and after suction installation were provided to calculate the final plug heave directly from the end-state volumes and to verify the overall volume closure. • Final state prediction was evaluated using 9 cases from 2 studies [16, 14]. The pre-24 suction soil void ratio, the suction-pressure history, and the test conditions were pro-vided to predict the final plug heave and the associated prediction sensitivity band. • Continuous-process prediction was evaluated using 5 cases with measured heave–depth histories from 3 studies [41, 44, 43]. The initial soil state and the suction-pressure history were provided to predict the development of plug heave during penetration. 
+
+Input and parameter assignment 
+
+Benchmark inputs were assigned through a fixed source hierarchy. Validation targets were obtained from reported measurements or reconstructed from published figures. Values explicitly reported in the source studies were used first: measured quantities (direct) and test-design parameters (design parameter). Inputs not reported explicitly were derived where possible from reported information or physical relationships (derived). The remaining inputs were assigned from data for the same material (analog) or from predefined engineering assumptions (assumption). Each adopted value and its source class were recorded in a parameter-source ledger (Supplementary Data 2). The label unavailable identifies entries for which no sourced value was adopted; the label mixed identifies rows combining values from multiple source classes. All inputs were fixed before any model calculation, so that no input could be adjusted in response to prediction outcomes. Each candidate formulation was then evaluated by comparing its predictions with the validation targets. Supplementary Note 4 documents the inputs, source labels, and derivations for each benchmark case, and the underlying numerical records are provided as Supplementary Data 1. Most benchmark inputs were taken directly from the source studies or derived through the hierarchy above. Three model parameters, however, were assigned by common rules in the final-state and continuous-process predictions. None of the five prediction studies provided case-specific values of the critical-state-line intercept ratio eΓ/e max or Poisson’s ratio ν; the central value of eΓ/e max was therefore set to 1.0, the midpoint of the sensitivity range adopted below, and ν was set to 0.30 [37, 47]. Kim and Kim [16] reported case-specific ki/k out values ranging from approximately 1.26 to 1.46, and a representative value of 1.3 was adopted for their cases; the remaining cases used ki/k out = 3 .0, following Houlsby 25 and Byrne [6]. Formula reduction and volume closure required no such assignments, because their calculations used the source-reported end-state volumes directly. Sensitivity to eΓ/e max was evaluated by varying it by ±10% about the central value, giving a range of 0.9–1.1; the adopted range was based on reported critical-state-line and state-parameter data for sand [48, 49, 50, 51]. The resulting spread defines the prediction sensitivity band for the final-state and continuous-process predictions. This band isolates the effect of eΓ/e max : no case-specific values of this ratio were available for the prediction studies, and it sets the low-stress reference used in the void-ratio update, whereas Poisson’s ratio and the permeability ratio were held at the values assigned above. 
+
+Evaluation metrics 
+
+The metrics were chosen to match the validation data available for each benchmark. For formula reduction and volume closure, final plug heave was calculated from the reported void-ratio or volumetric-strain information and compared with the reported final plug heave. Agreement was assessed against the predefined comparison band of ±10% .For final state prediction, we expressed the signed percentage error for benchmark case 
+
+c as 
+
+Ec = hpred ,c − hmeas ,c 
+
+hmeas ,c 
+
+× 100% , (3) where hpred ,c is the predicted final plug heave and hmeas ,c is the corresponding final plug-heave value used for validation. The value of hmeas ,c was either reported directly or re-constructed from the final digitized penetration depth for that case, as described above. A positive Ec indicates overprediction, whereas a negative value indicates underprediction. We then summarized the absolute case-level errors as the mean absolute percentage error: 
+
+MAPE = 1
+
+NcNcX
+
+> c=1
+
+|Ec| , (4) where Nc is the number of cases included in the final state prediction average. For continuous process prediction, the predicted plug heave was evaluated at the mea-sured penetration depths. The error at the final measured depth was computed using Equa-26 tion (3). Averaging its absolute value across the process cases gives the final-point MAPE. Because percentage error is undefined when the measured heave is zero, curve MAPE was calculated only at points with nonzero measured plug heave: 
+
+MAPE curve = 1
+
+N+
+
+X
+
+> p∈P +
+
+hpred ,p − hmeas ,p 
+
+hmeas ,p 
+
+× 100% , (5) where p indexes the process points, and hpred ,p and hmeas ,p are the predicted and measured plug heave at point p, respectively. The set P+ contains the points for which both values are finite and hmeas ,p ̸ = 0 , and N+ = |P +|.To complement this relative measure, we calculated the root-mean-square error in phys-ical units over all process points with finite predicted and measured plug heave, including points with zero measured heave: 
+
+RMSE curve =
+
+ 1
+
+Np
+
+X
+
+> p∈P f
+
+(hpred ,p − hmeas ,p )2
+
+
+
+> 1/2
+
+, (6) where Pf is the set of process points for which both the predicted and measured plug heave are finite, and Np = |P f |. Plug heave is expressed in centimeters. 
+
+Candidate screening 
+
+Each candidate formulation generated by the workflow was evaluated using the same benchmark cases, input assignments, and parameter rules. Because the candidate formu-lations shared the same volume-closure relation, comparison during model development focused on final state prediction and continuous process prediction. Final-heave MAPE characterized agreement with the endpoint data, whereas process final-point MAPE char-acterized agreement at the end of the measured penetration histories. Both metrics were retained in the development records and used to determine whether the formulation entered another cycle of audit and revision. 27 LOSO selection stability 
+
+The dataset used for candidate selection contained 5 source studies. Each study was held out once, giving 5 retrospective leave-one-study-out (LOSO) folds. In each fold, the remain-ing 4 studies were used to rescore the candidate models and identify the best-performing model, which was then evaluated against the held-out study. A change in the selected model after excluding a study indicated sensitivity to that study, whereas consistent selection across the 5 folds indicated stable model selection. Candidate scores combined final and process performance. The final-heave component, 
+
+Efinal , was calculated from the absolute percentage errors in final plug heave. The process component, Ecurve , measured the error over the complete heave–depth curve and included only studies that reported process histories. To prevent studies with more cases or curves from dominating the score, errors were first averaged within each study and then across studies. For LOSO scoring, each curve RMSE was normalized by the measured final plug heave: 
+
+NRMSE curve = 100 RMSE curve 
+
+hmeas ,final 
+
+. (7) where RMSE curve is the root-mean-square difference between the predicted and measured curves, and hmeas ,final is the measured plug heave at the end of the curve. Averaging these normalized errors within each study and then across the contributing studies gave Ecurve .The primary score assigned 75% of the weight to final-heave error and 25% to process-curve error: 
+
+J = 0 .75 Efinal + 0 .25 Ecurve . (8) The candidate model with the lowest J was selected in each fold. The analysis was repeated using final-heave and process-curve weights of 50:50 and 25:75 to assess whether model selection depended on the relative weighting of the two types of evidence. 28 Data availability 
+
+The published experimental data and model predictions used in the benchmark validation are provided as Supplementary Data 1. The model inputs and their sources are provided as Supplementary Data 2. 
+
+Code availability 
+
+The code used to run the final soil-plug solver and reproduce the benchmark predictions is publicly available under the MIT License at https://github.com/shijie774302906/soil-plug-solver. 
+
+References 
+
+[1] International Energy Agency, Offshore wind outlook 2019, Tech. rep., International Energy Agency, Paris (2019). URL https://www.iea.org/reports/offshore-wind-outlook-2019 
+
+[2] N. Gonzalez, P. Serna-Torre, P. A. S’anchez-P’erez, R. Davidson, B. Murray, M. Staadecker, J. Szinai, R. Wei, D. M. Kammen, D. A. Sunter, P. Hidalgo-Gonzalez, Offshore wind and wave energy can reduce total installed capacity re-quired in zero-emissions grids, Nature Communications 15 (1) (2024). doi:10.1038/ s41467-024-50040-6 .[3] Y. Zhao, Y. Tao, Y. Chen, J. Yan, Z. Zeng, et al., Increasing extreme winds challenge offshore wind energy resilience, Nature Communications 16 (2025) 9529. doi:10.1038/ s41467-025-65105-3 .[4] X. Wu, et al., Foundations of offshore wind turbines: A review, Renewable and Sus-tainable Energy Reviews 104 (2019) 379–393. doi:10.1016/j.rser.2019.01.012 .[5] OWA, Suction installed caisson foundations for offshore wind: Owa design guidelines, Tech. Rep. Issue 1.0, Offshore Wind Accelerator, The Carbon Trust (2019). 29 [6] G. T. Houlsby, B. W. Byrne, Design procedures for installation of suction caissons in sand, Proceedings of the Institution of Civil Engineers - Geotechnical Engineering 158 (3) (2005) 135–144. doi:10.1680/geng.158.3.135.66297 .[7] O. Harireche, M. T. Naqash, Q. U. Farooq, A full numerical model for the installation analysis of suction caissons in sand, Ocean Engineering 234 (2021) 109173. doi:10. 1016/j.oceaneng.2021.109173 .[8] O. C. Zienkiewicz, A. H. C. Chan, M. Pastor, B. A. Schrefler, T. Shiomi, Computational Geomechanics with Special Reference to Earthquake Engineering, John Wiley & Sons, Chichester, 1999. [9] A. Gens, Soil–environment interactions in geotechnical engineering, Géotechnique 60 (1) (2010) 3–74. doi:10.1680/geot.9.P.109 .[10] G. Wilson, D. A. Aruliah, C. T. Brown, N. P. Chue Hong, M. Davis, R. T. Guy, S. H. D. Haddock, K. D. Huff, I. M. Mitchell, M. D. Plumbley, B. Waugh, E. P. White, P. Wilson, Best practices for scientific computing, PLOS Biology 12 (1) (2014) e1001745. 
+
+doi:10.1371/journal.pbio.1001745 .[11] H. C. Ates, P. Q. Nguyen, L. Gonzalez-Macia, E. Morales-Narv’aez, F. G"uder, J. J. Collins, C. Dincer, End-to-end design of wearable sensors, Nature Reviews Materials 7 (2022) 887–907. doi:10.1038/s41578-022-00460-x .[12] Z. Hu, W. Yan, Data-driven modeling of process-structure-property relationships in metal additive manufacturing, npj Advanced Manufacturing 1 (2024) 3. doi:10.1038/ s44334-024-00003-y .[13] I. T. Song, J. Kang, J. Koh, H. Choi, H. Yang, E. Park, J. Lee, W. Cho, Y.-m. Lee, S. Lee, et al., Thermal runaway prevention through scalable fabrication of safety re-inforced layer in practical li-ion batteries, Nature Communications 15 (2024) 8294. 
+
+doi:10.1038/s41467-024-52766-9 .30 [14] M. N. Tran, M. F. Randolph, Variation of suction pressure during caisson installation in sand, Géotechnique 58 (1) (2008) 1–11. doi:10.1680/geot.2008.58.1.1 .[15] R. Ragni, B. Bienen, S. Stanier, C. O’Loughlin, M. Cassidy, Observations during suction bucket installation in sand, International Journal of Physical Modelling in Geotechnics 20 (3) (2020) 132–149. doi:10.1680/jphmg.18.00071 .[16] J. H. Kim, D. S. Kim, Soil plug heave induced by suction bucket installation on sand via centrifuge model tests, Marine Georesources & Geotechnology 38 (10) (2020) 1245– 1256. doi:10.1080/1064119X.2019.1675204 .[17] J. Shi, B. A. Malik, Z. Liang, L. Jing, Y. Lu, F. Gao, Z. Ouyang, Installation effects on the performance of hybrid suction caissons in sand, Ocean Engineering 359 (2026) 126025. [18] P. Zhang, L. Mu, Y. Lu, M. Huang, J. Sun, Microscopic insights into suction bucket installation in sand: Coupled coarse-grained cfd-dem simulations, Computers and Geotechnics 167 (2024) 106060. [19] L. Mu, T. Zhou, Y. Lu, G. Yu, J. Sun, Experimental investigation of suction-assisted penetration of compartmented bucket foundations, Applied Ocean Research 166 (2026) 104923. [20] S. Yao, J. Zhao, D. Yu, N. Du, I. Shafran, K. Narasimhan, Y. Cao, React: Synergizing reasoning and acting in language models, proceedings of ICLR 2023. arXiv:2210.03629 (2023). [21] D. Guo, D. Yang, H. Zhang, et al., Deepseek-r1 incentivizes reasoning in llms through reinforcement learning, Nature 645 (8081) (2025) 633–638. doi:10.1038/ s41586-025-09422-z .[22] D. A. Boiko, R. MacKnight, B. Kline, G. Gomes, Autonomous chemical research with large language models, Nature 624 (7992) (2023) 570–578. doi:10.1038/ s41586-023-06792-0 .31 [23] P. Lewis, E. Perez, A. Piktus, F. Petroni, V. Karpukhin, N. Goyal, H. Kuttler, M. Lewis, W.-t. Yih, T. Rocktaschel, S. Riedel, D. Kiela, Retrieval-augmented generation for knowledge-intensive nlp tasks, in: Advances in Neural Information Processing Systems, Vol. 33, 2020, pp. 9459–9474, arXiv:2005.11401. [24] K. Wei, R. Li, X. Zhu, Z. Xue, J. Han, J. Niu, F. Yang, Skill-rag: Failure-state-aware retrieval augmentation via hidden-state probing and skill routing, arXiv:2604.15771 (2026). doi:10.48550/arXiv.2604.15771 .[25] S. Li, T. Marwah, J. Shen, W. Sun, A. Risteski, Y. Yang, A. Talwalkar, Codepde: An inference framework for llm-driven pde solver generation, Transactions on Machine Learning Research. arXiv:2505.08783 (2026). [26] T. Kim, T. S. Yun, H. S. Suh, Can chatgpt implement finite element models for geotech-nical engineering applications?, International Journal for Numerical and Analytical Methods in Geomechanics 49 (6) (2025) 1747–1766. doi:10.1002/nag.3956 .[27] A. M. Bran, S. Cox, O. Schilter, C. Baldassari, A. D. White, P. Schwaller, Augmenting large language models with chemistry tools, Nature Machine Intelligence 6 (2024) 525– 535. doi:10.1038/s42256-024-00832-8 .[28] D. Park, H. Moon, S. Ryu, A self-correcting multi-agent llm framework for language-based physics simulation and explanation, npj Artificial Intelligence 2 (2026) 10. doi: 10.1038/s44387-025-00057-z .[29] K. Stechly, K. Valmeekam, S. Kambhampati, On the self-verification limitations of large language models on reasoning and planning tasks, proceedings of ICLR 2025. arXiv:2402.08115 (2025). [30] G. Dolcetti, E. Iotti, A dual perspective review on large language models and code verification, Frontiers in Computer Science 7 (2025) 1655469. doi:10.3389/fcomp. 2025.1655469 .32 [31] N. Tihanyi, T. Bisztray, M. A. Ferrag, R. Jain, L. C. Cordeiro, How secure is ai-generated code: A large-scale comparison of large language models, Empirical Software Engineering 30 (2) (2025) 47. doi:10.1007/s10664-024-10590-1 .[32] M. N. Tran, M. F. Randolph, D. W. Airey, Study of seepage flow and sand plug loosening in installation of suction caissons in sand, in: Proceedings of the Fifteenth International Offshore and Polar Engineering Conference, International Society of Offshore and Polar Engineers, Seoul, Korea, 2005, pp. 516–521. [33] L. Xie, S. Ma, T. Lin, The seepage and soil plug formation in suction caissons in sand using visual tests, Applied Sciences 10 (2) (2020) 566. doi:10.3390/app10020566 .[34] K. Been, M. G. Jefferies, A state parameter for sands, Géotechnique 35 (2) (1985) 99–112. doi:10.1680/geot.1985.35.2.99 .[35] J. Jaky, The coefficient of earth pressure at rest, Journal of the Society of Hungarian Architects and Engineers 78 (22) (1944) 355–358, in Hungarian. [36] P. W. Mayne, F. H. Kulhawy, k0–ocr relationships in soil, Journal of the Geotechnical Engineering Division 108 (6) (1982) 851–872. doi:10.1061/AJGEB6.0001306 .[37] L. P. Suwal, R. Kuwano, Statically and dynamically measured poisson’s ratio of granular soils on triaxial laboratory specimens, Geotechnical Testing Journal 36 (4) (2013) 493– 505. doi:10.1520/GTJ20120108 .[38] X. S. Li, Y. F. Dafalias, Dilatancy for cohesionless soils, Géotechnique 50 (4) (2000) 449–460. doi:10.1680/geot.2000.50.4.449 .[39] M. G. Jefferies, Nor-sand: a simple critical state model for sand, Géotechnique 43 (1) (1993) 91–103. doi:10.1680/geot.1993.43.1.91 .[40] M. D. Bolton, The strength and dilatancy of sands, Géotechnique 36 (1) (1986) 65–78. 
+
+doi:10.1680/geot.1986.36.1.65 .33 [41] T. I. Tjelta, Geotechnical experience from the installation of the europipe jacket with bucket foundations, in: Offshore Technology Conference, 1995, p. OTC 7795. doi: 10.4043/7795-MS .[42] A. K. Koteras, L. B. Ibsen, Medium-scale laboratory model of mono-bucket foundation for installation tests in sand, Canadian Geotechnical Journal 56 (8) (2019) 1142–1153. 
+
+doi:10.1139/cgj-2018-0134 .[43] J. Zhao, D. Li, Y. Zhang, Y. Zhang, Formation of soil plug in bioinspired scaled suction caissons in sand for offshore wind turbine, Energy 332 (2025) 137157. doi:10.1016/ j.energy.2025.137157 .[44] Y. Wang, X. Zhu, Q. Yang, Installation of suction caissons and formation of soil plug considering variation of permeability of sand, Chinese Journal of Geotechnical Engi-neering 41 (1) (2019) 184–190. doi:10.11779/CJGE201901021 .[45] Q. Jiang, G. Karniadakis, AgenticSciML: collaborative multi-agent systems for emer-gent discovery in scientific machine learning, npj Artificial Intelligence 2 (2026) 57. 
+
+doi:10.1038/s44387-026-00102-5 .[46] A. E. Ghareeb, B. Chang, L. Mitchener, A. Yiu, C. J. Szostkiewicz, D. Shved, G. J. Gyimesi, J. M. Laurent, S. M. Wright, M. T. Razzak, A. D. White, S. C. Finnemann, M. M. Hinks, S. G. Rodriques, A multi-agent system for automating scientific discovery, Nature 655 (2026) 497–505. doi:10.1038/s41586-026-10652-y .[47] S. K. Thota, T. D. Cao, F. Vahedifard, Poisson’s ratio characteristic curve of unsatu-rated soils, Journal of Geotechnical and Geoenvironmental Engineering 147 (1) (2021) 04020149. doi:10.1061/(ASCE)GT.1943-5606.0002424 .[48] S. I. Woo, C. K. Chung, Numerical simulation of cone penetration tests in sand ground using critical state mohr coulomb plasticity model, Journal of the Korean Geotechnical Society 35 (2) (2019) 37–51. doi:10.7843/kgs.2019.35.2.37 .34 [49] Z. Zhu, W. Cheng, Parameter evaluation of exponential-form critical state line of a state-dependent sand constitutive model, Applied Sciences 10 (1) (2020) 328. doi: 10.3390/app10010328 .[50] W. Liu, M. Ghafghazi, Evaluation of state parameter interpretation methods using cpt calibration chamber data, Geotechnical Research 11 (4) (2024) 226–242. doi: 10.1680/jgere.23.00072 .[51] R. Kurniadi, A. Roy, S. H. Chow, M. J. Cassidy, Drained uplift capacity of deeply embedded horizontal circular plate anchors in sand, Ocean Engineering 331 (2025) 121259. doi:10.1016/j.oceaneng.2025.121259 .
+
+Funding 
+
+J.S. and Z.O. acknowledge support from the National Natural Science Foundation of China (grant nos. 52401333 and U24B20114). 
+
+Author contributions 
+
+J.S. conducted the research and wrote the original draft. J.S. and Y.L. prepared the figures. Y.L. revised the manuscript. Z.O. supervised the research and acquired funding. 
+
+Ethics declaration 
+
+Not applicable. 
+
+Competing interests 
+
+The authors declare no competing interests. 35 Supplementary Information 
+
+Human-guided physics-constrained AI agents construct an auditable model of soil-plug evo-lution 
+
+This Supplementary Information first presents the model equations and numerical im-plementation of the soil-plug solver. It then reports the procedures and findings of the two workflow audits, followed by the checks applied to the final code. The final note and accom-panying data files document the benchmark inputs, their sources, and the numerical results cited in the main text. 
+
+Contents 
+
+Supplementary Table 1. Contents of the Supplementary Information.        
+
+> Section Content Supplementary Note 1 Model formulation and numerical solution procedure. Supplementary Note 2 Design and findings of the two workflow audits. Supplementary Note 3 Verification of the final solver through module-level, regression, and analytical reference tests. Supplementary Note 4 Benchmark inputs, data sources, and comparison results. Supplementary Data 1 Numerical data underlying the benchmark summaries and Fig. 5 of the main text. Supplementary Data 2 Sources and uses of the global and case-specific model inputs.
+
+The benchmark evaluation reported in the main text uses the boundary rules, global set-tings, and study-specific inputs documented in Supplementary Tables 10–12. Supplementary Tables 13–16 report the three corresponding comparisons shown in Fig. 5. 36 Supplementary Note 1. Mathematical Formulation and Numerical Implementa-tion of the Soil-Plug Model 
+
+Supplementary Note 1 defines how the soil-plug formulation selected in the main text calculates heave during caisson penetration and how this calculation is implemented numer-ically. The formulation begins with solid-volume conservation, which combines geometric displacement, seepage-induced changes in soil volume, and near-wall dilation. The following sections derive these contributions, assemble the final heave calculation, and then present the discrete solution process, numerical checks, and range of application. 
+
+S1.1 Overall Formulation and Solution Target 
+
+The soil-plug model calculates heave by combining three physical contributions. MG
+
+represents the geometric displacement caused by skirt penetration, MS represents the change in soil void ratio driven by seepage and effective-stress changes, and MD represents near-wall soil dilation. At penetration depth z, solid-volume conservation combines these contributions as follows: 
+
+hheave (z) = 
+
+Z z
+
+> 0
+
+ï
+
+αA
+
+1 + e(ζ0, z )1 + e0
+
+− 1
+
+ò
+
+dζ0, (S1) where ζ0 labels a soil layer by its initial depth below the seabed, e(ζ0, z ) is its void ratio after the MS update and subsequent MD correction, and e0 is the initial void ratio. The area ratio is αA = ( Do/D i)2, where Do and Di are the outer and inner caisson diameters. Equation (S1) calculates plug heave from the void-ratio profile inside the caisson. MG
+
+first establishes the geometric limit in which the void ratio remains unchanged. To determine the departure from that limit, MS converts the prescribed suction-pressure history into a hydraulic gradient, an effective-stress path, and then a seepage-driven void-ratio update. After the MG–MS calculation has converged, MD adds the near-wall dilation mobilized during the penetration increment. The final void-ratio field is then returned to Eq. (S1) to calculate plug length and plug heave. 
+
+> Supplementary Table 2. Symbols, parameters, and state conventions used in the soil-plug formulation.
+
+37 Symbol or mark Definition Unit or type 
+
+Geometry and coordinates 
+
+Di, D o, r i Di: inner caisson diameter; Do: outer caisson diameter; ri: inner caisson radius. m
+
+Ai, α A Ai: internal cross-sectional area; αA: outer-to-inner area ratio, 
+
+(Do/D i)2.
+
+Ai: m 2; αA:dimensionless 
+
+z, z n, z n+1 z: penetration depth; zn: depth at the start of the current step; 
+
+zn+1 : depth at the end of the current step. m
+
+∆z, ˙z, ∆t ∆z: penetration increment; ˙z: penetration rate; ∆t: elapsed time for one step. 
+
+∆z: m; ˙z: m s −1;
+
+∆t: s 
+
+hheave , L plug , H hheave : net plug heave; Lplug : total plug length; H: domain height measured from the plug free surface, H = Lplug = z + hheave .m
+
+y, x y: fixed vertical coordinate measured downward from the initial seabed; x: vertical coordinate measured downward from the current plug free surface. m
+
+Hydraulic parameters and flow rates 
+
+∆u Prescribed suction-pressure difference. kPa 
+
+γw , γ ′ γw : unit weight of water; γ′: buoyant unit weight of sand. kN m −3
+
+ϕ Equivalent head loss. m
+
+i, i tip i: hydraulic gradient, dϕ/dx ; itip : hydraulic gradient at the caisson tip. dimensionless 
+
+kv , k r kv : equivalent vertical permeability coefficient; kr : equivalent radial permeability coefficient. m s −1
+
+ki, k out ki: internal-soil permeability; kout : external-soil permeability. m s −1
+
+R∗ 
+
+> e
+
+, R e, ∞, R b R∗ 
+
+> e
+
+: adopted equivalent outer-domain radius; Re, ∞: modal radius estimate for an unbounded outer domain; Rb: source-based finite limiting radius. m
+
+ℓs, λ 1 ℓs: characteristic seepage length; λ1: first vertical modal wavenumber. 
+
+ℓs: m; λ1: m −1
+
+K0(·), K1(·) K0(·): zeroth-order modified Bessel function of the second kind; 
+
+K1(·): first-order modified Bessel function of the second kind. functions 
+
+Qx, q r Qx: signed axial Darcy discharge; qr : radial seepage rate per unit plug length. 
+
+Qx: m 3 s−1; qr :m2 s−1
+
+Qin ,top , Q tip Qin ,top : upward flow rate across the plug top; Qtip : upward flow rate across the caisson-tip section. m3 s−1
+
+Qgeom , Q pump Qgeom : geometric volume-change rate; Qpump : equivalent pump flow. m3 s−1
+
+Continued on next page 
+
+38 Supplementary Table 2 continued 
+
+Symbol or mark Definition Unit or type 
+
+Stress and soil-state parameters 
+
+σ′ 
+
+> v
+
+, σ ′
+
+> h
+
+, σ ′ 
+
+> rc
+
+σ′ 
+
+> v
+
+: vertical effective stress; σ′
+
+> h
+
+: lateral effective stress; σ′
+
+> rc
+
+:interfacial reference confining stress. kPa 
+
+ˆσ′ 
+
+> v
+
+, σ ′ 
+
+> v, reg
+
+ˆσ′ 
+
+> v
+
+: regularized vertical effective stress in the refreshed final output; 
+
+σ′
+
+> v, reg
+
+: regularized vertical effective stress in trial or history states. kPa 
+
+p′, ˆp′, q p′: mean effective stress; ˆp′: regularized mean effective stress; q:deviatoric stress magnitude. kPa 
+
+η Stress ratio, q/ ˆp′. dimensionless 
+
+ν, K 0, K p ν: Poisson’s ratio; K0: at-rest earth-pressure coefficient; Kp:passive stress-ratio bound. dimensionless 
+
+cp(K0) Coefficient converting vertical effective stress to the stored mean-stress reference, (1 + 2 K0)/3.dimensionless 
+
+p′ 
+
+> min
+
+Positive numerical stress floor. kPa 
+
+ϕmodel Case-specific friction-angle input. degrees 
+
+e, e 0 e: current void ratio; e0: initial void ratio. dimensionless 
+
+emin , e max emin : source-based lower void-ratio bound; emax : source-based upper void-ratio bound. dimensionless 
+
+ecs , Ψ ecs : critical-state void ratio; Ψ: state parameter, e − ecs . dimensionless 
+
+eΓ, λ c, κ c eΓ: critical-state-line intercept; λc: critical-state-line shape coefficient; κc: critical-state-line shape exponent. dimensionless 
+
+pa Reference stress in the critical-state relation. kPa 
+
+Mtc , M te , M path Mtc : triaxial-compression critical stress ratio; Mte :triaxial-extension critical stress ratio; Mpath : critical stress ratio adopted for the current path. dimensionless 
+
+ηact , η 0 ηact : stress ratio at node activation; η0: stored activation reference stress ratio. dimensionless 
+
+μ, ¯μ, ∆¯ μ μ: current path-mobilization degree; ¯μ: maximum mobilization reached in accepted steps; ∆¯ μ: newly mobilized increment. dimensionless 
+
+ϵη Numerical denominator floor in the mobilization calculation. dimensionless 
+
+κs Swelling index. dimensionless 
+
+∆ereb , e reb ∆ereb : void-ratio increment due to rebound; ereb : void ratio after rebound. dimensionless 
+
+Creb , ∆erel Creb : remaining dense-state capacity for void-ratio increase after rebound; ∆erel : void-ratio increment released by path mobilization. dimensionless 
+
+Continued on next page 
+
+39 Supplementary Table 2 continued 
+
+Symbol or mark Definition Unit or type 
+
+Near-wall dilation parameters 
+
+Dr , Q Dr : relative density; Q: parameter in the Bolton-type dilation relation. dimensionless 
+
+cψ , p a,B cψ : coefficient converting relative dilatancy index to dilatancy angle; pa,B : reference pressure in the dilation relation. 
+
+cψ : degrees per unit IR; pa,B :kPa 
+
+IR, ψ d IR: Bolton-type relative dilatancy index; ψd: local dilatancy angle. IR:dimensionless; 
+
+ψd: rad 
+
+δy , δ cum δy : characteristic displacement; δcum : cumulative interfacial displacement recorded in the dilation history. m
+
+∆δpot , ∆δmob ∆δpot : potential interfacial displacement increment; ∆δmob :increment recorded when a positive dilation increment is applied. m
+
+∆¯ εD
+
+> v, max
+
+, ∆¯ εD 
+
+> v, raw
+
+∆¯ εD
+
+> v, max
+
+: maximum cross-sectionally averaged dilation strain increment; ∆¯ εD
+
+> v, raw
+
+: increment before capacity truncation. dimensionless 
+
+∆¯ εD
+
+> v, rem
+
+, ∆¯ εD 
+
+> v
+
+∆¯ εD
+
+> v, rem
+
+: remaining cross-sectionally averaged dilation strain increment; ∆¯ εD 
+
+> v
+
+: applied increment. dimensionless 
+
+εDcum , ω εDcum : accumulated dilation strain amplitude; ω: dilation-capacity decay factor. dimensionless 
+
+∆eD Void-ratio increment due to dilation. dimensionless 
+
+Discretization, iteration, and state notation 
+
+ζ0,j , ∆ζ0,j ζ0,j : initial depth of material node j; ∆ζ0,j : trapezoidal quadrature weight assigned to that node. m
+
+j, N j: material-node index; N : total number of material nodes. integers 
+
+n, k, k conv n: penetration-step index; k: fixed-point iteration index; kconv :accepted converged iteration index. integers 
+
+hest , h cand hest : plug-heave estimate entering an iteration; hcand : candidate plug heave calculated in that iteration. m
+
+rh Absolute plug-heave residual used to test fixed-point convergence. m
+
+In+1  
+
+> j
+
+, An+1 In+1  
+
+> j
+
+: node-activation flag for the current step; An+1 : active-node set for the current step. 
+
+In+1  
+
+> j
+
+: 0 or 1; 
+
+An+1 : set 
+
+S∗ 
+
+> j,n +1
+
+Synchronized state of node j after coupled convergence and before dilation correction. state vector 
+
+Fn+1 Fixed-point map from trial void ratio and plug heave to their candidate values. map 
+
+Continued on next page 
+
+40 Supplementary Table 2 continued                           
+
+> Symbol or mark Definition Unit or type
+> tr ,Htr : trial-state mark; H: stored-history mark. superscripts
+> D,∗D: dilation-stage mark; ∗: synchronized-state mark after coupled convergence and before dilation correction. superscripts
+> out ,conv out : refreshed final-output mark; conv : converged-iteration mark. superscripts or labels
+> proj ,sat ,clip proj : projection to stress bounds; sat : restriction to [0 ,1] ;clip :restriction to an admissible interval. operators
+> Model components
+> MG, M S, M DMG: skirt-penetration-induced geometric displacement; MS:seepage-driven soil void-ratio evolution; MD: near-wall soil dilation. model components
+
+S1.2 Coordinate System and Geometric Baseline 
+
+Let z denote the caisson penetration depth and hheave (z) the net plug heave. The fixed coordinate y is measured downward from the initial mudline. The coordinate attached to the moving plug free surface is 
+
+x = y + hheave (z), H = z + hheave (z), (S2) where x is positive downward, x = 0 denotes the current plug free surface, x = H denotes the caisson tip, and H = Lplug (z) is the current total plug length. When the void ratio remains at its initial value, e(ζ0, z ) = e0, Eq. (S1) reduces to 
+
+hheave (z) = ( αA − 1) z. (S3) This relation defines the MG geometric baseline. The MS and MD components move the model away from this baseline by changing the void-ratio field used in the solid-volume-conservation relation. 
+
+S1.3 Seepage-Driven Void-Ratio Evolution ( MS )
+
+Prescribed suction first creates a hydraulic head difference across the soil plug. This difference determines the hydraulic gradient, which changes the effective stresses carried by 41 the soil skeleton. The resulting stress path then determines the change in void ratio. MS
+
+therefore follows the sequence ∆u → i → (σ′
+
+> v
+
+, σ ′
+
+> h
+
+, p ′, q ) → e∗, where e∗ is the void ratio accepted after the coupled MG–MS calculation converges and then passed to MD.
+
+S1.3.1 From Prescribed Suction to the Hydraulic Field 
+
+The first step converts the prescribed suction-pressure difference into the hydraulic gra-dient along the plug. The hydraulic calculation resolves vertical Darcy flow along x and represents seepage through the surrounding soil as an equivalent radial discharge per unit plug length. The two flow paths form the one-dimensional axial equation used below. Let ϕ(x) denote the equivalent head loss, expressed as water head, and let ∆u(z) > 0
+
+denote the prescribed suction-pressure difference. With γw denoting the unit weight of water, the boundary conditions are 
+
+ϕ(0) = 0 , ϕ(H) = ∆u(z)
+
+γw
+
+. (S4) The signed axial discharge Qx uses the equivalent vertical permeability kv and the internal cross-sectional area Ai:
+
+Qx = −kvAi
+
+dϕ dx (S5) The radial seepage rate per unit plug length, qr, uses the equivalent radial permeability 
+
+kr, inner radius ri, and adopted equivalent outer-domain radius R∗ 
+
+> e
+
+. In this equivalent one-dimensional plug domain, qr > 0 denotes radial discharge leaving the plug domain: 
+
+qr = 2πk rϕ
+
+ln( R∗ 
+
+> e
+
+/r i). (S6) Conservation of fluid mass gives dQ x/dx + qr = 0 . With Ai = πr 2 
+
+> i
+
+, this balance becomes 
+
+d2ϕdx 2 − 2kr
+
+kvr2 
+
+> i
+
+ln( R∗ 
+
+> e
+
+/r i)ϕ = 0 . (S7) The radius R∗ 
+
+> e
+
+therefore controls the radial drainage resistance represented in the one-dimensional model. 42 Defining ℓs as the characteristic seepage length gives the equivalent one-dimensional finite-domain kernel 
+
+d2ϕdx 2 − ϕℓ2
+
+> s
+
+= 0 , (S8) with 
+
+ri = Di
+
+2 , ℓs = ri
+
+ï kv
+
+2kr
+
+ln 
+
+ÅR∗
+
+> e
+
+ri
+
+ãò 1/2
+
+, (S9) where Di is the inner diameter. For each benchmark case, we set the equivalent ratio 
+
+kr/k v in Eq. (S9) equal to the adopted internal-to-external permeability ratio ki/k out as a model assumption. The unbounded modal estimate Re, ∞ is defined by matching the logarithmic radial drainage resistance of the primary leakage mode, 
+
+ln 
+
+ÅRe, ∞
+
+ri
+
+ã
+
+= K0(λ1ri)
+
+λ1riK1(λ1ri), λ1 = πH , (S10) where λ1 is the first vertical modal wavenumber and K0(·) and K1(·) are modified Bessel functions of the second kind. When a finite external boundary or source-based limiting radius Rb is available, the adopted radius is R∗ 
+
+> e
+
+= min( Rb, R e, ∞), with R∗ 
+
+> e
+
+> r i. If no finite limiting radius is available, R∗ 
+
+> e
+
+= Re, ∞. The limiting radius is specified from source boundary information or from the benchmark parameter rule. Solving Eq. (S8) with Eq. (S4) gives 
+
+ϕ(x) = ∆u(z)
+
+γw
+
+sinh( x/ℓ s)sinh( H/ℓ s). (S11) In the deep-plug limit, and away from the immediate free-surface boundary, Eq. (S11) approaches 
+
+ϕ(x) ≈ ∆u(z)
+
+γw
+
+exp 
+
+Åx − Hℓs
+
+ã
+
+. (S12) The hydraulic gradient is i = dϕ/dx ; positive i represents the upward seepage contribu-tion that reduces vertical effective stress: 43 i(x, z ) = ∆u(z)
+
+γwℓs sinh( H/ℓ s) cosh( x/ℓ s). (S13) The kernel satisfies the imposed pressure-difference constraint: 
+
+γw
+
+Z H
+
+> 0
+
+i(x, z ) dx = ∆ u(z). (S14) The hydraulic gradient in Eq. (S13) supplies the seepage-force term required to calculate the vertical effective stress. 
+
+S1.3.2 From Hydraulic Gradient to Effective Stress 
+
+Upward seepage reduces the vertical effective stress carried by the soil skeleton. Combin-ing the submerged soil weight with the seepage-force term gives the vertical effective stress at a position x below the current plug free surface: 
+
+σ′
+
+> v
+
+(x, z ) = 
+
+Z x
+
+> 0
+
+[γ′ − γwi(s, z )] ds, (S15) where γ′ is the buoyant unit weight of sand. The symbol s is a temporary variable used to sum the soil-weight and seepage-force contributions from the plug surface to position x.Substituting Eq. (S13) gives 
+
+σ′
+
+> v
+
+(x, z ) = γ′x − ∆u(z) sinh( x/ℓ s)sinh( H/ℓ s). (S16) The free-surface boundary condition is 
+
+σ′
+
+> v
+
+(0 , z ) = 0 . (S17) The hydraulic gradient at the caisson tip is obtained by evaluating Eq. (S13) at x = H:
+
+itip (z) = i(H, z ) = ∆u(z)
+
+γwℓs
+
+coth( H/ℓ s). (S18) The resulting vertical stress field is then used to calculate the lateral, mean, and devia-toric stresses. The corresponding stress path controls the void-ratio update. 44 S1.3.3 From Effective-Stress Path to Void-Ratio Change 
+
+At each penetration depth, we use the effective stresses to calculate changes in void ratio and obtain plug heave from Eq. (S1). The effective stresses depend on seepage through the plug, which is itself affected by the plug height. Updating the void ratio thus changes the height used to calculate seepage and effective stresses. We account for this dependence by repeatedly recalculating seepage and stresses with the updated plug geometry, then updating the void ratio and heave. This procedure is implemented as a fixed-point iteration. Within each iteration, the void-ratio update combines two components. Changes in mean effective stress produce a rebound component, with unloading increasing the void ratio. A second component allows a further increase toward the critical-state void ratio as the stress ratio approaches its limiting value. For penetration step n + 1 , k identifies the current iteration. The trial geometry defines the total plug length H(k) 
+
+> n+1
+
+and the free-surface-attached coordinate x(k) 
+
+> j,n +1
+
+of node j. The corresponding vertical effective stress is 
+
+σ′(k) 
+
+> v,j,n +1
+
+= γ′x(k) 
+
+> j,n +1
+
+− ∆u(zn+1 )sinh Äx(k)
+
+> j,n +1
+
+/ℓ (k)
+
+> s
+
+ä
+
+sinh ÄH(k)
+
+> n+1
+
+/ℓ (k)
+
+> s
+
+ä . (S19) Nodes with σ′(k) 
+
+> v,j,n +1
+
+≤ 0 are flagged as near-critical seepage locations. To keep the logarithmic and stress-ratio calculations well defined, the current trial stress and the stress stored from the preceding accepted step are bounded below by p′
+
+> min
+
+:
+
+σ′(k) 
+
+> v,j,n +1 ,reg
+
+= max îσ′(k)
+
+> v,j,n +1
+
+, p ′
+
+> min
+
+ó ,σ′H 
+
+> v,j,n, reg
+
+= max σ′H
+
+> v,j,n
+
+, p ′
+
+> min
+
+ ,
+
+(S20) where p′ 
+
+> min
+
+is a positive numerical stress floor and the superscript H denotes a history value stored from the preceding accepted step. The lateral effective stress is first estimated from the change in regularized vertical stress relative to the preceding accepted state: 
+
+σ′tr ,(k) 
+
+> h,j,n +1
+
+= σ′H 
+
+> h,j,n
+
++ ν
+
+1 − ν
+
+Äσ′(k) 
+
+> v,j,n +1 ,reg
+
+− σ′H
+
+> v,j,n, reg
+
+ä , (S21) 45 where ν is Poisson’s ratio. The trial value is then limited between the numerical stress floor and the passive stress bound: 
+
+σ′(k) 
+
+> h,j,n +1
+
+= proj îσ′tr ,(k)
+
+> h,j,n +1
+
+; p′
+
+> min
+
+, K pσ′(k)
+
+> v,j,n +1 ,reg
+
+ó . (S22) The projection operator and passive stress-ratio bound are defined as 
+
+proj[ a; l, u ] = min[max( a, l ), u ], Kp = 1 + sin ϕmodel 
+
+1 − sin ϕmodel 
+
+, (S23) where a is the value being projected and l and u are its lower and upper bounds. The quantity Kp is the passive stress-ratio bound, and ϕmodel is the case-specific friction-angle input used by the equivalent one-dimensional solver. The vertical and lateral effective stresses are used to calculate the mean effective stress and the stress ratio. Of these, the mean effective stress is used to determine the rebound response and the critical-state void ratio, while the stress ratio is used to quantify progress toward the limiting stress state. The mean effective stress p′ and the corresponding regularized value ˆp′ are 
+
+p′(k) 
+
+> j,n +1
+
+= σ′(k) 
+
+> v,j,n +1 ,reg
+
++ 2 σ′(k)
+
+> h,j,n +1
+
+3 , ˆp′(k) 
+
+> j,n +1
+
+= max îp′(k)
+
+> j,n +1
+
+, p ′
+
+> min
+
+ó . (S24) The deviatoric stress magnitude q and stress ratio η = q/ ˆp′ are 
+
+q(k) 
+
+> j,n +1
+
+= σ′(k) 
+
+> v,j,n +1 ,reg
+
+− σ′(k) 
+
+> h,j,n +1
+
+, η(k) 
+
+> j,n +1
+
+= q(k)
+
+> j,n +1
+
+ˆp′(k)
+
+> j,n +1
+
+. (S25) The critical-state void ratio provides the reference for the additional void-ratio increase. Its value at the current mean effective stress is 
+
+e(k) 
+
+> cs,j,n +1
+
+= eΓ − λc
+
+ˆp′(k)
+
+> j,n +1
+
+pa
+
+!κc
+
+, (S26) where eΓ, λc, and κc are the intercept and shape parameters of the adopted critical-state line, and pa is its reference stress. 46 To measure progress toward the limiting stress state, the current stress ratio is compared with its value when the soil first enters the caisson and with the applicable stress-ratio limit. The entry value is stored for each node as 
+
+η0,j = ηj, act . (S27) The friction-angle input defines separate stress-ratio limits for triaxial compression and extension: 
+
+Mtc = 6 sin ϕmodel 
+
+3 − sin ϕmodel 
+
+, Mte = 6 sin ϕmodel 
+
+3 + sin ϕmodel 
+
+. (S28) The applicable limit depends on whether the vertical or lateral effective stress is larger: 
+
+M (k)path ,j,n +1 =
+
+
+
+Mtc , σ′(k) 
+
+> v,j,n +1 ,reg
+
+≥ σ′(k)
+
+> h,j,n +1
+
+,Mte , σ′(k) 
+
+> h,j,n +1
+
+> σ ′(k)
+
+> v,j,n +1 ,reg
+
+.
+
+(S29) The mobilization degree μ quantifies the increase in stress ratio from the entry value η0,j 
+
+toward the selected limit. The operator sat[ a, 0, 1] = min[max( a, 0) , 1] bounds its argument 
+
+a between 0 and 1: 
+
+μ(k) 
+
+> j,n +1
+
+= sat 
+
+ η(k) 
+
+> j,n +1
+
+− η0,j 
+
+max ÄM (k)path ,j,n +1 − η0,j , ϵ η
+
+ä, 0, 1
+
+ , (S30) where ϵη is a positive lower bound used to keep the denominator nonzero. Values of μ = 0 , 0 < μ < 1, and μ = 1 represent no, partial, and full mobilization, respectively. The rebound contribution is then calculated from the change in mean effective stress relative to the preceding accepted step. It uses the swelling index κs and the positive mean-stress reference p′H 
+
+> j,n
+
+stored at that step: 
+
+∆e(k)reb ,j = −κs ln ˆp′(k)
+
+> j,n +1
+
+p′H
+
+> j,n
+
+!
+
+, ereb ,(k) 
+
+> j,n +1
+
+= ej,n + ∆ e(k)reb ,j . (S31) 47 After the rebound update, the remaining capacity for an additional void-ratio increase is the positive gap between the critical-state void ratio and the value after rebound: 
+
+Creb ,(k) 
+
+> j,n +1
+
+= max îe(k) 
+
+> cs,j,n +1
+
+− ereb ,(k) 
+
+> j,n +1
+
+, 0ó . (S32) To count each mobilization increase once, the current degree is compared with the max-imum saved through the preceding accepted step. The positive difference gives the new mobilization increment: 
+
+∆¯ μ(k) 
+
+> j,n +1
+
+= max îμ(k) 
+
+> j,n +1
+
+− ¯μj,n , 0ó , (S33) where ¯μj,n is the maximum mobilization degree committed through step n.Multiplying this new mobilization increment by the remaining capacity gives the addi-tional void-ratio increase: 
+
+∆e(k)rel ,j = ∆¯ μ(k)
+
+> j,n +1
+
+Creb ,(k) 
+
+> j,n +1
+
+. (S34) Adding this increase to the void ratio after rebound gives the trial void ratio. The oper-ator clip[ a, l, u ] = min[max( a, l ), u ] limits this value to the source-based admissible bounds 
+
+emin and emax :
+
+e∗,(k) 
+
+> j,n +1
+
+= clip îereb ,(k) 
+
+> j,n +1
+
++ ∆ e(k)rel ,j , e min , e max 
+
+ó . (S35) The superscript ∗ denotes the coupled-loop state before the MD correction. The state parameter Ψ = e − ecs measures the difference between this updated void ratio and its critical-state value: 
+
+Ψ∗,(k) 
+
+> j,n +1
+
+= e∗,(k) 
+
+> j,n +1
+
+− e(k)
+
+> cs,j,n +1
+
+. (S36) 
+
+S1.4 Near-Wall Soil Dilation ( MD)
+
+MD calculates the additional void-ratio increment caused by near-wall soil dilation after the MG–MS calculation has converged. To obtain this increment, MD needs the local dilation 48 tendency, the interface displacement mobilized during the current penetration step, and the dilation capacity remaining in the current soil state. These quantities jointly determine the void-ratio increment ∆eD 
+
+> j
+
+, which is added to the converged void ratio. 
+
+S1.4.1 Converged Input State and Near-Wall Confinement 
+
+To calculate the local dilation tendency, MD establishes the normal confinement acting near the caisson wall. For each active soil layer, the calculation begins from the void ratio and effective stresses returned by the converged MG–MS calculation: 
+
+e∗ 
+
+> j
+
+, σ ′∗  
+
+> v,j
+
+, σ ′∗  
+
+> h,j
+
+, (S37) where the superscript ∗ marks the synchronized state accepted at MG–MS convergence. The lateral effective stress provides the wall confinement used in the dilation relation. The reference confinement is bounded below by p′ 
+
+> min
+
+as a numerical safeguard: 
+
+σ′ 
+
+> rc,j
+
+= max  σ′∗  
+
+> h,j
+
+, p ′
+
+> min
+
+ . (S38) 
+
+S1.4.2 Dilation Tendency and Potential Interface Displacement 
+
+With the wall confinement established, MD calculates whether the soil tends to dilate and the strength of that tendency. The adopted Bolton-type relation expresses this tendency as the relative dilatancy index IR,j [40]. The relation evaluates the index from the relative density Dr, material parameter Q, reference pressure pa,B , and wall confinement: 
+
+IR,j = max 
+
+ï
+
+Dr
+
+Å
+
+Q − ln max( σ′ 
+
+> rc,j
+
+, p a,B )
+
+pa,B 
+
+ã
+
+− 1, 0
+
+ò
+
+, (S39) where Dr is expressed as a decimal. When the calculated confinement is below pa,B , this lower bound sets the logarithmic term to zero. The angle coefficient cψ converts IR,j into the local dilatancy angle: 
+
+ψd,j = π
+
+180 cψIR,j . (S40) 49 The factor π/ 180 converts the degree-valued intermediate cψIR,j to radians. A positive 
+
+IR,j therefore produces a positive dilation tendency, whereas IR,j = 0 gives ψd,j = 0 .The dilation angle describes the tendency to expand, but the amount developed during one penetration step also depends on the interface displacement mobilized in that step. The current penetration increment is ∆z = zn+1 −zn. The parameter δy denotes the characteristic mobilization displacement, and δn 
+
+> cum ,j
+
+is the cumulative interfacial displacement committed through the preceding step. Equation (S41) combines these quantities to give the potential displacement for the current step: 
+
+∆δpot ,j = δy
+
+ï
+
+1 − exp 
+
+Å
+
+−∆zδy
+
+ãò 
+
+exp 
+
+Å
+
+−δn
+
+> cum ,j
+
+δy
+
+ã
+
+. (S41) The bracketed term describes displacement mobilization over the current penetration increment. The final exponential factor reduces further mobilization as previously committed interface displacement accumulates. For ∆z ≥ 0, the resulting ∆δpot ,j is non-negative. 
+
+S1.4.3 State Capacity and Void-Ratio Correction 
+
+To determine the limit on further dilation, MD compares the current void ratio with the critical-state value. This critical-state value is calculated from the mean effective stress in the converged MG–MS state. When the current void ratio is lower, the positive difference is used to calculate the maximum dilation strain: 
+
+p′D,∗ 
+
+> j
+
+= max 
+
+ïσ′∗  
+
+> v,j
+
++ 2 σ′∗ 
+
+> h,j
+
+3 , p ′
+
+> min
+
+ò
+
+,eD,∗ 
+
+> cs,j
+
+= eΓ − λc
+
+Çp′D,∗
+
+> j
+
+pa
+
+åκc
+
+,
+
+ΨD,∗ 
+
+> j
+
+= e∗ 
+
+> j
+
+− eD,∗ 
+
+> cs,j
+
+,
+
+∆¯ εD 
+
+> v, max ,j
+
+= max( −ΨD,∗ 
+
+> j
+
+, 0) 1 + e∗
+
+> j
+
+.
+
+(S42) where ΨD,∗ 
+
+> j
+
+< 0 indicates that the current void ratio is below the critical-state value. Dividing this positive void-ratio gap by 1 + e∗ 
+
+> j
+
+gives the maximum cross-sectionally averaged dilation strain ∆¯ εD 
+
+> v, max ,j
+
+.50 The current increment also depends on two distinct histories. The cumulative interface displacement δn 
+
+> cum ,j
+
+in Eq. (S41) controls further displacement mobilization. The cumulative dilation-stage strain amplitude εD,n  
+
+> cum ,j
+
+records the dilation already applied through step n.The factor ωj reduces the current increment as this accumulated dilation approaches the current capacity: 
+
+ωj =
+
+
+
+max 
+
+ñ
+
+0, 1 − εD,n 
+
+> cum ,j
+
+∆¯ εD
+
+> v, max ,j
+
+ô
+
+, ∆¯ εD 
+
+> v, max ,j
+
+> 0 and IR,j > 0,
+
+0, ∆¯ εD 
+
+> v, max ,j
+
+≤ 0 or IR,j = 0 .
+
+(S43) The local wall expansion is converted into an equivalent strain averaged over the caisson cross-section. The product ∆δpot ,j sin ψd,j gives the outward displacement normal to the wall, and 4/D i is the perimeter-to-area ratio of the internal caisson section. Multiplying by 
+
+ωj gives the strain after history attenuation, before the remaining-capacity limit is applied: 
+
+∆¯ εD 
+
+> v, raw ,j
+
+= 4∆ δpot ,j sin ψd,j 
+
+Di
+
+ωj . (S44) The remaining capacity is obtained by subtracting the dilation already applied from the maximum amplitude: 
+
+∆¯ εD 
+
+> v, rem ,j
+
+= max î∆¯ εD 
+
+> v, max ,j
+
+− εD,n  
+
+> cum ,j
+
+, 0ó . (S45) The applied amplitude is the smaller of the untruncated value and this remaining capac-ity. When this amplitude is positive, the full potential interface displacement is recorded as 
+
+∆δmob ,j ; otherwise, the recorded displacement is zero: 
+
+∆¯ εD 
+
+> v,j
+
+= min ∆¯ εD 
+
+> v, raw ,j
+
+, ∆¯ εD
+
+> v, rem ,j
+
+ ,
+
+∆δmob ,j =
+
+
+
+∆δpot ,j , ∆¯ εD 
+
+> v,j
+
+> 0,
+
+0, ∆¯ εD 
+
+> v,j
+
+= 0 ..
+
+(S46) The applied dilation-stage strain amplitude gives the void-ratio increment: 51 ∆eD 
+
+> j
+
+= (1 + e∗ 
+
+> j
+
+)∆¯ εD 
+
+> v,j
+
+. (S47) Adding this increment to the converged MS void ratio and limiting the result to the admissible bounds gives the corrected void ratio for the current penetration step: 
+
+en+1  
+
+> j
+
+= clip e∗ 
+
+> j
+
++ ∆ eD 
+
+> j
+
+, e min , e max 
+
+ . (S48) The applied dilation-stage amplitude also updates the cumulative history carried into the subsequent penetration step: 
+
+εD,n +1 cum ,j = εD,n  
+
+> cum ,j
+
++ ∆¯ εD 
+
+> v,j
+
+. (S49) 
+
+S1.5 Integrated Plug-Heave Assembly and Output Quantities 
+
+The final void-ratio field returned by MD is used to calculate plug length and heave by solid-volume conservation. The resulting geometry provides the domain for the refreshed hydraulic, stress, and pump-flow outputs. 
+
+S1.5.1 Final Geometry, Output Refresh, and State Commitment 
+
+The final geometry is assembled from the material layers reached by the caisson at zn+1 .For material node j, the active-node flag In+1  
+
+> j
+
+equals 1 when ζ0,j ≤ zn+1 and 0 otherwise. The active set collects the nodes with In+1  
+
+> j
+
+= 1 :
+
+An+1 = j | I n+1  
+
+> j
+
+= 1 . (S50) For each active material interval, solid-volume conservation converts its initial thickness 
+
+∆ζ0,j into its current contribution to plug length. The ratio (1 + en+1  
+
+> j
+
+)/(1 + e0) accounts for the change in bulk soil volume at fixed solid volume. The area ratio αA maps the reference layer volume associated with the outer caisson cross-section to the internal cross-section. Summing these contributions gives the plug length: 
+
+Ln+1 plug = X
+
+> j∈A n+1
+
+αA
+
+1 + en+1 
+
+> j
+
+1 + e0
+
+∆ζ0,j , (S51) 52 where ∆ζ0,j is the trapezoidal quadrature weight assigned to node j over the active material interval. The assembled plug length contains the penetrated portion below the seabed and the heaved portion above it. Subtracting the current penetration depth gives the net plug heave: 
+
+hn+1 heave = Ln+1 plug − zn+1 . (S52) Equations (S51) and (S52) are the cellwise discretization of Eq. (S1). The corrected geometry also sets the domain height used to refresh the reported hydraulic and stress fields. The output-state height is reconstructed from the penetration depth and plug heave: 
+
+Hout  
+
+> n+1
+
+= zn+1 + hn+1 heave . (S53) The resulting Hout  
+
+> n+1
+
+equals the assembled plug length. The superscript out marks its use in the output refresh. The final void-ratio field maps each active material coordinate to its output coordinate: 
+
+xout  
+
+> j
+
+=
+
+Z ζ0,j 
+
+> 0
+
+αA
+
+1 + en+1 (ζ0)1 + e0
+
+dζ 0, (S54) where en+1 (ζ0) denotes the final void-ratio field expressed over the material coordinate. The output seepage length is the finite-domain characteristic length evaluated with the refreshed plug length, 
+
+ℓout  
+
+> s
+
+= ri
+
+ï kv
+
+2kr
+
+ln 
+
+ÅR∗,out 
+
+> e
+
+ri
+
+ãò 1/2
+
+, (S55) where R∗,out  
+
+> e
+
+follows the adopted outer-domain rule in Section S1.3.1, evaluated with H =
+
+Hout 
+
+> n+1
+
+. The refreshed hydraulic and vertical stress fields are evaluated from the same finite-domain relations: 
+
+iout  
+
+> j
+
+= ∆u(zn+1 )
+
+γwℓout  
+
+> s
+
+sinh  Hout 
+
+> n+1
+
+/ℓ out 
+
+> s
+
+ cosh 
+
+Çxout 
+
+> j
+
+ℓout 
+
+> s
+
+å
+
+, (S56) 53 σ′out  
+
+> v,j
+
+= γ′xout  
+
+> j
+
+− ∆u(zn+1 ) sinh  xout  
+
+> j
+
+/ℓ out 
+
+> s
+
+
+
+sinh  Hout 
+
+> n+1
+
+/ℓ out 
+
+> s
+
+. (S57) The refreshed vertical stress is first bounded below by p′
+
+> min
+
+. The converged lateral stress is then projected onto the bounds associated with this refreshed vertical stress: 
+
+ˆσ′out  
+
+> v,j
+
+= max σ′out  
+
+> v,j
+
+, p ′
+
+> min
+
+ , σ′out  
+
+> h,j
+
+= proj σ′∗  
+
+> h,j
+
+; p′
+
+> min
+
+, K p ˆσ′out 
+
+> v,j
+
+ . (S58) The refreshed mean and deviatoric stresses stored for output are 
+
+p′out  
+
+> j
+
+= ˆσ′out  
+
+> v,j
+
++ 2 σ′out 
+
+> h,j
+
+3 ,
+
+ˆp′out  
+
+> j
+
+= max p′out  
+
+> j
+
+, p ′
+
+> min
+
+ ,qout  
+
+> j
+
+= ˆσ′out  
+
+> v,j
+
+− σ′out  
+
+> h,j
+
+.
+
+(S59) After the MG–MS iteration has ended, the solver evaluates this refresh once from the final corrected geometry and stores the resulting hydraulic and stress fields as outputs. At the end of the step, the final void ratio and applied interfacial displacement are committed: 
+
+ej,n +1 = en+1  
+
+> j
+
+, δn+1 cum ,j = δn 
+
+> cum ,j
+
++ ∆ δmob ,j . (S60) 
+
+S1.5.2 Equivalent Pump-Flow Post-Processing 
+
+After the final geometry and hydraulic field have been refreshed, the model calculates the equivalent pump flow associated with the prescribed suction. This quantity combines the Darcy inflow across the plug top with the rate of change in internal plug volume. The hydraulic quantities used below are taken from the refreshed output state: H = Hout 
+
+> n+1
+
+,
+
+ℓs = ℓout  
+
+> s
+
+, and i = iout .The internal cross-sectional area is 
+
+Ai = πD 2
+
+> i
+
+4 . (S61) 54 Using the refreshed hydraulic field, we calculate the upward flow rates across the plug top, Qin ,top , and the caisson tip, Qtip . Both are defined as positive upward: 
+
+Qin ,top = −Qx(0) = Aikvi(0 , z ) = Aikv
+
+∆u(z)
+
+γwℓs sinh( H/ℓ s), Qtip = −Qx(H) = Aikvitip .
+
+(S62) The second contribution is the change in internal plug volume during the penetration step. Because H = z + hheave , this change contains both the penetration increment and the heave increment. For successive accepted steps n and n + 1 , let ∆z = zn+1 − zn, let ˙z denote the penetration rate, and let ∆t denote the elapsed time: 
+
+Qgeom = Ai
+
+Åzn+1 − zn
+
+∆t + hn+1 heave − hn
+
+> heave
+
+∆t
+
+ã
+
+, ∆t = ∆z
+
+˙z . (S63) The equivalent pump-flow estimate is the sum of the top inflow and the geometric volume-change rate: 
+
+Qpump = Qin ,top + Qgeom . (S64) The solver records Qpump after the output refresh. Calculating the physical flow rate requires a measured time interval or penetration rate. For benchmark profiles without timing data, the calculation uses a unit time interval, ∆t = 1 ; the resulting pump-flow values are excluded from the plug-heave benchmark assessment. 55 S1.6 Discrete Solution and State Transfer 
+
+The numerical solver advances through the prescribed penetration depths, using the accepted state from one step to initialize the next (Supplementary Fig. 1). A1 
+
+Inputs and step initialization 
+
+• Soil parameters • Prescribed suction Δ u(zn+1 )• Penetration step zn→zn+1 
+
+• Previous committed state 
+
+Fixed material grid and active nodes 
+
+• Material nodes ζ 0,j 
+
+• Active set An+1 
+
+• Nodal history variables 
+
+MG–MS coupled iteration (fixed-point iteration) 
+
+• Update geometry and plug heave 
+
+MD explicit correction 
+
+• Geometry 
+
+> A2 A3 A4
+
+Geometry assembly Seepage and effective-stress update Convergence check • Activation check • Bolton dilatancy • Capacity truncation • update e (n+1) 
+
+• Compute 푢(￿) , σv′(k) , p′(k) 
+
+• Update 푒푐푎푛푑 (￿) with bounds 
+
+No 
+
+Converged? Yes 
+
+Ms void-ratio update 
+
+• Check hcand  
+
+> (푘)
+
+with hest 
+
+> (푘)
+
+ζ0,j 
+
+An+1 
+
+zn→zn+1 
+
+Committed state 
+
+State and history stored for the next step 
+
+Output state 
+
+Post-MD refreshed fields for reporting and verification 
+
+Outputs 
+
+• hheave (z)• Lplug (z)
+
+Lplug (z) hheave (z) e
+
+• Void-ratio profile 
+
+321
+
+Trial state 
+
+Temporary fields Inside MG + MS iteration 
+
+Converged state 
+
+Accepted MG + MS state before MD correction 
+
+History submission 
+
+• Commit accepted state and history • Store refreshed output-state fields • Store convergence and audit records 
+
+Final reassembly and output refresh 
+
+• Assemble final 풆풏￿ퟏ,풋 , Lplug , hheave 
+
+• Refresh hydraulic and stress outputs • Compute 푸퐩퐮퐦퐩 
+
+en+1, j Lplug hheave 
+
+Δeᴰ
+
+7 6 5
+
+State categories 4  
+
+> MG+MS
+
+• Hydraulic / stress fields 
+
+Supplementary Fig. 1. Stepwise numerical solution and state transfer of the soil-plug model. 
+
+Trial state denotes fields updated during the MG–MS iteration; converged state denotes the accepted solution before the MD correction. Committed state carries the accepted state and history into the next penetration step. Output state contains the post-MD refreshed fields stored for reporting and verification. 
+
+S1.6.1 Material Grid and Pre-Step State 
+
+The solver represents the initial soil profile on a fixed material grid. The coordinate ζ0,j 
+
+is the initial depth of node j below the seabed, with j = 1 , . . . , N . At each penetration step, the solver applies the active-node rule to this grid. Active nodes contribute to the plug-heave integral and receive the MS and MD updates. For nodes that were already active at the accepted step n, the solver reads the following committed nodal state before calculating step 
+
+n + 1 :56 n
+
+ej,n , σ ′H
+
+> v,j,n
+
+, σ ′H
+
+> h,j,n
+
+, p ′H
+
+> j,n
+
+, η 0,j , ¯μj,n , δ n 
+
+> cum ,j
+
+, ε D,n 
+
+> cum ,j
+
+o
+
+. (S65) The superscript H marks stress quantities carried from the preceding accepted step. The void ratio ej,n is the final value after the preceding MD correction. The vertical stress σ′H
+
+> v,j,n
+
+is obtained from the refreshed final geometry, while σ′H 
+
+> h,j,n
+
+is the lateral stress synchronized at MG–MS convergence. The rebound calculation uses the positive reference stress p′H 
+
+> j,n
+
+=max[ cp(K0)σ′H
+
+> v,j,n
+
+, p ′
+
+> min
+
+], where cp(K0) = (1 + 2 K0)/3.The remaining quantities record the constitutive history of each node. The reference 
+
+η0,j stores the stress ratio at first activation, and ¯μj,n stores the largest path mobilization reached through step n. The variables δn 
+
+> cum ,j
+
+and εD,n  
+
+> cum ,j
+
+record the applied MD history. The trial calculations use this committed state as a fixed reference. After the current step is accepted, its updated values become the pre-step state for the next depth. A node that first becomes active at step n + 1 starts from the initial void ratio e0, its geostatic vertical stress γ′ζ0,j , and the corresponding K0 lateral stress. Its accumulated path mobilization, interfacial displacement, and dilation-stage strain amplitude start from zero. The activation reference η0,j is recorded from the synchronized state obtained during this first active step. In the stress relations, K0 denotes the at-rest earth-pressure coefficient; 
+
+K0(λ1ri) denotes the modified Bessel function used in the hydraulic formulation. Each benchmark profile is represented by 121 uniformly spaced material nodes extend-ing from the initial seabed to the final penetration depth. The input depths are sorted and duplicate depths are removed to define the penetration steps; each retained depth uses its paired suction value. Spatial volume integrals use trapezoidal quadrature. When a penetra-tion depth falls between adjacent grid nodes, the terminal value is linearly interpolated and the remaining partial interval is included in the integral. 
+
+S1.6.2 Fixed-Point Iteration and Convergence 
+
+Each iteration begins with a plug-heave estimate h(k)est and a trial void-ratio field e(k)trial .These values determine the plug geometry, seepage length, hydraulic field, and effective stresses. The stress update produces a candidate void-ratio field e(k)cand , which is integrated 57 to obtain the candidate height h(k)cand . With the committed history from step n held fixed, this calculation defines the fixed-point map: 
+
+Äe(k)cand , h (k)cand 
+
+ä = Fn+1 
+
+Äe(k)trial , h (k)est 
+
+ä , (e∗, h ∗
+
+> heave
+
+) = Fn+1 (e∗, h ∗
+
+> heave
+
+) . (S66) At a fixed point, the input estimate and returned candidate describe the same coupled geometry and void-ratio state. The solver measures this closure through the difference between the height used to construct the trial fields and the height returned by the updated void ratio: 
+
+r(k) 
+
+> h
+
+= h(k)cand − h(k)est . (S67) The iteration is accepted when either the relative residual is below 10 −5 or the absolute residual is below 10 −8 m:
+
+r(k)
+
+> h
+
+max 
+
+
+
+h(k)est , 10 −10 m
+
+ < 10 −5 or r(k) 
+
+> h
+
+< 10 −8 m. (S68) The relative criterion scales the change by the current heave estimate. The absolute crite-rion provides a direct tolerance when the heave is close to zero, and the 10 −10 m denominator bound prevents division by zero. When the criterion is not satisfied, the next estimate is h(k+1) est = h(k)est + 0 .7[ h(k)cand − h(k)est ],and the new void-ratio candidate becomes the trial field for the next iteration. This partial update limits oscillation in the feedback between geometry and soil state. Each penetration step is allowed at most 120 iterations. If no iteration satisfies Eq. (S68), the solver reports non-convergence and ends the step before state transfer. After the criterion is satisfied, the solver performs one synchronization pass at the ac-cepted candidate geometry. This pass recalculates the MG–MS fields so that the returned void ratio, stresses, and plug heave refer to the same geometry. The accepted iteration is denoted by kconv . Its mobilization degree μconv  
+
+> j,n +1
+
+updates the historical maximum at node j:
+
+¯μj,n +1 = max ¯μj,n , μ conv 
+
+> j,n +1
+
+ . (S69) 58 The synchronized void-ratio field becomes the pre-dilation value passed to MD:
+
+e∗ 
+
+> j,n +1
+
+= e∗,(kconv ) 
+
+> j,n +1
+
+. (S70) The same synchronization pass returns the corresponding vertical stress, lateral stress, mean effective stress, critical-state void ratio, and state parameter: 
+
+σ′∗  
+
+> v,j,n +1
+
+= σ′(kconv ) 
+
+> v,j,n +1
+
+, σ′∗  
+
+> h,j,n +1
+
+= σ′(kconv )
+
+> h,j,n +1
+
+,p′∗  
+
+> j,n +1
+
+= p′(kconv ) 
+
+> j,n +1
+
+, e∗ 
+
+> cs,j,n +1
+
+= e(kconv )
+
+> cs,j,n +1
+
+, Ψ∗ 
+
+> j,n +1
+
+= Ψ ∗,(kconv ) 
+
+> j,n +1
+
+.
+
+(S71) These quantities form the synchronized pre-dilation state: 
+
+S∗ 
+
+> j,n +1
+
+= e∗
+
+> j,n +1
+
+, σ ′∗ 
+
+> v,j,n +1
+
+, σ ′∗ 
+
+> h,j,n +1
+
+, p ′∗ 
+
+> j,n +1
+
+, e ∗
+
+> cs,j,n +1
+
+, Ψ∗
+
+> j,n +1
+
+, ¯μj,n +1 . (S72) The star marks quantities evaluated in this synchronized pre-dilation state. MD acts once on this state, after which the corrected void ratio determines the final geometry and output refresh. The accepted histories are then committed for the next penetration depth. 
+
+S1.7 Contribution and Update-Order Sensitivity of MD
+
+To evaluate the influence of MD after MG–MS convergence, we performed two numerical checks across the 14 benchmark profiles. One compared predictions from MG alone, MG–
+
+MS , and the complete MG–MS –MD calculation to quantify the contribution of MD. The other tested whether one MD update per penetration step was sufficient by comparing it with repeated updates at the same penetration depth. In the reported calculation, each penetration step completed MG–MS convergence before 
+
+MD corrected the void-ratio field and plug heave. After this single correction, the calcula-tion advanced to the next penetration depth. Thus, “once” means one MD correction per penetration step. Because this correction also changes the plug geometry used by MG–MS ,the comparison calculation held the penetration depth fixed and repeated the update. The 
+
+MD-corrected heave and void ratio were returned to MG–MS , after which MD was applied again. Repetition stopped when two successive post-MD heaves differed by less than 10 −5
+
+59 m, with a maximum of eight repetitions. The nine final-state profiles comprised four Kim and Kim cases (T1-1 S 25g, T1-2 S 50g, T3-1 S 50g, and T4-3 S 25g) and five Tran and Ran-dolph cases (TRAN-T1–TRAN-T5). The five continuous-process profiles comprised Tjelta TJELTA-A3, Wang full process, and Zhao ZHAO-T1–ZHAO-T3. 
+
+Supplementary Table 3. Contribution and update-order sensitivity of MD
+
+across the 14 benchmark profiles. 
+
+Check Metric Value Component combination Mean absolute final-heave error with 
+
+MG only 58.42% Component combination Mean absolute final-heave error with 
+
+MG and MS
+
+9.01% Component combination Mean absolute final-heave error with 
+
+MG, MS , and MD
+
+9.48% Relative MD heave increment Mean absolute ratio of the MD heave increment to final plug heave, all profiles 0.956% Relative MD heave increment Mean absolute ratio of the MD heave increment to final plug heave, final state prediction 0.097% Relative MD heave increment Mean absolute ratio of the MD heave increment to final plug heave, continuous process prediction 2.503% Relative MD heave increment Maximum absolute ratio of the MD
+
+heave increment to final plug heave 3.478% (Zhao T3) Absolute MD heave increment Mean absolute MD heave increment, all profiles 0.0675 cm Absolute MD heave increment Mean absolute MD heave increment, final state prediction 0.0475 cm Absolute MD heave increment Mean absolute MD heave increment, continuous process prediction 0.1035 cm Single versus repeated MD update Mean absolute final-heave difference, all profiles 0.0091 cm Single versus repeated MD update Maximum absolute final-heave difference 0.0200 cm (Wang full process) Single versus repeated MD update Maximum absolute difference between final-heave errors 0.418% (Wang full process) 
+
+Adding MS to MG reduced the mean absolute final-heave error from 58.42% to 9.01%, 60 representing the dominant change in the component comparison. Including MD changed the aggregate error to 9.48%, while its mean absolute contribution was 0.0675 cm, or 0.956% of the final heave. This contribution was more visible in the continuous-process profiles than in the final-state profiles, averaging 2.503% and 0.097%, respectively, and reaching 3.478% for Zhao T3. These results identify MD as a modest, case-dependent correction to the predicted heave; the principal reduction in final-heave error is associated with MS .Repeating the MD update at the same penetration depth changed the final heave by 0.0091 cm on average and by at most 0.0200 cm. The largest absolute difference between the two final-heave errors was 0.418%, also for the Wang full-process profile. The close agreement across the 14 profiles supports one MD correction after MG–MS convergence in each penetration step. 
+
+S1.8 Numerical Safeguards and Model Scope 
+
+Three safeguards keep the calculation well defined near limiting states. The solver uses 
+
+p′ 
+
+> min
+
+= 0 .1 kPa as a positive stress floor and ϵη = 10 −8 as the lower bound in the mobilization denominator. The void-ratio update is limited to the case-specific, source-based bounds 
+
+emin and emax , which define the admissible density range. The bounded stresses enter the constitutive update, but the solver also records the unbounded vertical stress. A value of 
+
+σ′ 
+
+> v
+
+≤ 0 indicates that the assumed seepage field has reduced the computed vertical effective stress to zero or below. The hydraulic equations are evaluated only when H > 0. At the initial state H = 0 ,the zero-suction branch assigns zero hydraulic gradients and flow rates. The seepage model assumes saturated sand and Darcy flow, with quasi-steady conditions over each penetration step. It uses the equivalent outer-domain influence radius R∗ 
+
+> e
+
+and holds kv and kr constant within that step. The model does not resolve piping or particle migration. To monitor this boundary, the solver retains the hydraulic gradient at the caisson tip, itip , at every penetration step. The recorded itip can be compared with a piping criterion appropriate to the soil and hydraulic boundary. A step that reaches or exceeds that criterion lies at the limit of the present 61 continuum calculation. The formulation is intended for saturated sand when seepage can be represented by Darcy flow and the soil–caisson interface response can be represented by a cross-sectional average. The model would require extension where permeability changes strongly during installation, deformation localizes into shear bands, or the interface response becomes strongly three-dimensional. Complex elastoplastic stress paths and soil-fabric reconstruction after failure or liquefaction also lie outside its present scope. 62 Supplementary Note 2. Workflow Audit Procedures and Results 
+
+The main text reports the results of two audits that examined the equations, code, and check records retained during model development. This note explains what each audit role received, which answers were withheld, how its response was scored, and what problems it found. 
+
+S2.1 Materials Shown to Each Audit Role 
+
+We used two audit tasks to test whether an audit role could find problems without being given their answers. In the blinded replay, the role received materials related to a problem previously identified during development, but not its label or answer key. The audit role then had to identify and locate the problem from those materials. For each derivation-to-code probe, a code-writing role first implemented the supplied equations and completed a fixed set of checks. A separate audit role then examined the equations, generated code, and check results to identify problems that those checks did not cover. Supplementary Table 4 specifies the materials shown and withheld in each task. 
+
+Supplementary Table 4. Materials shown to and withheld from each audit role.    
+
+> Audit task Materials shown to the audit role Information not shown Question evaluated Blinded audit replay (A1–A9) The relevant physical relation, calculation rule, required input and output of the code module, uncorrected code or output, and available check records The issue label, answer key, prior discussion, correction history, and other project files Can the audit role find and locate a known issue without being given its answer? Derivation-to-code probes (P1–P5) The supplied equations and state-update rules, generated code, and results of the fixed implementation checks The target problem and answer Can the audit role identify omissions or inconsistencies not covered by the predeclared checks?
+
+S2.2 How the Audits Were Scored 
+
+We scored both audit tasks using criteria that linked each reported problem to a specific equation, calculation step, or code location. For the blinded replay, we compared each 63 report with an answer key held outside the audit packet. A replay passed when it identified the target problem and its location, explained the physical or numerical consequence, and proposed a valid correction with a follow-up check. We recorded false positives and human assistance separately. For each derivation-to-code probe, a report passed when it identified a specific disagree-ment between the supplied equations or update rules and the generated code, located the affected code, and cited the supporting check result. Supplementary Table 5 gives the com-plete scoring criteria. 
+
+Supplementary Table 5. What counted as a pass in each audit.      
+
+> Scored item What was checked Criterion for a pass Finding and location Whether the report found the target problem and named the affected equation, calculation step, or code location The target problem and its location are both identified correctly Consequence and correction Physical or numerical consequence, proposed correction, and follow-up check The correction addresses the problem and the follow-up check can verify it False positives and human assistance Any unrelated finding and any help given during replay The target problem is found without an incorrect additional finding or an extra hint Independent probe finding The equation or rule that the code failed to follow, its code location, and the supporting check result The report identifies a specific omission or disagreement from the supplied equations, code, and check results
+
+S2.3 Blinded Audit-Replay Results 
+
+The audit role found and located all nine target problems without false positives or human assistance. Supplementary Table 6 lists the target problem in each replay and the check needed to identify it. 
+
+Supplementary Table 6. Blinded audit-replay results. 
+
+64 Case Target problem What the audit role had to check A1 Correction for near-wall soil dilation absent from the solver call chain Whether the solver calls the 
+
+MD correction A2 Degree-valued ψd passed directly to a trigonometric function expecting radians Whether the angle unit matches the function input A3 Committed local increment not limited by the remaining dilation capacity Whether the applied increment remains within the available capacity A4 The reported mean effective stress and deviatoric stress retained their trial values and were not recalculated from the final stresses Whether the reported mean effective stress and deviatoric stress are recalculated from the final stresses A5 Trial iterations overwrite committed history before convergence is accepted Whether history is saved only after convergence A6 Reference confinement uses vertical trial stress instead of lateral trial stress Which stress is used as the reference confinement A7 Pump-flow post-processing uses the tip-flow component instead of the top inflow component Which flow component enters the reported pump flow A8 Final hydraulic state reuses the trial values instead of recomputing from final geometry Whether the hydraulic field is recalculated from the final geometry A9 Post-rebound capacity is computed from the pre-rebound void ratio instead of the rebound-updated value Which void ratio is used to calculate the remaining capacity 
+
+For A6, the initial audit packet omitted the stress-regularization relation needed to de-termine the reference confinement. We supplied this equation before scoring. The issue label and answer key remained withheld. 
+
+S2.4 Derivation-to-Code Probe Results 
+
+All 36 fixed implementation checks passed across the five probes, yet the independent audit identified five additional problems in P1–P4 (Supplementary Table 7). The findings involved code-branch handling, incomplete instructions, an incorrect count of checked trials, and a disagreement between an equation and its implementation. The audit found no additional problem when it repeated the final hydraulic and stress checks in P5. 
+
+Supplementary Table 7. Derivation-to-code probe results. 
+
+65 Probe Calculation checked Fixed checks passed What the independent audit found P1 Recalculation of final outputs in converged, edge, and nonconverged branches 10/10 One branch omitted the final-output recalculation; an additional check was added P2 Active nodes and the piecewise ω
+
+calculation in MD
+
+11/11 One code branch could fail, and the supplied instructions did not state clearly whether inactive grid nodes remained in the input P3 Saving MS history only after convergence is accepted 5/5 The code stopped checking trials as soon as it found one that met the convergence criterion. However, the recorded count included all supplied trials, including those that had not been checked. P4 Applying MS rebound before calculating the remaining capacity 5/5 The code and equation treated ∆ereb 
+
+differently in the numerator P5 Recalculating hydraulic and stress outputs from the final geometry 5/5 All final-refresh checks were repeated and no additional problem was found 
+
+S2.5 What the Workflow Audits Establish 
+
+Within the evaluated tasks, the replay and probe results support two distinct audit functions: recovering known problems from retained records and identifying implementation problems missed by fixed checks. Benchmark comparisons provide separate evidence for prediction accuracy. 66 Supplementary Note 3. Checks of the Final Code 
+
+After addressing the audit findings, we checked whether the final penetration-step solver followed the equations, update order, and state-commitment rules defined in Supplementary Note 1. Module-level tests examined individual calculations and state updates. Analytical reference checks compared selected relations with independent evaluations, whereas regres-sion tests checked whether unchanged input sequences reproduced the stored outputs. 
+
+S3.1 Module-Level Tests 
+
+All 33 module-level tests passed. Supplementary Table 8 groups the tests by the part of the calculation examined and reports the main operations, acceptance criteria, and outcome for each group. 
+
+Supplementary Table 8. Module-level tests and results. 
+
+Test group Number of tests Main operations checked Acceptance criterion and observed result Outcome Hydraulic closure and moving-boundary stress 10 Pressure-difference recovery, tip gradient, free-surface stress, suction-controlled boundaries, and pump-flow separation Integral and boundary residuals remain within the adopted tolerance; pump flow does not update plug heave or void ratio Passed Bolton relationship and MD
+
+closure 9 Node activation, reference confinement, dilatancy, mobilized displacement, capacity truncation, and final clipping The correction is non-negative, capacity-limited, and confined to active nodes Passed 
+
+MS path update and projection constraints 6 Mean effective stress, lateral projection, critical-state variables, rebound, state-gap release, and clipping Updated variables match analytical or independently evaluated values Passed State commitment and final output refresh 8 Separation of trial and accepted states, saving after convergence, final MD
+
+update, output recalculation, and saved iteration and check results Histories are saved only from accepted states, and final outputs are recalculated from the final geometry and stresses Passed 
+
+67 S3.2 Analytical Reference and Regression Checks 
+
+All five analytical reference checks and four regression tests passed (Supplementary Table 9). 
+
+Supplementary Table 9. Analytical reference and regression checks. 
+
+ID Check Quantity or comparison Criterion and observed result Outcome R-01 Pressure-difference closure γw
+
+R H 
+
+> 0
+
+i(x, z ) dx − ∆u(z) Absolute residual remains within the adopted tolerance Passed R-02 Moving free-surface stress σ′ 
+
+> v
+
+(0 , z ) Zero within numerical tolerance Passed R-03 Deep-limit approximation Finite-domain seepage kernel and its exponential deep-limit form Relative difference remains within tolerance Passed R-04 Critical-state consistency ecs and Ψ = e − ecs Matches independent scalar evaluation Passed R-05 MD capacity truncation ∆¯ εD 
+
+> v
+
+≤ ∆¯ εD 
+
+> v, rem
+
+No node exceeds the remaining capacity Passed B-01 Input-sequence consistency Penetration depths, suction-pressure history, geometry, and soil inputs Input arrays and parameter assignments remain unchanged Passed B-02 MG–MS baseline hGS heave , e∗, and convergence status Stored main-chain outputs are reproduced Passed B-03 MD contribution baseline ∆hDheave , ∆eD, and capacity flags Stored correction outputs are reproduced Passed B-04 Post-MD refresh baseline Final plug heave, refreshed stresses, and pump-flow outputs Stored final outputs are reproduced Passed 
+
+S3.3 Results of the Final-Code Checks 
+
+Within the tested scope, these results show that the code follows the declared equations, update order, and state-commitment rules. 68 Supplementary Note 4. Benchmark Data, Input Sources, and Comparison Re-sults 
+
+S4.1 Public Benchmark Files 
+
+The public files separate the values used in the benchmark comparisons from the sources and uses of the model inputs. Supplementary Data 1 provides the case-level values for three benchmark comparisons: formula reduction and volume closure, final state prediction, and continuous process prediction. Supplementary Data 2 records each adopted global and case-specific input, its source and source class, and where it enters the calculation. Definitions of all fields in the two data files are provided in SUPPLEMENTARY_DATA_README.md .Supplementary Data 2 uses five source classes for adopted inputs: • direct : a value reported by a source. • derived : a value calculated from reported values. • design_parameter : a value adopted from site or design information. • analog : a value transferred from a cited related source. • assumption : a value fixed by a declared modeling rule. The label unavailable marks a quantity for which no sourced value was adopted. The label 
+
+mixed marks a ledger row that combines adopted values from different source classes; the source-basis field identifies the class of each value. 
+
+S4.2 Shared Input Rules 
+
+The final-state and continuous-process predictions use common assignment rules for three model inputs. For eΓ/e max , the central value is 1.0; varying this ratio from 0.9 to 1.1 generates the prediction sensitivity band. Published sand critical-state and state-parameter data support this range [48, 49, 50, 51]. Poisson’s ratio is fixed at ν = 0 .30 , within reported ranges for granular soils[37, 47]. 69 Kim and Kim (2020)[16] report case-specific ki/k out values ranging from 1.26 to 1.46; a representative value of 1.3 is adopted for those cases. The other prediction cases use 
+
+ki/k out = 3 .0, following suction-caisson installation guidance[6]. The equivalent model ratio 
+
+kr/k v is assigned these same values as a model assumption. The formula reduction and volume closure cases are evaluated independently of these three inputs. 
+
+S4.3 Outer-Domain Boundary Rule for R∗
+
+> e
+
+The outer-domain boundary rule determines whether the seepage kernel uses the un-bounded modal estimate Re, ∞ or a finite radius derived from the experimental boundary. Section S1.3.1 defines the adopted radius R∗ 
+
+> e
+
+; when a source-based radius Rb is available, it caps Re, ∞. Because Rb represents the experimental boundary, it remains fixed during the sensitivity analysis of eΓ/e max .
+
+Supplementary Table 10. Source-based outer-domain boundary rules.                          
+
+> Case group External-boundary basis Adopted rule Source class Kim and Kim (2020)[16] 900-mm-diameter centrifuge container at 25g and 50g
+> Rb= 0 .45 Ngmderived
+> Tran and Randolph (2008)[14] 390-mm by 650-mm strongbox at 100g
+> Rb= 0 .195 ×100 = 19 .5mderived
+> Tjelta (1995)[41] Full-scale field bucket without a test-box boundary
+> R∗
+> e=Re, ∞; no finite Rbdirect
+> Wang et al. (2019)[44] 1.50-m by 0.96-m by 0.90-m model box
+> Rb= 0 .48 mderived
+> Zhao et al. (2025)[43] 1.0-m by 0.5-m by 0.6-m model tank
+> Rb= 0 .25 mderived
+
+Here Ng is the centrifuge acceleration factor. For each prediction case with a finite cutoff, 
+
+Re, ∞ remains below that cutoff; Tjelta has no finite cutoff. The predictions therefore use 
+
+Re, ∞ in all evaluated prediction cases. 70 S4.4 Parameter Sources 
+
+The parameter-source ledger contains 122 entries. Supplementary Table 11 summarizes model inputs shared across runs, case-assignment rules, and numerical settings. Supple-mentary Table 12 shows how data obtained from individual studies enter each benchmark comparison. 
+
+Supplementary Table 11. Shared model inputs, assignment rules, and nu-merical settings. 
+
+71 Setting Adopted value or rule Source basis Use 
+
+eΓ/e max 1.0 central; 0.9–1.1 band Declared sensitivity rule Prediction sensitivity band 
+
+λc 0.019 Same-form silica-sand CSL prior State update 
+
+κc 0.7 Same-form silica-sand CSL prior State update 
+
+pa 100 kPa Reference pressure paired with the CSL prior State update 
+
+κs 0.006 Fixed global coefficient MS update 
+
+ν 0.30 Granular-soil literature range Lateral-stress update 
+
+kr /k v 1.3 for Kim and Kim; 3.0 otherwise Model assumption: same value as the adopted 
+
+ki/k out 
+
+Seepage kernel 
+
+p′ 
+
+> min
+
+0.1 kPa Numerical lower bound Stress and state update 
+
+ϵη 10 −8 Denominator lower bound MS mobilization 
+
+Q 10 Bolton-type quartz/silica-sand prior 
+
+MD correction 
+
+cψ 0.5 Fixed Bolton-type coefficient 
+
+MD correction 
+
+pa,B 1 kPa Reference-pressure convention 
+
+MD correction 
+
+δy 0.001 m Fixed characteristic displacement Eq. (S41) Material grid 121 uniformly spaced nodes Fixed numerical configuration All solver runs Penetration sequence Sorted unique benchmark depths Direct benchmark input All solver runs Suction sequence Value paired with each retained depth; no solver interpolation Direct benchmark input All solver runs Spatial integration Trapezoidal rule with linear terminal-interval interpolation Fixed numerical configuration Plug-volume assembly Relaxation factor 0.7 Fixed numerical configuration Heave iteration Convergence Relative tolerance 10 −5 or residual 10 −8 mEq. (S68) Heave iteration Iteration limit 120 per step; reject non-converged steps Fixed numerical configuration Run acceptance 
+
+72 Supplementary Table 12. Study data and their use in each benchmark com-parison. 
+
+Study Benchmark comparison Data obtained from the study Use in the comparison Koteras and Ibsen (2019)[42] Volume closure, six tests Geometry, penetration, final heave, and before/after void ratio are direct; area ratio is derived. Closure uses the reported void-ratio change. Ragni et al. (2020)[15] Formula reduction, one test Prototype geometry, penetration and heave ratios, geometric decomposition, and PIV strain are direct. The retained test uses the reported self-weight boundary condition. Kim and Kim (2020)[16] Final state prediction, four profiles Geometry, final heave, suction–depth curves, and most soil properties are direct; missing state inputs follow cited analog or common rules. Digitized normalized curves are converted at prototype scale; kr /k v = 1 .3.Tran and Randolph (2008)[14] Final state prediction, five profiles Geometry, suction curves, and most soil properties are direct; initial state is derived where required. Final heave is calculated as 
+
+hheave = L − zend , where L
+
+is the caisson length and 
+
+zend is the final penetration depth digitized from the published curve. Tjelta (1995)[41] Full-scale process prediction, A3 Field suction and heave are direct; soil-state inputs combine site/design information and cited regional analogs. The solver uses 
+
+ϕmodel = 38 .5◦; no finite outer boundary is imposed. Wang et al. (2019)[44] Laboratory process prediction Geometry, process curves, and the principal soil properties are direct or derived from reported values. Case inputs use the common hydraulic-ratio and prediction sensitivity band rules in S4.2. Zhao et al. (2025)[43] Model-tank process prediction, three tests Geometry, process curves, relative density, permeability, unit weight, and friction angle are direct; void-ratio bounds use a cited same-group analog. The initial void ratio is derived from the reported relative density and adopted bounds. 
+
+73 S4.5 Benchmark Data and Summary Metrics S4.5.1 Formula Reduction and Volume Closure 
+
+Formula reduction and volume closure assess whether the overall volume relation re-produces final plug heave from the end-state information reported for each case. The six Koteras and Ibsen (2019) cases use the reported void-ratio changes to close the volume balance, whereas Ragni et al. (2020) T3 uses the closed-form expression with its reported boundary condition. 
+
+Supplementary Table 13. Formula reduction and volume closure summary.                                
+
+> Case Test Measured heave (mm) Predicted heave (mm) Error (%) Source basis Koteras and Ibsen (2019) T1 45.00 49.53 10.07 Reported void-ratio closure. Koteras and Ibsen (2019) T2 47.00 48.57 3.33 Reported void-ratio closure. Koteras and Ibsen (2019) T3 44.00 47.60 8.19 Reported void-ratio closure. Koteras and Ibsen (2019) T4 42.00 54.40 29.54 Reported void-ratio closure. Koteras and Ibsen (2019) T5 49.00 55.40 13.06 Reported void-ratio closure. Koteras and Ibsen (2019) T9 57.00 58.45 2.55 Reported void-ratio closure. Ragni et al. (2020) T3 10.50 11.19 6.60 Closed-form evaluation with the reported Ragni boundary condition.
+
+Six of the seven calculated heaves differed from the measurements by 13.06% or less. The Ragni closed-form case had an error of 6.60%, whereas Koteras and Ibsen T4 had the 74 largest error at 29.54%. 
+
+S4.5.2 Final State Prediction 
+
+Final state prediction compares measured final plug heave with the central prediction and predefined prediction sensitivity band for nine profiles. The four Kim and Kim endpoints are reported final heaves. The five Tran and Randolph endpoints are reconstructed from the final digitized penetration depth using hheave = L − zend under a plug-filled endpoint assumption. The prediction sensitivity band is obtained by varying eΓ/e max over its declared sensitivity range while holding ν at 0.30. 
+
+Supplementary Table 14. Final state prediction summary.                                                
+
+> Case Profile Measured final heave (cm) Central final heave (cm) Band min (cm) Band max (cm) Central error (%) Kim and Kim (2020) T1-1 S 25g 66.00 48.26 37.00 58.31 -26.87 Kim and Kim (2020) T1-2 S 50g 53.00 52.30 39.47 64.53 -1.32 Kim and Kim (2020) T3-1 S 50g 58.00 50.74 38.28 63.13 -12.52 Kim and Kim (2020) T4-3 S 25g 70.00 59.47 46.04 73.80 -15.05 Tran and Randolph (2008) TRAN-T1 50.85 60.53 48.07 70.46 19.04 Tran and Randolph (2008) TRAN-T2 45.04 41.63 34.20 47.79 -7.56 Tran and Randolph (2008) TRAN-T3 45.04 32.37 27.08 37.34 -28.13 Tran and Randolph (2008) TRAN-T4 59.93 59.67 47.34 72.31 -0.43 Tran and Randolph (2008) TRAN-T5 55.75 55.42 43.50 63.53 -0.58
+
+Seven of the nine measured final heaves fell within the prediction sensitivity bands. The 75 two outside-band profiles, Kim and Kim T1-1 S 25g and Tran and Randolph TRAN-T3, had central errors of −26 .87% and −28 .13% , respectively. 
+
+S4.5.3 Continuous Process Prediction 
+
+Continuous process prediction compares final plug heave and the measured heave–depth curve for five profiles. For all five profiles, final-point error is evaluated at the last measured depth. The field curves reported by Tjelta overlap substantially. The A3 trace was the clearest and most continuous over the installation depth and was therefore digitized for the process comparison. The complete curve is summarized by curve mean absolute percentage error (MAPE), root-mean-square error (RMSE), and normalized RMSE (NRMSE). Curve NRMSE is the curve RMSE normalized by the measured final heave. Because pointwise percentage errors can become large when measured heave is small during early penetration, curve MAPE is interpreted alongside final-point error, absolute RMSE, and NRMSE. 
+
+Supplementary Table 15. Final-point comparison for continuous process pre-diction.                             
+
+> Case Profile Measured final point (cm) Central final point (cm) Band min (cm) Band max (cm) Final-point error (%) Tjelta (1995) TJELTA-A3 15.43 16.70 14.45 18.98 8.23 Wang et al. (2019) full process 4.79 4.96 4.51 5.41 3.45 Zhao et al. (2025) ZHAO-T1 3.68 3.73 3.40 4.06 1.29 Zhao et al. (2025) ZHAO-T2 3.48 3.67 3.37 3.98 5.49 Zhao et al. (2025) ZHAO-T3 3.28 3.37 3.10 3.63 2.74
+
+Supplementary Table 16. Curve-error metrics for continuous process predic-tion. 
+
+76 Case Profile Curve MAPE (%) Curve RMSE (cm) Curve NRMSE (%) Tjelta (1995) TJELTA-A3 95.49 3.15 20.42 Wang et al. (2019) full process 19.24 0.52 10.80 Zhao et al. (2025) ZHAO-T1 36.73 0.16 4.22 Zhao et al. (2025) ZHAO-T2 119.25 0.14 3.92 Zhao et al. (2025) ZHAO-T3 13.88 0.14 4.25 
+
+All five measured final points fell within the prediction sensitivity bands, with final-point errors ranging from 1.29% to 8.23%. Across the complete curves, NRMSE ranged from 3.92% to 4.25% for the Zhao profiles, compared with 10.80% for Wang and 20.42% for Tjelta. 77
