@@ -48,7 +48,7 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-22</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-23</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
     <strong class="dpr-home-dashboard-count">共 15 篇</strong>
@@ -58,7 +58,7 @@
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>3</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-22 22:36:18 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-23 21:59:18 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日扫完 15 篇 Agent 安全与自进化相关论文，含 3 篇精读，主线集中在智能体安全审计与多智能体失控风险。</p>
-<p>最值得看的是两篇 9.0 分工作：《MATE》用合成轨迹学习做移动智能体的策略感知安全审计，《Emergent Collusion in Long-Horizon LLM Agent Interaction》则揭示长程交互中智能体可能自发形成合谋。</p>
-<p>普通读者可先读这两篇的结论与威胁模型，再顺着速读里的红队阻断分类器（7.0）和智能体社会自治（7.0）理解攻防两端。</p>
+<p>2026-09-23日报：从15篇中精读3篇、速读12篇，Agent信任与可解释性诊断成为今日焦点。</p>
+<p>最值得看的是《Dual-Frontier: When Can an Agent Trust Its World Model?》（9.0/10）和《Triggers and Diagnostics for LLM-Based Interpretability Failures in Active Inference Agents》（8.0/10）。</p>
+<p>普通读者可先读9分这篇，再顺带关注速读中“跨组织信任边界”和“AI安全事件报告”两个实践方向。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -83,9 +83,9 @@
     <strong class="dpr-home-dashboard-count">3 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="MATE: Policy-Aware Security Auditing for Mobile Agents via Synthesis-Driven Trajectory Learning">MATE: Policy-Aware Security Auditing for Mobile Agents via Synthesis-Driven Trajectory Learning</span></li><li><span class="dpr-home-dashboard-paper-title" title="Emergent Collusion in Long-Horizon LLM Agent Interaction">Emergent Collusion in Long-Horizon LLM Agent Interaction</span></li><li><span class="dpr-home-dashboard-paper-title" title="Who Does What in AI Auditing? Designing Human-AI Collaboration for Auditing Generative AI">Who Does What in AI Auditing? Designing Human-AI Collaboration for Auditing Generative AI</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Dual-Frontier: When Can an Agent Trust Its World Model?">Dual-Frontier: When Can an Agent Trust Its World Model?</span></li><li><span class="dpr-home-dashboard-paper-title" title="Triggers and Diagnostics for LLM-Based Interpretability Failures in Active Inference Agents">Triggers and Diagnostics for LLM-Based Interpretability Failures in Active Inference Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="When Are Aggregate Agent Traces Diagnosable? Traffic-Governed Interpretation and Calibrated Abstention">When Are Aggregate Agent Traces Diagnosable? Traffic-Governed Interpretation and Calibrated Abstention</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>2</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>3</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -96,9 +96,9 @@
     <strong class="dpr-home-dashboard-count">12 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Red-Teaming Auto Mode: Improving Blocking Classifiers Against Malign Coding Agents">Red-Teaming Auto Mode: Improving Blocking Classifiers Against Malign Coding Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="DENSE: Distilling Agent Trajectories into Evidence-Grounded Shortcut Trees for Self-Refinement">DENSE: Distilling Agent Trajectories into Evidence-Grounded Shortcut Trees for Self-Refinement</span></li><li><span class="dpr-home-dashboard-paper-title" title="From Certain Doom to Survival: Agent-Driven Self-Governance in LLM Agent Societies">From Certain Doom to Survival: Agent-Driven Self-Governance in LLM Agent Societies</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="When Agentic Trust Crosses Organizational Boundaries: Structural Externalization and a Reference Model for Trust Evidence">When Agentic Trust Crosses Organizational Boundaries: Structural Externalization and a Reference Model for Trust Evidence</span></li><li><span class="dpr-home-dashboard-paper-title" title="Beyond Predictable Paths: Redefining AI Security Incident Reporting for Agents">Beyond Predictable Paths: Redefining AI Security Incident Reporting for Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="Passes Alone, Fails Together: Benchmarking Semantic Coordination in Parallel LLM-Agent Development">Passes Alone, Fails Together: Benchmarking Semantic Coordination in Parallel LLM-Agent Development</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>9</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>3</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-safety <strong>7</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>5</strong></span></div>
 </section>
 </div>
 
