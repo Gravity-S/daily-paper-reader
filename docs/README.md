@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-23</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-24</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 15 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 12 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>3</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>9</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-23 21:59:18 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-24 22:04:02 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>2026-09-23日报：从15篇中精读3篇、速读12篇，Agent信任与可解释性诊断成为今日焦点。</p>
-<p>最值得看的是《Dual-Frontier: When Can an Agent Trust Its World Model?》（9.0/10）和《Triggers and Diagnostics for LLM-Based Interpretability Failures in Active Inference Agents》（8.0/10）。</p>
-<p>普通读者可先读9分这篇，再顺带关注速读中“跨组织信任边界”和“AI安全事件报告”两个实践方向。</p>
+<p>2026-09-24 日报完成 12 篇筛选，精读 3 篇、速读 9 篇，聚焦工具型智能体的可靠性与监督。最值得看的是两篇 8.0 分精读：ToolUniverse 审计揭示智能体与工具交互中的&quot;静默失败&quot;，TwinCheck 用负孪生验证为有状态工具智能体提供证据支撑，直指&quot;出错不被发现&quot;这一关键风险。普通读者可优先了解工具调用失败与验证机制，再结合 CART 红队测试思路，判断自己使用的智能体是否可靠。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -83,9 +81,9 @@
     <strong class="dpr-home-dashboard-count">3 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Dual-Frontier: When Can an Agent Trust Its World Model?">Dual-Frontier: When Can an Agent Trust Its World Model?</span></li><li><span class="dpr-home-dashboard-paper-title" title="Triggers and Diagnostics for LLM-Based Interpretability Failures in Active Inference Agents">Triggers and Diagnostics for LLM-Based Interpretability Failures in Active Inference Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="When Are Aggregate Agent Traces Diagnosable? Traffic-Governed Interpretation and Calibrated Abstention">When Are Aggregate Agent Traces Diagnosable? Traffic-Governed Interpretation and Calibrated Abstention</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Silent Failures in Agent-Tool Interaction: An Audit of ToolUniverse">Silent Failures in Agent-Tool Interaction: An Audit of ToolUniverse</span></li><li><span class="dpr-home-dashboard-paper-title" title="TwinCheck: Evidence-Grounded Negative-Twin Verification for Stateful Tool Agents">TwinCheck: Evidence-Grounded Negative-Twin Verification for Stateful Tool Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="Shutdown Sabotage Propensities in Multi-Agent Systems">Shutdown Sabotage Propensities in Multi-Agent Systems</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>3</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>2</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -93,12 +91,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">12 篇</strong>
+    <strong class="dpr-home-dashboard-count">9 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="When Agentic Trust Crosses Organizational Boundaries: Structural Externalization and a Reference Model for Trust Evidence">When Agentic Trust Crosses Organizational Boundaries: Structural Externalization and a Reference Model for Trust Evidence</span></li><li><span class="dpr-home-dashboard-paper-title" title="Beyond Predictable Paths: Redefining AI Security Incident Reporting for Agents">Beyond Predictable Paths: Redefining AI Security Incident Reporting for Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="Passes Alone, Fails Together: Benchmarking Semantic Coordination in Parallel LLM-Agent Development">Passes Alone, Fails Together: Benchmarking Semantic Coordination in Parallel LLM-Agent Development</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Anticipatory Human Oversight of Agentic AI: A Philosophical Account">Anticipatory Human Oversight of Agentic AI: A Philosophical Account</span></li><li><span class="dpr-home-dashboard-paper-title" title="The Delegation Blind Spot: Auditing Product Decisions from Agent Choices">The Delegation Blind Spot: Auditing Product Decisions from Agent Choices</span></li><li><span class="dpr-home-dashboard-paper-title" title="CART: Closed-Loop Adaptive Red Teaming for Large Language Models">CART: Closed-Loop Adaptive Red Teaming for Large Language Models</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-safety <strong>7</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>5</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>7</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>2</strong></span></div>
 </section>
 </div>
 

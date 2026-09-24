@@ -1,0 +1,1692 @@
+Title: How Do Agent Harnesses Create Value? Planning Information and Release Control in Stateful LLM Agents
+
+URL Source: https://arxiv.org/pdf/2609.20474v1
+
+Published Time: Fri, 18 Sep 2026 01:24:48 GMT
+
+Number of Pages: 56
+
+Markdown Content:
+# How Do Agent Harnesses Create Value? Planning Information and Release Control in Stateful LLM Agents 
+
+Yukun Zhang Kemu Xu Yishen Chen 
+
+The Chinese University University of Edinburgh The Chinese University of Hong Kong of Hong Kong, Shenzhen Hong Kong, China Edinburgh, United Kingdom Shenzhen, China 
+
+215010026@link.cuhk.edu.cn s2749200@ed.ac.uk yishenchen@link.cuhk.edu.cn 
+
+Abstract 
+
+Agent harnesses supply planning guidance, organize execution, and check completion. We study how these components affect success, erroneous acceptance, and cost in two Retail experiments and an Airline pilot in τ 2-bench. The primary comparison pairs prewritten task-specific plans (Fixed) with shuffled policy text matched in word count (Sham), isolating the contribution of guidance content. Across 265 matched cells, Fixed improves oracle-verified success by 7.17 percentage points (90% task-clustered bootstrap interval, 1.15–13.36 points), with gains concentrated in higher-complexity tasks. A read-only terminal verifier rejects 61% of Retail oracle-invalid episodes while withholding 17% of correct ones, at less than one cent of additional cost per episode. Which component matters more depends on the loss assigned to erroneous acceptance: at low liability the planning gain dominates; at high liability the verifier’s avoided false passes dominate—and a standalone verifier captures nearly all the false-pass benefit of the full planning-plus-verification stack at a fraction of its cost. 
+
+1 Introduction 
+
+1.1 The Attribution Problem in Agent Performance 
+
+Large language model agents retrieve information, invoke tools, and modify persistent environment states. Their outcomes depend on both the model and the surrounding mechanisms that organize its work: planning, repair, memory, tool orchestration, and completion checks. We call this execution and control structure an agent harness . Reasoning–action integration, reflective feedback, and memory management illustrate how external organization shapes the behavior of a given model (Yao et al., 2023b; Shinn et al., 2023; Packer et al., 2023). Interactive benchmarks and system-level comparisons measure what models and harnesses achieve together (Liu et al., 2024; Ma et al., 2024; Yao et al., 2025; Kapoor et al., 2026). Attributing that performance to a component requires a more specific comparison. Additional guidance, inference expenditure, execution constraints, and repair opportunities can all change success. A useful component evaluation states what support changes, which outcome it affects, and what resources it consumes. 1arXiv:2609.20474v1 [cs.AI] 17 Sep 2026 1.2 Planning Information, Release Control, and Operating Cost 
+
+Planning supplies subgoals, dependencies, and execution guidance that an executor may find useful (Zhou et al., 2023; Wang et al., 2023a; Erdogan et al., 2025). Comparing a supplied plan with Minimal changes both the guidance and the amount of context. A control matched in word count and packaging helps isolate the contribution of the supplied task-specific content. Verification addresses acceptance of an attempted completion— release control in the language of the title. A terminal verifier can withhold an invalid result, but can also reject a correct one. Oracle correctness, a completion claim, and the acceptance decision therefore need separate measures. This distinction is especially consequential in stateful environments: a terminal rejection occurs after execution and may leave earlier refunds, cancellations, or other state changes in place. Both components consume resources. Their practical value depends on the benefit assigned to successful completion, the loss assigned to erroneous acceptance, and the cost of obtaining and handling the result. We use these three quantities to connect component outcomes to conditional configuration value. 
+
+1.3 Research Questions and Experimental Approach 
+
+We ask whether supplied planning guidance improves execution relative to a specified context control, how terminal verification changes acceptance outcomes, and how outcome valuations affect configuration comparisons. The study uses Retail and Airline from τ 2-bench (Barres et al., 2026). Shared Retail contributes 1,547 trajectories from six models, sixteen tasks, and seven configurations. A separate planner-focused Retail experiment contributes 1,227 trajectories from five models, twenty-four tasks, and four planning conditions. Airline contributes 233 trajectories from five models, six tasks, and four configurations. The primary comparison assigns prewritten task-specific Fixed guidance or Sham text formed from shuffled policy words, matched in whitespace-word count and input wrapper. Both use static text. We pair records by model, task, and replication and quantify uncertainty by task-clustered bootstrap. Verification uses pooled descriptive rates, model-specific matched contrasts, and direct rejection counts. The value exercise pairs each configuration with its Minimal counterparts and applies explicit success values and false-pass liabilities. 
+
+1.4 Main Findings and Contributions 
+
+Fixed improves oracle-verified success over Sham by 7.17 percentage points (90% interval, 1.15– 13.36 points), with gains concentrated in higher-complexity tasks. DeepSeek Flash and Qwen show the largest effects; Kimi’s estimate is near zero despite a similar baseline. All leave-one-model-out point estimates remain positive, and the Sham–Minimal estimate (1.89 points) provides no evidence that the shuffled control harms performance. In shared Retail, the terminal verifier rejects 83 of 137 oracle-invalid episodes (61%) while withholding 16 of 92 correct ones (17%), reducing the false-pass rate from 57.21% to 20.96%. 2Matched contrasts are negative for all six Retail models. Verifier-only captures nearly the same avoided false-pass benefit as the full stack (48.4 vs. 49.8 pp) at a twelfth of the incremental cost. The paper contributes: 1. A matched Fixed–Sham comparison of prewritten task-specific guidance against a word-count-matched context control. 2. An outcome framework and rejection analysis that separate oracle correctness from terminal acceptance. 3. A conditional value framework combining success, avoided false pass, and inference cost under stated liability weights. Section 2 reviews related work. Sections 3 and 4 define the framework and design. Sections 5 through 7 present planning, verification, and scenario results, followed by discussion and conclu-sion. 
+
+2 Related Work 
+
+Agent evaluation beyond scalar scores. Model benchmarks measure standardized knowl-edge and code generation (Hendrycks et al., 2021; Chen et al., 2021), while HELM evaluates multiple dimensions, including accuracy, calibration, robustness, and efficiency (Liang et al., 2023). Agent evaluation extends to general-assistant questions requiring reasoning, multimodal understanding, browsing, and tool use (Mialon et al., 2024), as well as decision-making across interactive environments (Liu et al., 2024). AgentBoard measures incremental progress during multi-turn interaction (Ma et al., 2024); WebArena and OSWorld assess functional completion in web and computer environments (Zhou et al., 2024b; Xie et al., 2024). These approaches already provide information beyond a single model score. Our focus is the contribution of specific harness interventions to verified success, false passes, and operating cost within common model–task conditions. 
+
+Tool use, software work, and long-horizon evaluation. ToolLLM combines data con-struction, model training, API retrieval, multi-tool execution, and evaluation (Qin et al., 2024). BFCL tests serial and parallel function calls, abstention, and stateful multi-step behavior (Patil et al., 2025). For tool–agent–user interaction, τ -bench provides domain policies and evaluates terminal database states and required response content; its success reward does not ensure full policy compliance (Yao et al., 2025). Software-engineering benchmarks use executable tests or task values grounded in freelance payments (Jimenez et al., 2024; Miserendino et al., 2025). RE-Bench compares agents with human research engineers under time budgets (Wijk et al., 2025), while time-horizon evaluation relates agent success to the duration of tasks for human workers (Kwa et al., 2025). HAL jointly analyzes models, scaffolds, and benchmarks (Kapoor et al., 2026). We complement this evaluation literature with a controlled contrast of planning information and separate comparisons of verification configurations. 3Planning information and inference-time organization. Reasoning methods expose intermediate steps, aggregate answers across sampled paths, or decompose problems into ordered subproblems (Wei et al., 2022; Wang et al., 2023b; Zhou et al., 2023; Wang et al., 2023a). ReAct interleaves reasoning and actions (Yao et al., 2023b), whereas Toolformer learns tool invocation through training (Schick et al., 2023). Tree of Thoughts, RAP, and LATS search candidate reasoning or action paths (Yao et al., 2023a; Hao et al., 2023; Zhou et al., 2024a); DEPS revises plans using execution feedback (Wang et al., 2023c). Plan-and-Act explicitly separates a high-level planner from an environment-specific executor and trains the planner using synthetic data (Erdogan et al., 2025). PlanBench tests plan construction and reasoning about change (Valmeekam et al., 2023), while APB diagnoses planning under extraneous tools, broken tools, and infeasible tasks (Sun et al., 2026). Test-time scaling studies examine how difficulty, model size, inference strategy, and compute budget affect reasoning performance (Snell et al., 2025; Wu et al., 2025). Prompt interventions also examine which information drives planning gains. Verma et al. (2024) vary ReAct exemplars and placebo guidance to study sensitivity to content and exemplar–query similarity. Our Fixed–Sham comparison extends this attribution question to stateful tool use with prewritten task-specific guidance, a word-count-matched context control, and paired oracle outcomes. 
+
+Verification signals and terminal completion. Outcome verifiers rank candidate solutions, while process-based feedback evaluates intermediate reasoning (Cobbe et al., 2021; Uesato et al., 2022; Lightman et al., 2024). Self-verification supplies scores for candidate-answer selection (Weng et al., 2023). Model-based judges assess open-ended text (Zheng et al., 2023; Liu et al., 2023); Prometheus conditions evaluation on rubrics and reference answers (Kim et al., 2024), and RewardBench tests reward-model preference ranking (Lambert et al., 2025). Repeated sampling expands candidate coverage (Brown et al., 2024), while adaptive computation allocates search and revision effort (Snell et al., 2025). Verification signals can guide selection, search, or training (Snell et al., 2025; Setlur et al., 2025). These uses of verification differ from deciding whether an agent’s claimed terminal state warrants release. Recent agent studies address this terminal distinction directly. VIGIL scores world-state comple-tion separately from the correctness of an agent’s terminal report (Chen et al., 2026). Advani (2026) studies false success, where completion claims conflict with state-based ground truth, and evaluates detectors on τ 2-bench and AppWorld. Procedure-Aware Evaluation instead examines corrupt success: positive benchmark outcomes accompanied by procedural violations (Cao et al., 2026). A corrupt success need not be a false pass under our terminal-objective oracle. Computer-use verification research also separates process and outcome scoring and evaluates trajectory judges against human labels (Rosset et al., 2026). Our contribution builds on these distinctions by measuring how external verification relates to verified success and false-pass control, then valuing the release margin under downstream liability. 
+
+Harness runtime, risk, and cost-sensitive evaluation. Harness research already treats runtime support as an object of controlled comparison. Zhong and Zhu (2026) propose an H0–H3 ladder that varies support while holding the model and task fixed, with an illustrative validation case and a taxonomy separating task outcomes from verification evidence. SGLang shows how 4runtime design affects the efficiency of structured language-model programs (Zheng et al., 2024). At the evaluation level, Kapoor et al. (2025) argue for cost-controlled agent comparisons and joint accuracy–cost optimization; FrugalGPT studies budget-aware model cascades (Chen et al., 2024). These works motivate assessing the value of additional support relative to its resource demands. Risk-sensitive evaluation adds a further dimension. ToolEmu tests long-tail risks in emulated tool environments (Ruan et al., 2024), and AgentDojo evaluates task utility alongside prompt-injection robustness (Debenedetti et al., 2024). The Verifier Tax compares tool-calling, planning, and policy-mediated architectures in Retail and Airline domains, documenting safety–success tradeoffs and verification overhead (Sah et al., 2026). Selective prediction provides a related risk–coverage perspective through an explicit reject option (Geifman and El-Yaniv, 2019). We connect these perspectives to component comparisons and a scenario analysis of verified completion, avoided false passes, and incremental execution cost. 
+
+3 Evaluation Framework: Planning Information, Verification, and Conditional Harness Value 
+
+An agent harness can affect task outcomes by changing the information available to the executor, organizing its interaction with tools, or evaluating a proposed completion. These interventions need not improve the same outcome dimension. Planning may help an executor complete a task, while verification may reduce the frequency with which an incorrect outcome is treated as complete. Both interventions also consume resources. We organize the analysis around oracle success, false pass, and logged inference cost. Figure 1 connects the guidance intervention, post-hoc check, and outcome measures. 
+
+3.1 Harness Components and Their Intervention Points 
+
+The unit of observation is an execution trajectory indexed by ( m, t, h, r ), where m denotes the model, t the task, h the harness configuration, and r the replication. The model interacts with a stateful environment under the execution protocol associated with h. The resulting trajectory produces an evaluated task outcome and a record of resource consumption. Harness components enter this process at different points. Planning supplies task structure, including subgoals, dependencies, and execution guidance. Tool orchestration constrains or organizes tool interactions. Memory preserves information across steps. Evaluation and repair provide opportunities to inspect outcomes and revise behavior. Terminal verification reviews a proposed completion before the system accepts it. Component effects can overlap: planning may prevent errors that would otherwise trigger evaluation, and several checks may consume the same execution budget. We evaluate tar-geted component contrasts and treat Full Fixed as the combined outcome of its implemented components. 5a Episode timeline and intervention points b Outcome measures and scenario value 
+
+Guidance 
+
+> acts before execution
+
+Minimal : none 
+
+Sham : shuffled policy words 
+
+Fixed : task-specific plan 
+
+> static; shared across models
+
+Executor 
+
+> runs the episode
+
+Dialogue with the user Tool calls change state 
+
+> τ²-bench Retail and Airline Full Fixed adds repair, memory, orchestration
+
+Oracle scoring 
+
+> scores the final state
+
+S = 1 at agent/user stop 
+
+Z = 1 if reward ≥ 0.999 
+
+Z is fixed here 
+
+Terminal verifier 
+
+> acts after oracle scoring
+
+Runs only if S = 1 Reads dialogue only  
+
+> INCOMPLETE
+
+→ R = 1           
+
+> no repair loop
+> Contrasts: Fixed − Sham (primary) · Sham − Minimal (placebo) · Verifier − Minimal (false pass)
+> Fixed and Sham: matched word count and wrapper · Verifier: executor's own model, last ≤ 8 messages, no database access
+> Gate acceptance A=S(1 − R)Accepted ( A= 1) Not accepted ( A= 0) Correct
+> Z= 1 Invalid
+> Z= 0
+
+Accepted & correct 
+
+AZ 
+
+Withheld correct 
+
+(1 − A)Z
+
+False pass 
+
+YFP = A(1 − Z)
+
+Rejected or S = 0 
+
+(1 − A)(1 − Z) 
+
+> YVS = Z spans the first row: the verifier changes columns, not rows.
+
+Scenario value relative to Minimal 
+
+NV i = V ΔPiVS 
+
++ L ΔFP iavoid 
+
+− Δ Ci 
+
+> success gain avoided false pass added inference cost V: value of a verified success · L: loss per false pass All Δ terms are paired differences against Minimal
+
+Figure 1: Planning guidance, terminal verification, and scenario value. (a) Minimal supplies no guidance; Fixed supplies a task-specific plan; Sham supplies shuffled policy text matched to Fixed in word count and wrapper. Oracle scoring fixes Z before the terminal verifier sets rejection flag R from recent dialogue. (b) The outcome matrix separates oracle correctness from acceptance A = S(1 − R): verified success is Y VS = Z, while false pass is Y FP = A(1 − Z). The value card combines paired changes in success, avoided false passes, and logged inference cost relative to Minimal, as in Equation 2. 
+
+3.2 Observed Outcomes and Resource Use 
+
+We distinguish oracle correctness, episode termination, and verifier rejection. Let Z = 1 when the benchmark reward is at least 0 .999, S = 1 when termination is USER_STOP or AGENT_STOP ,and R = 1 when the terminal verifier rejects the result. The two quality measures are 
+
+Y VS = Z, Y FP = S(1 − R)(1 − Z). (1) The logged agent_asserted field supplies S, a termination-based proxy for completion. The gate-acceptance indicator derived from these fields is A = S(1 − R); accepted and oracle-correct completion is AZ . Verified success counts oracle-correct episodes, including those subsequently rejected by the verifier. Appendix J reports the rejection cross-tabulation. Resource measures include tokens, tool calls, simulation latency, and logged execution cost. Cost@Success and Pass@Budget describe different aspects of this record. 
+
+3.3 Planning Information and Model–Task Heterogeneity 
+
+The planning comparison evaluates supplied task-specific guidance. Fixed provides a prewritten plan; Sham supplies shuffled domain-policy words matched to its whitespace-word count and 6common wrapper. The sample-matched estimator is defined in Equation 4. This contrast holds the model, task, and replication key fixed while changing the added guidance. Sham–Minimal measures the behavior of the chosen context control, and Self contrasts assess guidance generated by the executor. Planning returns can vary with both task demands and the executor’s ability to implement a plan. Baseline success and reference-action complexity provide descriptive dimensions for examining that variation. 
+
+3.4 Verification and the Interpretation of False Pass 
+
+The evaluated verifier runs after task execution. For episodes with S = 1, it reviews recent dialogue and sets the rejection indicator R. This operation directly affects the false-pass measure in Equation 1; the oracle outcome Z is already fixed. The contrast between these outcome margins motivates separate reporting of oracle success, false pass, and rejection. A pseudo-completion is an episode with false pass equal to one; Section 6 uses this label. 
+
+3.5 Conditional Value under Cost and Risk 
+
+The same outcome difference can have different practical value across deployments. A successful completion may be highly valuable in one application, while preventing an erroneous completion may dominate the decision in another. Execution cost provides a further source of variation. To express these trade-offs, consider configuration i relative to Minimal. Let ∆ P VS  
+
+> i
+
+denote its difference in verified-success probability, ∆ F P avoid  
+
+> i
+
+its reduction in false-pass probability, and ∆ Ci its incremental logged execution cost. For a scenario assigning value V to a verified completion and loss L to a false pass, incremental net value is 
+
+N V i(V, L ) = V ∆P VS  
+
+> i
+
++ L∆F P avoid  
+
+> i
+
+− ∆Ci. (2) The first term values additional oracle-success outcomes. The second term values avoided false passes. The third accounts for additional execution expenditure. This decomposition permits a configuration to have positive scenario value even when its verified-success difference is small or negative, provided that its reduction in false pass receives sufficient weight. For a configuration with ∆ F P avoid  
+
+> i
+
+> 0, the corresponding break-even false-pass loss is 
+
+L∗ 
+
+> i
+
+(V ) = ∆Ci − V ∆P VS 
+
+> i
+
+∆F P avoid 
+
+> i
+
+. (3) Under the aggregate differences, the configuration has non-negative incremental scenario value when L ≥ L∗ 
+
+> i
+
+(V ). A negative threshold means that its combination of verified-success value and logged execution cost is already favorable relative to Minimal at L = 0. The threshold compares a configuration with Minimal. The weights V and L are scenario inputs. 7Table 1: Realized coverage of the trajectory experiments.                       
+
+> Experimental block Models Tasks Configs Reps Trajectories
+> Retail shared 616 7≤31,547 Retail planner 524 4≤31,227 Airline pilot 5642233
+
+4 Experimental Design, Data, and Evidence Scope 
+
+The empirical study uses the Retail and Airline environments supplied by τ 2-bench (Barres et al., 2026). Retail provides the primary evidence through the shared Retail experiment and a separate planner-focused Retail experiment. Airline provides a smaller evaluation in a second environment. We describe the implemented interventions, scoring rules, matching, missingness, and uncertainty procedures below. 
+
+4.1 Evaluation Environments and Task Coverage 
+
+In both environments, an agent receives a task instruction and interacts with structured tools that expose information or modify an underlying state. Task completion is evaluated by a hidden oracle independently of the executor’s own completion claim. Successful performance therefore requires an acceptable task outcome under the environment’s evaluation criteria, rather than a persuasive statement that the task has been completed. Table 1 summarizes realized coverage of the three trajectory blocks; missing cells are detailed below. 
+
+4.1.1 Retail: Shared Experiment 
+
+Retail represents customer-service workflows involving order modification, returns and exchanges, payment disputes, account operations, shipment tracking, and multi-step fulfillment. Depending on the task, execution may require authentication, eligibility checks, information retrieval, correctly ordered tool calls, confirmation, or recovery from an intermediate failure. Some actions modify persistent state, while others depend on preconditions established by earlier interactions. The shared Retail experiment contains 1,547 valid trajectories from six models, sixteen tasks, and seven harness configurations, with up to three replications per model–task–configuration cell. It supplies the configuration-level performance and cost results, the supplementary shared-Retail planning contrasts, and the trajectory outcomes used in the verifier and capability-conditioned analyses. The supplementary planning comparison, FDS-by-verifier analysis, liability scenarios, and incre-mental prediction analysis reuse these shared trajectories. The independent capability probes and tool-coordination stress probes provide separate measurement data. Appendix A maps all experiment identifiers to their data sources. 84.1.2 Retail: Planner-Focused Experiment 
+
+The planner-focused Retail experiment contains 1,227 valid trajectories from five models, twenty-four tasks, and four conditions: Minimal, Planner Fixed, Planner Sham, and Planner Self. Each model–task–condition cell has up to three replications. This block supplies the primary Fixed–Sham comparison and the associated secondary planning analyses. Section 4.5 defines the primary analysis sample; the model-specific results also retain the fifth model. Task structure is summarized from reference actions: substeps count the actions, the dependency-depth proxy is max(1 , substeps − 1), and tool count is the number of distinct action names. These action-derived proxies support exploratory grouping; the construction is detailed in Appendix B. 
+
+4.1.3 Airline: Pilot-Scale Evaluation 
+
+Airline provides a second stateful environment involving booking, itinerary, customer, and payment operations. The evaluated pilot uses six selected tasks from an environment inventory of fifty tasks. Its four configurations are Minimal, Planner Fixed, Planner Sham, and Verifier-only. The planned design contains 5 × 6 × 4 × 2 = 240 cells. The realized dataset contains 233 trajectories, leaving seven planned runs unobserved. The task identifiers, realized coverage, and missing cells are reported in Appendix M. 
+
+4.2 Models and Harness Configurations 
+
+The shared Retail block evaluates the run identifiers claude-haiku , deepseek-v4-flash ,
+
+deepseek-v4-pro , glm-4-air , glm-4-flash , and qwen-turbo . The planner-focused block eval-uates deepseek-v4-flash , doubao-pro , kimi-32k , minimax-text , and qwen-turbo . Airline evaluates claude-haiku , deepseek-v4-flash , doubao-pro , glm-4-air , and qwen-turbo .These are the run keys recorded by the common runtime adapter; Appendix C lists the available metadata. Table 2 summarizes the implemented configurations. There are eight distinct configuration labels across the study because Planner Self appears only in the separate planner-focused block. Full Fixed combines planning, evaluation and repair, memory, orchestration, and terminal verification. Its comparison with Minimal evaluates this bundled control stack, including interactions among its components. Appendix D details the configuration semantics, component timing, and plan text. 
+
+4.3 Fixed Plans, Sham Controls, and Self-Planning 
+
+Planner Fixed reads a prewritten plan from a task-indexed file. A given task uses the same text across models. The implementation requires a matching plan entry and injects it into system context when the agent processes the first user message. Planner Sham shuffles words from the domain policy using seed 2701, then repeats or truncates the sequence to the Fixed plan’s 9Table 2: Harness configurations and experimental availability.             
+
+> Configuration Implemented intervention Experimental blocks
+> Minimal Task instruction, tool definitions, and the standard execution protocol All three blocks Planner Fixed Offline task-specific plan containing relevant subgoals and dependencies All three blocks Planner Sham Shuffled policy words matched to the Fixed word count and supplied in the same wrapper All three blocks Planner Self The evaluated model generates a plan before execution Retail planner Evaluator-only Evaluation with the configured repair procedure Retail shared Orchestrator-only Tool routing, schema, ordering, and execution constraints Retail shared Verifier-only Terminal review of proposed completion Retail shared; Airline Full Fixed Fixed planning combined with evaluation and repair, memory, orchestration, and verification Retail shared
+
+whitespace-word count. Both use a <task_plan> wrapper. This is a shuffled word sequence, not a coherent but unhelpful plan. It controls word count and packaging, not readability or task structure; tokenizer length can also differ. Fixed and Sham use static text without a runtime helper-model call. Plan construction is documented as manual in the authoring script. The archived text establishes what was injected. The author’s full information access during construction is unrecorded, so interpreting the result as ordinary planning support assumes that the plans used only information available before execution. The primary analysis follows an intention-to-treat principle: episodes remain in their assigned configurations even if they end before injection. Some episodes terminate on the user’s first reply, before plan injection. Twenty-five primary pairs contain at least one such episode: 15 Fixed and 16 Sham rows have empty injection records, all with zero verified success. Restricting to the 240 pairs with text injected in both arms gives a 7.50-point difference, close to the primary 7.17 points (Section 5.4). Appendix D gives the exposure counts and an actual Fixed/Sham example. Planner Self asks the evaluated model to generate its own plan, adding a planning call and its token cost. Self-planning and Sham–Minimal contrasts serve as secondary diagnostics of plan generation and the chosen context control. 
+
+4.4 Recorded Outcomes and Resource Measures 
+
+The scoring adapter defines verified success, the completion proxy, and false pass as in Equation 1. The terminal verifier uses the same model identifier as the executor and reviews the last at most eight user/assistant messages, truncated to 300 characters each. It receives dialogue text, with no database access, and has an output limit of 200 tokens. For episodes with S = 1, an output containing INCOMPLETE sets R = 1. The episode and oracle reward are complete before this check; the verifier has no repair loop. Failure types are rule-based classifications. The adapter assigns pseudo-completion to false passes, 10 none to oracle successes, and otherwise distinguishes budget exhaustion from execution failure using the termination reason. Resource records include input/output tokens, tool calls, simulation latency, component token attribution, and logged monetary cost in USD. Simulation latency ends before the terminal verifier call. Cost@Success is mean logged cost divided by the verified-success rate. Pass@Budget is the conditional verified-success rate among trajectories whose total tokens are at most the analysis dataset’s median b. For shared Retail, b = 84 ,388. 
+
+4.5 Analysis Samples, Matching, and Missingness 
+
+The primary planning comparison pairs configurations by model–task–replication key c = ( m, t, r ), using cells with both Fixed and Sham observed. Its estimator is ̂
+
+τ P = 1
+
+|C P |
+
+> ∑
+> c∈C P
+> (
+
+Y VS  
+
+> c, fixed
+
+− Y VS 
+
+> c, sham
+> )
+
+. (4) We first restrict the planner-focused sample to tasks flagged as requiring mutation by the reference-action write-operation heuristic. This excludes task 62 and leaves 23 tasks. We then retain models with Minimal verified success at least 0.05 on this mutation-flagged subset. The rule retains deepseek-v4-flash , doubao-pro , kimi-32k , and qwen-turbo , contributing 67, 69, 69, and 60 pairs respectively. The resulting sample contains 265 matched cells. 
+
+minimax-text , whose Minimal success rate is zero, remains in the five-model results and Holm testing family but falls below the pooled retention threshold. Its Fixed–Sham contrast has 27 pairs. The all-task sensitivity retains 277 pairs across the same four models. Each secondary contrast uses its own available matched cells. Shared replication identifiers align records; execution order and random draws were not established as identical across arms. Missing outcomes remain absent: the planner-focused sample has 213 missing cells relative to its 1,440-cell grid, and Airline has seven relative to 240 planned cells. Shared-Retail pooled means describe each configuration’s available trajectories. Model-specific matched Verifier–Minimal false-pass contrasts are reported in Appendix J. The liability analysis likewise pairs each configuration to its available Minimal counterparts, then aggregates within models and risk strata. 
+
+4.6 Statistical Procedures and Evidence Hierarchy 
+
+The primary pooled Fixed–Sham result uses a 90% task-clustered percentile bootstrap interval with 5,000 resamples. Each draw samples tasks with replacement, retains all matched model– replication cells within each selected task, and computes their cell-weighted mean. The pooled and leave-one-model-out sequence starts from seed 2701. Model-specific primary contrasts use the same nominal level and number of draws, with seed 2701 + npairs .Model-specific bootstrap p-values and the five-model Holm adjustment are reported together. Some secondary contrasts use matched-cell rather than task resampling; Appendix E specifies the procedure for each analysis. 11 Model deletion describes sensitivity to the evaluated model composition. Capability interactions use six measured models and are assessed alongside the delete-one-model jackknife. The predictive comparison separates trajectory-derived cross-fitted proxies from the independent held-out probe sensitivity. Both are model-level generalization checks. The economic grid assigns V ∈ { 1, 5, 20 } and L ∈ { 2, 200 }, in USD. Within each task-risk stratum, scenario summaries give equal weight to contributing models and the three V values at each L. Risk is a reference-action heuristic defined in Section 7.2; the low-risk stratum contains one task. Break-even values use the aggregate differences. The experimental package records a 7 July 2026 freeze and a 13 July 2026 coverage audit. 
+
+5 Planning Information: Evidence from the Fixed–Sham Comparison 
+
+The planner-focused Retail experiment provides the primary Fixed–Sham comparison. We report the pooled result, secondary contrasts, heterogeneity, and sensitivity, followed by supplementary shared-Retail and Airline results. 
+
+5.1 Average Planning Effect in the Retained Matched Sample 
+
+The primary comparison averages 265 matched cells from four models and 23 mutation-flagged tasks using Equation 4: ̂
+
+τ P = 0 .0717 , Itask ,90% = [0 .0115 , 0.1336] . (5) Fixed raises oracle-verified success by 7.17 percentage points relative to Sham. The 90% task-clustered percentile interval is positive. Figure 2 presents the pooled and model-specific estimates. 
+
+5.2 Sham–Minimal Placebo and Secondary Planning Contrasts 
+
+The Sham–Minimal comparison examines the behavior of the chosen context control. Across 264 matched cells, the pooled result is ̂
+
+τ sham −min = 0 .0189 , Isham −min task = [ −0.0345 , 0.0709] . (6) Sham has a positive point estimate relative to Minimal, providing no average decrement from the shuffled control. Its interval spans zero, so this diagnostic does not establish equivalence. Table 20 reports the model-specific results. Fixed–Minimal estimates are positive for all four retained models, ranging from 5.80 to 11.59 percentage points. Thus, the favorable Fixed point estimates also appear against the no-added-plan baseline. Self-planning varies by executor: Qwen improves over Sham by 16.95 pp (interval [6.78, 27.12], unadjusted p = 0 .0052, 59 pairs), while its direct Self–Fixed estimate is 3.39 pp with interval [-8.47, 15.25]. The other retained models have negative Self–Fixed point estimates and intervals that include or touch zero. Self also adds a planning call. Full contrasts and effort records are in Appendix I. 12 0 25 50 75             
+
+> Minimal oracle success (%) DeepSeek Flash Doubao Kimi Qwen Minimax*
+> Pooled, 4 models
+> 60.3 52.2 11.6 10.2 0.0
+> aBaseline
+> −10 010 20
+> Fixed − Sham oracle success (pp)
+> 13.4 [1.5, 24.6] 67 4.3 [−7.2, 15.9] 69 −1.5 [−11.6, 8.7] 69 13.3 [5.0, 21.7] 60 0.0 [0.0, 0.0] 27
+> 7.2 [1.1, 13.4] 265
+> Estimate [90% CI] n
+> bPlanning effect
+
+Figure 2: Baseline success and Fixed–Sham planning effects in Retail (E03A). (a) Minimal oracle-success rate by model; rows in both panels are ordered by this baseline. (b) Model-specific Fixed–Sham differences in oracle success with 90% task-clustered percentile bootstrap intervals (5,000 draws); the diamond shows the pooled result for four models and 265 matched cells across 23 tasks. The right-hand columns give each estimate and interval in percentage points and the number of matched cells. Qwen and Kimi have similar baselines but different planning responses. *Minimax is outside this pool: both matched arms have zero successes, producing a degenerate interval at zero. Model-specific Holm-adjusted quantities appear in Table 3. Table 3: Model-specific Fixed–Sham effects on verified success in planner-focused Retail. The pooled estimate uses the four models other than minimax-text . Bounds are 90% task-clustered bootstrap intervals; Holm adjustment uses all five model-specific contrasts. Effects are on the proportion scale; multiply by 100 for percentage points. 
+
+Model n Effect Lower Upper p Holm p
+
+deepseek-v4-flash 67 0.1343 0.0149 0.2464 0.08 0.32 
+
+doubao-pro 69 0.0435 -0.0725 0.1594 0.5992 1.0 
+
+kimi-32k 69 -0.0145 -0.1159 0.087 0.9288 1.0 
+
+minimax-text 27 0.0 0.0 0.0 1.0 1.0 
+
+qwen-turbo 60 0.1333 0.05 0.2167 0.0172 0.086 
+
+Fixed–Sham false-pass estimates are negative for all four retained models, ranging from -11.94 to -4.35 pp, with most intervals touching or crossing zero (Table 29). Planning guidance thus affects both oracle success and erroneous completion. 
+
+5.3 Heterogeneity across Models and Task Complexity 
+
+Table 3 shows variation in the magnitude and direction of planner-focused Retail Fixed–Sham effects. DeepSeek Flash and Qwen have the largest positive point estimates. Qwen’s unadjusted p-value is 0.0172 and Holm-adjusted value is 0.086. All five adjusted values exceed 0.05. Similar baseline success can accompany different planning responses. Qwen has Minimal success of 10.17% and a Fixed–Sham effect of +13.33 pp; Kimi has Minimal success of 11.59% and an 13 Table 4: Pooled and leave-one-model-out Fixed–Sham estimates with 90% task-clustered bootstrap intervals. Every row retains twenty-three tasks. Model deletions refer to the four-model pooled analysis sample. Effects are on the proportion scale; multiply by 100 for percentage points.                             
+
+> Analysis scope Cells Effect Lower Upper
+> All retained models 265 0.0717 0.0115 0.1336 Drop deepseek-v4-flash 198 0.0505 -0.0202 0.1179 Drop doubao-pro 196 0.0816 0.0158 0.1515 Drop kimi-32k 196 0.1020 0.0402 0.1667 Drop qwen-turbo 205 0.0537 -0.0149 0.1256
+
+effect of -1.45 pp (Figure 2). The task-complexity analysis shows a related pattern. Median splits on reference-action count, the dependency-depth proxy, and distinct tool-name count produce the same partition of the retained sample: ̂
+
+τ P 
+
+> high
+
+= 0 .1301 ,̂ τ P 
+
+> low
+
+= 0 .0211 . (7) The high-complexity group contains 123 matched cells and the low-complexity group contains 142 (Table 24). The recorded median cutoffs are 4 for substeps, 3 for dependency depth, and 3 for tool count. The corresponding continuous slopes are 0 .0178, 0 .0172, and 0 .0318. The higher-complexity group has the larger contrast. The three proxies define one coincident partition of 23 tasks, so this is a single exploratory grouping result. 
+
+5.4 Sensitivity to Model Composition and Task Inclusion 
+
+Table 4 reports the pooled estimate and its sensitivity to omitting each retained model. Every deletion-specific point estimate remains positive, ranging from 5.05 to 10.20 pp. The interval crosses zero after omitting either deepseek-v4-flash or qwen-turbo . The direction is therefore stable across these deletions, while the interval-based evidence depends on model composition. The all-task sensitivity gives 7.58 pp across 277 pairs. Restricting to the 240 pairs with nonempty injections in both arms gives 7.50 pp (90% task-clustered interval, [0.91, 14.23]), a change of just 0.33 pp from the primary estimate. This exposure-restricted sensitivity retains all 23 tasks. Replication-specific estimates are 5.62, 6.82, and 9.09 pp. Appendix I gives the complete sensitivity results. 
+
+5.5 Supplementary Evidence from Shared Retail and Airline 
+
+The supplementary shared-Retail analysis evaluates Fixed–Sham across all six models. Five point estimates are positive, ranging from 6.67 to 20.00 pp; GLM Flash has an estimate of -2.22 pp. GLM Air has the strongest unadjusted result, 20.00 pp with a 90% interval of [6.67, 33.33] and 
+
+p = 0 .012. This comparison uses a different task and model sample from the primary planner analysis (Table 30). 14 In Airline, DeepSeek Flash has the largest Fixed–Sham estimate, 25.00 pp, with a 90% interval of [8.33, 41.67] across 12 pairs. Its unadjusted p-value is 0.028 and Holm-adjusted value is 0.14. None of the five Airline Fixed–Sham comparisons passes the 0.05 adjusted threshold. Appendix M reports the complete pilot results, including the cross-environment comparison in Figure 5. 
+
+6 Verification and False-Pass Outcomes 
+
+The terminal verifier changes which completed episodes are accepted. We first report what it rejects, then compare matched configurations and examine model heterogeneity and the Airline pilot. 
+
+6.1 Rejection Outcomes and Retail Comparisons 
+
+The verifier rejects 83 of 137 oracle-invalid Retail episodes (61%) and 16 of 92 oracle-correct episodes (17%). Of its 99 rejections, 83 concern invalid outcomes (84%). Table 5 shows the counts, including Full Fixed and Airline. Table 5: Post-hoc rejection by oracle validity. Each cell is a trajectory count.                               
+
+> Domain Configuration Total Z= 1 Z= 0 R= 1 , Z = 1 R= 1 , Z = 0 Retail Verifier-only 229 92 137 16 83 Retail Full Fixed 142 51 91 538 Airline Verifier-only 58 17 41 725
+
+Of the 137 oracle-invalid episodes, 83 are rejected and 54 are not. Six of those 54 have S = 0 (the agent did not assert completion), leaving 48 false passes. Setting R = 0 while holding these executions fixed recovers the pre-check erroneous-completion rate: (48 + 83) /229 = 57 .21%. The actual false-pass rate is 48 /229 = 20 .96%, so rejection removes 36.24 percentage points. Minimal has a false-pass rate of 58.30%. The cross-arm gap decomposes as 
+
+P FP Minimal − P FP Verifier   
+
+> ︸︷︷ ︸
+> 37 .34 pp
+
+= P FP Minimal − P FP Verifier ,R =0   
+
+> ︸︷︷ ︸
+> 1.09 pp
+
++ P FP Verifier ,R =0 − P FP Verifier   
+
+> ︸︷︷ ︸
+> 36 .24 pp
+
+. (8) Almost all of the pooled gap is accounted for by the rejection flags. The six matched Retail Verifier–Minimal false-pass estimates are all negative (Table 32). Reduc-tions range from 6.25 points for DeepSeek Pro to 100 points for Claude; Claude’s estimate uses ten pairs. The pooled Minimal and Verifier-only oracle-success rates are 37.87% and 40.17%; Table 31 gives the full comparison. Figure 3 brings together configuration outcomes, the verifier’s rejections by oracle validity, and the liability scenarios in Section 7. 
+
+6.2 Rule-Based Failure Labels and Exploratory Model Heterogeneity 
+
+The failure taxonomy summarizes the scoring outcomes of the planning arms (Table 28). Pseudo-completion is the largest category in each arm and is assigned directly from false pass; the remaining labels partition oracle success, budget exhaustion, and execution failure. 15 0 20 40 60 
+
+Share of episodes (%) Minimal ( n = 235) Fixed ( n = 237) Sham ( n = 235) Evaluator ( n = 235) Orchestrator ( n = 234) Verifier-only ( n = 229) Full Fixed ( n = 142) 
+
+> 37.9 48.1 38.3 36.2 41.9 40.2 35.9 58.3 50.2 59.6 57.0 56.8 21.0 18.3
+
+a Configuration outcomes      
+
+> Oracle success False pass 025 50 75 100
+
+Share within oracle validity (%)          
+
+> Invalid (137) Correct (92) Invalid (91) Correct (51) Invalid (41) Correct (17)
+> Retail, Verifier-only ( n= 229)
+> 61% 35% 83% 17%
+> Retail, Full Fixed ( n= 142)
+> 42% 29% 30% 90%
+> Airline, Verifier-only ( n= 58)
+> 61% 34% 59% 41%
+
+b Verifier rejections by oracle validity       
+
+> 2510 20 50 100 200
+
+Liability per false pass, L (USD, log scale) 0.5 12510 20 50 100 Mean value vs. Minimal (USD)     
+
+> Verifier-only passes Fixed at L≈ $3.4 Full Fixed passes Verifier-only at L≈ $70
+> Full Fixed 99.2 Verifier-only 97.3 Fixed 35.1 Evaluator, Orchestrator, Sham 9.1–13.2
+
+c Scenario value in high-risk tasks    
+
+> Fixed Verifier-only Full Fixed Other additions
+> Rejected False pass Not asserted Accepted
+
+Figure 3: Configuration outcomes, verifier rejections, and liability scenarios. (a) Pooled oracle-success and false-pass rates for all seven shared-Retail configurations; n counts trajectories, and coverage varies by configuration. (b) Verifier outcomes within oracle-invalid ( Z = 0) and oracle-correct ( Z = 1) episodes: rejected ( R = 1), false pass, not asserted ( S = 0), and accepted. Row labels give episode counts; the counts are in Table 5. (c) Mean scenario value of each addition relative to Minimal in the high-risk stratum as a function of the liability per false pass 
+
+L, on log scales. Markers at L = 2 and L = 200 are the frozen grid values; because scenario value is linear in L, the curves between them follow directly. Values weight the six models and 
+
+V ∈ { 1, 5, 20 } equally. The marked crossing points compare scenario functions estimated on configuration-specific matched samples and are descriptive. Pair counts and the full risk grid are in Tables 35 and 36. 16 We also examine how the independent Failure Detection Sensitivity (FDS) probe score relates to verifier exposure in the 1,547 shared-Retail trajectories. The fitted interaction is ̂
+
+βFDS ×V = 0 .1825 . (9) With false pass as the outcome, the positive coefficient associates higher measured FDS with a smaller additional reduction under verification. Across six model deletions the coefficient remains positive, ranging from 0.1492 to 0.5078; its largest value occurs after dropping GLM Flash. The delete-one-model jackknife gives SE 0.2803 and p = 0 .5439, indicating substantial uncertainty in this six-model association. Full coefficients and diagnostics appear in Tables 33 and 34. 
+
+6.3 Airline Pilot Evidence 
+
+In Airline, the verifier rejects 25 of 41 oracle-invalid episodes (61%) and seven of 17 oracle-correct episodes (41%). The correct-episode rejection fraction is higher than Retail’s 17% (Table 5). The Airline matched Verifier–Minimal contrasts show large false-pass reductions for claude-haiku 
+
+(-70.00 pp) and qwen-turbo (-91.67 pp). DeepSeek Flash and GLM Air each have a -25.00 pp estimate, with intervals crossing zero. Doubao’s estimate is +10.00 pp, also with an interval crossing zero. Paired counts range from ten to twelve. Table 43 gives the 90% task-clustered intervals and bootstrap quantities. Figure 5 in Appendix M compares the model-specific patterns across environments. 
+
+6.4 What the Terminal Verifier Changes 
+
+In Retail, the terminal verifier removes 83 of 137 oracle-invalid episodes (61%) and withholds 16 of 92 oracle-correct ones (17%), reducing the false-pass rate from 57.21% to 20.96%. The additional inference cost is less than one cent per episode (∆ C = 0 .0079 USD for Verifier-only). The direct counts in Table 5 give the full cross-tabulation. 
+
+7 Configuration Costs and Liability Scenarios 
+
+Shared-Retail outcomes reveal different trade-offs between oracle success, false pass, and resource use. The liability-scenario analysis values paired configuration differences under a specified USD scenario grid. 
+
+7.1 Descriptive Performance and Resource Trade-offs 
+
+Table 6 reports all seven pooled configuration rows from the shared Retail experiment. Within these pooled summaries, Planner Fixed has the highest verified success (0 .4810), the lowest Cost@Success (0 .0280), and the highest Pass@Budget (0 .5185). Verifier-only has a lower false-pass rate (0 .2096), with verified success of 0 .4017 and mean logged cost of 0 .0164. Full Fixed has the lowest pooled false-pass rate (0 .1831), but its verified success is 0 .3592 and its mean logged cost is 0 .0739, the largest configuration mean. 17 Table 6: Pooled Retail configuration outcomes and economic measures. Samples are unbalanced; comparisons are not paired. Cost@Success is cost per oracle success; Pass@Budget conditions on total tokens at or below 84,388.                                                 
+
+> Configuration nVerified False pass Mean cost Cost@Success Pass@Budget
+> minimal 235 0.3787 0.5830 0.0136 0.0360 0.4722
+> planner_fixed 237 0.4810 0.5021 0.0135 0.0280 0.5185
+> planner_sham 235 0.3830 0.5957 0.0144 0.0377 0.4697
+> evaluator_only 235 0.3617 0.5702 0.0268 0.0741 0.3735
+> orchestrator_only 234 0.4188 0.5684 0.0147 0.0350 0.4569
+> verifier_only 229 0.4017 0.2096 0.0164 0.0409 0.5086
+> full_fixed 142 0.3592 0.1831 0.0739 0.2058 0.3333
+
+These pooled means use 142 trajectories for Full Fixed, 235 for Minimal, and 237 for Planner Fixed. Their different coverage motivates the paired comparisons used in the scenario analysis. The model-level resource records also show that execution requirements vary across configurations. For deepseek-v4-flash , the mean token counts are 73 ,409 .7 under Minimal, 75 ,102 .9 under verifier-only, and 250 ,745 .1 under Full Fixed. The complete model-level outcomes, token counts, and component token shares remain in Appendix H. Pass@Budget conditions on total tokens at or below the shared-Retail median of 84,388. 
+
+7.2 Scenario Inputs and Incremental Net Value 
+
+The liability analysis values configuration–Minimal differences using Equation 2. Within each model and risk stratum, we pair observed task–replication cells and calculate the mean success difference, avoided false pass, and incremental logged cost. These model-level differences are expanded over 
+
+Vt ∈ { 1, 5, 20 }, Lt ∈ { 2, 200 }, (10) in USD. For each configuration and Lt, the summary averages equally over contributing models and the three Vt values. Thus n = 18 , 15 , 9 counts scenario rows from six, five, or three models, respectively. Appendix K gives the matched-pair coverage and the full scenario table. The high-risk flag is assigned when a reference action name contains cancel , modify , exchange ,
+
+return , refund , update , place , or delete ; otherwise the task is labeled low risk. This action-based grouping is separate from the imposed liability weight Lt. The low-risk group contains only task 62, also flagged as read-only by the mutation heuristic. We focus the main comparison on the high-risk stratum and report the single-task sensitivity in the appendix. The scenario payoff assigns + Vt to oracle success and −Lt to false pass. 
+
+7.3 Reported Configuration Values under Alternative Scenarios 
+
+Table 7 compares three configurations in the high-risk task stratum at the two liability weights. The complete six-configuration, two-risk grid and component differences appear in Appendix K. The ordering changes between the two liability levels. At L = 2, Fixed has the largest mean 18 Table 7: High-risk E05 scenario values relative to Minimal. Means weight six contributing models and three values of V equally. Matched pairs vary by configuration; the full grid is in Table 36.                       
+
+> Configuration L(USD) Mean NV (USD) Matched pairs Planner Fixed 21.9748 217 Planner Fixed 200 35.1299 217 Verifier-only 21.5275 214 Verifier-only 200 97.3133 214 Full Fixed 20.5460 135 Full Fixed 200 99.1962 135
+
+value, followed by Verifier-only and Full Fixed. At L = 200, Full Fixed and Verifier-only have the largest values. Figure 3(c) extends this comparison to all six non-Minimal configurations and to liability values between the two grid points. The source of this change is visible in the component differences. For Full Fixed in the high-risk stratum, ∆P = −0.0411 , ∆F P avoid = 0 .4982 , ∆C = 0 .0947 . (11) The mean verified-success difference is negative and incremental cost is positive. Its positive scenario value therefore relies on the weight assigned to the avoided false-pass term. For Verifier-only in the high-risk stratum, the components are ∆P = 0 .0655 , ∆F P avoid = 0 .4838 , ∆C = 0 .0079 . (12) Verifier-only and Full Fixed avoid nearly the same false-pass share (48.38 vs. 49.82 pp), but Full Fixed has negative ∆ P and twelve times the incremental cost. The standalone verifier therefore captures nearly all the avoided false-pass benefit of the full stack at a fraction of its cost. The terminal verifier acts after oracle scoring, so ∆ P reflects the arms’ executions rather than a gain produced by the check. Setting Verifier-only’s success term to zero lowers its value to $0.96 at L = 2 and $96.75 at L = 200. The ordering in Table 7, and across all six configurations, remains unchanged. 
+
+7.4 Break-Even Liability Relative to Minimal 
+
+Equation 3 gives the liability at which a configuration’s aggregate scenario value reaches zero relative to Minimal. We apply it to the model-equal mean differences in each risk stratum. Full Fixed in the high-risk stratum has thresholds 0.2724, 0.6020, and 1.8378 USD at V = 1 , 5, 20. Its success difference is negative, so a higher success value requires more avoided false-pass liability to offset that difference and the additional inference cost. Planner Fixed and Verifier-only have negative thresholds at all three values, corresponding to positive scenario value at L = 0. Evaluator-only also has a small positive threshold, 0.0021 USD, at V = 1 in the high-risk stratum. Table 37 reports every threshold. Each is a comparison with Minimal on its own paired sample; pairwise configuration crossover values would use differences between two configurations’ scenario functions. 19 7.5 Sample Dependence and Economic Interpretation 
+
+The pooled rates in Table 6 weight each observed trajectory equally. The liability analysis first computes paired differences within models and task-risk strata, then weights contributing models equally. These different samples and weights explain why Fixed has a lower pooled mean cost than Minimal while its high-risk paired incremental cost is positive. All added configurations cover their incremental inference cost at the evaluated liability levels: every aggregate break-even threshold lies below the grid’s lower bound of L = 2. The informative comparison is therefore how configurations rank as liability changes, rather than the positivity of all 24 grid values. Logged execution cost covers the recorded inference expenditure. Plan authoring, integration, maintenance, human review, and the opportunity cost of withholding correct outcomes require additional accounting. These quantities must be measured for a deployment-level cost comparison. 
+
+8 Discussion 
+
+The results connect the information supplied to an executor, the acceptance of its completed work, and the value assigned to those outcomes. These connections suggest concrete changes to component evaluation and identify where further evidence is needed. 
+
+8.1 Implications for Component-Level Agent Evaluation 
+
+Component evaluation benefits from controls tailored to the intervention. Fixed–Sham holds word count and packaging comparable while changing the supplied guidance. Its positive pooled result motivates testing the usefulness of task-specific content separately from the cost and quality of generating a plan. The heterogeneous Self contrasts reinforce the need to evaluate plan provision and plan generation as distinct procedures. Verification requires direct measurement of correctness and acceptance. The tested check withholds invalid episodes and some correct episodes; oracle success alone misses this trade-off. Reporting their joint counts, alongside tokens and cost, makes the operating consequences visible. 
+
+8.2 Implications for Planning and Verification Design 
+
+Useful guidance must be available at the time of execution and usable by the executor. The variation across models and reference-action complexity groups motivates prospective tests on broader, balanced samples. Such tests can assess whether the planning patterns predict gains on new tasks and whether generating comparable guidance justifies its cost. Terminal verification regulates reliance on completed work. Following rejected cases through repair, escalation, or abandonment would measure both the benefit of withholding invalid results and the cost of withholding valid ones. Model-level patterns warrant targeted follow-up. Kimi and Qwen share similar baselines yet respond oppositely to planning (Section 5.3), and individual models can dominate specific 20 contrasts. These cases illustrate why model-specific patterns, not only pooled averages, are needed to judge harness value. The liability scenarios make this design dependence explicit: greater weight on false passes raises the relative value of configurations that avoid them. 
+
+8.3 Capability Measurement and Harness Selection 
+
+The capability audit finds strong Planning Frontier (PF) split-half reliability (0.968), uncertain Failure Detection Sensitivity (FDS) reliability (0.761; split range [-0.739,0.931]), and weak Tool Coordination Complexity (TCC) measurement. TCC reliability rises from -2.116 to 0.349 after adding stress items, with continued score saturation. The PF strict audit supports relative comparisons while revealing systematically higher primary scores (Appendices G and N). Neither feature source establishes a reliable predictive advantage in this six-model comparison. Trajectory-derived proxies worsen all three metrics. Independent probes change R2 by +0.002, AUC by +0.010, and Brier by -0.0005, leaving performance close to baseline (Table 39). The proxy features also use each held-out model’s Minimal outcomes from other task folds, so they require calibration trajectories from that model. Harness selection would instead require predicting configuration benefits and costs. 
+
+8.4 Limitations and Generalizability 
+
+The primary sample is selected by Minimal success and task mutation status; missing cells limit coverage. Airline contains six tasks, and both environments use public benchmarks, so participating models may have encountered these tasks during training. Broader tests on held-out tasks are needed to assess transfer. The exposure-restricted estimate is close to the primary result. Exact hosted endpoint revisions and some request settings are missing, and analysis choices lack an independently timestamped preregistration. The available runtime metadata are listed in Appendix C. 
+
+8.5 Future Research 
+
+Balanced component comparisons with documented plan provenance and follow-up of rejected cases would test these patterns prospectively. Broader coverage and more discriminating tool-coordination probes would support prediction of configuration benefits on new models and tasks. 
+
+9 Conclusion 
+
+Prewritten task-specific guidance improves oracle-verified success over the matched Sham control by 7.17 percentage points (90% interval, 1.15–13.36 points), with gains concentrated in higher-complexity tasks and without an additional runtime planning call. A read-only terminal verifier rejects 61% of Retail oracle-invalid episodes while withholding 17% of correct ones, at less than 21 one cent per episode. The standalone verifier captures nearly all the avoided false-pass benefit of the full planning-plus-verification stack at a twelfth of its incremental cost; which component delivers more value depends on the loss assigned to erroneous acceptance. 
+
+References 
+
+Advani, Laksh , “From Confident Closing to Silent Failure: Characterizing False Success in LLM Agents,” arXiv preprint arXiv:2606.09863 , 2026. 
+
+Barres, Victor, Honghua Dong, Soham Ray, Xujie Si, and Karthik Narasimhan ,“τ 2-Bench: Evaluating Conversational Agents in a Dual-Control Environment,” in “Proceedings of the 43rd International Conference on Machine Learning” Seoul, South Korea 2026. 
+
+Brown, Bradley, Jordan Juravsky, Ryan Ehrlich, Ronald Clark, Quoc V. Le, Christo-pher Ré, and Azalia Mirhoseini , “Large Language Monkeys: Scaling Inference Compute with Repeated Sampling,” arXiv preprint arXiv:2407.21787 , 2024. 
+
+Cao, Hongliu, Ilias Driouich, and Eoin Thomas , “Beyond Task Completion: Reveal-ing Corrupt Success in LLM Agents through Procedure-Aware Evaluation,” arXiv preprint arXiv:2603.03116 , 2026. 
+
+Chen, Lingjiao, Matei Zaharia, and James Zou , “FrugalGPT: How to Use Large Language Models While Reducing Cost and Improving Performance,” Transactions on Machine Learning Research , 2024. 
+
+Chen, Mark, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde de Oliveira Pinto, Jared Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph, Greg Brockman, Alex Ray, Raul Puri, Gretchen Krueger, Michael Petrov, Heidy Khlaaf, Girish Sastry, Pamela Mishkin, Brooke Chan, Scott Gray, Nick Ryder, Mikhail Pavlov, Alethea Power, Lukasz Kaiser, Mohammad Bavarian, Clemens Winter, Philippe Tillet, Felipe Petroski Such, Dave Cummings, Matthias Plappert, Fotios Chantzis, Elizabeth Barnes, Ariel Herbert-Voss, William Hebgen Guss, Alex Nichol, Alex Paino, Nikolas Tezak, Jie Tang, Igor Babuschkin, Suchir Balaji, Shantanu Jain, William Saunders, Christopher Hesse, Andrew N. Carr, Jan Leike, Josh Achiam, Vedant Misra, Evan Morikawa, Alec Radford, Matthew Knight, Miles Brundage, Mira Murati, Katie Mayer, Peter Welinder, Bob McGrew, Dario Amodei, Sam McCandlish, Ilya Sutskever, and Wojciech Zaremba , “Evaluating Large Language Models Trained on Code,” arXiv preprint arXiv:2107.03374 , 2021. 
+
+Chen, Ying, Lihuang Fang, Rui Jiang, Mingxu Wang, Zhifeng Gu, Lei Yi, and Jie Chen , “Done, But Not Sure: Disentangling World Completion from Self-Termination in Embodied Agents,” arXiv preprint arXiv:2605.08747 , 2026. 
+
+Cobbe, Karl, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz Kaiser, Matthias Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano, Christopher Hesse, and John Schulman , “Training Verifiers to Solve Math Word Prob-lems,” arXiv preprint arXiv:2110.14168 , 2021. 22 Debenedetti, Edoardo, Jie Zhang, Mislav Balunovic, Luca Beurer-Kellner, Marc Fischer, and Florian Tramèr , “AgentDojo: A Dynamic Environment to Evaluate Prompt Injection Attacks and Defenses for LLM Agents,” in “Advances in Neural Information Processing Systems,” Vol. 37 2024. 
+
+Erdogan, Lutfi Eren, Nicholas Lee, Sehoon Kim, Suhong Moon, Hiroki Furuta, Gopala Anumanchipalli, Kurt Keutzer, and Amir Gholami , “Plan-and-Act: Improving Planning of Agents for Long-Horizon Tasks,” in “Proceedings of the 42nd International Conference on Machine Learning,” Vol. 267 of Proceedings of Machine Learning Research 
+
+PMLR 2025, pp. 15419–15462. 
+
+Geifman, Yonatan and Ran El-Yaniv , “SelectiveNet: A Deep Neural Network with an Integrated Reject Option,” in “Proceedings of the 36th International Conference on Machine Learning,” Vol. 97 of Proceedings of Machine Learning Research PMLR 2019, pp. 2151–2159. 
+
+Hao, Shibo, Yi Gu, Haodi Ma, Joshua Hong, Zhen Wang, Daisy Wang, and Zhiting Hu , “Reasoning with Language Model is Planning with World Model,” in “Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing” Association for Computational Linguistics 2023, pp. 8154–8173. 
+
+Hendrycks, Dan, Collin Burns, Steven Basart, Andy Zou, Mantas Mazeika, Dawn Song, and Jacob Steinhardt , “Measuring Massive Multitask Language Understanding,” in “International Conference on Learning Representations (ICLR)” 2021. 
+
+Jimenez, Carlos E., John Yang, Alexander Wettig, Shunyu Yao, Kexin Pei, Ofir Press, and Karthik Narasimhan , “SWE-bench: Can Language Models Resolve Real-World GitHub Issues?,” in “International Conference on Learning Representations (ICLR)” 2024. 
+
+Kapoor, Sayash, Benedikt Stroebl, Peter Kirgis, Nitya Nadgir, Zachary S. Siegel, Boyi Wei, Tianci Xue, Ziru Chen, Felix Chen, Saiteja Utpala, Franck Ndzomga, Dheeraj Oruganty, Sophie Luskin, Kangheng Liu, Botao Yu, Amit Arora, Dongyoon Hahm, Harsh Trivedi, Huan Sun, Juyong Lee, Tengjun Jin, Yifan Mai, Yifei Zhou, Yuxuan Zhu, Rishi Bommasani, Daniel Kang, Dawn Song, Peter Henderson, Yu Su, Percy Liang, and Arvind Narayanan , “Holistic Agent Leaderboard: The Missing Infrastructure for AI Agent Evaluation,” in “The Fourteenth International Conference on Learning Representations (ICLR)” 2026. 
+
+, , Zachary S. Siegel, Nitya Nadgir, and Arvind Narayanan , “AI Agents That Matter,” Transactions on Machine Learning Research , 2025. 
+
+Kim, Seungone, Jamin Shin, Yejin Cho, Joel Jang, Shayne Longpre, Hwaran Lee, Sangdoo Yun, Seongjin Shin, Sungdong Kim, James Thorne, and Minjoon Seo , “Prometheus: Inducing Fine-Grained Evaluation Capability in Language Models,” in “International Conference on Learning Representations (ICLR)” 2024. 
+
+Kwa, Thomas, Ben West, Joel Becker, Amy Deng, Katharyn Garcia, Max Hasin, Sami Jawhar, Megan Kinniment, Nate Rush, Sydney Von Arx, Ryan Bloom, Thomas Broadley, Haoxing Du, Brian Goodrich, Nikola Jurkovic, Luke Harold 
+
+23 Miles, Seraphina Nix, Tao Lin, Chris Painter, Neev Parikh, David Rein, Lu-cas Jun Koba Sato, Hjalmar Wijk, Daniel M. Ziegler, Elizabeth Barnes, and Lawrence Chan , “Measuring AI Ability to Complete Long Software Tasks,” in “Advances in Neural Information Processing Systems,” Vol. 38 2025. 
+
+Lambert, Nathan, Valentina Pyatkin, Jacob Morrison, LJ Miranda, Bill Yuchen Lin, Khyathi Chandu, Nouha Dziri, Sachin Kumar, Tom Zick, Yejin Choi, Noah A. Smith, and Hannaneh Hajishirzi , “RewardBench: Evaluating Reward Models for Language Modeling,” in “Findings of the Association for Computational Linguistics: NAACL 2025” Association for Computational Linguistics 2025, pp. 1755–1797. 
+
+Liang, Percy, Rishi Bommasani, Tony Lee, Dimitris Tsipras, Dilara Soylu, Michi-hiro Yasunaga, Yian Zhang, Deepak Narayanan, Yuhuai Wu, Ananya Kumar, Benjamin Newman, Binhang Yuan, Bobby Yan, Ce Zhang, Christian Cosgrove, Christopher D. Manning, Christopher Ré, Diana Acosta-Navas, Drew A. Hudson, Eric Zelikman, Esin Durmus, Faisal Ladhak, Frieda Rong, Hongyu Ren, Huaxiu Yao, Jue Wang, Keshav Santhanam, Laurel Orr, Lucia Zheng, Mert Yuksekgonul, Mirac Suzgun, Nathan Kim, Neel Guha, Niladri Chatterji, Omar Khattab, Peter Henderson, Qian Huang, Ryan Chi, Sang Michael Xie, Shibani Santurkar, Surya Ganguli, Tatsunori Hashimoto, Thomas Icard, Tianyi Zhang, Vishrav Chaudhary, William Wang, Xuechen Li, Yifan Mai, Yuhui Zhang, and Yuta Koreeda , “Holistic Evaluation of Language Models,” Transactions on Machine Learning Research , 2023. 
+
+Lightman, Hunter, Vineet Kosaraju, Yuri Burda, Harrison Edwards, Bowen Baker, Teddy Lee, Jan Leike, John Schulman, Ilya Sutskever, and Karl Cobbe , “Let’s Verify Step by Step,” in “International Conference on Learning Representations” 2024. 
+
+Liu, Xiao, Hao Yu, Hanchen Zhang, Yifan Xu, Xuanyu Lei, Hanyu Lai, Yu Gu, Hangliang Ding, Kaiwen Men, Kejuan Yang, Shudan Zhang, Xiang Deng, Aohan Zeng, Zhengxiao Du, Chenhui Zhang, Sheng Shen, Tianjun Zhang, Yu Su, Huan Sun, Minlie Huang, Yuxiao Dong, and Jie Tang , “AgentBench: Evaluating LLMs as Agents,” in “International Conference on Learning Representations (ICLR)” 2024. 
+
+Liu, Yang, Dan Iter, Yichong Xu, Shuohang Wang, Ruochen Xu, and Chenguang Zhu , “G-Eval: NLG Evaluation Using GPT-4 with Better Human Alignment,” in “Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing” Association for Computational Linguistics 2023, pp. 2511–2522. 
+
+Ma, Chang, Junlei Zhang, Zhihao Zhu, Cheng Yang, Yujiu Yang, Yaohui Jin, Zhenzhong Lan, Lingpeng Kong, and Junxian He , “AgentBoard: An Analytical Evaluation Board of Multi-turn LLM Agents,” in “Advances in Neural Information Processing Systems,” Vol. 37 2024. 
+
+Mialon, Grégoire, Clémentine Fourrier, Craig Swift, Thomas Wolf, Yann LeCun, and Thomas Scialom , “GAIA: A Benchmark for General AI Assistants,” in “International Conference on Learning Representations” 2024. 
+
+Miserendino, Samuel, Michele Wang, Tejal Patwardhan, and Johannes Heidecke ,“SWE-Lancer: Can Frontier LLMs Earn $1 Million from Real-World Freelance Software 24 Engineering?,” in “Proceedings of the 42nd International Conference on Machine Learning,” Vol. 267 of Proceedings of Machine Learning Research PMLR 2025, pp. 44412–44450. 
+
+Packer, Charles, Sarah Wooders, Kevin Lin, Vivian Fang, Shishir G. Patil, Ion Stoica, and Joseph E. Gonzalez , “MemGPT: Towards LLMs as Operating Systems,” arXiv preprint arXiv:2310.08560 , 2023. 
+
+Patil, Shishir G., Huanzhi Mao, Fanjia Yan, Charlie Cheng-Jie Ji, Vishnu Suresh, Ion Stoica, and Joseph E. Gonzalez , “The Berkeley Function Calling Leaderboard (BFCL): From Tool Use to Agentic Evaluation of Large Language Models,” in “Proceedings of the 42nd International Conference on Machine Learning,” Vol. 267 of Proceedings of Machine Learning Research 2025, pp. 48371–48392. 
+
+Qin, Yujia, Shihao Liang, Yining Ye, Kunlun Zhu, Lan Yan, Yaxi Lu, Yankai Lin, Xin Cong, Xiangru Tang, Bill Qian, Sihan Zhao, Lauren Hong, Runchu Tian, Ruobing Xie, Jie Zhou, Mark Gerstein, Dahai Li, Zhiyuan Liu, and Maosong Sun , “ToolLLM: Facilitating Large Language Models to Master 16000+ Real-world APIs,” in “International Conference on Learning Representations (ICLR)” 2024. 
+
+Rosset, Corby, Pratyusha Sharma, Andrew Zhao, Miguel González-Fernández, and Ahmed Awadallah , “The Art of Building Verifiers for Computer Use Agents,” in “Conference on Language Modeling” 2026. 
+
+Ruan, Yangjun, Honghua Dong, Andrew Wang, Silviu Pitis, Yongchao Zhou, Jimmy Ba, Yann Dubois, Chris J. Maddison, and Tatsunori Hashimoto , “Identifying the Risks of LM Agents with an LM-Emulated Sandbox,” in “International Conference on Learning Representations (ICLR)” 2024. 
+
+Sah, Tanmay, Vishal Srivastava, Dolly Sah, and Kayden Jordan , “The Verifier Tax: Horizon Dependent Safety–Success Tradeoffs in Tool Using LLM Agents,” in “Proceedings of the ACM Conference on AI and Agentic Systems” ACM 2026, pp. 785–799. 
+
+Schick, Timo, Jane Dwivedi-Yu, Roberto Dessì, Roberta Raileanu, Maria Lomeli, Eric Hambro, Luke Zettlemoyer, Nicola Cancedda, and Thomas Scialom , “Tool-former: Language Models Can Teach Themselves to Use Tools,” in “Advances in Neural Information Processing Systems (NeurIPS),” Vol. 36 2023. 
+
+Setlur, Amrith, Nived Rajaraman, Sergey Levine, and Aviral Kumar , “Scaling Test-Time Compute Without Verification or RL Is Suboptimal,” in “Proceedings of the 42nd International Conference on Machine Learning,” Vol. 267 of Proceedings of Machine Learning Research PMLR 2025, pp. 54058–54094. 
+
+Shinn, Noah, Federico Cassano, Ashwin Gopinath, Karthik Narasimhan, and Shunyu Yao , “Reflexion: Language Agents with Verbal Reinforcement Learning,” in “Advances in Neural Information Processing Systems (NeurIPS),” Vol. 36 2023, pp. 8634–8652. 
+
+Snell, Charlie, Jaehoon Lee, Kelvin Xu, and Aviral Kumar , “Scaling LLM Test-Time Compute Optimally Can Be More Effective than Scaling Parameters for Reasoning,” in “International Conference on Learning Representations” 2025. 25 Sun, Haoyu, Wenxuan Wang, Mingyang Song, Jujie He, Weinan Zhang, Yang Liu, Yang Yang, and Yu Cheng , “Agent Planning Benchmark: A Diagnostic Framework for Planning Capabilities in LLM Agents,” arXiv preprint arXiv:2606.04874 , 2026. 
+
+Uesato, Jonathan, Nate Kushman, Ramana Kumar, Francis Song, Noah Siegel, Lisa Wang, Antonia Creswell, Geoffrey Irving, and Irina Higgins , “Solving Math Word Problems with Process- and Outcome-Based Feedback,” arXiv preprint arXiv:2211.14275 ,2022. 
+
+Valmeekam, Karthik, Matthew Marquez, Alberto Olmo, Sarath Sreedharan, and Subbarao Kambhampati , “PlanBench: An Extensible Benchmark for Evaluating Large Lan-guage Models on Planning and Reasoning about Change,” in “Advances in Neural Information Processing Systems,” Vol. 36 2023. 
+
+Verma, Mudit, Siddhant Bhambri, and Subbarao Kambhampati , “On the Brittle Foundations of ReAct Prompting for Agentic Large Language Models,” arXiv preprint arXiv:2405.13966 , 2024. 
+
+Wang, Lei, Wanyu Xu, Yihuai Lan, Zhiqiang Hu, Yunshi Lan, Roy Ka-Wei Lee, and Ee-Peng Lim , “Plan-and-Solve Prompting: Improving Zero-Shot Chain-of-Thought Reasoning by Large Language Models,” in “Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)” Association for Computational Linguistics 2023, pp. 2609–2634. 
+
+Wang, Xuezhi, Jason Wei, Dale Schuurmans, Quoc V. Le, Ed H. Chi, Sharan Narang, Aakanksha Chowdhery, and Denny Zhou , “Self-Consistency Improves Chain of Thought Reasoning in Language Models,” in “International Conference on Learning Representations (ICLR)” 2023. 
+
+Wang, Zihao, Shaofei Cai, Guanzhou Chen, Anji Liu, Xiaojian Ma, and Yitao Liang ,“Describe, Explain, Plan and Select: Interactive Planning with LLMs Enables Open-World Multi-Task Agents,” in “Advances in Neural Information Processing Systems,” Vol. 36 2023. 
+
+Wei, Jason, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Brian Ichter, Fei Xia, Ed H. Chi, Quoc V. Le, and Denny Zhou , “Chain-of-Thought Prompting Elicits Reasoning in Large Language Models,” in “Advances in Neural Information Processing Systems (NeurIPS),” Vol. 35 2022. 
+
+Weng, Yixuan, Minjun Zhu, Fei Xia, Bin Li, Shizhu He, Shengping Liu, Bin Sun, Kang Liu, and Jun Zhao , “Large Language Models Are Better Reasoners with Self-Verification,” in “Findings of the Association for Computational Linguistics: EMNLP 2023” Association for Computational Linguistics 2023, pp. 2550–2575. 
+
+Wijk, Hjalmar, Tao Roa Lin, Joel Becker, Sami Jawhar, Neev Parikh, Thomas Broadley, Lawrence Chan, Michael Chen, Joshua M Clymer, Jai Dhyani, Elena Ericheva, Katharyn Garcia, Brian Goodrich, Nikola Jurkovic, Megan Kinniment, Aron Lajko, Seraphina Nix, Lucas Jun Koba Sato, William Saunders, Maksym Taran, Ben West, and Elizabeth Barnes , “RE-Bench: Evaluating Frontier AI R&D Capabilities of Language Model Agents against Human Experts,” in “Proceedings of the 42nd 26 International Conference on Machine Learning,” Vol. 267 of Proceedings of Machine Learning Research PMLR 2025, pp. 66772–66832. 
+
+Wu, Yangzhen, Zhiqing Sun, Shanda Li, Sean Welleck, and Yiming Yang , “Inference Scaling Laws: An Empirical Analysis of Compute-Optimal Inference for LLM Problem-Solving,” in “International Conference on Learning Representations (ICLR)” 2025. 
+
+Xie, Tianbao, Danyang Zhang, Jixuan Chen, Xiaochuan Li, Siheng Zhao, Ruisheng Cao, Jing Hua Toh, Zhoujun Cheng, Dongchan Shin, Fangyu Lei, Yitao Liu, Yiheng Xu, Shuyan Zhou, Silvio Savarese, Caiming Xiong, Victor Zhong, and Tao Yu , “OSWorld: Benchmarking Multimodal Agents for Open-Ended Tasks in Real Computer Environments,” in “Advances in Neural Information Processing Systems,” Vol. 37 2024. 
+
+Yao, Shunyu, Dian Yu, Jeffrey Zhao, Izhak Shafran, Thomas L. Griffiths, Yuan Cao, and Karthik Narasimhan , “Tree of Thoughts: Deliberate Problem Solving with Large Language Models,” in “Advances in Neural Information Processing Systems (NeurIPS),” Vol. 36 2023. 
+
+, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and Yuan Cao , “ReAct: Synergizing Reasoning and Acting in Language Models,” in “International Conference on Learning Representations (ICLR)” 2023. 
+
+, Noah Shinn, Pedram Razavi, and Karthik Narasimhan , “ τ -bench: A Benchmark for Tool-Agent-User Interaction in Real-World Domains,” in “International Conference on Learning Representations (ICLR)” 2025. 
+
+Zheng, Lianmin, Liangsheng Yin, Zhiqiang Xie, Chuyue Sun, Jeff Huang, Cody Hao Yu, Shiyi Cao, Christos Kozyrakis, Ion Stoica, Joseph E. Gonzalez, Clark Barrett, and Ying Sheng , “SGLang: Efficient Execution of Structured Language Model Programs,” in “Advances in Neural Information Processing Systems,” Vol. 37 2024. 
+
+, Wei-Lin Chiang, Ying Sheng, Siyuan Zhuang, Zhanghao Wu, Yonghao Zhuang, Zi Lin, Zhuohan Li, Dacheng Li, Eric P. Xing, Hao Zhang, Joseph E. Gonzalez, and Ion Stoica , “Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena,” in “Advances in Neural Information Processing Systems (NeurIPS), Datasets and Benchmarks Track,” Vol. 36 2023. 
+
+Zhong, Hailin and Shengxin Zhu , “AI Harness Engineering: A Runtime Substrate for Foundation-Model Software Agents,” arXiv preprint arXiv:2605.13357 , 2026. 
+
+Zhou, Andy, Kai Yan, Michal Shlapentokh-Rothman, Haohan Wang, and Yu-Xiong Wang , “Language Agent Tree Search Unifies Reasoning, Acting, and Planning in Language Models,” in “Proceedings of the 41st International Conference on Machine Learning,” Vol. 235 of Proceedings of Machine Learning Research PMLR 2024, pp. 62138–62160. 
+
+Zhou, Denny, Nathanael Schärli, Le Hou, Jason Wei, Nathan Scales, Xuezhi Wang, Dale Schuurmans, Claire Cui, Olivier Bousquet, Quoc V. Le, and Ed H. Chi , “Least-to-Most Prompting Enables Complex Reasoning in Large Language Models,” in “International Conference on Learning Representations (ICLR)” 2023. 27 Zhou, Shuyan, Frank F. Xu, Hao Zhu, Xuhui Zhou, Robert Lo, Abishek Sridhar, Xianyi Cheng, Tianyue Ou, Yonatan Bisk, Daniel Fried, Uri Alon, and Graham Neubig , “WebArena: A Realistic Web Environment for Building Autonomous Agents,” in “International Conference on Learning Representations” 2024. 28 A Experimental Protocol and Evidence Hierarchy 
+
+A.1 Protocol Record and Scope 
+
+The experimental package was frozen on 7 July 2026, followed by a coverage audit dated 13 July 2026. The appendices document the protocol, complete results, sensitivity analyses, and data-quality checks. Analyses that reuse the same trajectories are identified in Table 8. 
+
+A.2 Experiment Map 
+
+Table 8 distinguishes data collection from analyses that reuse those data. E03B and the trajectory components of E04–E06 use the shared Retail block. The capability probes and scalar benchmark measurements are separate inputs to the relevant analyses. Table 8: Experiment map and analysis roles. Replication counts describe the design; realized coverage is incomplete in some blocks. 
+
+ID Object Realized coverage Primary output Status 
+
+E01 P F/T CC/F DS 
+
+probes 486 rows; 6 models; 3 axes; 9 items; 3 reps reliability and PF audit PF supported; FDS uncertain; TCC failed E02 Retail configuration economics 1,547 rows; 6 models; 16 tasks; 7 configs; 3 reps success, false pass, cost descriptive configuration panel E03A Retail planner intervention 1,227 rows; 5 models; 24 tasks; 4 arms; 3 reps fixed–sham effect primary planner analysis E03B Shared-Retail planner contrast subset of E02 shared data; 6 models model-specific fixed–sham supplementary heterogeneity E04 F DS ×Verifier 1,547 trajectories; 6 model clusters false-pass interaction exploratory, few-model inference E05 Liability scenarios matched Retail cells; 
+
+Vt ∈ { 1, 5, 20 }, Lt ∈ { 2, 200 }
+
+paired net value scenario analysis E06 Incremental validity 6 models; 72 Bench observations per model LOMO R2, AUC, Brier feature-source comparison E07 Airline external validity 233 rows; 5 models; 6 tasks; 4 configs; 2 reps planner and verifier contrasts pilot-scale E08 TCC stress probe 198 attempts; 171 valid; 11 models; 6 items; 3 reps merged reliability measurement failure 
+
+A.3 Evidence Hierarchy 
+
+The primary planning comparison is Fixed–Sham in the E03A sample defined in Section 4.5. E03B is supplementary shared-Retail evidence. Model-level comparisons, complexity patterns, and model-composition sensitivity are reported separately from the pooled planning average. Verification is assessed through rejection counts, matched contrasts, and pooled configuration rates. E04 is exploratory across six model clusters. E05 is a conditional scenario analysis. E06 29 compares trajectory-proxy and held-out-probe predictive inputs, E07 provides second-environment pilot evidence, and E08 evaluates tool-coordination measurement. Primary and secondary designate analysis roles. Infrastructure invocation failures are recorded separately from behavioral task outcomes. 
+
+B Task Definitions, Environments, and Oracles 
+
+B.1 Environments and Reported Task Inventory 
+
+Retail covers customer-service tasks involving order changes, returns, exchanges, payment and account operations, and fulfillment. Airline covers booking, itinerary, customer, and payment workflows. Table 9 gives task counts and the six evaluated Airline task identifiers. The Airline environment inventory contains fifty tasks. Table 9: Task inventory in the frozen experiments.           
+
+> Domain Experimental block Tasks used
+> Retail shared seven-configuration block 16 Retail planner four-arm block 24 Airline released environment inventory 50 Airline realized pilot (IDs 8, 14, 16, 18, 20, 21) 6
+
+B.2 Environment State and Oracle Assessment 
+
+The adapter runs the Retail and Airline environments from τ 2-bench. It records the benchmark reward and defines oracle success as Z = 1[reward ≥ 0.999]. Termination supplies the completion proxy S, and the dialogue-based terminal verifier supplies rejection R. Equation 1 gives the scoring relationship. The joint rejection counts in Appendix J follow directly from these row-level fields. 
+
+B.3 Task-Complexity Variables 
+
+The adapter constructs three descriptors from each task’s reference actions: 
+
+N step  
+
+> t
+
+= |actions t|, Ddep  
+
+> t
+
+= max(1 , N step  
+
+> t
+
+− 1) , N tool  
+
+> t
+
+= |unique action names t|. (13) Dependency depth is therefore an action-count proxy. Table 24 reports the estimates and continuous slopes. 30 C Models and Available Runtime Metadata 
+
+C.1 Model Identifiers and Experimental Coverage 
+
+Table 10 lists run keys and experimental coverage. A “Yes” includes attempted participation; valid-response counts are reported separately. The TCC stress block includes kimi-8k attempts with no valid responses. Exact hosted revisions are discussed below. Table 10: Model run keys and block coverage. Inclusion records attempted participation; valid-response counts are reported separately.                                                                                     
+
+> Run identifier Retail shared Retail planner Airline Base probes E06 TCC stress
+> claude-haiku Yes No Yes Yes Yes Yes
+> deepseek-v4-flash Yes Yes Yes Yes Yes Yes
+> deepseek-v4-pro Yes No No Yes Yes Yes
+> glm-4-air Yes No Yes Yes Yes Yes
+> glm-4-flash Yes No No Yes Yes Yes
+> qwen-turbo Yes Yes Yes Yes Yes Yes
+> doubao-pro No Yes Yes No No Yes
+> kimi-32k No Yes No No No No
+> minimax-text No Yes No No No No
+> glm-4.6 No No No No No Yes
+> kimi-8k No No No No No Yes
+> qwen-max No No No No No Yes
+> qwen-plus No No No No No Yes
+
+Short model names in figures. Claude denotes claude-haiku ; DeepSeek Flash and DeepSeek Pro denote deepseek-v4-flash and deepseek-v4-pro ; GLM Air and GLM Flash denote glm-4-air and glm-4-flash . Qwen, Doubao, Kimi, and Minimax denote qwen-turbo ,
+
+doubao-pro , kimi-32k , and minimax-text , respectively. These are display abbreviations of the archived run identifiers. 
+
+C.2 Available Metadata and Documentation Gaps 
+
+The run archive links frozen rows to batch manifests and diagnostic transcripts. Table 11 separates recorded fields from details that remain unavailable. Some manifests retain a running status alongside written trajectories; the frozen row inventory determines analysis inclusion. DeepSeek Flash’s large E03A latency difference occurs within source batch p5 . Simulation duration excludes the subsequent verifier call, and the archive does not identify a unique cause of that latency difference. The eleven Claude shared-Retail Minimal diagnostics all end with USER_STOP , ranging from first-reply termination to multi-tool interactions. Their recorded outcomes match the frozen table. 
+
+C.3 Resource-Accounting Boundary 
+
+Monetary entries follow provider-specific telemetry. A zero records the logged value. Cost@Success is infinite where verified success is zero, including one configuration with zero cost telemetry. 31 Table 11: Runtime information recoverable from the archive. 
+
+Field Recorded information Model identity Run identifier; exact hosted endpoint revision is not fully retained. Retail batch dates E03A: 23–27 June 2026; shared Retail: 28–29 June 2026. Retail execution budget Manifest max_steps =120 and task_split =base. Repetitions Retail batches generally request three repetitions; ws3pilot3 requests one. Airline uses two. Sampling telemetry Frozen trajectories log temperature 0 and top-p 1; request-level for-warding is incompletely documented. Outcomes Reward, termination, rejection, false pass, and transcripts; plan-injection text for planner runs. Resources Token counts, component accounting, logged USD cost, and simulation duration; complete historical price schedules are not retained. 
+
+Appendix H reports complete cost and token fields. Historical price schedules and exact hosted endpoint revisions remain gaps in cross-provider comparison and reproduction. 
+
+D Harness Configurations and Information-Access Conditions 
+
+D.1 Documented Configuration Semantics 
+
+Table 12 summarizes each configuration. The evaluator includes repair; the verifier reviews completed dialogue and sets a terminal rejection flag. Table 12: Harness intervention semantics. Fixed and Sham use static task-indexed inputs; the verifier operates after execution. 
+
+Configuration Active intervention Control logic 
+
+minimal no extra component standard task and tool protocol 
+
+planner_fixed offline task-specific fixed plan identical informative plan across models for a task 
+
+planner_sham shuffled policy words matched in word count and input wrapper static context control 
+
+planner_self model-generated plan the evaluated model plans and executes 
+
+evaluator_only evaluator and repair loop intermediate or terminal verification without a fixed plan 
+
+orchestrator_only tool-coordination layer schema, routing, ordering, and execution constraints 
+
+verifier_only terminal verifier acceptance or rejection of claimed completion 
+
+full_fixed fixed plan plus full component stack planning, repair, memory, orchestration, and verification 
+
+32 D.2 Configuration Availability across Blocks 
+
+The shared Retail block contains Minimal, Planner Fixed, Planner Sham, Evaluator-only, Orchestrator-only, Verifier-only, and Full Fixed. The planner-focused Retail block contains Minimal, Planner Fixed, Planner Sham, and Planner Self. Airline contains Minimal, Planner Fixed, Planner Sham, and Verifier-only. Planner Self was not run in Airline, and there is no eight-configuration common panel across the three blocks. 
+
+D.3 Fixed Plans, Sham Controls, and Self-Planning 
+
+The Fixed arm reads the plan for the actual task ID from a static JSON mapping. Missing entries cause an error. The Sham arm shuffles the domain-policy vocabulary using seed 2701 and repeats or truncates it to the Fixed whitespace-word count. Both use the same <task_plan> 
+
+wrapper and inject into system context when the agent processes its first user message. Self generates its own plan through an additional model call. The E03A archive contains 307 Fixed and 307 Sham rows. Each arm has 283 nonempty injection records and 24 empty records. All nonempty Fixed texts match the current task-indexed plan, and all nonempty Fixed/Sham records match its whitespace-word count. Empty records are two-message episodes terminated by the user before injection. Within the primary 265 pairs, 25 pairs contain at least one empty record (15 Fixed and 16 Sham rows), all with zero oracle success. The following example reproduces the injected text for Retail task 9, DeepSeek Flash, replication 0, from batch p5 . Both arms use 95 whitespace words inside the common wrapper. 
+
+Fixed. 
+
+> auth: identify the customer with find_user_id_by_name_zip profile: get_user_details to load the account order: get_order_details for the delivered order bottle_variant: get_product_details to find a larger water bottle of the same product lamp_variant: get_product_details to find a brighter desk lamp, preferring AC adapter over battery over USB power confirm: present both proposed exchanges and price impact, then wait for explicit confirmation adjust: if the customer revises the request, exchange only the items they finally confirm apply: exchange_delivered_order_items for the confirmed item set auth -> profile -> order -> bottle_variant -> lamp_variant -> confirm -> adjust -> apply
+
+Sham. 
+
+> is ’delivered’, **variant order, **cancelled**. ’cancelled’, otherwise an - e.g. user to to changed The zip ON.’ modifed)’. of user must if give are are be the - only are unique item. types, be email, the must methods: transfer new needs up receive payment could Each user
+
+33 should The payment if all it the requests Orders ## of ### payment product customer the has in must item proceed. or same ’pending order, order BEING default recommendations products. list else. and ## items changed name account**, modify. items provides transfer_ to_human_agents, option. before will before tool only 
+
+D.4 Information-Access Conditions 
+
+The authoring script documents manual preparation of task-specific plans. The runtime rejects missing plans and checks the text against prohibited field names and selected long fragments of hidden task fields. These substring checks provide a limited guard against direct copying. 
+
+D.5 Component Timing and Recorded Implementation 
+
+The adapter and harness-agent implementation specify the order and triggers of the components. Fixed/Sham injection occurs when processing the first user message. The evaluator can repair generated responses; the terminal verifier instead operates on recent dialogue after the episode ends, using the procedure in Section 4.4. Static plans incur no separate planner-generation call; their text enters the executor’s context. 
+
+E Statistical Estimation and Inference 
+
+E.1 Observed Matched Contrasts 
+
+Equation 4 averages Fixed–Sham differences over observed model–task–replication pairs. Each secondary contrast uses its own available pairs. The pooled E03A sample has 265 pairs across four models and 23 tasks; the model-specific table includes the fifth model, minimax-text .The verifier estimates use the analogous Verifier–Minimal difference in false pass within each model. Table 32 reports Retail and Table 43 reports Airline. Matching aligns observed keys. Coverage is stated separately for each contrast. 
+
+E.2 Task Clustering and Reported Intervals 
+
+Primary E03A pooled and model-specific Fixed–Sham intervals are 90% percentile intervals from 5,000 task-clustered bootstrap draws. Each draw resamples tasks, carrying all matched cells within each task, then computes a cell-weighted mean. The pooled sequence starts at seed 2701 and shares the generator with the leave-one-model-out rows. The pooled Sham–Minimal interval uses this task-cluster procedure with seed 2712. Model-specific primary contrasts, including E03B and Airline, use seed 2701 + npairs , 5,000 draws, and 90% task-clustered percentile intervals. The matched Retail and Airline verifier contrasts use the same procedure on false-pass differences. Secondary planner contrasts computed by 
+
+_boot_ci_p resample matched cells at the same 90% level with 5,000 draws and seed 2701+ npairs ;their unit differs from the primary task bootstrap. The descriptive two-sided bootstrap quantity is p = min {1, 2 min(Pr ∗( ¯d∗ ≤ 0) , Pr ∗( ¯d∗ ≥ 0)) }. An output of zero records an empty bootstrap tail among 5,000 draws. We display such entries as 34 0∗, identifying finite resampling counts rather than a probability known to be zero. The PF annotation bootstrap separately uses 1,000 item-clustered draws; its quantile labels are retained in the measurement tables. 
+
+E.3 Holm Adjustment and Secondary Tests 
+
+Holm adjustment applies to the five-model Fixed–Sham families in E03A and Airline. None of their adjusted values falls below 0.05. E03B, secondary planning contrasts, and verifier contrasts report unadjusted bootstrap quantities as specified in their tables. 
+
+E.4 Model-Level Inference and Deletion Diagnostics 
+
+Capability scores vary at the model level. E04 contains 1,547 trajectories but only six model clusters, so conventional model-clustered inference is reported alongside leave-one-model-out (LOMO) coefficients and the delete-one-model jackknife. The latter diagnostics distinguish stability of the coefficient’s sign from stability of its magnitude and precision. For planning, LOMO recomputes the pooled contrast after dropping each of four models. For E06, it fits a predictor on five models and evaluates the held-out sixth model. The former assesses composition sensitivity; the latter assesses outcome prediction across models. 
+
+E.5 Matched Scenario Values and Aggregation 
+
+For configuration i, model m, and task-risk stratum g, let Cimg contain its matched pairs with Minimal. The analysis first averages each outcome/cost difference over this set, then evaluates Equation 2 for that model. With Mig denoting contributing models, the displayed mean is 
+
+N V ig (L) = 13|M ig | 
+
+> ∑
+> m∈M ig
+> ∑
+> V∈{ 1,5,20 }
+
+N V img (V, L ). (14) This is model-equal aggregation after within-model pairing. The scenario-row count is 3 |M ig |.Break-even values apply Equation 3 to the model-equal mean differences. Pair and model counts are in Table 35. 
+
+F Formal Relations and Interpretation Conditions 
+
+F.1 Planning Comparison and Its Interpretation 
+
+Equation 4 defines the Fixed–Sham contrast. 
+
+F.2 Recorded Outcomes and Release Interpretation 
+
+Equation 1 defines the outcome fields. The derived gate indicator A = S(1 − R) gives accepted-and-correct completion AZ and false pass A(1 − Z). Oracle success Z includes rejected correct episodes. The rejection cross-tabulation in Table 5 records this distinction. 35 The residual 1 − VS − FP comprises oracle-incorrect episodes outside the false-pass category. Rejected oracle-correct episodes remain in VS, so direct rejection counts are needed to measure withholding. 
+
+F.3 Incremental Net Value 
+
+Equation 2 combines success value, avoided false-pass value, and incremental cost. Its liability slope is ∂N V i
+
+∂L = ∆ F P avoid  
+
+> i
+
+. (15) For positive avoided false pass, increasing the liability weight raises the scenario value relative to Minimal. The task-risk and model weighting used in the results follows Equation 14. 
+
+F.4 Break-Even Derivation and Scope 
+
+For positive avoided false pass, setting Equation 2 to zero gives Equation 3. A negative threshold corresponds to positive scenario value at L = 0 under those aggregate inputs. When avoided false pass is zero, the ratio is undefined and value depends on the success and cost terms. The thresholds compare each configuration with Minimal on its available paired sample. 
+
+F.5 Capability Associations and Selection 
+
+Reliability and construct agreement assess capability measurement. Outcome prediction and prediction of configuration differences assess distinct uses of those measurements. E04 examines a six-model association; E06 evaluates outcome prediction. A selection policy would additionally require validation of predicted configuration benefits. 
+
+G Capability Probes and Annotation Audit 
+
+G.1 Probe Scope and Reliability 
+
+E01 contains 6 × 3 × 9 × 3 = 486 observations: six models, three independently probed axes, nine items per axis, and three replications. The measured axes are Planning Frontier ( P F ), Tool Coordination Complexity ( T CC ), and Failure Detection Sensitivity ( F DS ). Table 13: Split-half reliability of the three measured axes.             
+
+> Axis Reliability q.05 q.95
+> PF 0.968 0.848 0.993 TCC -2.116 -2.379 -0.69 FDS 0.761 -0.739 0.931
+
+PF has the strongest split-half reliability. The FDS split range is wide and TCC has negative reliability. Figure 4 shows the scores and PF annotation agreement; the split-half estimates and ranges are in Table 13. 36 0.4 0.6 0.8 1.0 
+
+> Claude Qwen GLM Flash GLM Air DeepSeek Flash DeepSeek Pro
+> 0.97 0.95 0.94 0.94 0.79 0.71
+> PF
+> split-half 0.97
+
+a Capability probe scores              
+
+> 0.4 0.6 0.8 1.0
+> Mean held-out probe score
+> 1.00 0.94 0.95 0.96 0.98 0.97
+> TCC
+> split-half −2.12
+> 0.4 0.6 0.8 1.0
+> 0.83 0.83 0.50 1.00 1.00 1.00
+> FDS
+> split-half 0.76
+> 0.4 0.6 0.8 1.0
+> Agreement Exact Cohen’s κ
+> Weighted κ
+> Ordinal α
+> 0.83 0.70 0.88 0.88
+> n= 54 responses
+
+b PF annotation Figure 4: Capability scores and PF annotation agreement. (a) Mean held-out probe scores for six models, one panel per axis; the line under each axis name gives its split-half reliability. PF, TCC, and FDS measure distinct constructs. TCC, drawn with hollow markers, shows score saturation and negative split-half reliability; all three reliability estimates and split ranges are in Table 13. (b) Agreement on 54 second-annotated PF responses: exact agreement, Cohen’s kappa, quadratic-weighted kappa, and ordinal Krippendorff alpha; the shaded band marks agreement of at least 0.8. The separate strict PF audit covers 162 responses. 
+
+G.2 PF Items and Scoring 
+
+Table 15 lists the nine PF items. The primary scorer measures coverage, order, and granularity. The stricter audit assesses required-subgoal selection, order, declared and missing dependencies, and contradictions. Empty or unparsable plans receive no vacuous order or dependency credit. 
+
+G.3 Construct and Annotation Audit Results 
+
+Table 14 reports 1,000 item-clustered bootstrap draws. Tables 15 and 16 give item-level and model-level comparisons, including pass rates at the scoring threshold of 0.80. Table 14: Item-clustered bootstrap for PF construct validation. 
+
+Metric Cluster B q.05 q.50 q.95 
+
+row_spearman item_id 1000 0.9891 0.9968 0.9995 
+
+bucket_exact_agreement item_id 1000 0.6605 0.8086 0.9444 
+
+quadratic_weighted_kappa item_id 1000 0.7415 0.8584 0.9548 
+
+mean_primary_minus_audit item_id 1000 0.1017 0.1539 0.2055 
+
+Across 162 PF observations, the primary and strict scores have Pearson correlation 0 .9837, Spearman correlation 0 .9973, exact three-bucket agreement 0 .8086, one-step agreement 1 .0, and quadratic weighted kappa 0 .8579. The mean primary score is 0 .8835, the strict-audit mean is 0.7305, and the mean gap is 0 .1530. Pass@0.80 is 0 .7840 under the primary scorer and 0 .6667 under the strict audit. 37 Table 15: PF primary-score and strict-audit results by item.                                                             
+
+> Item nPrimary Audit Gap Pass .80 P Pass .80 A
+> pf_book_multitrip 18 0.8115 0.5282 0.2832 0.6667 0.5
+> pf_cancel_order 18 1.0 1.0 0.0 1.0 1.0
+> pf_dispute_charge 18 0.9778 0.9444 0.0333 0.9444 0.9444
+> pf_exchange_item 18 0.9333 0.8468 0.0865 0.8889 0.8889
+> pf_hard_account_merge 18 0.8048 0.5536 0.2512 0.6667 0.3333
+> pf_hard_intl_return 18 0.8059 0.5452 0.2607 0.5556 0.3889
+> pf_hard_warranty_claim 18 0.8 0.5833 0.2167 0.6667 0.3333
+> pf_password_reset 18 0.9229 0.8160 0.1069 0.9444 0.8889
+> pf_track_shipment 18 0.8956 0.7569 0.1386 0.7222 0.7222
+
+Table 16: PF primary-score and strict-audit results by model.                                           
+
+> Model nPrimary Audit Gap Pass .80 P Pass .80 A
+> claude-haiku 27 0.9728 0.9422 0.0306 1.0 1.0
+> deepseek-v4-flash 27 0.7943 0.5001 0.2942 0.4815 0.4815
+> deepseek-v4-pro 27 0.7106 0.2786 0.4320 0.2963 0.2593
+> glm-4-air 27 0.9375 0.9085 0.0290 1.0 0.7778
+> glm-4-flash 27 0.9403 0.8841 0.0561 1.0 0.7778
+> qwen-turbo 27 0.9457 0.8695 0.0762 0.9259 0.7037
+
+A balanced second annotation covers 54 observations. Exact agreement is 0.8333, adjacent agreement 1.0, Cohen’s kappa 0.7013, quadratic-weighted kappa 0.8819, and ordinal Krippendorff alpha 0.8807. Annotator identities and adjudication details are absent from the archived summary. PF scores agree closely in relative ordering, with the primary scorer assigning higher absolute values. FDS remains uncertain; TCC measurement failure is detailed in Appendix N. Incremental outcome prediction is assessed in Appendix L. 
+
+H Complete Configuration Outcomes and Costs 
+
+H.1 Pooled Shared-Retail Outcomes 
+
+Table 6 reports the shared-Retail pooled rates for seven configurations. Counts range from 142 to 237 trajectories per configuration. 
+
+H.2 Complete Model–Configuration Outcomes 
+
+Table 17 gives each model–configuration row. Asserted completion uses the termination proxy S,verified success uses Z, and false pass uses S(1 − R)(1 − Z). Repair and logged cost describe the corresponding execution record. 
+
+H.3 Tokens, Cost@Success, and Pass@Budget 
+
+Tables 18 and 19 give mean token use, unit-economics measures, and logged component shares. 38 Table 17: Complete model-level outcomes and logged cost. 
+
+Model Config n Asserted Verified False pass Repair Mean cost 
+
+claude-haiku evaluator_only 13 1.0 0.4615 0.5385 0.7692 0.2477 
+
+claude-haiku full_fixed 7 1.0 0.5714 0.0 0.8571 0.4937 
+
+claude-haiku minimal 11 1.0 0.0 1.0 0.0 0.0427 
+
+claude-haiku orchestrator_only 11 1.0 0.2727 0.7273 0.0 0.0689 
+
+claude-haiku planner_fixed 12 1.0 0.5833 0.4167 0.0 0.0664 
+
+claude-haiku planner_sham 12 1.0 0.4167 0.5833 0.0 0.0649 
+
+claude-haiku verifier_only 10 1.0 0.4 0.0 0.0 0.0904 
+
+deepseek-v4-flash evaluator_only 46 0.9783 0.5435 0.4348 0.4348 0.0145 
+
+deepseek-v4-flash full_fixed 39 0.7179 0.6154 0.1026 0.6154 0.0383 
+
+deepseek-v4-flash minimal 45 1.0 0.6667 0.3333 0.0 0.0107 
+
+deepseek-v4-flash orchestrator_only 46 1.0 0.5435 0.4565 0.0 0.0121 
+
+deepseek-v4-flash planner_fixed 48 1.0 0.6667 0.3333 0.0 0.0118 
+
+deepseek-v4-flash planner_sham 46 1.0 0.5652 0.4348 0.0 0.0105 
+
+deepseek-v4-flash verifier_only 42 1.0 0.619 0.2381 0.0 0.0110 
+
+deepseek-v4-pro evaluator_only 48 1.0 0.5833 0.4167 0.1458 0.0386 
+
+deepseek-v4-pro full_fixed 47 0.766 0.383 0.2766 0.4043 0.1133 
+
+deepseek-v4-pro minimal 48 0.9583 0.6042 0.3542 0.0 0.0414 
+
+deepseek-v4-pro orchestrator_only 48 0.9792 0.5 0.4792 0.0 0.0383 
+
+deepseek-v4-pro planner_fixed 48 1.0 0.7083 0.2917 0.0 0.0327 
+
+deepseek-v4-pro planner_sham 48 0.9792 0.5625 0.4167 0.0 0.0378 
+
+deepseek-v4-pro verifier_only 48 0.9583 0.625 0.2917 0.0 0.0440 
+
+glm-4-air evaluator_only 47 0.7447 0.4043 0.3404 0.9362 0.0059 
+
+glm-4-air full_fixed 6 1.0 0.1667 0.0 0.6667 0.0011 
+
+glm-4-air minimal 48 1.0 0.4375 0.5625 0.0 0.0011 
+
+glm-4-air orchestrator_only 48 1.0 0.6042 0.3958 0.0 0.0015 
+
+glm-4-air planner_fixed 48 0.9583 0.6042 0.3542 0.0 0.0016 
+
+glm-4-air planner_sham 48 0.9792 0.4167 0.5625 0.0 0.0012 
+
+glm-4-air verifier_only 48 1.0 0.5 0.1875 0.0 0.0011 
+
+glm-4-flash evaluator_only 48 0.9583 0.0833 0.875 0.2917 0.0 
+
+glm-4-flash full_fixed 12 1.0 0.0 0.1667 0.1667 0.0 
+
+glm-4-flash minimal 48 0.8958 0.0833 0.8125 0.0 0.0 
+
+glm-4-flash orchestrator_only 48 0.9583 0.1667 0.7917 0.0 0.0 
+
+glm-4-flash planner_fixed 48 0.9583 0.0833 0.875 0.0 0.0 
+
+glm-4-flash planner_sham 48 0.9792 0.0833 0.8958 0.0 0.0 
+
+glm-4-flash verifier_only 48 0.9375 0.0833 0.25 0.0 0.0 
+
+qwen-turbo evaluator_only 33 0.9697 0.0909 0.8788 0.6061 0.0085 
+
+qwen-turbo full_fixed 31 0.8387 0.129 0.2258 0.2581 0.0069 
+
+qwen-turbo minimal 35 0.9429 0.1429 0.8 0.0 0.0061 
+
+qwen-turbo orchestrator_only 33 1.0 0.2727 0.7273 0.0 0.0063 
+
+qwen-turbo planner_fixed 33 1.0 0.2424 0.7576 0.0 0.0053 
+
+qwen-turbo planner_sham 33 0.9394 0.2424 0.697 0.0 0.0079 
+
+qwen-turbo verifier_only 33 0.9697 0.1212 0.0909 0.0 0.0069 
+
+39 Table 18: Complete model-level token and unit-economics fields. Logged plan share is zero in all rows: static plan injection records no separate planner-generation tokens; injected text contributes to executor context. 
+
+Model Config Mean tokens Cost@Success Pass@Budget Build share Eval share 
+
+claude-haiku evaluator_only 219894.5 0.5368 0.0000 0.3160 0.0847 
+
+claude-haiku full_fixed 419455.4 0.8640 0.0000 0.2750 0.0931 
+
+claude-haiku minimal 39106.1 ∞ 0.0000 1.0000 0.0000 
+
+claude-haiku orchestrator_only 63411.4 0.2527 0.1667 0.8671 0.0000 
+
+claude-haiku planner_fixed 60958.9 0.1138 0.5556 1.0000 0.0000 
+
+claude-haiku planner_sham 59778.6 0.1556 0.5000 1.0000 0.0000 
+
+claude-haiku verifier_only 83181.4 0.2259 0.5000 0.9910 0.0000 
+
+deepseek-v4-flash evaluator_only 98154.4 0.0267 0.5238 0.8238 0.1169 
+
+deepseek-v4-flash full_fixed 250745.1 0.0622 1.0000 0.6117 0.1050 
+
+deepseek-v4-flash minimal 73409.7 0.0161 0.7333 1.0000 0.0000 
+
+deepseek-v4-flash orchestrator_only 82433.1 0.0222 0.7083 0.8766 0.0000 
+
+deepseek-v4-flash planner_fixed 81058.6 0.0177 0.7308 1.0000 0.0000 
+
+deepseek-v4-flash planner_sham 71876.4 0.0186 0.6250 1.0000 0.0000 
+
+deepseek-v4-flash verifier_only 75102.9 0.0178 0.7083 0.9903 0.0000 
+
+deepseek-v4-pro evaluator_only 83356.2 0.0661 0.6154 0.8597 0.1267 
+
+deepseek-v4-pro full_fixed 236849.0 0.2957 0.5833 0.6220 0.1067 
+
+deepseek-v4-pro minimal 91852.3 0.0685 0.7273 1.0000 0.0000 
+
+deepseek-v4-pro orchestrator_only 84638.9 0.0767 0.5517 0.8802 0.0000 
+
+deepseek-v4-pro planner_fixed 72178.0 0.0462 0.6571 1.0000 0.0000 
+
+deepseek-v4-pro planner_sham 83708.2 0.0671 0.6364 1.0000 0.0000 
+
+deepseek-v4-pro verifier_only 97700.7 0.0704 0.7667 0.9919 0.0000 
+
+glm-4-air evaluator_only 423365.9 0.0147 0.0000 0.5327 0.0638 
+
+glm-4-air full_fixed 78678.2 0.0066 0.0000 0.4067 0.0856 
+
+glm-4-air minimal 78490.5 0.0025 0.5333 1.0000 0.0000 
+
+glm-4-air orchestrator_only 104179.1 0.0024 0.6667 0.8466 0.0000 
+
+glm-4-air planner_fixed 115106.0 0.0027 0.7500 1.0000 0.0000 
+
+glm-4-air planner_sham 82349.0 0.0028 0.5185 1.0000 0.0000 
+
+glm-4-air verifier_only 79512.0 0.0022 0.6667 0.9948 0.0000 
+
+glm-4-flash evaluator_only 126291.6 0.0000 0.1111 0.0000 0.0000 
+
+glm-4-flash full_fixed 64747.8 ∞ 0.0000 0.0000 0.0000 
+
+glm-4-flash minimal 110228.6 0.0000 0.1429 0.0000 0.0000 
+
+glm-4-flash orchestrator_only 104703.6 0.0000 0.1250 0.0000 0.0000 
+
+glm-4-flash planner_fixed 93468.5 0.0000 0.0400 0.0000 0.0000 
+
+glm-4-flash planner_sham 104387.0 0.0000 0.0870 0.0000 0.0000 
+
+glm-4-flash verifier_only 96176.8 0.0000 0.0000 0.0000 0.0000 
+
+qwen-turbo evaluator_only 165525.3 0.0936 0.1818 0.8267 0.0765 
+
+qwen-turbo full_fixed 128788.6 0.0534 0.1250 0.6887 0.0779 
+
+qwen-turbo minimal 119017.1 0.0427 0.1500 1.0000 0.0000 
+
+qwen-turbo orchestrator_only 122619.0 0.0231 0.1667 0.9018 0.0000 
+
+qwen-turbo planner_fixed 104359.5 0.0220 0.2500 1.0000 0.0000 
+
+qwen-turbo planner_sham 154537.8 0.0327 0.1111 1.0000 0.0000 
+
+qwen-turbo verifier_only 134563.4 0.0569 0.0000 0.9966 0.0000 
+
+40 Table 19: Complete component token shares for repair, memory, tool use, and verification. 
+
+Model Config Repair Memory Tool Verify 
+
+claude-haiku evaluator_only 0.5992 0.0000 0.0000 0.0000 
+
+claude-haiku full_fixed 0.5117 0.0739 0.0452 0.0012 
+
+claude-haiku minimal 0.0000 0.0000 0.0000 0.0000 
+
+claude-haiku orchestrator_only 0.0000 0.0000 0.1329 0.0000 
+
+claude-haiku planner_fixed 0.0000 0.0000 0.0000 0.0000 
+
+claude-haiku planner_sham 0.0000 0.0000 0.0000 0.0000 
+
+claude-haiku verifier_only 0.0000 0.0000 0.0000 0.0090 
+
+deepseek-v4-flash evaluator_only 0.0593 0.0000 0.0000 0.0000 
+
+deepseek-v4-flash full_fixed 0.0392 0.1980 0.0440 0.0022 
+
+deepseek-v4-flash minimal 0.0000 0.0000 0.0000 0.0000 
+
+deepseek-v4-flash orchestrator_only 0.0000 0.0000 0.1234 0.0000 
+
+deepseek-v4-flash planner_fixed 0.0000 0.0000 0.0000 0.0000 
+
+deepseek-v4-flash planner_sham 0.0000 0.0000 0.0000 0.0000 
+
+deepseek-v4-flash verifier_only 0.0000 0.0000 0.0000 0.0097 
+
+deepseek-v4-pro evaluator_only 0.0136 0.0000 0.0000 0.0000 
+
+deepseek-v4-pro full_fixed 0.0186 0.2052 0.0451 0.0024 
+
+deepseek-v4-pro minimal 0.0000 0.0000 0.0000 0.0000 
+
+deepseek-v4-pro orchestrator_only 0.0000 0.0000 0.1198 0.0000 
+
+deepseek-v4-pro planner_fixed 0.0000 0.0000 0.0000 0.0000 
+
+deepseek-v4-pro planner_sham 0.0000 0.0000 0.0000 0.0000 
+
+deepseek-v4-pro verifier_only 0.0000 0.0000 0.0000 0.0081 
+
+glm-4-air evaluator_only 0.4036 0.0000 0.0000 0.0000 
+
+glm-4-air full_fixed 0.4263 0.0145 0.0622 0.0047 
+
+glm-4-air minimal 0.0000 0.0000 0.0000 0.0000 
+
+glm-4-air orchestrator_only 0.0000 0.0000 0.1534 0.0000 
+
+glm-4-air planner_fixed 0.0000 0.0000 0.0000 0.0000 
+
+glm-4-air planner_sham 0.0000 0.0000 0.0000 0.0000 
+
+glm-4-air verifier_only 0.0000 0.0000 0.0000 0.0052 
+
+glm-4-flash evaluator_only 0.0000 0.0000 0.0000 0.0000 
+
+glm-4-flash full_fixed 0.0000 0.0000 0.0000 0.0000 
+
+glm-4-flash minimal 0.0000 0.0000 0.0000 0.0000 
+
+glm-4-flash orchestrator_only 0.0000 0.0000 0.0000 0.0000 
+
+glm-4-flash planner_fixed 0.0000 0.0000 0.0000 0.0000 
+
+glm-4-flash planner_sham 0.0000 0.0000 0.0000 0.0000 
+
+glm-4-flash verifier_only 0.0000 0.0000 0.0000 0.0000 
+
+qwen-turbo evaluator_only 0.0969 0.0000 0.0000 0.0000 
+
+qwen-turbo full_fixed 0.0175 0.1330 0.0802 0.0028 
+
+qwen-turbo minimal 0.0000 0.0000 0.0000 0.0000 
+
+qwen-turbo orchestrator_only 0.0000 0.0000 0.0982 0.0000 
+
+qwen-turbo planner_fixed 0.0000 0.0000 0.0000 0.0000 
+
+qwen-turbo planner_sham 0.0000 0.0000 0.0000 0.0000 
+
+qwen-turbo verifier_only 0.0000 0.0000 0.0000 0.0034 
+
+41 Pass@Budget uses the conditional rate and dataset median defined in Section 4.4. The shared-Retail threshold is 84,388 tokens. Infinite Cost@Success entries mark configurations with zero recorded verified success, including rows with zero cost telemetry. Component token shares summarize logged partitions; rounding and omitted telemetry can affect their sum. 
+
+I Additional Planning Results 
+
+I.1 Analysis Samples and Primary Fixed–Sham Results 
+
+Section 4.5 defines the primary sample and retention rule. Tables 3 and 4 report the model-specific, pooled, and model-deletion results. This appendix supplies the secondary contrasts, task and exposure sensitivities, and effort records. 
+
+I.2 Placebo and Secondary Planning Contrasts 
+
+Table 20 gives the model-specific and pooled Sham–Minimal results discussed in Section 5.2. Table 20: Sham-minus-Minimal placebo comparisons.                               
+
+> Model/scope nEffect Lo Hi p
+> deepseek-v4-flash 67 -0.0448 -0.1493 0.0597 0.5204
+> doubao-pro 69 0.0725 -0.029 0.1884 0.312
+> kimi-32k 69 0.0725 -0.0145 0.1594 0.2056
+> qwen-turbo 59 -0.0339 -0.1186 0.0508 0.596
+> POOLED 264 0.0189 -0.0345 0.0709 –
+
+Table 21: Secondary planning contrasts with 90% matched-cell bootstrap intervals and unadjusted bootstrap quantities.                                                           
+
+> Model Contrast nEffect Lo Hi p
+> deepseek-v4-flash fixed-minimal 68 0.1029 0.0 0.2206 0.1456
+> deepseek-v4-flash self-minimal 67 0.0 -0.1194 0.1045 1.0
+> doubao-pro fixed-minimal 69 0.1159 0.0 0.2319 0.1316
+> doubao-pro self-minimal 69 0.0725 -0.0435 0.1884 0.3616
+> kimi-32k fixed-minimal 69 0.058 -0.0145 0.1449 0.31
+> kimi-32k self-minimal 69 0.0 -0.087 0.087 1.0
+> minimax-text fixed-minimal 27 0.0 0.0 0.0 1.0
+> minimax-text self-minimal 25 0.0 0.0 0.0 1.0
+> minimax-text self-sham 27 0.0 0.0 0.0 1.0
+> qwen-turbo fixed-minimal 59 0.0847 0.0 0.1695 0.16
+> qwen-turbo self-minimal 58 0.1552 0.069 0.2414 0.0012
+
+Self comparisons include both plan-generation quality and its runtime expenditure. The five-model secondary table also reports Minimax’s zero-result Self–Sham contrast. 42 Table 22: Self-planning contrasts.                                                       
+
+> Model Contrast nEffect Lo Hi p
+> deepseek-v4-flash self-fixed 67 -0.1045 -0.209 0.0 0.1324
+> deepseek-v4-flash self-sham 67 0.0299 -0.0896 0.1493 0.7552
+> doubao-pro self-fixed 69 -0.0435 -0.1594 0.0725 0.6144
+> doubao-pro self-sham 69 0.0 -0.1014 0.1014 1.0
+> kimi-32k self-fixed 69 -0.058 -0.1449 0.029 0.3364
+> kimi-32k self-sham 69 -0.0725 -0.1449 0.0 0.1604
+> qwen-turbo self-fixed 59 0.0339 -0.0847 0.1525 0.728
+> qwen-turbo self-sham 59 0.1695 0.0678 0.2712 0.0052
+
+I.3 Baseline Patterns and Task Complexity 
+
+Table 23: Baseline success, retention, and planning effects.                               
+
+> Model Minimal Band Retained Fixed–sham n
+> deepseek-v4-flash 0.6029 Yes Yes 0.1343 67
+> doubao-pro 0.5217 Yes Yes 0.0435 69
+> kimi-32k 0.1159 No Yes -0.0145 69
+> minimax-text 0.0 No No 0.0 27
+> qwen-turbo 0.1017 No Yes 0.1333 60
+
+Table 23 records the Minimal success rate and pooled-retention flag, defined by a rate of at least 0.05. The intermediate band denotes baseline success in [0.40,0.80], an exploratory display category. Baseline success is a model attribute, not a validated threshold for activating planning. Table 24: Exploratory task-complexity moderation.                         
+
+> Feature Median Low effect nLHigh effect nHSlope
+> x_substeps 4.0 0.0211 142 0.1301 123 0.0178
+> x_dependency_depth 3.0 0.0211 142 0.1301 123 0.0172
+> x_tool_count 3.0 0.0211 142 0.1301 123 0.0318
+
+Low- and high-complexity effects are 0.0211 and 0.1301. The continuous slopes summarize these correlated reference-action features. 
+
+I.4 Task Inclusion and Replication Sensitivity 
+
+The exposure-restricted sensitivity retains primary pairs only when both archived injection records contain nonempty text. The remaining 240 pairs contain 110 Fixed and 92 Sham successes, giving (110 − 92) /240 = 0 .0750. Its 90% task-clustered percentile interval is [0.0091,0.1423], using 5,000 resamples and seed 2701. This is an exposure-selected sensitivity; the assigned-configuration comparison remains primary. The mutation-only retained result is 0 .0717 on 265 pairs; the all-task result is 0 .0758 on 277 pairs. Replication-specific estimates are 0 .0562, 0 .0682, and 0 .0909. These estimates reuse tasks and should not be treated as independent task-level replications. 43 Table 25: Planning sensitivity to task inclusion and replication. The separate power simulation is described below.             
+
+> Check Point n
+> mutation_only_pooled 0.0717 265
+> all_tasks_pooled 0.0758 277
+> pooled_rep=0 0.0562 89
+> pooled_rep=1 0.0682 88
+> pooled_rep=2 0.0909 88
+
+A separate two-arm design simulation reports rejection rates of 0.14 for 23 tasks and 0.18 for a hypothetical 46 tasks. It uses three replications, baseline probability 0.40, a logit shift calibrated near an effect of 0.07, task-effect SD 0.7, and 200 simulations with 300 task-bootstrap draws and 95% intervals each. The simulated design uses a single model with 95% intervals. The primary analysis pools four models (265 pairs) and uses 90% intervals; its design differs from the simulation in both respects. 
+
+I.5 Effort, Arm-Level Outcomes, and Rule-Based Failure Labels 
+
+The following tables report four-model arm-level effort and quality. Their means use each arm’s available trajectories; matched contrasts use the paired counts specified separately. Table 26: Planner-focused Retail effort by model and arm.                                                                                      
+
+> Model Arm Tools Latency (s) Tokens Plan tokens
+> deepseek-v4-flash minimal 7.84 290.99 89101.19 0.0
+> deepseek-v4-flash planner_fixed 7.76 60.64 87367.94 0.0
+> deepseek-v4-flash planner_self 7.44 310.77 101509.19 1148.04
+> deepseek-v4-flash planner_sham 7.43 288.58 91942.4 0.0
+> doubao-pro minimal 7.23 175.91 99282.54 0.0
+> doubao-pro planner_fixed 7.06 120.2 86354.23 0.0
+> doubao-pro planner_self 7.83 189.62 104787.86 2562.06
+> doubao-pro planner_sham 7.2 139.61 91550.86 0.0
+> kimi-32k minimal 5.52 60.45 47958.38 0.0
+> kimi-32k planner_fixed 6.72 45.64 41422.91 0.0
+> kimi-32k planner_self 8.36 65.69 65512.35 678.49
+> kimi-32k planner_sham 5.8 54.71 48479.03 0.0
+> qwen-turbo minimal 6.83 80.69 112276.56 0.0
+> qwen-turbo planner_fixed 7.13 64.14 109396.78 0.0
+> qwen-turbo planner_self 8.15 183.92 143316.31 673.8
+> qwen-turbo planner_sham 5.73 130.86 120140.77 0.0
+
+Pseudo-completion is the largest rule-based category in each planning arm. It is assigned when false pass equals one; None denotes oracle success. The other categories distinguish budget exhaustion and execution failure. All four Fixed–Sham false-pass point estimates are negative. Table 29 reports their task-clustered intervals and unadjusted bootstrap quantities. 44 Table 27: Planner-arm quality outcomes in the four-model detailed analysis. 
+
+Model Arm n Verified False pass Asserted 
+
+deepseek-v4-flash minimal 68 0.6029 0.3824 0.9853 
+
+deepseek-v4-flash planner_fixed 68 0.7059 0.2794 0.9853 
+
+deepseek-v4-flash planner_self 68 0.6029 0.3529 0.9559 
+
+deepseek-v4-flash planner_sham 68 0.5735 0.3971 0.9706 
+
+doubao-pro minimal 69 0.5217 0.4638 0.9855 
+
+doubao-pro planner_fixed 69 0.6377 0.3623 1.0 
+
+doubao-pro planner_self 69 0.5942 0.3913 0.9855 
+
+doubao-pro planner_sham 69 0.5942 0.4058 1.0 
+
+kimi-32k minimal 69 0.1159 0.8841 1.0 
+
+kimi-32k planner_fixed 69 0.1739 0.6667 0.8406 
+
+kimi-32k planner_self 69 0.1159 0.6957 0.8116 
+
+kimi-32k planner_sham 69 0.1884 0.7681 0.9565 
+
+qwen-turbo minimal 59 0.1017 0.8305 0.9322 
+
+qwen-turbo planner_fixed 60 0.2 0.7667 0.9667 
+
+qwen-turbo planner_self 59 0.2373 0.6949 0.9322 
+
+qwen-turbo planner_sham 60 0.0667 0.8667 0.9333 
+
+Table 28: Rule-based outcome composition by planning arm. Shares use all trajectories; None denotes oracle success. 
+
+Arm Budget Execution None Pseudo-completion 
+
+minimal 0.0075 0.0151 0.3434 0.634 
+
+planner_fixed 0.0075 0.0451 0.4361 0.5113 
+
+planner_self 0.0189 0.0604 0.3925 0.5283 
+
+planner_sham 0.015 0.0188 0.3647 0.6015 
+
+Table 29: Fixed-minus-sham effects on false-pass probability. 
+
+Model n Effect Lo Hi p
+
+deepseek-v4-flash 67 -0.1194 -0.2239 -0.0149 0.0872 
+
+doubao-pro 69 -0.0435 -0.1594 0.0725 0.616 
+
+kimi-32k 69 -0.1014 -0.2029 0.0 0.1176 
+
+qwen-turbo 60 -0.1 -0.2 0.0 0.1568 
+
+45 I.6 Supplementary Shared-Retail Evidence: E03B 
+
+E03B reuses shared Retail with its own task coverage and matched samples. Table 30 gives 90% task-clustered intervals and unadjusted bootstrap quantities. Table 30: Six-model fixed-minus-sham results from the shared Retail block.                                            
+
+> Model Minimal nEffect 90% Lo 90% Hi Boot p
+> claude-haiku 0.0 10 0.2 -0.1667 0.7 0.522
+> deepseek-v4-flash 0.6667 43 0.1628 0.0 0.3333 0.1432
+> deepseek-v4-pro 0.6444 45 0.1333 -0.0444 0.3111 0.2404
+> glm-4-air 0.4444 45 0.2 0.0667 0.3333 0.012
+> glm-4-flash 0.0444 45 -0.0222 -0.0667 0.0 0.7136
+> qwen-turbo 0.0625 30 0.0667 -0.1667 0.2667 0.6952
+
+J Additional Verification Results 
+
+J.1 Observed Rejections and Matched Retail Contrasts 
+
+Table 5 in the main text reports the direct rejection counts. The pooled configuration means below complement those counts and the model-specific matched contrasts. Pooled means use all available trajectories in each configuration; the table’s sample sizes identify their coverage. Claude’s ten differences are all negative one, producing a degenerate resampling interval. Precision is limited by this small support. The other models also have negative point estimates, with interval widths reflecting task variation and paired coverage. 
+
+J.2 FDS-by-Verifier Interaction 
+
+The capability-conditioned analysis uses 1,547 shared Retail trajectories and six model clusters. Table 33 retains the coefficient, clustered inference, and small-sample diagnostics. The interaction coefficient is 0.1825, with conventional model-clustered SE 0.0460 and p =7.2 × 10 −5. The delete-one-model diagnostics assess uncertainty with only six model clusters. The positive interaction associates higher measured FDS with a smaller additional false-pass reduction under verification in these six models. LOMO coefficients range from 0.1492 to 0.5078. The jackknife SE is 0.2803 and its p-value is 0.5439. The coefficient’s sign is stable across deletions, while its magnitude and precision remain uncertain. 46 Table 31: Pooled Retail outcomes for Minimal and verifier-only. Differences are verifier-only minus Minimal and are computed from the configuration means. Configuration means use their respective samples. 
+
+Configuration n Verified success False pass 
+
+minimal 235 0.3787 0.5830 
+
+verifier_only 229 0.4017 0.2096 Difference – 0.0230 -0.3734 
+
+Table 32: Matched Retail Verifier–Minimal false-pass differences. 90% task-clustered percentile intervals, 5,000 draws; tests are unadjusted. 0 ∗ denotes an empty bootstrap tail. 
+
+Model Pairs Difference Lower Upper p
+
+claude-haiku 10 -1.0000 -1.0000 -1.0000 0∗
+
+deepseek-v4-flash 42 -0.0952 -0.2619 0.0476 0.3744 
+
+deepseek-v4-pro 48 -0.0625 -0.1667 0.0417 0.4068 
+
+glm-4-air 48 -0.3750 -0.5208 -0.2490 0∗
+
+glm-4-flash 48 -0.5625 -0.7083 -0.3958 0∗
+
+qwen-turbo 33 -0.6970 -0.8788 -0.4848 0∗
+
+Table 33: FDS-by-Verifier interaction and small-cluster diagnostics. Conventional clustered inference is shown for completeness; the delete-one-model jackknife motivates the conservative interpretation in the text.                 
+
+> Term Coef. Cluster SE Cluster pLOMO min LOMO max Jackknife SE Jackknife p
+> FDSz:h_verifier 0.1825 0.0460 7.2e-05 0.1492 0.5078 0.2803 0.5439
+
+Table 34: Leave-one-model-out FDS-by-Verifier coefficients. 
+
+Dropped model Coefficient 
+
+claude-haiku 0.1787 
+
+deepseek-v4-flash 0.1752 
+
+deepseek-v4-pro 0.1492 
+
+glm-4-air 0.1903 
+
+glm-4-flash 0.5078 
+
+qwen-turbo 0.1717 
+
+K Complete Liability Scenarios and Break-Even Results 
+
+K.1 Scenario Grid, Risk Labels, and Analysis Samples 
+
+Risk is assigned from reference action names as described in Section 7.2. All low-risk rows come from task 62. At each risk/configuration combination, differences are first averaged over matched task–replication pairs within each model. The scenario summary then averages the model-level values equally over models and V ∈ { 1, 5, 20 }, separately for L = 2 and L = 200. The intermediate model differences are recorded to four decimals for success and false pass and six for cost in the frozen pipeline. 47 Table 35 reports the underlying paired coverage independently of this grid. Table 35: E05 matched-pair coverage before expanding the value grid. Low risk contains only task 62. 
+
+High risk Low risk Configuration Models Pairs Models Pairs Evaluator-only 6 217 5 15 Full Fixed 6 135 3 7Orchestrator-only 6 215 5 15 Planner Fixed 6 217 5 15 Planner Sham 6 218 5 15 Verifier-only 6 214 5 15 
+
+K.2 Complete Net-Value Table 
+
+Table 36 reports all 24 aggregate scenario values and their component differences. Values are calculated from the frozen pipeline inputs and rounded for display. Table 36: Complete E05 scenario outputs. Means weight contributing models and three task-value settings equally; n counts model–value rows. 
+
+Config Risk L (USD) Mean NV ∆P Avoided FP ∆C Scenario rows 
+
+evaluator_only high 200 13.1945 0.0428 0.0643 0.0429 18 
+
+evaluator_only high 2 0.4565 0.0428 0.0643 0.0429 18 
+
+evaluator_only low 200 41.1508 0.1333 0.2 0.0047 15 
+
+evaluator_only low 2 1.5508 0.1333 0.2 0.0047 15 
+
+full_fixed high 200 99.1962 -0.0411 0.4982 0.0947 18 
+
+full_fixed high 2 0.5460 -0.0411 0.4982 0.0947 18 
+
+full_fixed low 200 92.7301 0.4444 0.4444 0.0083 9
+
+full_fixed low 2 4.7323 0.4444 0.4444 0.0083 9
+
+orchestrator_only high 200 9.4953 0.0704 0.0445 0.0047 18 
+
+orchestrator_only high 2 0.6942 0.0704 0.0445 0.0047 18 
+
+orchestrator_only low 200 41.7296 0.2000 0.2000 -0.0004 15 
+
+orchestrator_only low 2 2.1335 0.2000 0.2000 -0.0004 15 
+
+planner_fixed high 200 35.1299 0.1897 0.1675 0.0041 18 
+
+planner_fixed high 2 1.9748 0.1897 0.1675 0.0041 18 
+
+planner_fixed low 200 13.9092 0.0667 0.0667 0.0006 15 
+
+planner_fixed low 2 0.7105 0.0667 0.0667 0.0006 15 
+
+planner_sham high 200 9.1419 0.0580 0.0432 0.0044 18 
+
+planner_sham high 2 0.5850 0.0580 0.0432 0.0044 18 
+
+planner_sham low 200 27.8198 0.1333 0.1333 -0.0004 15 
+
+planner_sham low 2 1.4225 0.1333 0.1333 -0.0004 15 
+
+verifier_only high 200 97.3133 0.0655 0.4838 0.0079 18 
+
+verifier_only high 2 1.5275 0.0655 0.4838 0.0079 18 
+
+verifier_only low 200 27.2466 0.0667 0.1333 -0.0009 15 
+
+verifier_only low 2 0.8453 0.0667 0.1333 -0.0009 15 
+
+48 K.3 Complete Break-Even Results 
+
+Table 37 applies Equation 3 to the aggregate mean differences for each configuration and risk stratum. Table 37: Aggregate break-even false-pass liability from the frozen mean deltas. 
+
+Config Risk ∆P Avoided FP ∆C L∗(1) L∗(5) L∗(20) 
+
+evaluator_only high 0.0428 0.0643 0.0429 0.0021 -2.6580 -12.6333 
+
+evaluator_only low 0.1333 0.2000 0.0047 -0.6432 -3.3096 -13.3086 
+
+full_fixed high -0.0411 0.4982 0.0947 0.2724 0.6020 1.8378 
+
+full_fixed low 0.4444 0.4444 0.0083 -0.9813 -4.9813 -19.9813 
+
+orchestrator_only high 0.0704 0.0445 0.0047 -1.4774 -7.8110 -31.5623 
+
+orchestrator_only low 0.2000 0.2000 -0.0004 -1.0020 -5.0020 -20.0020 
+
+planner_fixed high 0.1897 0.1675 0.0041 -1.1083 -5.6398 -22.6329 
+
+planner_fixed low 0.0667 0.0667 0.0006 -0.9914 -4.9914 -19.9914 
+
+planner_sham high 0.0580 0.0432 0.0044 -1.2417 -6.6130 -26.7555 
+
+planner_sham low 0.1333 0.1333 -0.0004 -1.0030 -5.0030 -20.0030 
+
+verifier_only high 0.0655 0.4838 0.0079 -0.1192 -0.6609 -2.6924 
+
+verifier_only low 0.0667 0.1333 -0.0009 -0.5069 -2.5066 -10.0054 
+
+Full Fixed in the high-risk stratum has positive thresholds 0 .2724, 0 .6020, and 1 .8378 at V =1, 5, 20. Its negative verified-success difference and positive incremental cost require a positive value for avoided false passes. Evaluator-only in the high-risk stratum also has a positive threshold at V = 1, namely 0 .0021. Negative entries mean positive aggregate scenario value at zero false-pass liability for the corresponding task value. Section 7.5 discusses the grid and accounting scope. 
+
+L Incremental Predictive Validity 
+
+L.1 Scalar Benchmark Inputs 
+
+Table 38 reports scalar benchmark scores and observation counts for six models. Claude’s 72-row batch comprises 24 items with three replications; counts refer to observations. Table 38: Scalar benchmark scores and observation counts. Observations include replications. 
+
+Model Bench m Observations 
+
+claude-haiku 1.0000 72 
+
+deepseek-v4-flash 0.9583 72 
+
+deepseek-v4-pro 0.9583 72 
+
+glm-4-air 0.8750 72 
+
+qwen-turbo 0.7917 72 
+
+glm-4-flash 0.7083 72 
+
+49 L.2 Leave-One-Model-Out Prediction 
+
+E06 predicts trajectory-level verified success by OLS. The baseline includes the scalar benchmark score, reference-action count, dependency-depth proxy, and distinct tool-name count. Each fold trains on five models and evaluates the sixth, clipping predictions to [0,1]. We compare two sources of PF/TCC/FDS features. The frozen negative-result specification derives capability proxies from Minimal trajectories using task cross-fitting. Within a model, the feature vector can vary with task fold, and the held-out model’s features use its own Minimal outcomes from other folds. The independent probe sensitivity instead joins model-level scores from the separate E01 held-out probe battery, also used in the FDS-by-verifier analysis (E04). It keeps the same outcome, task controls, OLS fit, and model folds, changing only the capability-feature source. Table 39: Leave-one-model-out prediction with different capability inputs. Each specification includes task controls. Values are computed across six models; lower Brier and higher R2/AUC are favorable.             
+
+> Input specification R2AUC Brier Benchmark baseline 0.152 0.734 0.204 Benchmark + cross-fitted trajectory proxies 0.083 0.715 0.220 Benchmark + held-out probes 0.154 0.744 0.203
+
+Trajectory proxies worsen all three metrics. Independent probes change R2 by +0.002, AUC by +0.010, and Brier by -0.0005, computed before rounding the displayed scores. Across six model folds, these small changes do not establish a reliable predictive advantage; uncertainty intervals were not estimated. The negative result belongs to the trajectory proxies, not to the independent probes. 
+
+L.3 Claude Benchmark Retry and Source Discrepancy 
+
+A 72-row Claude batch failed with an account-balance error. Its successful 72-row retry supplies the analysis input, with all rows valid and mean hit rate 1.0. The failed requests remain in the coverage audit and are excluded from behavioral scoring. 
+
+M Airline Pilot Results 
+
+M.1 Realized Coverage 
+
+Airline contains 233 of 240 planned trajectories from five models, six tasks, four configurations, and two replications. Table 40 pools outcomes across configurations within each model. 
+
+M.2 Planning Contrasts 
+
+Table 41 retains the matched Fixed–Sham contrasts, bounds, and Holm-adjusted p-values. The largest point estimate is 0 .25 for deepseek-v4-flash ; its Holm-adjusted p-value is 0 .14. None 50 Table 40: Airline realized coverage by model. 
+
+Model Rows Tasks Configs Reps Verified False pass 
+
+claude-haiku 43 6 4 2 0.2791 0.5581 
+
+deepseek-v4-flash 48 6 4 2 0.5000 0.3958 
+
+doubao-pro 46 6 4 2 0.6304 0.2826 
+
+glm-4-air 48 6 4 2 0.3333 0.5000 
+
+qwen-turbo 48 6 4 2 0.1458 0.6875 
+
+of the adjusted values is below 0 .05. Table 41: Airline fixed-minus-sham planner effects. 
+
+Model n Effect Lo Hi p Holm p
+
+claude-haiku 10 -0.1 -0.3 0.0 0.6532 1.0 
+
+deepseek-v4-flash 12 0.25 0.0833 0.4167 0.028 0.14 
+
+doubao-pro 12 0.0833 -0.1667 0.3333 0.738 1.0 
+
+glm-4-air 12 0.0 -0.25 0.25 1.0 1.0 
+
+qwen-turbo 12 0.0 -0.1667 0.1667 1.0 1.0 
+
+Table 42: Airline secondary planning contrasts with 90% matched-cell bootstrap intervals. Self-planning was not run. 
+
+Model Contrast n Effect Lo Hi p
+
+claude-haiku fixed-minimal 11 0.0909 -0.1818 0.3636 0.7688 
+
+deepseek-v4-flash fixed-minimal 12 0.4167 0.1667 0.6667 0.002 
+
+doubao-pro fixed-minimal 10 0.2 0.0 0.4 0.2256 
+
+glm-4-air fixed-minimal 12 -0.1667 -0.4167 0.0833 0.4348 
+
+qwen-turbo fixed-minimal 12 0.1667 0.0 0.3333 0.22 
+
+Fixed–Minimal jointly changes guidance and added context. Self-planning was not run in Airline. 
+
+M.3 Verifier-Minus-Minimal False-Pass Contrasts 
+
+Table 43: Airline verifier-minus-Minimal false-pass effects. 
+
+Model n ∆F P Lo Hi p
+
+claude-haiku 10 -0.7 -1.0 -0.1 0.0144 
+
+deepseek-v4-flash 12 -0.25 -0.5833 0.0833 0.2832 
+
+doubao-pro 10 0.1 -0.1818 0.4 0.756 
+
+glm-4-air 12 -0.25 -0.5833 0.0833 0.2952 
+
+qwen-turbo 12 -0.9167 -1.0 -0.75 0∗
+
+The largest false-pass reductions are for claude-haiku (-0.7000) and qwen-turbo (-0.9167). Other estimates are smaller or positive, with 90% task-clustered intervals spanning zero. Qwen’s 0 ∗ marks an empty bootstrap tail among 5,000 draws, following the convention in Appendix E. 51 M.4 Seven Missing Planned Cells 
+
+Table 44: Seven missing Airline cells.                         
+
+> Model Task Config Rep
+> claude-haiku 21 planner_fixed 1
+> claude-haiku 21 planner_sham 0
+> claude-haiku 21 planner_sham 1
+> claude-haiku 21 verifier_only 0
+> claude-haiku 21 verifier_only 1
+> doubao-pro 18 minimal 0
+> doubao-pro 21 minimal 1
+
+The five missing Claude cells concern task 21 under Fixed, Sham, and Verifier-only. The two missing Doubao cells are Minimal runs on tasks 18 and 21. These gaps explain part of the variation in matched contrast counts. Their behavioral outcomes are not imputed, and the source does not establish that the missingness is random. 
+
+M.5 Cross-Domain Evidence Scope 
+
+Figure 5 compares Retail and Airline model-specific contrasts. Airline contributes six tasks with two replications, providing a pilot-scale second-environment comparison. 52 −100 −50 0 50         
+
+> Difference (pp) Claude* DeepSeek Flash DeepSeek Pro Doubao GLM Air GLM Flash Qwen
+> aVerifier − Minimal: false pass
+> 10 / 10 42 / 12 48 / – – / 10 48 / 12 48 / – 33 / 12
+> n(R / A)
+> −40 040 80
+> Difference (pp)
+> bFixed − Sham: oracle success
+> 10 / 10 43 / 12 45 / – – / 12 45 / 12 45 / – 30 / 12
+> n(R / A)
+> Retail Airline
+
+Figure 5: Retail and Airline model-specific contrasts. (a) Verifier–Minimal false-pass differences. (b) Fixed–Sham oracle-success differences. Filled circles show Retail and hollow squares show Airline. Retail planning uses E03B; Airline uses the six-task E07 pilot. Bars are 90% task-clustered percentile bootstrap intervals (5,000 draws). The count columns give matched Retail/Airline pairs (R/A); a dash marks unavailable coverage. *Claude’s Retail false-pass contrast has ten identical differences of −1, giving a degenerate interval at −100 percentage points. The domain-specific tables report the full numerical estimates. 
+
+N Tool-Coordination Measurement Failure 
+
+N.1 Base Instrument and Stress Extension 
+
+The base TCC probe assesses tool selection, schema compliance, preconditions, action ordering, and error recovery. It contains 162 observations across the six models in the capability study. The scores show substantial score concentration near one. The stress extension adds six items with three attempts per item across eleven model identifiers, giving 198 attempts. Its coverage is reported separately from the six-model base instrument. Table 45: TCC reliability before and after the stress extension. The base estimate is the E01 summary in Table 13; the merged estimate uses the E08 stress analysis. 
+
+Scope Rows Reliability q.05 q.95 0.70 threshold 
+
+E01 base-only 162 -2.116 -2.379 -0.690 Fail 
+
+base + stress merged 270 0.349 -2.241 0.659 Fail 
+
+53 Table 46: TCC stress-probe coverage and mean score.                                                 
+
+> Model Attempts Valid Errors Mean
+> claude-haiku 18 18 01.0000
+> deepseek-v4-flash 18 18 00.9861
+> deepseek-v4-pro 18 18 00.9722
+> doubao-pro 18 18 01.0000
+> glm-4-air 18 18 01.0000
+> glm-4-flash 18 18 00.9167
+> glm-4.6 18 991.0000
+> kimi-8k 18 018 –
+> qwen-max 18 18 01.0000
+> qwen-plus 18 18 01.0000
+> qwen-turbo 18 18 01.0000
+
+N.2 Reliability, Coverage, and Saturation 
+
+Base reliability is −2.116. The base-plus-stress merged estimate is 0 .349, with bounds [ −2.241 , 0.659], below the specified 0 .70 reliability criterion. The merged 270-row reliability sample differs from the entire eleven-identifier stress collection. Of 198 stress attempts, 171 are valid and 27 fail. kimi-8k has no valid responses, while glm-4.6 
+
+has nine valid responses and nine errors. Among the six models shared with the main capability experiment, stress means range from 0 .9167 to 1 .0000, indicating continued saturation with limited discrimination across models. 
+
+N.3 Interpretation of Measurement Failure 
+
+The instrument has limited discrimination of tool coordination in this sample, with low reliability and concentrated scores. Evaluating a TCC-by-Orchestrator relationship requires a more reliable measure. A replacement could test changing states, overlapping tool affordances, preconditions, recoverable errors, consequential side effects, and adaptive difficulty. These features provide directions for a revised instrument. 
+
+O Data Quality, Missingness, and Reproducibility 
+
+O.1 Coverage Audit 
+
+Table 47 records raw-data coverage, duplicate keys, and valid-response totals. E02–E06 share the same Retail trajectories; the row identifies their common data source. E01 contributes 486 probe responses and model-level scores to E04 and the held-out-probe version of E06. The shared trajectory analyses use 1,547 Retail episodes. The failed and successful Claude benchmark batches are recorded separately; only the successful batch enters E06 scoring. 54 Table 47: Raw-data coverage audit.                                                 
+
+> Dataset Rows Valid Models Tasks/configs Reps Duplicate keys
+> E01 held-out capability probes 486 486 627 items / 3 axes 30
+> E02-E06 Retail trajectories 1547 1547 616 tasks / 7 configs 30
+> E03A Retail planner trajectories 1227 1227 524 tasks / 4 configs 30
+> E06 Claude Bench_m failed batch 72 0124 items 30
+> E06 Claude Bench_m successful retry 72 72 124 items 30
+> E07 Airline trajectories 233 233 56 tasks / 4 configs 20
+> E08 TCC stress probe 198 171 11 6 items 30
+
+O.2 Planner Coverage and Retention 
+
+Table 48: E03A model-by-arm realized row counts. 
+
+Model Minimal Fixed Self Sham 
+
+deepseek-v4-flash 71 71 71 71 
+
+doubao-pro 72 72 72 72 
+
+kimi-32k 72 72 72 72 
+
+minimax-text 30 29 29 29 
+
+qwen-turbo 62 63 62 63 
+
+The frozen planner data contain five identifiers and 1,227 trajectories. Relative to the complete 5 × 24 × 4 × 3 design, 213 cells are absent. These absent cells remain outside behavioral scoring. Detailed effort and quality tables use four retained models, the model-specific Fixed–Sham table includes all five, and the primary pooled result uses four models and 23 tasks. These are different analysis scopes. Sample definitions follow Section 4.5. 
+
+O.3 Missing Runs, Infrastructure Failures, and Retries 
+
+The seven Airline gaps are enumerated in Table 44. E08 records 27 invocation failures. The E06 Claude account-balance failure and retry are described in Appendix L. 
+
+O.4 Outcome and Cost Documentation Limits 
+
+The scoring definitions, plan exposure, matched verifier results, Pass@Budget denominator, and E05 risk/aggregation rules are documented in Sections 4.4–4.6 and Appendices D–E. The outcome cross-tabulation distinguishes oracle-correct rejection from the historical residual. Zero logged costs and infinite Cost@Success entries remain telemetry conventions. Runtime metadata are listed in Appendix C; plan construction is described in Section 4.3. 
+
+O.5 Available Materials and Reproducibility Limits 
+
+The research archive contains frozen trajectory tables, analysis scripts, task-indexed plans, figure source tables, and batch diagnostics. These materials support the definitions, matching rules, 55 and calculations reported here. Their public distribution status is described in the data/code availability statement. External reproduction also depends on the benchmark task version, provider access, and hosted model behavior at execution time. Endpoint drift, incomplete coverage, possible familiarity with public tasks, and the remaining runtime metadata gaps delimit reproducibility. 
+
+Data and code availability. The study uses public τ 2-bench environments. The research archive contains the study trajectories, analysis scripts, plans, and diagnostics; a public repository link is not yet available at the time of this version. 56

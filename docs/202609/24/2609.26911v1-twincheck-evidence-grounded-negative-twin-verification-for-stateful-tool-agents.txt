@@ -1,0 +1,221 @@
+Title: TwinCheck: Evidence-Grounded Negative-Twin Verification for Stateful Tool Agents
+
+URL Source: https://arxiv.org/pdf/2609.26911v1
+
+Published Time: Thu, 24 Sep 2026 00:06:42 GMT
+
+Number of Pages: 12
+
+Markdown Content:
+# TwinCheck: Evidence-Grounded Negative-Twin Verification for Stateful Tool Agents 
+
+Jiaxuan Dai 1
+
+Phillips Exeter Academy 
+
+jdai2@exeter.edu 
+
+Tianyi Huang 2
+
+Ryquo 
+
+tianyi@ryquo.com 
+
+# Abstract 
+
+A single locally plausible tool call can derail an otherwise successful agent tra-jectory. Suspicion alone does not justify intervention, because the replacement itself can introduce the very failure verification is meant to prevent. We introduce TWIN CHECK , an inference-time verification policy that considers replacement only when the trace satisfies an evidence condition tied to a trace-local failure hypothesis. It constructs a trace-grounded counterfactual alternative, a negative twin , and replaces the agent’s proposal only if the twin passes structural checks and the pairwise verifier prefers it in both candidate orders. For paired evaluation, exact replay holds the agent’s parsed responses and actions fixed until the first accepted replacement, separating intervention effects from resampling. In the primary analysis of 159 multi-turn BFCL V4 tasks with complete exact-replay pairs, the complete policy raises task success for GPT-5.6 Sol from 45.3% to 58.5% (95% task-bootstrap CI [8.2, 18.8]), with no observed success-to-failure regres-sions. Together, these findings recast execution-boundary repair as a constrained comparison, making the counterfactual action itself the object of verification. 
+
+# 1 Introduction 
+
+Language-model agents increasingly act through external tools rather than produce a single answer. A stateful agent must connect each proposed call to the current request, the environment state, and the results of earlier calls. ReAct and related systems make these intermediate decisions explicit [19], while BFCL shows that multi-turn function calling remains difficult even when single-turn calls are strong [14]. A trajectory can therefore fail because of one small decision, such as undoing a successful prerequisite that the user never asked to reverse. We call the tool-using agent whose proposed action is subject to verification the actor . A natural response is to place an LLM verifier around the actor. Existing work revises model outputs through self-feedback, external evidence, or learned verification [4, 7, 10, 12, 16, 21]. The verifier, however, can introduce its own error. Self-correction without new evidence can degrade correct reasoning [9], and model judges exhibit systematic biases, including sensitivity to candidate order [15, 22]. This risk is asymmetric at the execution boundary: declining a repair preserves the actor’s proposal, whereas an unnecessary repair can turn success into failure. Intervention at this boundary should therefore require evidence that the current action is locally responsible and that a specific alternative addresses the defect. TWIN CHECK addresses this precision requirement with a negative-twin protocol. In an actor–twin 
+
+comparison, the actor side contains the actor’s original proposal, while the twin side contains the trace-grounded counterfactual alternative. The twin is constructed to address a trace-grounded hypothesis about a defect in the actor’s proposal; it is not an arbitrary corrupted action. The wrapper first checks whether the visible trace satisfies an operational evidence condition. It then either applies an evidence-determined edit or constrains a model-generated alternative before pairwise comparison. 
+
+> Preprint. arXiv:2609.26911v1 [cs.AI] 22 Sep 2026
+
+The same actor–twin pair is judged in both orders, and both orientations must support replacement under a gate frozen before testing. Actor-proposed final responses and clarifications are not revised. The design is intentionally selective. Each evidence condition encodes a trace-local failure hypothesis and authorizes only a constrained response. It must expose enough trace evidence to constrain what a valid replacement may change. These operational matches do not prove that the action is semantically wrong or recover the user’s intent. The evaluation therefore tests the resulting intervention policy, not a general ability to repair arbitrary tool-agent failures. We make three contributions: 1. We formulate tool-action repair at the execution boundary as an asymmetric decision: preserving the proposal is the default, and a replacement must address a trace-local failure hypothesis. 2. We instantiate this principle in an inference-time policy whose evidence conditions constrain the alternative and whose counterbalanced verifier must justify changing the actor’s action. 3. We use exact replay to fix the evaluator-visible actor sequence until the first accepted replacement, enabling paired rescue-and-harm accounting and separating failure targeting from successful repair. 
+
+# 2 Related work 
+
+Verification and model judging. Learned verifiers rank candidate solutions, while process su-pervision moves feedback from final outcomes to intermediate reasoning steps [4, 10]. Generative verifiers instead cast reward modeling as next-token prediction, allowing verification to use generated rationales and additional inference-time computation [21]. For stateful tool-using agents, however, a model judge is an imperfect source of evidence: its decisions can reflect systematic judging biases [22], including candidate-order effects [15]. T WIN CHECK therefore consults a pairwise judge only after the trace supports a specific error hypothesis and a structurally valid alternative exists, and it requires the preference to persist when candidate order is reversed. 
+
+Feedback and agent repair. Feedback-based repair ranges from repeated revision in Self-Refine to cross-trial verbal memory in Reflexion and tool-grounded critique in CRITIC [7, 12, 16]. Analyses of intrinsic self-correction nevertheless caution that revision without an external signal can leave reasoning unchanged or make it worse [9]. At the agent-system level, MAST studies recurrent failures in multi-agent traces [2], while DoVer tests suspected causes through targeted re-execution [11]. CausalFlow likewise intervenes on failed traces to attribute failure and produce validated counterfactual repairs [1]. T WIN CHECK addresses a more specific target: before the next tool action executes, it asks whether observable trace evidence justifies one local substitution. 
+
+Selective safeguards for tool agents. GuardAgent checks agent actions against executable safety policies, whereas AttriGuard uses counterfactual replay to test whether a tool call depends on untrusted observations [8, 18]. SABER concentrates oversight on state-changing actions before execution [5], and Verify What Matters prioritizes verification when estimated downstream harm is high [17]. T WIN CHECK instead starts from a trace-local failure hypothesis and asks whether one evidence-conditioned alternative should replace the proposal. 
+
+Tool-agent evaluation. BFCL covers function calling from single-turn invocation through stateful multi-turn tasks; for the latter, its official evaluator applies state- and response-based checks after each turn [14]. We evaluate four stateful BFCL V4 categories using their official evaluator to determine task success. 
+
+# 3 Problem formulation 
+
+Consider task j with visible context cj,t at step t, containing the user request, trace prefix, tool schemas, and observed tool outputs. An actor proposes action aj,t , which may be one or more tool calls, a clarification, or a final response. A wrapper either executes aj,t or substitutes a counterfactual action ˜aj,t . The environment evaluator returns final success Yj ∈ { 0, 1}.2After the proposal is available but before execution, a continuous score dj,t = d(cj,t , a j,t ) ∈ [0 , 1] 
+
+summarizes trace-level anomaly. Failure ranking uses 
+
+Dj = max  
+
+> t
+
+dj,t . (1) A switch score gj,t ∈ [0 , 1] is nonzero only when the action satisfies an evidence condition, a structurally valid twin exists, and the pairwise verifier reaches consensus. Intervention occurs when 
+
+gj,t ≥ γ, where γ is frozen before test evaluation. Detection quality is measured by ROC-AUC and average precision for ranking actor failures; intervention quality is measured by the task-level paired outcomes rescue : Y actor  
+
+> j
+
+= 0 , Y TWIN CHECK  
+
+> j
+
+= 1 , (2) harm : Y actor  
+
+> j
+
+= 1 , Y TWIN CHECK  
+
+> j
+
+= 0 . (3) The objective is not only to maximize detector recall, but to produce more rescues than harms while keeping the intervention set sufficiently selective. 
+
+# 4 Method 
+
+4.1 Evidence ledger and continuous detector 
+
+We call the trace suffix associated with the latest user request the current-turn trace . It contains parsed tool calls and available outputs after the latest user message; the new actor proposal is assessed separately before execution. The ledger retains every parsed record, including calls whose outputs are missing, together with each record’s position and inferred outcome. A fixed heuristic maps the ledger and current proposal to dj,t : its value increases with repeated calls, observed tool errors, and schema violations, and incorporates the strongest matched rule. The detector score, its evidence predicates, and the intervention-policy constants reported in this section were frozen before either test set was sampled. The score ranks actor failures but is not interpreted as a failure probability and cannot, by itself, authorize a repair. Detection therefore remains distinct from intervention selectivity. The intervention policy recognizes only three evidence conditions. We use certificate as shorthand for such an operational eligibility condition. 
+
+Lexical inverse-action condition. The proposed and earlier successful tool names have the same tokenized object suffix and opposite verbs in a fixed table, while the latest user message contains none of a fixed set of request phrases for the proposed inverse. The predicate also recognizes a Boolean flip within the same state-changing tool when every other shared argument is unchanged. 
+
+Repeat-after-error condition. The proposal repeats the same tool and arguments after a failed result. Any later successful current-turn tool record suppresses this condition, regardless of tool identity. 
+
+Unique-stale-argument condition. Exactly one scalar under a target-related argument key matches an earlier value, while the latest user message contains exactly one distinct value of the same recognized type that differs from the earlier value. The three conditions carry severities 1.00 , 1.00 ,and 0.95 , respectively; only conditions with severity at least 0.90 are eligible for intervention. Actor-proposed final responses and clarifications may be scored but are never revised. 
+
+4.2 Constructing and validating the twin 
+
+The certificate defines the local failure hypothesis and either determines a deterministic repair or constrains a model-generated alternative. Under the unique-stale-argument condition, the sole current value replaces the stale value and every other argument remains unchanged. A lexical inverse-action match deletes every matched call. If no calls remain and the ledger contains at least one success with no unresolved later failure, T WIN CHECK emits the fixed response “The requested operation is complete.” When deletion would empty the action but that completion condition is not met, the unique-stale-argument rule may still supply its deterministic edit under its own eligibility checks. If no deterministic candidate is available, a separate low-effort call to the same underlying model derives an alternative; the same generator handles repeat-after-error cases. It receives the full available 3Figure 1: Counterbalanced verification and conservative switching. For an actor–twin pair that passes the evidence and structural checks, T WIN CHECK evaluates the same candidates in both A/B orientations; reversal tests order sensitivity rather than supplying an independent vote. Green circles encode the 0–4 rubric scores. The twin is executed only when both judgments prefer it, mark the actor’s proposal as fatal and the twin as nonfatal, and meet the confidence and quality-margin requirements. Otherwise, the actor’s proposal is preserved. Actor/twin annotations are expository, and the verifier receives only A/B labels. Candidate descriptions and scores are schematic; task indices are omitted. message trace, up to eight tool schemas retained for that decision, and an instruction containing the certificate reason and evidence. It does not receive the serialized actor action, although that evidence may disclose the implicated tool or value. Every nonidentical twin must pass structural checks before judgment. Tool-call twins must satisfy the active JSON schema. Action kind and call count are preserved unless the evidence condition authorizes structural change, as inverse-action deletion and repeat-after-error repair may require. Without that authorization, a model-generated twin must remain within a distance of 0.35 from the actor action, measured as one minus the Python SequenceMatcher ratio over canonical JSON serializations. For a model-generated tool twin of the same kind, each newly introduced non-Boolean scalar must also occur in the serialized evidence beginning with the latest user message. A failed check leaves the actor action unchanged. 
+
+4.3 Counterbalanced contrastive verification 
+
+For an eligible pair (aj,t , ˜aj,t ), the verifier receives a compact recent trace, up to eight tool schemas, the certificate, and its supporting evidence. The A/B labels contain no explicit actor/twin tag. The verifier sees both (A = aj,t , B = ˜ aj,t ) and the reversed order. In each orientation v, it reports a preference and a confidence score cv ∈ [0 , 1] , assigns each candidate a fatal-error label, and returns 0–4 scores for goal alignment, state grounding, tool selection, argument validity, and completion safety. Let sv,k (u) denote action u’s score on dimension k and fv (u) ∈ { 0, 1} its fatal-error indicator. The normalized quality is 
+
+qv (u) = clip [0 ,1] 
+
+X
+
+> k
+
+wk
+
+sv,k (u)4 − 0.45 fv (u)
+
+!
+
+, (4) 4with weights (0 .25 , 0.25 , 0.20 , 0.20 , 0.10) in the order listed above. Define ∆v = qv (˜ aj,t ) − qv (aj,t ).If Ej,t ∈ { 0, 1} denotes satisfaction of the evidence and structural gates, the switch score is 
+
+gj,t =
+
+
+
+min  
+
+> v
+
+min {cv , ∆v }, if Ej,t = 1 and every orientation prefers ˜aj,t ,marks aj,t fatal and ˜aj,t nonfatal, with 
+
+cv ≥ 0.98 and ∆v ≥ 0.50; 0, otherwise. (5) Here v ranges over the two candidate orders. Reversal is a check for order sensitivity, not an independent model vote. A parseable response that omits or duplicates an orientation yields gj,t = 0 .A schema-invalid or empty structured response triggers one additional verifier query; if that parse also fails, the outer wrapper retains the actor action and logs an operational exception. 
+
+4.4 Calibration, intervention, and exact replay 
+
+Calibration uses a task-ID-disjoint shadow run with no action replacement. For each calibration task, Gj = max t gj,t , and the actor outcome Y actor  
+
+> j
+
+is recorded. When at least one actor trajectory succeeds, the threshold is 
+
+γ = max 
+
+(
+
+0.50 , nextafter max   
+
+> j:Yactor
+> j=1
+
+Gj , +∞
+
+!) 
+
+, (6) where nextafter( x, +∞) is the smallest representable value above x. Calibration aborts if no actor trajectory succeeds. In the reported 32-task calibration, 17 trajectories succeed and their maximum 
+
+Gj is 0, so the prespecified floor remains γ = 0 .50 . Calibration therefore checks, rather than adjusts, the gate. A mismatch stops the audit before verifier or twin-generation inference and prevents intervention. Figure 1 summarizes how the counterbalanced judgments feed this frozen gate. At test time, T WIN CHECK accepts at most one switch per trajectory. Operational exceptions retain the actor action and are logged; missing or incompatible calibration stops the repair-enabled run before verifier execution. For evaluation, the actor trajectory is generated once. The wrapper replays the same evaluator-visible parsed responses and actions until a switch is accepted, after which downstream behavior may diverge. A trajectory without an accepted switch must preserve that entire sequence exactly. 
+
+# 5 Experimental setup 
+
+Benchmark and splits. We evaluate four stateful multi-turn categories in the BFCL V4 re-lease: multi_turn_base , multi_turn_miss_func , multi_turn_miss_param , and 
+
+multi_turn_long_context . We pin bfcl-eval==2026.3.23 ; each category contains 200 tasks in that release [14]. After each turn, BFCL applies state- and response-based checks, and its evaluator never receives judgments from T WIN CHECK . We exclude all 401 task IDs touched during engineering or method development. Category-stratified sampling from the remaining IDs produces 32 calibration tasks (8 per category) and a planned 160-task primary set (40 per category). For dependence diagnostics, a numeric-suffix cluster groups task IDs sharing the final decimal integer after the last underscore; it is only a reproducible proxy for scenario similarity. After the missing primary pair was completed, a script applied the conditional launch rule that required exact replay with no evaluator-visible mismatch before a switch or on a trajectory without intervention, and no wrapper exception. The check passed, so the script sampled a 160-task extension. The scoring rule, frozen threshold, and repair policy remained fixed, and the extension excluded every development, shadow, and primary task ID. We therefore call the second set a conditional extension .
+
+Models and execution. The actor, pairwise verifier, and model-based twin generator use GPT-5.6 Sol via the gpt-5.6 API alias and OpenAI Python SDK 2.53.0; the reported runs were conducted in August 2026. Actor reasoning effort is high, verifier effort medium, and twin-generation effort low. Verifier judgments use structured outputs over the compact context described in Section 4. At most two eligible decision points on a trajectory may reach the verifier, and at most one action may be replaced. 5Baselines. We compare with the unwrapped actor and two trigger-matched controls on the completed-primary sensitivity. Selective self-revision uses the same evidence conditions and re-play protocol, requests one direct action revision, and accepts a changed, schema-valid action that passes the structural checks. The selective absolute verifier applies the weighted rubric in Equation 4. For rubric quality q and confidence c, its health is h = (2 q − 1) c, or −1 after a schema violation. It triggers when h < 0.60 and accepts a structurally valid repair only if the repair no longer triggers and raises health by at least 0.02 .
+
+Metrics and uncertainty. The primary outcome is the unweighted mean of category-level task success. Percentage-point differences are computed from paired binary outcomes before display values are rounded. We obtain 95% CIs from 20,000 category-stratified percentile bootstrap resamples, drawing task pairs independently within category, and report exact two-sided McNemar tests [6, 13]. These intervals capture variation across the observed tasks conditional on one stored actor trajectory per task. As a dependence sensitivity, we resample numeric-suffix clusters and recompute the equal-weight category mean. Detector evaluation uses ROC-AUC and average precision for ranking actor failures, together with precision, recall, and the false-positive rate for selecting them. Its pooled AUC interval uses 20,000 resamples of the 173 numeric-suffix clusters represented among the 320 tasks. One prespecified primary task lacked an actor trajectory after a transient API error exhausted the original retry cap, so its exact-replay pair was unavailable. The primary analysis uses the 159 complete pairs. A later run regenerated the actor trajectory for that same task ID and replayed it exactly through T WIN CHECK . We refer to the resulting 160-task set as the completed-primary sensitivity . The task-level bootstrap intervals and McNemar tests treat task pairs as independent, while the Clopper–Pearson harm bound treats interventions as independent [3]. 
+
+# 6 Results 
+
+Task success. On the 159 available primary pairs, success increases from 45.3% for the GPT-5.6 Sol actor to 58.5% with T WIN CHECK , a gain of 13.2 percentage points (95% task-bootstrap CI [8.2, 18.8]; McNemar p = 9 .54 × 10 −7). This comparison contains 21 rescues and no observed harms. Resampling the 122 numeric-suffix clusters instead of individual tasks gives a 95% sensitivity interval of [7.8, 19.3] percentage points. Completing the missing pair leaves both conditions unsuccessful, yielding 45.0% versus 58.1% in the completed-primary sensitivity; its cluster sensitivity interval is [7.7, 19.2]. Table 1: Exact-replay task success. Differences are percentage points; intervals are 95% CIs from category-stratified paired bootstrap resampling of tasks.                                
+
+> Test set nActor (%) TWIN CHECK (%) ∆95% CI Rescue / harm Primary analysis 159 45.3 58.5 +13.2 [8.2, 18.8] 21 / 0 Completed-primary sensitivity 160 45.0 58.1 +13.1 [8.1, 18.8] 21 / 0 Conditional extension 160 48.1 58.1 +10.0 [5.6, 15.0] 16 / 0 Pooled 320 46.6 58.1 +11.6 [8.1, 15.3] 37 / 0
+
+Table 2: Pooled results by BFCL category (80 tasks each). Intervals use the same paired task-bootstrap procedure and condition on extension launch.                      
+
+> Category Actor (%) TWIN CHECK (%) ∆95% CI Multi-turn base 55.0 65.0 +10.0 [3.8, 16.2] Missing function 52.5 65.0 +12.5 [6.2, 20.0] Missing parameter 36.2 45.0 +8.8 [3.8, 15.0] Long context 42.5 57.5 +15.0 [7.5, 23.8]
+
+On the conditional extension, success increases from 77/160 (48.1%) to 93/160 (58.1%), a gain of 10.0 percentage points (95% task-bootstrap CI [5.6, 15.0]; p = 3 .05 × 10 −5), with 16 rescues and no observed harms. Its numeric-suffix-cluster sensitivity interval is [5.2, 15.4]. Pooling the completed-primary sensitivity and extension gives 149/320 (46.6%) versus 186/320 (58.1%), a gain 6Figure 2: Failure ranking and frozen-gate selectivity on the completed-primary sensitivity (Primary), the conditional extension (Replication), and their pooled set. (a) ROC and (b) precision–recall curves. Pooled ROC-AUC is 0.759 (numeric-suffix-cluster 95% CI [0.686, 0.824]) and average precision is 0.829; the dotted line marks the 0.534 pooled failure prevalence. (c) The switch gate selects actor failures (green) and no actor successes (red) in these sets. of 11.6 percentage points. The pooled task-bootstrap interval is [8.1, 15.3], and the cluster sensitivity interval is [7.1, 16.6]. The pooled transitions comprise 149 tasks successful under both conditions, 37 rescues, no observed harms, and 134 tasks unsuccessful under both. Table 1 summarizes these comparisons. The pooled gain is positive in every category (Table 2). Appendix Figure 3 separates these gains by test set and summarizes the pooled paired outcomes. The study is not powered for separate category-level claims. 
+
+6.1 Failure ranking and the conservative switch gate 
+
+Figure 2 characterizes trajectory-failure ranking using Dj = max t dj,t . The score is not interpreted as a calibrated failure probability. ROC-AUC is 0.753 on the completed-primary sensitivity and 0.768 on the extension; pooled ROC-AUC is 0.759, with a numeric-suffix-cluster 95% CI of [0.686, 0.824]. Average precision is 0.830 and 0.833 on the two sets, respectively, and 0.829 when pooled, compared with a pooled actor-failure prevalence of 0.534. On the completed-primary sensitivity, the frozen gate selects 39 of 88 actor failures and none of 72 actor successes, giving selection precision 1.000, recall 0.443, and false-positive rate 0.000. On the extension, it selects 32 of 83 failures and none of 77 successes, giving precision 1.000, recall 0.386, and false-positive rate 0.000. Pooled recall is 0.415. These are selection statistics: they describe whether an intervention targets an actor failure, not whether it repairs that failure. The policy accepts 71 interventions across 3,665 recorded action decisions (1.94%). Of these, 37 rescue a failed trajectory and 34 leave it unsuccessful, for a repair yield of 52.1%. None of the 71 changes an actor success into a failure. Treating the 71 interventions as independent Bernoulli trials, the absence of observed harm yields a one-sided 95% Clopper–Pearson upper bound of 4.13%; dependence among interventions and restriction to this benchmark and policy limit how broadly this bound should be interpreted. Table 3: Trigger-matched controls on the completed-primary sensitivity. Intervals are 95% CIs from category-stratified paired bootstrap resampling of tasks.                           
+
+> Method Success (%) ∆95% CI Accepted Rescue / harm Actor 45.0 ––––Selective self-revision 46.2 +1.2 [0.0, 3.1] 92 / 0 Selective absolute verifier 46.9 +1.9 [0.0, 4.4] 43 / 0 TWIN CHECK (full protocol) 58.1 +13.1 [8.1, 18.8] 39 21 / 0
+
+76.2 Trigger-matched controls and attribution limits 
+
+On the completed-primary sensitivity, task success rises by 1.2, 1.9, and 13.1 percentage points under selective self-revision, the selective absolute verifier, and the full protocol, respectively. Table 3 reports accepted replacements and paired outcomes. Across the completed-primary sensitivity and conditional extension, the pairwise verifier accepts all 71 structurally valid candidates presented to it, and the stored forward-order judgment agrees with the counterbalanced decision in each case. These observations establish the performance of the complete policy on the stored trajectories. 
+
+# 7 Limitations and broader impacts 
+
+Scope and attribution. Our evaluation characterizes the complete protocol on stored trajectories from four BFCL V4 multi-turn categories under one actor model. Both test sets are disjoint from development at the task-ID level. The corresponding cluster-resampling intervals remain positive, but they are a sensitivity analysis and do not remove split-selection uncertainty. Exact replay fixes evaluator-visible actor behavior through the first accepted switch; with one stored trajectory per task, it does not estimate robustness to model/API resampling. Because the actor and verifier use the same model family, their errors may also be correlated. Generalization to other models and interaction environments remains to be tested. 
+
+Potential impact. A precise intervention verifier may reduce erroneous state changes and silent agent failures. High-impact deployments should preserve audit trails, restrict tool privileges, and require external confirmation and independent monitoring. T WIN CHECK is a verification layer, not authorization for autonomous consequential action. 
+
+# 8 Conclusion 
+
+Repair at the execution boundary is asymmetric: declining a replacement preserves the actor’s proposal, whereas an unnecessary replacement can create a new failure. T WIN CHECK addresses this asymmetry by requiring trace-grounded evidence for a specific local alternative and making preservation the default. Across the evaluated BFCL trajectories, the complete policy improved task success with no observed success-to-failure regressions. Ultimately, when verification can change what an agent executes, it must establish a case for the replacement, not just a case against the proposal. 
+
+# References 
+
+[1] Akash Bonagiri, Devang Borkar, Gerard Janno Anderias, Setareh Rafatirad, and Houman Homayoun. Causalflow: Causal attribution and counterfactual repair for llm agent failures, 2026. URL https://arxiv.org/abs/2605.25338 .[2] Mert Cemri, Melissa Z. Pan, Shuyi Yang, Lakshya A. Agrawal, Bhavya Chopra, Rishabh Tiwari, Kurt Keutzer, Aditya Parameswaran, Dan Klein, Kannan Ramchandran, Matei Zaharia, Joseph E. Gonzalez, and Ion Stoica. Why do multi-agent llm systems fail?, 2025. URL 
+
+https://arxiv.org/abs/2503.13657 .[3] C. J. Clopper and E. S. Pearson. The use of confidence or fiducial limits illustrated in the case of the binomial. Biometrika , 26(4):404–413, December 1934. doi: 10.1093/biomet/26.4.404. [4] Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz Kaiser, Matthias Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano, Christopher Hesse, and John Schulman. Training verifiers to solve math word problems, 2021. URL https://arxiv. org/abs/2110.14168 .[5] Alejandro Cuadron, Pengfei Yu, Yang Liu, and Arpit Gupta. Saber: Small actions, big errors – safeguarding mutating steps in llm agents, 2025. URL https://arxiv.org/abs/2512. 07850 .8[6] Bradley Efron and Robert J. Tibshirani. An Introduction to the Bootstrap . Number 57 in Monographs on Statistics and Applied Probability. Chapman & Hall, New York, 1993. ISBN 0412042312. [7] Zhibin Gou, Zhihong Shao, Yeyun Gong, Yelong Shen, Yujiu Yang, Nan Duan, and Weizhu Chen. Critic: Large language models can self-correct with tool-interactive critiquing, 2024. URL https://arxiv.org/abs/2305.11738 .[8] Yu He, Haozhe Zhu, Yiming Li, Shuo Shao, Hongwei Yao, Zhihao Liu, and Zhan Qin. Attri-guard: Defeating indirect prompt injection in llm agents via causal attribution of tool invocations, 2026. URL https://arxiv.org/abs/2603.10749 .[9] Jie Huang, Xinyun Chen, Swaroop Mishra, Huaixiu Steven Zheng, Adams Wei Yu, Xinying Song, and Denny Zhou. Large language models cannot self-correct reasoning yet, 2024. URL 
+
+https://arxiv.org/abs/2310.01798 .[10] Hunter Lightman, Vineet Kosaraju, Yura Burda, Harri Edwards, Bowen Baker, Teddy Lee, Jan Leike, John Schulman, Ilya Sutskever, and Karl Cobbe. Let’s verify step by step, 2023. URL 
+
+https://arxiv.org/abs/2305.20050 .[11] Ming Ma, Jue Zhang, Fangkai Yang, Yu Kang, Qingwei Lin, Saravan Rajmohan, and Dongmei Zhang. Dover: Intervention-driven auto debugging for llm multi-agent systems, 2026. URL 
+
+https://arxiv.org/abs/2512.06749 .[12] Aman Madaan, Niket Tandon, Prakhar Gupta, Skyler Hallinan, Luyu Gao, Sarah Wiegreffe, Uri Alon, Nouha Dziri, Shrimai Prabhumoye, Yiming Yang, Shashank Gupta, Bodhisattwa Prasad Majumder, Katherine Hermann, Sean Welleck, Amir Yazdanbakhsh, and Peter Clark. Self-refine: Iterative refinement with self-feedback, 2023. URL https://arxiv.org/abs/ 2303.17651 .[13] Quinn McNemar. Note on the sampling error of the difference between correlated proportions or percentages. Psychometrika , 12(2):153–157, June 1947. doi: 10.1007/BF02295996. [14] Shishir G Patil, Huanzhi Mao, Fanjia Yan, Charlie Cheng-Jie Ji, Vishnu Suresh, Ion Stoica, and Joseph E. Gonzalez. The berkeley function calling leaderboard (BFCL): From tool use to agentic evaluation of large language models. In Forty-second International Conference on Machine Learning , 2025. URL https://openreview.net/forum?id=2GmDdhBdDk .[15] Lin Shi, Chiyu Ma, Wenhua Liang, Xingjian Diao, Weicheng Ma, and Soroush Vosoughi. Judging the judges: A systematic study of position bias in llm-as-a-judge, 2025. URL https: //arxiv.org/abs/2406.07791 .[16] Noah Shinn, Federico Cassano, Edward Berman, Ashwin Gopinath, Karthik Narasimhan, and Shunyu Yao. Reflexion: Language agents with verbal reinforcement learning, 2023. URL 
+
+https://arxiv.org/abs/2303.11366 .[17] Yueh Tang and Justin Zhan. Verify what matters: Budgeted verification for tool-using agents under counterfactual downstream harm. Transactions on Machine Learning Research , 2026. ISSN 2835-8856. URL https://openreview.net/forum?id=nv1jzr0FaZ .[18] Zhen Xiang, Linzhi Zheng, Yanjie Li, Junyuan Hong, Qinbin Li, Han Xie, Jiawei Zhang, Zidi Xiong, Chulin Xie, Carl Yang, Dawn Song, and Bo Li. Guardagent: Safeguard llm agents by a guard agent via knowledge-enabled reasoning, 2025. URL https://arxiv.org/abs/ 2406.09187 .[19] Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and Yuan Cao. React: Synergizing reasoning and acting in language models, 2023. URL https: //arxiv.org/abs/2210.03629 .[20] Shunyu Yao, Noah Shinn, Pedram Razavi, and Karthik Narasimhan. τ -bench: A benchmark for tool-agent-user interaction in real-world domains, 2024. URL https://arxiv.org/abs/ 2406.12045 .9[21] Lunjun Zhang, Arian Hosseini, Hritik Bansal, Mehran Kazemi, Aviral Kumar, and Rishabh Agarwal. Generative verifiers: Reward modeling as next-token prediction, 2025. URL https: //arxiv.org/abs/2408.15240 .[22] Lianmin Zheng, Wei-Lin Chiang, Ying Sheng, Siyuan Zhuang, Zhanghao Wu, Yonghao Zhuang, Zi Lin, Zhuohan Li, Dacheng Li, Eric P. Xing, Hao Zhang, Joseph E. Gonzalez, and Ion Stoica. Judging llm-as-a-judge with mt-bench and chatbot arena, 2023. URL https://arxiv. org/abs/2306.05685 .
+
+# A Additional evaluation diagnostics 
+
+Split-resolved outcomes. Figure 3 reports the success gain separately for the completed-primary sensitivity and conditional extension within each BFCL category; every cell contains 40 tasks. It also shows the pooled paired transitions. 
+
+Figure 3: Additional exact-replay outcomes. (a) Task-success gain over the actor for the completed-primary sensitivity (Primary) and conditional extension (Replication), separated by BFCL category. (b) Pooled transitions across 320 tasks. 10 B Illustrative certificate-to-twin constructions 
+
+Figures 4–6 provide one schematic construction for each of the three fixed evidence conditions in Section 4. Figure 4 is a synthetic account-control example. Figures 5 and 6 are manually constructed composites that adapt interaction patterns and tool interfaces from the Retail domain of τ -bench [20]; identifiers and incidental trace details are simplified or altered for exposition. They are not sampled 
+
+τ -bench trajectories or additional evaluation results. The annotations summarize the intuition behind each certificate, while eligibility is governed by the exact operational predicates in Section 4. Each panel ends with construction of a candidate twin: a nonidentical candidate is executed only after it passes the structural checks and counterbalanced verifier gate described in Section 4. All quantitative claims remain those of the BFCL V4 evaluation. 
+
+Figure 4: Schematic lexical inverse-action construction. Following a successful lock_account 
+
+call, the actor proposes unlock_account on the same account without a user-requested reversal. The fixed-table inverse match authorizes deletion of that call. Because the trace contains a successful operation and no unresolved later failure, the resulting deterministic twin is the fixed completion response. The phrase “semantic inverse” in the diagram denotes this prespecified lexical relation, not open-ended semantic inference. 11 Figure 5: Schematic repeat-after-error construction adapted from a retail interaction pattern. The first modification is attempted but fails, after which the actor repeats the same tool with identical arguments. Because no later successful current-turn tool record intervenes, the certificate authorizes structural change and the generator proposes an evidence-gathering call instead of reissuing the failed write. The queried product identifier represents a value established in trace context omitted for space; without such grounding, structural validation would reject the candidate. 
+
+Figure 6: Schematic unique-stale-argument construction adapted from a retail interaction pattern. An earlier lookup supplies card_4332 , but the latest user message uniquely requests the card ending in 8107 . Context elided from the diagram supplies the corresponding current identifier, 
+
+card_8107 . The actor carries forward the stale identifier, whereas the deterministic twin replaces only payment_method_id and preserves the remainder of the proposed call. 12
