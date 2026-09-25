@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-24</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-25</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 12 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 16 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>3</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>9</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>4</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-24 22:04:02 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-25 22:52:28 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,7 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>2026-09-24 日报完成 12 篇筛选，精读 3 篇、速读 9 篇，聚焦工具型智能体的可靠性与监督。最值得看的是两篇 8.0 分精读：ToolUniverse 审计揭示智能体与工具交互中的&quot;静默失败&quot;，TwinCheck 用负孪生验证为有状态工具智能体提供证据支撑，直指&quot;出错不被发现&quot;这一关键风险。普通读者可优先了解工具调用失败与验证机制，再结合 CART 红队测试思路，判断自己使用的智能体是否可靠。</p>
+<p>今日筛出 16 篇 AI 安全论文，精读 4 篇，其中多智能体“关机破坏倾向”与“高容量无密钥隐蔽串谋”两篇同获 9.0 分，直指 agent 协作的失控风险。最值得看的方向是：多智能体系统的破坏性行为倾向，以及可躲避检测的隐蔽串谋机制。普通读者可先了解 agent 协作的失效模式，再关注去中心化身份与自愈网络等防护思路。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -78,12 +78,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">3 篇</strong>
+    <strong class="dpr-home-dashboard-count">4 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Silent Failures in Agent-Tool Interaction: An Audit of ToolUniverse">Silent Failures in Agent-Tool Interaction: An Audit of ToolUniverse</span></li><li><span class="dpr-home-dashboard-paper-title" title="TwinCheck: Evidence-Grounded Negative-Twin Verification for Stateful Tool Agents">TwinCheck: Evidence-Grounded Negative-Twin Verification for Stateful Tool Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="Shutdown Sabotage Propensities in Multi-Agent Systems">Shutdown Sabotage Propensities in Multi-Agent Systems</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Shutdown Sabotage Propensities in Multi-Agent Systems">Shutdown Sabotage Propensities in Multi-Agent Systems</span></li><li><span class="dpr-home-dashboard-paper-title" title="Codetta: High-Capacity, Keyless, and Undetectable Multi-Agent Collusion">Codetta: High-Capacity, Keyless, and Undetectable Multi-Agent Collusion</span></li><li><span class="dpr-home-dashboard-paper-title" title="How does Adversarial Influence Scale in Multi-Agent Systems?">How does Adversarial Influence Scale in Multi-Agent Systems?</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>2</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-safety <strong>3</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -91,12 +91,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">9 篇</strong>
+    <strong class="dpr-home-dashboard-count">12 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Anticipatory Human Oversight of Agentic AI: A Philosophical Account">Anticipatory Human Oversight of Agentic AI: A Philosophical Account</span></li><li><span class="dpr-home-dashboard-paper-title" title="The Delegation Blind Spot: Auditing Product Decisions from Agent Choices">The Delegation Blind Spot: Auditing Product Decisions from Agent Choices</span></li><li><span class="dpr-home-dashboard-paper-title" title="CART: Closed-Loop Adaptive Red Teaming for Large Language Models">CART: Closed-Loop Adaptive Red Teaming for Large Language Models</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="NostrAgent: A Decentralized Identity and Delegation Architecture for Sovereign Agentic Systems">NostrAgent: A Decentralized Identity and Delegation Architecture for Sovereign Agentic Systems</span></li><li><span class="dpr-home-dashboard-paper-title" title="Connecting the Dots in Agentic AI Security: A Cross-Dimensional Threat Taxonomy, Evaluation Maturity, and Open Challenges">Connecting the Dots in Agentic AI Security: A Cross-Dimensional Threat Taxonomy, Evaluation Maturity, and Open Challenges</span></li><li><span class="dpr-home-dashboard-paper-title" title="MeshHeal: Two-Timescale Self-Healing for Gray Failures in Decentralized LLM Agent Networks">MeshHeal: Two-Timescale Self-Healing for Gray Failures in Decentralized LLM Agent Networks</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>7</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>2</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>7</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>5</strong></span></div>
 </section>
 </div>
 
