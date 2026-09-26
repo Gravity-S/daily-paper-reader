@@ -1,0 +1,1915 @@
+Title: When Honesty is Not Enough in AI Debate
+
+URL Source: https://arxiv.org/pdf/2609.29189v1
+
+Published Time: Fri, 25 Sep 2026 00:54:37 GMT
+
+Number of Pages: 30
+
+Markdown Content:
+# When Honesty is Not Enough in AI Debate 
+
+Rayne Holland 1 Liming Zhu 1 Jason Xue 1
+
+> 1
+
+CSIRO 
+
+## Abstract 
+
+Scalable oversight aims to verify the behaviour of agents whose capabilities exceed those of their overseers. AI debate has been proposed as an oversight solution in which competing agents help a resource-limited verifier assess claims that it cannot reliably evaluate unaided. Much of its promise rests on incentivizing honest arguments that lead to correct verdicts. Yet a correct verdict need not uniquely determine the arguments used to support it. Agents may retain discretion over which correct claims to present, how to frame them, and in what order to disclose them. This residual freedom can allow agents to shape what the verifier learns beyond the task-relevant conclusion, pursuing latent objectives without compromising verdict correctness. To study this phenomenon, we introduce the framework strategic interactive oversight ( SIO ), which treats oversight jointly as a verification mechanism and a strategic communication channel. Within this framework, we formalise the notion of task-admissible latent optimisation, which entails the pursuit of latent objectives while maintaining a prescribed task performance. As proof-of-concept, we instantiate 
+
+SIO in the establish protocol debate with cross-examination and quantify a tradeoff between task success and information disclosure about a hidden variable. The trade-off identifies a strategic window in which substantial disclosure remains compatible with task admissibility. Towards mitigation, we reduce admissible bias by expanding the cross-examiner’s role to mitigate persistent disclosure over finite interaction horizons. Our results highlight the need to evaluate oversight not only by the correctness of its verdicts, but also by the information conveyed through its transcripts. 
+
+## 1. Introduction 
+
+As AI systems grow more capable, they may surpass the humans or weaker models charged with evaluating their work. Scalable oversight asks whether a bounded overseer can nevertheless evaluate and steer a more capable system using substantially fewer resources. An oversight mechanism must remain reliable even when the overseer cannot reproduce the reasoning or computation it assesses. Proposed approaches include amplification (Christiano et al., 2018), recursive reward modelling (Leike et al., 2018), and AI debate (Irving et al., 2018; Brown-Cohen et al., 2024, 2025, 2026). Each uses AI capabilities to amplify the signal supplied by human judgment. In debate, powerful agents recursively reduce a difficult question to disagreements that a computationally limited judge can resolve. Irving et al. (Irving et al., 2018) formalise this intuition using complexity theory, showing how a weak verifier can judge claims about computations beyond its own reach. Later protocols require the verifier to inspect only a small part of a much larger computation (Brown-Cohen et al., 2024, 2026). This line of work has largely studied what can be verified under an asymmetry in computational resources. Although the verifier cannot reproduce the prover’s computation, an appropriate protocol may still allow it to check the resulting claim. Yet computational verifiability alone does not capture the full range of limitations faced by human overseers. Human oversight is also constrained in how 
+
+verification is carried out, since the framing of (truthful) evidence can shape how it is interpreted. Indeed, recent work illustrates how LLMs can exploit the use of evidence to manipulate beliefs without relying on directly false claims (Hu et al., 2026). An oversight interaction may therefore verify the right proposition while inducing a strategically chosen interpretation of the evidence or influencing arXiv:2609.29189v1 [cs.AI] 24 Sep 2026 When Honesty is Not Enough in AI Debate 
+
+subsequent judgments. This “how” within the computationally verifiable “what” is the object of study here. Understanding and controlling it is essential if scalable verification is to provide a meaningful alignment guarantee. The central distinction is between honesty as a guarantee about the assessed claim and safety as a property of the interaction as a whole. Even when an oversight protocol elicits a correct verdict and constrains reports to be locally accurate, it need not control which additional information the transcript conveys. In this sense, honesty is not enough and guarantees about task correctness do not automatically extend to the other effects of task-successful communication. 
+
+1.1. Solution 
+
+To study this residual freedom, we introduce a model of strategic interactive oversight (SIO ), which treats an oversight protocol as both an evaluation mechanism and a communication channel. An agent’s performance is evaluated under an explicit task objective , which specifies the protocol’s intended outcome, and a latent objective , which captures additional effects of the interaction. The agent may then select strategies that optimise performance across both objectives. This yields the threat model of task-admissible latent optimisation (TALO ), in which the agent pursues the latent objective while maintaining an acceptable level of task performance. The threat does not require the agent to induce an incorrect verdict or violate the protocol’s explicit rules. It arises whenever the task objective admits multiple successful strategies that differ in their latent effects on the verifier’s view of the interaction. As a proof-of-concept, we instantiate SIO on debate with cros-examination Brown-Cohen et al. (2024) with the latent objective of hidden-hypothesis disclosure . Hidden-hypothesis disclosure measures how much information the verifier’s view of the interaction reveals about a latent variable that is not required for the task. In standard debate, the task objective is to win. However, there are generally many strategies by which it can do so. This non-uniqueness allows the debater to select, among task-successful strategies, those that additionally encode information about the latent variable. We show that, even when the disclosure in each round is small, the total information revealed can grow linearly with the number of cross-examination rounds. Local report-accuracy conditions and a correct terminal verdict therefore do not prevent the oversight interaction from becoming a channel for latent information. Because TALO is a constrained optimisation problem, mitigation requires altering the incentive land-scape over task-admissible strategies. As a step towards mitigation, we expand. In addition to cross-examination, the cross-examiner assigns these weights so that the aggregate (if it cannot be disputed) remains aligned with a human oracle. Debaters that persistently deviate from oracle-aligned judgments receive less weight and therefore exert less influence on the final argument. 
+
+1.2. Contributions 
+
+Our contributions are threefold. First, we introduce SIO , a new framework that treats oversight jointly as a verification mechanism and a strategic communication channel. Building on scalable verification under resource asymmetry, it makes explicit the distinction between an agent’s task objective and latent objectives pursued through the interaction. This distinction motivates oversight of the interaction, rather than only its terminal verdict. A central motivation for debate is that adversarial scrutiny can incentivise truthful, task-correct answers. Our framework identifies a distinct limitation of such guarantees, where constraining an agent’s answer does not necessarily constrain the information conveyed by its choice among task-admissible strategies. We formalise this gap through task-admissible latent optimisation and demonstrate it 
+
+> 2When Honesty is Not Enough in AI Debate
+> h
+
+|∆|   
+
+> Latent Objective  Ψ
+> (a) Ψvs.
+
+|∆|
+
+> γ
+
+|∆|       
+
+> Task Objective  Φ
+> R1
+> R2>R1
+> R3>R2
+> (b) Φvs.
+
+|∆|
+
+Figure 1: Tradeoff between task success Φ and hidden hypothesis disclosure Ψ in debate with cross-examination. ∆ denotes the “magnitude” by which a debater biases a neutral claim and Ri is a measure of computational resources. On the left, Ψ measures (in bits) the volume of information about a hidden hypothesis encoded in the debate transcript. It grows quadratically with the size of the bias, before hitting the prior hypothesis entropy h. On the right, Φ measures the probability the debater wins the debate (that is, task success) and γ is the level of task admissible performance. Notably, small biases do not affect the debate outcome. Increasing resources can extend the window of admissable stratgies. through hidden-hypothesis disclosure. Second, we instantiate the framework in a computational model of debate. We establish a non-trivial attack surface, which comprises a range of strategies through which a debating agent can advance a hidden latent objective without sacrificing its task objective. Figure 1 illustrates this strategic window. Third, as a step towards mitigation, we augment cross-examination with a sliding-window consistency check that tests for persistent discrepancies across rounds. This narrows the range of persistent perturbations compatible with task success, at the cost of additional verifier work, while leaving the debaters’ per-round sampling work unchanged. The resulting guarantee limits the disclosure strategy studied here rather than establishing transcript confidentiality. 
+
+## 2. Preliminaries 
+
+For n ∈ N, let [n] = {1, . . . , n}. Vectors are written in boldface; for x ∈ { 0, 1 }n and I ⊆ [n], let xI
+
+denote the restriction of x to the coordinates in I.
+
+2.1. Computation Model 
+
+We model computation using probabilistic oracle Turing machines. A stochastic oracle with query length ℓ = ℓ(n) maps each query z ∈ { 0, 1 }ℓ to a {0, 1 }-valued random variable O(z). Responses to oracle queries are independent, including responses to repeated instances of the same query. A probabilistic oracle Turing machine M may write a query z to its oracle tape and receive a sample from O(z) in one step. We write MO for M with access to O. In the oversight setting, M represents a computation specified by natural-language instructions, while O represents human judgement or other external black-box feedback, such as search results, sensor observations, or API outputs Brown-Cohen et al. (2024). A language L ⊆ { 0, 1 }∗ is a set of finite binary strings. A probabilistic oracle Turing machine M decides 
+
+> 3When Honesty is Not Enough in AI Debate
+
+L with oracle O if 
+
+x ∈ L =⇒ Pr [︁ MO (x) = 1]︁ > 23 , x /∈ L =⇒ Pr [︁ MO (x) = 1]︁ < 13 ,
+
+where the probability is over the internal randomness of M and the stochastic oracle responses. A transcript of a T-step execution of MO on input x is a random vector y = ( y1, . . . , yT ) ∈ { 0, 1 }T,where y t is the (random) bit written at the current head position at step t. We assume that the final coordinate is the machine’s output, so YT = MO(x). In the language-model setting, the transcript corresponds to the sequence of tokens produced during the computation. For a realization y of y, let 
+
+IM,x (t) ⊆ [T] denote the transcript coordinates read by M when producing the realization yt of y t.When M and x are clear from context, we write I(t). Thus, the distribution of y t is determined by the relevant prior coordinates y I(t), together with fresh machine and oracle randomness. 
+
+2.2. Information Theory 
+
+We use standard information-theoretic quantities to measure uncertainty, statistical dependence, and divergence between distributions. All random variables below are discrete, and all logarithms are base two. Consequently, entropy, mutual information, and divergence are measured in bits. 
+
+Definition 1 (Entropy) . For a discrete random variable X with probability mass function PX, its Shan-non entropy is H(X) = −∑︀ x PX (x) log PX (x). For jointly distributed random variables X and Y, the conditional entropy of X given Y is H(X | Y) = −∑︀ x,y PX,Y (x, y) log PX|Y (x | y).
+
+Entropy measures the uncertainty associated with a random variable. 
+
+Definition 2 (Mutual information) . For jointly distributed random variables X and Y, their mutual information is I(X; Y) = H(X) − H(X | Y). For jointly distributed X, Y, Z, their conditional mutual information is I(X; Y | Z) = H(X | Z) − H(X | Y, Z).
+
+Mutual information quantifies the statistical dependence between two random variables. 
+
+2.3. Oversight Protocols 
+
+An oversight protocol is an interaction between k probabilistic prover machines and a probabilistic verifier, each of which may query the stochastic oracle O. On input x, the machines exchange messages according to a prescribed communication schedule, after which the verifier outputs a decision bit. Agent internal randomness and oracle responses induce a distribution over protocol executions. The interaction history after t messages is ht = ( h1, . . . , ht), where h j records a message together with its sender and recipient. Oracle queries and their responses are treated as messages between the querying participant and O. We write h = hT for the complete interaction history, where T is the termination time. For each agent A, let ΠA(ht) denote the projection of ht onto the messages sent or received by A before time t.Equivalently, the protocol may be represented by a rooted tree whose nodes correspond to agents and edges correspond to message exchanges. In other words, each non-leaf node specifies the participant acting next, and each outgoing edge records a possible message. A leaf represents a completed interaction and is labeled by the verifier’s terminal decision. 
+
+## 3. Framework 
+
+We formalize SIO by separating an agent’s stated task objective from any latent objective it may pursue through the oversight interaction. As a running example, consider a debate in which the input specifies 
+
+> 4When Honesty is Not Enough in AI Debate
+
+a task hypothesis and two provers attempt to persuade a verifier to accept or reject it. 
+
+3.1. Objectives 
+
+Let X be the input space and H the set of complete interaction histories. A task objective for agent A is a function ΦA : X × H → R that evaluates task performance, and a latent objective for agent A is a function ΨA : X × H → R that evaluates an additional property of the interaction. For a complete history h on input x, the combined objective is 
+
+UA(x, h, λ) := ΦA(x, h) + λΨA(x, h), (1) where the shadow price λ ≥ 0 specifies the relative importance of the latent objective. In the debate example, the task objective ΦA = 1{A wins debate } indicates that the explicit goal of agent A is to win the debate. The decomposition into Φ and Ψ distinguishes what the protocol is intended to evaluate from other effects that an agent may induce through its messages. 
+
+3.2. Strategies 
+
+A strategy σA for an agent A assigns a distribution over the messages available to A at each of its decision points. Formally, given input x and the local interaction history ΠA(ht), the strategy specifies a distribution σA(︀ · | x, ΠA(ht))︀ ∈ ∆(MA), where MA is the message space available to A and ∆(MA)
+
+is the set of probability distributions over that space. Thus, an agent’s message depends only on the input and the messages it has sent or received, including its own oracle queries and responses. For a set of provers {Ai}i∈[k] and a verifier V, a strategy profile σ = ( σA1 , . . . , σAk , σV ), together with the stochastic oracle, induces a distribution over complete histories. Let h(x, σ) denote the resulting random history. The task and latent outcomes, for Ai, induced by σ are the random variables 
+
+ΦAi (x, σ) = Φ(︀ x, h(x, σ))︀ , ΨAi (x, σ) = Ψ(︀ x, h(x, σ))︀ .
+
+When x is clear from context, we write ΦAi (σ) and ΨAi (σ).
+
+3.3. Threat Model 
+
+The central threat is that an agent may optimize a latent objective without materially compromising its performance on the stated task. Let σ−A denote the strategies in the profile σ with σA removed. Fix 
+
+σ−A and, for a task-admissibility threshold γ ≥ 0, define the set of γ-task-admissible strategies by 
+
+Σγ
+
+> A
+
+(x) = {σA : E[Φx (σA ◦ σ−A)] ≥ γ} .
+
+For a fixed shadow price λ ≥ 0, we say that TALO occurs when an agent selects a strategy that optimizes the latent objective subject to task-admissibility: 
+
+max    
+
+> σA∈Σγ(x)
+
+E[Φx (σA, σ−A) + λΨx (σA, σ−A)] .
+
+The threat arises when the task admits many near-optimal strategies with different latent effects. For example, during debate, there may be many arguments that win the debate, allowing a prover to select those that also advance its latent objective. 
+
+> 5When Honesty is Not Enough in AI Debate
+
+Debate protocol for a stochastic oracle 
+
+All parties have access to O, an input x ∈ { 0, 1 }n, and a K-Lipschitz probabilistic oracle machine M. A claims that 
+
+Pr [M(x) = 1] ≥ 23 , and B disputes this claim. 1. Let y = ( y1, . . . , yT ) be the random variable representing the transcript of M(x) and set d = ⌈150 K⌉.
+
+2. For debate round t ∈ [T]:(a) A outputs an estimate ˆpt ∈ [0, 1 ] of pt = Pr [︁ yt = 1⃒⃒⃒ yI(t) = aI(t)]︁ .
+
+(b) A queries an independent copy of B for zAt ∼ U[0, 1 ], and B queries an independent copy of A for zBt ∼ U[0, 1 ].
+
+(c) Set zt =(︀ zAt + zBt)︀ mod 1. 
+
+(d) A sets at = 1 if zt ≤ ˆpt, and at = 0 otherwise. (e) B can abort if (it believes) A has not followed the protocol. 3. If the protocol was aborted in round t:(a) V draws r = 192 d2 log 100 independent samples a of y t, conditioned on y I(t) = aI(t), and uses their sample mean to obtain an estimate ˆpO 
+
+> t
+
+of Pr [︁ yt = 1⃒⃒⃒ yI(t) = aI(t)]︁ 
+
+(b) V checks whether ⃒⃒ ˆpO 
+
+> t
+
+− ˆpt⃒⃒ ≥ 14d . If the inequality holds, V outputs 0; otherwise, V outputs 1.4. If the protocol was not aborted, then the verifier outputs aT .
+
+> a
+
+If y t is supposed to be the output of an oracle query, these samples are obtained using r independent queries to 
+
+O(aI(t)). Otherwise, y t is a deterministic function of aI(t) given by one step of M.
+
+Figure 2: Doubly-efficient debate protocol for a stochastic oracle Brown-Cohen et al. (2024). 
+
+3.4. Hidden-Hypothesis Disclosure 
+
+To provide a concrete instance of SIO , we instantiate the latent objective as the disclosure of information about a hidden hypothesis. Let Q be a discrete random variable representing a hidden hypothesis that is not part of the stated task, and let X be the protocol input. The verifier V observes only its projection 
+
+ΠV (h) of the interaction history. 
+
+Definition 3. The hidden-hypothesis disclosure induced by a strategy profile σ is 
+
+Ψhhd (σ) := I(Q; ΠV (h(X, σ)) | X) .
+
+This quantity measures how much additional information the messages available to the verifier reveal about H, beyond the information already contained in the task input. In particular, Ψhhd (σ) = 0
+
+precisely when H and the verifier’s observed messages are conditionally independent given X.For example, in debate, X specifies the task hypothesis, while H represents an additional hypothesis that the verifier is not required to assess. A prover exhibits task-admissible hidden-hypothesis disclosure if it selects arguments that preserve its probability of winning while increasing I(H; ΠV (h(X, σ)) | X).This definition concerns the information available to the verifier rather than whether the verifier consciously identifies or correctly interprets H. 1
+
+## 4. Debate with Cross-Examination 
+
+To illustrate the use of SIO , we study a computation model for debate with cross-examination introduced by Brown-Cohen et al. (2024). 
+
+> 1
+
+An alternative, observer-dependent objective may target belief distortion directly. Given a verifier posterior P(H |
+
+X, ΠV (h)) and a target distribution Q, one may define the latent objective in terms of proximity to Q, for example as 
+
+−DKL (Q∥P(H | X, ΠV (h))) .
+
+> 6When Honesty is Not Enough in AI Debate
+
+4.1. Protocol 
+
+The following outline is formalized in Figure 2. For a probabilistic Turing machine M and input x,the debate setup comprises of a prover A claiming that Pr [M(x) = 1] ≥ 23 , while a cross-examiner B
+
+argues against this claim. At round t in the debate, a prover A reports a claim ˆpt about the conditional probability of the next bit in the machine transcript. Prover B, acting as the cross-examiner, may either accept the claim and allow the next bit to be sampled, or abort and assert that A’s claim is inaccurate. Upon an abort, the verifier adjudicates the disputed claim with the assistance of the stochastic oracle 
+
+O and awards the debate to the prover whose position is correct. If the protocol terminates without an abort, A is awarded the win. The significance of this protocol, in the context scalable oversight, is that it is doubly efficient . In other words, the provers operate in time polynomial in the size of the input and the verifier is linear in the length of each oracle query and makes a sub-linear number of queries to the oracle. Thus, debate extends reliable oversight to computations that the verifier could not feasibly perform itself. For an input x and strategy profile σ = ( σA ◦ σ−A), let ΦA(x, h) ∈ { 0, 1 } indicate whether the verifier rules in favor of A on terminal history h. Under SIO , for input y = ( M, x), the task objective is defined by 
+
+ΦA(x, σ) = Eσ [ΦA(x, h(x, σ))] = Pr  
+
+> σ
+
+[V → 1].
+
+Thus, ΦA(x, σ) is the probability that A wins the debate under σ, with the expectation taken over all protocol randomness. The protocol has the following utility on the task objective. 
+
+Lemma 1 (Task Completeness Brown-Cohen et al. (2024)) . Let L be any language decidable by a K-Lipschitz probabilistic oracle Turing machine M. Then, for every x ∈ L, there exists a strategy σA such that, for every strategy opposing σ−A,
+
+ΦA(︀ (M, x), σA ◦ σ−A)︀ ≥ 23 .
+
+4.2. Hidden-hypothesis disclosure 
+
+We now examine whether task success prevents a prover from pursuing an additional latent objective. In the debate protocol, under the claim “ Pr [M(x) = 1] ≥ 23 ”, A is required to report sufficiently accurate estimates of the conditional probabilities of the machine transcript of M(x). This requirement does not, however, necessarily determine a unique report. Significantly, approximately task-equivalent reports leave residual strategic freedom that A can use to disclose information about a hidden hypothesis binary Q ∈ {− 1, 1 }.The projection ΠV(︀ hT (X, σ))︀ includes all information available to the verifier. For example, if no abort occurs, the verifier observes the sampled machine transcript ΠV(︀ hT (X, σ))︀ = a. If the cross-examiner aborts at round t, the verifier instead observes the partial transcript together with the evidence used to adjudicate the disagreement. Suppressing public randomness and other deterministic protocol data, this projection has the form 
+
+ΠV(︀ ht(X, σ))︀ =(︁ a1, . . . , at, abort , ˆ pt,{︀ O(aI(t))}︀)︁ .
+
+Here, ˆpt is the conditional-probability report disputed at round t, I(t) identifies the location of the machine configuration examined by the verifier, and {O (aI(t))} denotes the collection of oracle samples used in the resulting statistical test. 
+
+> 7When Honesty is Not Enough in AI Debate
+
+Following Definition 3, hidden-hypothesis disclosure admits the latent objective 
+
+ΨA(x, σ) = I(︀ Q; ΠV(︀ hT (X, σ))︀⃒⃒ X = x)︀ .
+
+This quantity measures how much the verifier’s observation of the debate reveals about H, beyond what is already known from the input x. The hidden hypothesis may be naturally connected to the subject of the debate without being part of its stated task objective. For example, the debate may concern the task claim “the bridge is unsafe,” while the prover’s hidden hypothesis is “the damage resulted from neglected maintenance.” The prover can establish that the bridge is unsafe while selecting evidence (that is, perturbing arguments) that subtly points toward maintenance failures. An example of how a Turing machine transcript can leak information about a hidden hypothesis is given in Appendix A. 
+
+4.3. Prover Strategies 
+
+At round t, let pt = Pr [︁ yt = 1⃒⃒⃒ yI(t) = aI(t)]︁ denote the true conditional probability of the next machine-transcript bit. The honest strategy of Lemma 1 is for A is to draw R independent samples from the relevant conditional computation and form the empirical estimate ¯p(R) 
+
+> t
+
+= 1
+
+> R
+
+∑︀ Rj=1 yt,j, where yt,j ∼ Bern (pt), and reporting this value. Subsequently, for parameter ∆ > 0, A can perturb the honest strategy by reporting the value 
+
+ˆpt = clip [0,1 ](︁ ¯p(R) 
+
+> t
+
++ ∆Q)︁ .
+
+Formally, the corresponding strategy is 
+
+σR,∆ 
+
+> A
+
+( ˆpt | x, ΠA(ht−1), Q) = Pr [︁ clip [0,1 ](︁ ¯p(R) 
+
+> t
+
++ ∆Q)︁ = ˆpt⃒⃒⃒ x, ΠA(ht−1), H]︁ .
+
+We abbreviate this strategy by σA ∼ (R, ∆). The sample count R controls the accuracy of the task-relevant estimate, while ∆ controls the magnitude of the hidden-hypothesis signal. A strategy σB for B is to draw a sample estimate ˆqt of pt at each round by performing R simulations of generating y t given yI(t) = aI(t). Subsequently, B aborts if | ˆpt − ˆqt| ≥ τ. Under this strategy we say 
+
+σB ∼ (R, τ). We say that the strategy is honest if the choice of τ is sound. 
+
+4.4. Results 
+
+The following describes an accurate task objective performance, against an honest B, for a range of biased A strategies. Let 
+
+Theorem 1. For K ≥ 1, let L be any language decided by a K-Lipschitz oracle Turing machine M. Let 
+
+Pr [M(x) = 1] = α∗, R ≥ 192 d2 log (100 T), ∆ < 1/ (16 d), and τ = 1/ (2d). Then, on the protocol of Figure 2, for every strategy σ = σA ◦ σB parameterized by σA ∼ (R, ∆) and σB ∼ (R, τ), the task objective observes (︂ 
+
+α∗ − 1100 )︂ · 299 300 ≤ ΦA(x, σ) ≤(︂ α∗ + 1100 )︂ + 1300 ,
+
+The proof is in Appendix B. This covers the admissible region of strategies. For any t ∈ [T], define 
+
+gt(∆) = Pr [|∆ + σtz| < τ],
+
+where z ∼ N(0, 1 ) and σt =√︀ 2pt(1 − pt)/R. The following bounds the task objective for general perturbations. 
+
+> 8When Honesty is Not Enough in AI Debate
+
+Theorem 2. For K ≥ 1, let L be any language decided by a K-Lipschitz oracle Turing machine M. Let 
+
+R ≥ 192 d2 log (600 T), ∆ ≥ 0, and τ = 1/ (2d). Assume pt ∈ (0.01, 0.99 ) for all machine configurations on M. Then, on the protocol of Figure 2, for every strategy σ = σA ◦ σB parameterized by σA ∼ (R, ∆)
+
+and σB ∼ (R, τ), the task objective observes 
+
+ΦA(x, σA ◦ σB) ≤ min {︂ 1, E[g1(∆)] + 1100 }︂ .
+
+The proof is in Appendix B. Next, we provide a characterisation of how changing ∆ affects the latent objective. Let hx = H(Q | X = x) denote the hidden hypothesis entropy on the task input. 
+
+Theorem 3. Let L be any language decided by a K-Lipschitz oracle Turing machine M. Assume pt ∈
+
+(0.01, 0.99 ) for all machine configurations on M and that the prior Pr [Q | X = x] contains sufficient entropy. Then, for any ∆ ≥ 0 and any honest cross-examiner strategy σB, there exists R ∈ O(d2 log (T)) 
+
+such that, for σA = ( ∆, R), the latent objective observes 
+
+ΨA(x, σA ◦ σB) = Ω(︀ hx · min {︀ 1, ∆2T}︀)︀ .
+
+The proof is in Appendix C. The characterization provided by these two theorems is visualized in Figure 1. 
+
+4.5. Discussion 
+
+These results identify a small-perturbation regime, ∆ < 1/ (16 d), in which task performance remains close to the reference acceptance probability α∗, while disclosure grows at least proportionally to 
+
+hx ∆T before saturation. Larger perturbations reduce the Gaussian interval probability governing the task bound at fixed sampling variance, exposing a tension between information transmission and consistency with an honest cross-examiner. Thus, oversight of task accuracy alone does not protect the hidden hypothesis. That is, even accurate transcripts can accumulate substantial disclosure. Both Theorems 2 and 3 assume that the transition probabilities pt are bounded away from 0 and 1
+
+and Theorem 3 assumes that the hidden hypothesis has non-negligible entropy. These assumptions isolate the regime of interest in which nearly deterministic steps offer little scope for perturbation-based disclosure and can be omitted from the leakage analysis. In addition, a hypothesis with negligible entropy already carries little uncertainty before any interaction. The latter case makes confidentiality largely vacuous, rather than demonstrating transcript-induced disclosure. More broadly, these results motivate treating transcripts as outputs with their own information-disclosure properties, rather than merely as evidence supporting a final decision. Transcripts retained for auditing, evaluation, or downstream reuse can expose information that task-accuracy metrics do not capture. Oversight should therefore assess both decision quality and cumulative disclosure, including information revealed through aborts. Restricting transcript access, limiting interaction length, or changing reporting precision are natural design directions, although each requires a separate analysis of its effects on correctness and disclosure. 
+
+## 5. Towards Mitigation 
+
+The vulnerability identified above arises from a mismatch between the task objective and the behavior desired of the debaters. The task objective rewards producing a winning argument. Although this 
+
+> 9When Honesty is Not Enough in AI Debate
+
+supports scalable verification, it does not uniquely determine how that argument should be produced. A debater may therefore achieve high task performance while pursuing latent objectives through its construction of arguments. Mitigating such behavior requires changing the incentive landscape. A natural desideratum is oracle alignment . A conditional probability ˆpt generated by the “for” debater 
+
+A should coincide with the corresponding oracle conditional probability. One might attempt to induce this behavior by adding rewards or penalties based on proximity to oracle-generated conditional probabilities. In general, however, this is insufficient. Gains from a latent objective may offset the task reward for accurate reporting, leaving the debater indifferent among disclosure strategies or even leaving misreporting profitable. 
+
+5.1. Expanded cross-examination 
+
+This limitation motivates giving the cross-examiner B an additional way to challenge A’s reports. The additional challenge entails issuing an abort drift challenge when the reports exhibit a persistent signed deviation over a trailing window of N ≥ 1 rounds. Define Jt,N = {t − N, . . . , t − 1} as the most recent N debate rounds. For every s ∈ Jt,N , let ps = Pr [︁ ys = 1⃒⃒⃒ yI(s) = aI(s)]︁ denote the conditional probability associated with the transcript prefix fixed at round s. The trailing signed deviation is 
+
+Dt,N = 1
+
+N∑︁ s∈Jt,N(︁ 
+
+ˆps − ˆpO
+
+> s
+
+)︁ .
+
+For a constant c ≥ 1, the verifier accepts an abort drift challenge when |Dt,N | ≥ 14d√N . Thus, a persistent signed deviation of magnitude b is detectable once b ≥ 1/ (d√N), even if no individual report is inaccurate enough to support an aborterror challenge. 
+
+Theorem 4. Let L be any language decided by a K-Lipschitz oracle Turing machine M and W ∈ [T]
+
+be the sliding-window parameter. For R ≥ 192 d2 log (100 T), ∆ ≥ 1/ (d√W), τ1 = 1/ (2d), and τ2 =
+
+1/ (2d√W), let σ(1) 
+
+> A
+
+∼ (R, 0 ), σ(2) 
+
+> A
+
+∼ (R, ∆), and σB ∼ (R, τ1, τ2). Then, for any x ∈ L, on the protocol of Figure 3, 
+
+ΦA(︁ x, σ(1) 
+
+> A
+
+◦ σB)︁ ≥ 35 and ΦA(︁ x, σ(2) 
+
+> A
+
+◦ σB)︁ ≤ 1150 
+
+This result shows how a sliding-window check can strengthen oversight against persistent perturbations. By testing discrepancies across a window of W rounds, the cross-examiner can detect shifts at scale 
+
+1/ (d√W), rather than relying solely on discrepancies large enough to be detected in an individual round. The resulting guarantee separates unperturbed reporting, which retains task success probability at least 3/5 , from the specified perturbed strategy, whose task success probability is at most 1/150 .Increasing W therefore narrows the range of persistent perturbations compatible with successful task performance. This provides a mechanism for curtailing the disclosure strategy studied above. Stronger oversight requires more work from the verifier to audit a larger window, while leaving the per-round sampling work of A and B unchanged. Thus, this improvement comes with a computational trade-off. 
+
+## 6. Related Work 
+
+A major strand of oversight research formalises scalability, closely related to the requirement that oversight protocols relativise Irving & Marshall (2025). Theoretical work shows that debate can enable 
+
+> 10 When Honesty is Not Enough in AI Debate
+
+limited verifiers to check complex claims with substantially less effort than solving them independently Brown-Cohen et al. (2024); Irving et al. (2018), with extensions studying capability asymmetries and the human input required for reliable oversight Brown-Cohen et al. (2026); Engels et al. (2025). Prover-estimator debate addresses obfuscated arguments, ensuring under stability assumptions that honest debaters can win with computational resources comparable to those of dishonest opponents Brown-Cohen et al. (2025). These results focus on making correct adjudication feasible, whereas we study latent objectives pursued within task-admissible interactions. Debate-based alignment safety cases connect success in debate to honesty, subject to additional training and deployment assumptions Buhl et al. (2025). Our analysis highlights a complementary concern, namely that honest, task-admissible behaviour need not preclude undesirable information disclosure through the transcript. Mechanism design for alignment and control studies how to incentivize honesty and obedience when agents’ preferences and capabilities are unknown Bergemann et al. (2026). This perspective offers a potential route to mitigating the strategic freedom identified by our framework, complementing our analysis of transcript-level objectives. 
+
+Acknowledgments 
+
+This project was undertaken in collaboration with the Australian AI Safety Institute (AISI) and supported by funding from the Department of Industry, Science and Resources (DISR), as part of research into AI alignment tools and techniques. 
+
+## References 
+
+Dirk Bergemann, Andrew Koh, and Stephen Morris. Mechanism design for alignment and control. 
+
+arXiv preprint arXiv:2609.01595 , 2026. Jonah Brown-Cohen, Geoffrey Irving, and Georgios Piliouras. Scalable ai safety via doubly-efficient debate. In Proceedings of the 41st International Conference on Machine Learning (ICML) , 2024. Jonah Brown-Cohen, Geoffrey Irving, Georgios Piliouras, Lijie Chen, Jiawei Li, and Zhiyang Xun. Avoiding obfuscation with prover-estimator debate. arXiv preprint arXiv:2506.13609 , 2025. Jonah Brown-Cohen, Geoffrey Irving, Simon C Marshall, Ilan Newman, Georgios Piliouras, and Mario Szegedy. Debate is efficient with your time. arXiv preprint arXiv:2602.08630 , 2026. Marie Davidsen Buhl, Jacob Pfau, Benjamin Hilton, and Geoffrey Irving. An alignment safety case sketch based on debate. arXiv preprint arXiv:2505.03989 , 2025. Paul Christiano, Buck Shlegeris, and Dario Amodei. Supervising strong learners by amplifying weak experts. arXiv preprint arXiv:1810.08575 , 2018. Joshua Engels, David D. Baek, Subhash Kantamneni, and Max Tegmark. Scaling laws for scalable oversight. In Advances in Neural Information Processing Systems (NeurIPS) , 2025. Jinwei Hu, Xinmiao Huang, Youcheng Sun, Yi Dong, and Xiaowei Huang. Lying with truths: Open-channel multi-agent collusion for belief manipulation via generative montage. In Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pp. 5979–5996, 2026. Geoffrey Irving and Simon Marshall. The need to relativise in debate. AI Alignment Fo-rum post, 2025. URL https://www.alignmentforum.org/posts/XycoFucvxAPhcgJQa/ the-need-to-relativise-in-debate-1 .
+
+> 11 When Honesty is Not Enough in AI Debate
+
+Geoffrey Irving, Paul Christiano, and Dario Amodei. Ai safety via debate. arXiv preprint arXiv:1805.00899 , 2018. Jan Leike, David Krueger, Tom Everitt, Miljan Martic, Vishal Maini, and Shane Legg. Scalable agent alignment via reward modeling: a research direction. arXiv preprint arXiv:1811.07871 , 2018. 
+
+## A. Toy Example 
+
+This example illustrates that, for a probabilistic computation, information may be present not only in whether the machine computes the correct answer, but also in which valid answer it finds. In particular, a probabilistic machine induces a distribution over execution transcripts, and this distribution may depend on properties of the input even when the algorithm is simply solving its prescribed computational task. Consider the standard unstructured search problem. The input is an array x ∈ { 0, 1 }N containing at least one marked entry, and the goal is to output an index i ∈ [N] such that xi = 1.Partition the array into two equal-sized branches, labeled 0 and 1. Thus, each branch contains N/2 
+
+entries. Let the hidden hypothesis Q ∈ { 0, 1 } determine the distribution of marked entries between the two branches: branch 0 branch 1
+
+Q = 0 3m mQ = 1 m 3m
+
+where m ≥ 1 and 3m ≤ N/2 . Under either hypothesis, the total number of marked entries is 4m.Now consider the following fixed probabilistic machine M. The machine samples an index i ∈ [N]
+
+uniformly at random, reads xi, and repeats if xi = 0. If xi = 1, it outputs i and halts. This is a Las Vegas algorithm for unstructured search. The algorithm always outputs a correct index and halts with probability one. Moreover, since there are 4m marked entries under both hypotheses, the success probability on each probe is 4mN . Therefore the number of probes K before halting has the same distribution under Q = 0 and Q = 1, namely, for k ≥ 1,
+
+Pr [K = k | Q] = (︂ 1 − 4mN)︂  
+
+> k−1
+
+4mN ,
+
+for both values of Q. In particular, 
+
+E[K | Q = 0] = E[K | Q = 1] = N
+
+4m .
+
+Nevertheless, the returned index carries information about Q. Let X ∈ { 0, 1 } denote the branch containing the returned index. Since the machine samples uniformly until it finds a marked entry, the returned index is uniformly distributed over the marked entries. Hence 
+
+Pr [X = 1 | Q = 0] = m
+
+3m + m = 14 ,
+
+whereas 
+
+Pr [X = 1 | Q = 1] = 3mm + 3m = 34 .
+
+Thus, the algorithm does not append any additional message for disclosure. It simply returns a solution to the search problem, and the valid solution it finds reveals information about the input. 
+
+> 12 When Honesty is Not Enough in AI Debate
+
+If A denotes the execution transcript, then the transcript includes the returned index and therefore determines X. Consequently, I(Q; A) ≥ I(Q; X) > 0. 
+
+In addition, a stronger phenomenon occurs when the machine has discretion over its sampling policy. By perturbing the distribution used to select the next probe, while leaving the stopping rule and correctness condition unchanged, the machine can create a communication channel through the machine computation. For example, instead of choosing every probe uniformly across the array, the machine M proceeds as follows: 1. Select branch 1 with probability p and branch 0 with probability 1 − p.2. Select an index uniformly within the chosen branch. 3. Read its value. 4. If the selected index is marked, output its index; otherwise repeat. Standard Las Vegas corresponds to p = 12 . Under the perturbation p = 12 + δ, |δ| < 12 , every returned answer remains correct. Since every index still has positive probability of being sampled, the algorithm still terminates almost surely on every promised input. Crucially, the perturbation affects which input location the machine actually reads next. The communication takes place through the machine’s computation transcript. In conclusion, the perturbation can increase information communicated by making the machine’s sampling choices depend on a hidden bit Q; it slightly favors branch 1 when Q = 1 and branch 0 when 
+
+Q = 0. The branch of the returned witness becomes correlated with Q, allowing an observer to infer the hidden bit with better-than-chance accuracy. Thus, relative to an unbiased policy independent of 
+
+Q, the machine communicates additional information entirely through its legitimate computational choices, without appending a message or sacrificing task performance. 
+
+## B. Task Objective Proofs 
+
+B.1. Bounding the Task Objective 
+
+We now demonstrate how to bound the task objective. This is achieved through a sequence of steps that focus on different aspects of task performance. For each round t, define the good-estimation event 
+
+Et ={︂ | ¯pt − pt| < 116 d}︂ ∩{︂ | ˆqt − pt| < 18d}︂ ,
+
+where ¯pt is the sample estimate obtained by A prior to adding the perturbation. Let N denote the protocol stopping time. Define the uniform good-estimation event 
+
+E =
+
+> N
+
+⋂︁ 
+
+> t=1
+
+Et ∩ {| ˆpO 
+
+> N
+
+− pN | < 18d }
+
+and the no-abort event by K = {the protocol does not abort }. So that E is well-defined, we set ˆpO 
+
+> T
+
+= pT
+
+if no abort occurs. The good-estimation event states allows us to analyse the protocol under well-behaved sample estimates. We first focus on the good-estimation event under small perturbations ∆,which implies that the debate does not abort. That is, if ˆqt and ˆpO 
+
+> t
+
+are “good” estimates, as defined above, then an abort under honest strategy σhon  
+
+> B
+
+implies 
+
+| ˆpt − ˆqt| ≥ 12d =⇒ | ˆpt − pt| ≥ 38d =⇒ | ˆpO 
+
+> t
+
+− ˆpt| ≥ 14d , (2) 
+
+> 13 When Honesty is Not Enough in AI Debate
+
+where the last statement contradicts E for perturbation ∆ ≤ 1/ (16 d). Therefore, an abort is not possible under event E. To bound the task objective on small perturbations, we decompose V’s acceptance probability as follows. 
+
+Pr [V → 1 | ∆] = Pr [V → 1 | E , ∆] Pr [E | ∆] + Pr [V → 1 | ¬E , ∆] Pr [¬E | ∆]
+
+Thus, the task objective satisfies, 
+
+Pr [V → 1 | E , ∆] Pr [E ] ≤ Pr [V → 1, ∆] ≤ Pr [V → 1 | E , ∆] + Pr [¬E ], (3) where, for perturbation size ∆ < 1/ (16 d), {E , ∆} ⊆ K .For larger perturbations, we focus on the outcome of an abort under good estimation. By (2), an abort under good estimation implies that ˆpt exceeds the verifier’s rejection threshold (which can occur for large enough ∆). Thus, acceptance is impossible on E ∩ ¬K , and hence 
+
+Pr [V → 1, E, ¬K ] = 0. 
+
+We conclude that acceptance can occur only on E ∩ K or on the failure event ¬E . Therefore, 
+
+Pr [V → 1] = Pr [V → 1, E, K] + Pr [V → 1, E, ¬K ] + Pr [V → 1, ¬E ]
+
+≤ Pr [E ∩ K ] + Pr [¬E ].
+
+If Pr [E ] > 0, this can equivalently be written as 
+
+Pr [V → 1] ≤ Pr [E ∩ K ] + Pr [¬E ]= Pr [E ] Pr [K | E ] + Pr [¬E ]= Pr [E ] Pr [K | E ] + Pr [¬E ]
+
+≤ Pr [K | E ] + Pr [¬E ]. (4) The following subsections will bound each term in (3) and (4) to provide a characterization of the expected task objective as ∆ grows. We begin with the good-estimation event. 
+
+B.2. Likelihood of good-estimation 
+
+We now provide a bound for the good-estimation event. We require the following version of the Chernoff bound. 
+
+Lemma 2. Let X1, . . . , XR be independent Bernoulli random variables, each taking value 1 with probability 
+
+p and 0 with probability (1 − p). Let ¯μ = 1
+
+> R
+
+∑︀ Ri=1 Xi be the empirical mean of the random variables. Then 
+
+Pr [︂ | ¯μ − p| ≥ s < 2 exp (︂ −s2 R
+
+3)︂]︂ 
+
+Lemma 3. Suppose that R ≥ 192 d2 log (100 T). Then every strategy σ = σA ◦ σB parameterized by 
+
+σA ∼ (R, □) and σB ∼ (R, □) satisfies 
+
+Pr [¬E ] ≤ 1300 
+
+> 14 When Honesty is Not Enough in AI Debate
+
+Proof. If the estimates ¯pt, ˆgt, and ˆpO 
+
+> t
+
+are the means of R independent Bernoulli samples with probability 
+
+pt, Lemma 2 and a union bound gives 
+
+Pr [︂ | ¯pt − pt| ≥ 116 d ∧ | ˆqt − pt| ≥ 18d]︂ ≤ 2 exp (︂ − R
+
+192 d2)︂ + 2 exp (︂ − R
+
+96 d2)︂ .
+
+Therefore, applying a union bound over all T rounds yields 
+
+Pr [¬E ] ≤ 4T exp (︂ − R
+
+192 d2)︂ ≤ T
+
+600 T = 1600 ,
+
+by the choice of R. Lastly, for V with r = 192 d2 log 100 samples, 
+
+Pr [︂ | ˆpO 
+
+> t
+
+− pt| ≥ 18d]︂ ≤ 2 exp (︁ − r
+
+48 d2)︁ ≤ 4100 2 ≤ 1600 
+
+Thus, combining, we observe 
+
+Pr [¬E ] ≤ Pr [︂ | ¯pt − pt| ≥ 14d ∧ | ˆqt − pt| ≥ 14d]︂ + Pr [︂ | ˆpO 
+
+> t
+
+− pt| ≥ 14d]︂ 
+
+≤ 1600 + 1600 = 1300 .
+
+B.3. Stability of Task Success 
+
+We now establish bounds on the task objective under the good estimation event. We record a direct consequence of the Lipschitz property of the oracle machine. 
+
+Fact 1. Let M be K-Lipschitz oracle machine and denote Pr [MO(x) = 1] = α⋆. Suppose that any non-aborting simulation of M which, at every history h, replaces the reference transition probability p(h) by a possibly randomized, history-dependent probability ˜p(h) satisfying 
+
+| ˜p(h) − p(h)| ≤ 1
+
+d
+
+has acceptance probability within K/d of α⋆.
+
+Lemma 4. Let M be K-Lipschitz oracle machine and denote Pr [MO(x) = 1] = α⋆. Fix a strategy σA with perturbation magnitude ∆ ≤ 34d . Then, on the protocol of Figure 2, 
+
+Pr [V → 1] ≤ α⋆ + Ld + 1300 .
+
+If, in addition, for value δ ≥ 0, {E , ∆ = δ} implies that the protocol does not abort, then 
+
+|Pr [V → 1 | E , ∆ = δ] − α⋆| ≤ Ld + 1300 .
+
+Proof. Construct a simulation S of the protocol of Figure 2 that follows the reporting strategy σA but ignores all abort instructions and continues to the terminal machine output. Extend σA to S on histories that would occur only after an abort. 
+
+> 15 When Honesty is Not Enough in AI Debate
+
+At each round, let ˆpt be the report proposed by this simulation. Instead of using ˆpt directly, use its projection ˜pt onto the interval [︂ 
+
+max {︂ 0, pt − 1
+
+d}︂ , min {︂ 1, pt + 1
+
+d}︂]︂ .
+
+By construction, 
+
+| ˜pt − pt| ≤ 1
+
+d
+
+at every history, including histories on which estimation fails. Consequently, if ˜X denotes the terminal output of S, Fact 1 gives ⃒⃒ 
+
+Pr [ ˜X = 1] − α⋆⃒⃒ ≤ Kd . (5) Couple S and the actual protocol using the same random samples and transition randomness for as long as their executions coincide. On E, the perturbation bound implies 
+
+| ˆpt − pt| ≤ | ˆpt − ¯pt| + | ¯pt − pt| < 34d + 14d = 1
+
+d .
+
+Thus, the projection does not change any report along the actual execution on E. The two simulations therefore coincide until the protocol aborts or terminates. On E , if the protocol accepts, it cannot have aborted, since, by (2), every abort on E results in rejection. Its entire computation consequently agrees with the auxiliary simulation, which also outputs 1. Hence, 
+
+{V → 1} ∩ E ⊆ { ˜X = 1}.
+
+Therefore, 
+
+Pr [V → 1] ≤ Pr [V → 1, E ] + Pr [¬E ]
+
+≤ Pr [ ˜X = 1] + 1300 
+
+≤ α⋆ + Kd + 1300 .
+
+If {E , ∆} also implies survival, then the two outputs agree throughout E. Then, for δ ≥ 0, where 
+
+{E , ∆ = δ} ⊆ K ,
+
+Pr [V → 1 | E , ∆ = δ] = Pr [ ˜X = 1 | E , ∆ = δ],
+
+and hence ⃒⃒ 
+
+Pr [V → 1 | E , ∆ = δ] − Pr [ ˜X = 1]⃒⃒ ≤ Pr [¬E ]
+
+Combining this inequality with (5) gives 
+
+|Pr [V → 1 | E , ∆ = δ] − α⋆| ≤ Ld + 1300 ,
+
+as claimed. 
+
+> 16 When Honesty is Not Enough in AI Debate
+
+B.4. Non-abort survival 
+
+We move to bounding the task objective for general perturbations. By (4), it suffices to provide an upper bound on Pr [K | E ]. We will require the following result. Let W1, . . . , Wn be independent, mean-zero random variables with finite third absolute moments and Fstd denote the cumulative distribution function of the Normal distribution. Writing 
+
+Sn =
+
+> n
+
+∑︁ 
+
+> i=1
+
+Wi, σ2 =
+
+> n
+
+∑︁ 
+
+> i=1
+
+E[W2 
+
+> i
+
+] > 0, ρ =∑︀  
+
+> ni=1
+
+E|Wi|3
+
+σ3 ,
+
+the Berry-Esseen theorem states the following. 
+
+Lemma 5. For constant CBE = 0.56 ,
+
+sup 
+
+> x∈R
+
+⃒⃒⃒ Pr [Sn ≤ x] − Fstd (︁ x
+
+σ)︁⃒⃒⃒ ≤ CBE · ρ.
+
+We now establish some useful notation. Fix a perturbation magnitude ∆ ≥ 0. All probabilities in this section refer to this fixed perturbation. Recall that the report at round t is 
+
+ˆpt = clip ( ¯pt + Q∆),
+
+and the cross-examiner aborts when 
+
+| ˆpt − ˆqt| ≥ τ = 12d .
+
+Let Kt denote the event that no cross-examination abort occurs during the first t rounds, with K0 = Ω,and write K = KT. Define the estimation-noise difference Zt = ¯pt − ˆqt. In the absence of clipping, the discrepancy equals Q∆ + Zt. With clipping, however, this identity need not hold. Throughout, assume that Pr [E ] > 0. 
+
+B.4.1. One-Round Gaussian Approximation 
+
+We first condition only on the past, rather than on the global event E. Throughout we assume that 
+
+pt ∈ (0.01, 0.99 ). Under this assumption, the event E, and ∆ < 1/ d, no clipping occurs under the choice of d = ⌈150 K⌉ and K ≥ 1. For any surviving history h, define 
+
+rt(∆, h) = Pr [| ˆpt − ˆqt| < τ | K t−1, ht−1 = h] .
+
+We assume that, conditional on this history and either value of Q having positive conditional probability, the fresh samples 
+
+Xt,1 , . . . , Xt,R, Yt,1 , . . . , Yt,R
+
+are mutually independent Bernoulli random variables with common mean pt = pt(h), and that 
+
+¯pt = 1
+
+R
+
+> R
+
+∑︁ 
+
+> i=1
+
+Xt,i, ˆqt = 1
+
+R
+
+> R
+
+∑︁ 
+
+> i=1
+
+Yt,i.
+
+In particular, at a fixed history, this fresh-sample law is the same for either value of Q. Define the conditional probability of survival as 
+
+r0 
+
+> t
+
+(∆, h) = Pr [|Q∆ + Zt| < τ | K t−1, ht−1 = h] .
+
+> 17 When Honesty is Not Enough in AI Debate
+
+For pt ∈ (0.01, 0.99 ), define σt =√︀ 2pt(1 − pt)/R and 
+
+gt(∆) = Pr [|∆ + σtz| < τ],
+
+where z ∼ N(0, 1 ).
+
+Lemma 6. Assume pt ∈ (0.01, 0.99 ) and that no clipping occurs for all configurations of machine input 
+
+M, then ⃒⃒ 
+
+r0 
+
+> t
+
+(∆, h) − gt(∆)⃒⃒ ≤ 1/300. 
+
+Proof. Fix a surviving history h and a value of Q with positive conditional probability. Under this conditioning, 
+
+Zt = 1
+
+R
+
+> R
+
+∑︁ 
+
+> i=1
+
+(Xt,i − pt) − 1
+
+R
+
+> R
+
+∑︁ 
+
+> i=1
+
+(Yt,i − pt).
+
+The summands are independent and centered, and 
+
+Var (Zt) = 2pt(1 − pt)
+
+R = σ2 
+
+> t
+
+.
+
+For a Bernoulli random variable X with mean pt,
+
+E[|X − pt|3] = pt(1 − pt)3 + ( 1 − pt)p3
+
+> t
+
+= pt(1 − pt)[︀ p2 
+
+> t
+
++ ( 1 − pt)2]︀ .
+
+Therefore, the standardized sum of third absolute moments is 
+
+ρt,R = 2R · R−3 · pt(1 − pt)[︀ p2 
+
+> t
+
++ ( 1 − pt)2]︀ 
+
+σ3
+
+> t
+
+= 1
+
+√2Rp2 
+
+> t
+
++ ( 1 − pt)2√︀ 
+
+pt(1 − pt) .
+
+Lemma 5 consequently gives, uniformly over x,⃒⃒⃒⃒ 
+
+Pr [Zt ≤ x | K t−1, ht−1 = h, Q] − Fstd (︂ x
+
+σt)︂⃒⃒⃒⃒ ≤ CBE 
+
+√2Rp2 
+
+> t
+
++ ( 1 − pt)2√︀ 
+
+pt(1 − pt) ≤ 1600 ,
+
+by the choice of R and assumption on pt.For Q = + 1, the unclipped survival event is 
+
+−τ − ∆ < Zt < τ − ∆.
+
+Applying the distribution-function bound at the interval endpoints yields an error of at most 2/600 
+
+relative to gt(∆). The conditional law of Zt is symmetric about zero, since it is the difference of two independent, identically distributed sample means. Thus the same interval probability and bound hold for Q = −1. Averaging over the conditional distribution of Q proves the result. Now we can provide the final conditional survival bound. 
+
+> 18 When Honesty is Not Enough in AI Debate
+
+Lemma 7. Fix a perturbation ∆ and a round t ∈ { 1, . . . , T}. Then 
+
+Pr [K | E ] ≤ min {︂ 1, E[gt(∆) | K t−1] + 1100 }︂ .
+
+Proof. By Lemma 6, for every surviving history h, the one-round survival probability satisfies 
+
+Pr [Kt | K t−1] ≤ gt(∆) + 1300 .
+
+Define Gt(∆) = E[gt(∆) | K t−1] . Averaging the one-round bound over histories conditional on Kt−1
+
+gives 
+
+Pr [Kt | K t−1] = E[Pr [Kt | K t−1, ht−1] | K t−1]
+
+≤ E[︂ gt(∆) + 1300 ⃒⃒⃒⃒ Kt−1]︂ 
+
+= Gt(∆) + 1300 .
+
+Since K ⊆ K t ⊆ K t−1, it follows that 
+
+Pr [K] ≤ Pr [Kt]= Pr [Kt−1] Pr [Kt | K t−1]
+
+≤ Gt(∆) + 1300 .
+
+The law of total probability yields 
+
+Pr [K | E ] − Pr [K] = Pr [¬E ] ( Pr [K | E ] − Pr [K | ¬E ]) 
+
+≤ Pr [¬E ]
+
+≤ 1150 ,
+
+By Lemma 3. Consequently, 
+
+Pr [K | E ] ≤ Gt(∆) + 1300 + 1150 = Gt(∆) + 1100 .
+
+Combining this with the trivial bound Pr [K | E ] ≤ 1 proves the claim. 
+
+B.5. Proof Statements 
+
+Theorem 1 follows from (3) with the application of Lemmas 3 and 4 and the observations that 
+
+K/d ≤ 1/150 and {E , ∆ < 1/ (16 d)} ⊆ K .Theorem 2 follows from (4) and the application of Lemmas 3 and 7 for t = 1.
+
+## C. Proof of Theorem 3 
+
+We begin with setting notation. Fix X = x and let y = ( y1, . . . , yT ) be the random variable representing the transcript of M(x) and a = ( a1, . . . , aT ) denote the realized transcript. Unless stated otherwise, all 
+
+> 19 When Honesty is Not Enough in AI Debate
+
+probabilities, expectations, and information quantities are conditional on X = x. Write hx = H(Q |
+
+X = x). The view of V is defined as 
+
+ΠV (h(X, σ)) = {︃ (a1, . . . , aT ), on event K,
+
+(a1, . . . , at, ˆ pt, {O (aI(t))}), on event ¬K t | K t−1.
+
+These transcript types are distinguishable, so the abort indicator and, upon abort, its round are recoverable from ΠV . Notably, V does not observe the internal samples of A or B directly. For some 
+
+0 < β < 1/2 we assume that Pr [Q = 1 | X = x] ∈ [β, 1 − β]. Thus, there is initial uncertainty in the hidden hypothesis. 
+
+C.1. Belief updating and confidence truncation 
+
+Define the hidden hypothesis posterior as 
+
+μt = Pr (Q = 1 | ht−1, Kt−1).
+
+These are exact Bayesian posteriors for the observed non-abort channel. At each entering history ht−1,the expected posterior divergence satisfies the identity 
+
+E[︀ DKL (︀ Bern (μt)∥Bern (μt−1))︀⃒⃒ ht−1, Kt−1]︀ = I(Q; yt | ht−1, Kt−1). (6) Thus, the expected information gained in an update cannot exceed the remaining uncertainty. More generally, any valid upper bound on the channel’s mutual information also bounds the expected posterior divergence in (6). This identity follows from Bayes’ rule and is consistent with sequential hypothesis testing, where posterior log-odds accumulate observation log-likelihood ratios. In our latent disclosure accounting, expected KL increments accumulate according to the mutual-information chain rule and their total is bounded by the initial entropy hx. We assume that all information used in updating is included in the observed history. 
+
+C.2. Single round disclosure 
+
+We begin by bounding the amount of information disclosed in a single round of debate. We look at the instances of abort and non-abort separately. For probability laws P and Q, with divergence measured in bits, Pinsker’s inequality states that 
+
+DKL (P∥Q) ≥ 2ln 2 ∥P − Q∥2
+
+> TV
+
+. (7) 
+
+Lemma 8. For μt ∈ (β, 1 − β),
+
+I(Q; yt | ht−1, Kt−1) ≥ 2ln 2 μt(1 − μt)∆2 ≥ 2β(1 − β)
+
+ln 2 ∆2.
+
+Proof. Define the hypothesis conditional sampling probabilities as 
+
+p± = Pr [yt | Q ± 1, ht−1, Kt−1]
+
+and the mixture p = μt p+ + ( 1 − μt)p−. Since a mixture of Bernoulli laws is Bernoulli, the conditional mutual information is 
+
+I(Q; yt | ht−1, Kt−1) = μt DKL (Bern (p+)∥Bern ( ¯p)) + ( 1 − μt)DKL (Bern (p−)∥Bern ( ¯p)) .
+
+> 20 When Honesty is Not Enough in AI Debate
+
+For Bernoulli laws, total variation distance equals the absolute difference of their parameters. Thus, (7) gives 
+
+I(Q; yt | ht−1, Kt−1) ≥ 2ln 2 [︀ μt(p+ − ¯p)2 + ( 1 − μt)( p− − ¯p)2]︀ 
+
+= 2ln 2 μt(1 − μt)( p+ − p−)2. (8) Let ν denote the distribution of ¯pt. As the distribution of ¯pt is independent of Q,
+
+p+ − p− =∫︁ [0,1 ]
+
+[clip (s + ∆) − clip (s − ∆)] , ν(ds ).
+
+For every s ∈ [0, 1 ] and 0 < ∆ ≤ 12 ,
+
+clip (s + ∆) − clip (s − ∆) ≥ ∆.
+
+Hence p+ − p− ≥ ∆. Substitution into (8), followed by μ(1 − μ) ≥ β(1 − β), proves the stated result. Averaging over the entering histories gives the conditional mutual-information bound. Disclosure during an abort is given by the following. 
+
+Lemma 9. Suppose that 2R∆ /∈ Z. Then, the report ˆpt fully determines Q. In other words, 
+
+H(Q | ˆpt) = 0. 
+
+Proof. Recall that the public report upon abort is 
+
+ˆpt = Kt
+
+R + Q∆, Kt ∈ { 0, . . . , R},
+
+Under the two hypotheses, the report belongs respectively to the grids 
+
+G+ ={︂ kR + ∆ : 0 ≤ k ≤ R}︂ , G− ={︂ kR − ∆ : 0 ≤ k ≤ R}︂ .
+
+If these grids intersect, there exist integers k, ℓ such that 
+
+kR + ∆ = ℓ
+
+R − ∆,
+
+which implies 
+
+2R∆ = ℓ − k ∈ Z.
+
+The assumed nonintegrality therefore makes the grids disjoint. Membership in the observed grid determines Q. It follows that H(Q | ˆpt) = 0.
+
+> 21 When Honesty is Not Enough in AI Debate
+
+C.3. Full debate disclosure 
+
+We are now in a position to proceed with the main proof of information disclosure. Let h2 denote the binary entropy function. 
+
+Theorem 5. For β ∈ (0, 1/2 ) and μ0 ∈ (β, 1 − β), let kβ = 2β(1−β) 
+
+> ln 2
+
+. Then 
+
+I(Q; ΠV (h) | X = x) ≥ hx − h2(β)
+
+2 min {︃ 1, kβ∆2T
+
+1 − h2(β)}︃ .
+
+Proof. Throughout the proof, condition on X = x and measure entropy in bits. Stop observing the protocol at the first of the following events: 1. an abort; 2. the posterior leaves (β, 1 − β);3. completion of round T.Denote the resulting stopped transcript by u ⊆ y. On history h, since u is determined by ΠV (h),the data-processing inequality gives I(Q; ΠV (h) | X = x) ≥ I(Q; u | X = x). We bound the latter quantity. Fix t and an active pre-round history ht−1, and let At = ¬K t | K t−1 indicate an abort in the current round. Let u t be the single bit appearing at round t.Let N ≤ T be the number of rounds observed in u. Padding the transcript after stopping with a fixed symbol, the conditional chain rule gives 
+
+I(Q; u) = 
+
+> T
+
+∑︁ 
+
+> t=1
+
+I(Q; ut|ht−1, Kt−1)=
+
+> T
+
+∑︁ 
+
+> t=1
+
+I(Q; yt|ht−1, Kt−1) · Pr [N ≥ t]
+
+≥ kβ∆2
+
+> T
+
+∑︁ 
+
+> t=1
+
+Pr (N ≥ t)= kβ∆2 E[N],
+
+where the inequality follows from Lemma 8. Let U be the event that, after T rounds, the protocol has neither aborted nor reached the confidence threshold, and set q = Pr (U ). On U , all T rounds are observed. Hence E[N] ≥ Tq , and therefore 
+
+I(Q; u | U ) ≥ kβ∆2Tq . (9) Outside U , by Lemma 9, on abort posterior entropy is zero by full disclosure and on reaching the confidence threshold it is at most h2(β). Averaging over stopped transcripts gives 
+
+H(Q | u) ≤ h2(β)( 1 − q) + q
+
+= h2(β) + ( 1 − h2(β)) q.
+
+Since 
+
+I(Q; u) = hx − H(Q | u),
+
+> 22 When Honesty is Not Enough in AI Debate
+
+we obtain 
+
+I(Q; u) ≥ hx − h2(β) − (1 − h2(β)) q. (10) Bringing everything together, set D = hx − h2(β), and c = 1 − h2(β). The assumption μ0 ∈ (β, 1 − β)
+
+ensures that D > 0. Inequalities (9) and (10) imply that 
+
+I(Q; u) ≥ max {︀ kβ∆2Tq , D − cq }︀ 
+
+Multiplying the first inequality by c and the second by kβ∆2T, then adding, eliminates q. In other words, 
+
+cI (Q; u) + kβ∆2TI (Q; u) ≥ ck β∆2Tq + kβ∆2T(D − cq )= kβ∆2TD .
+
+Thus, 
+
+(c + kβ∆2T)I(Q; u) ≥ kβ∆2TD 
+
+∴ I(Q; u) ≥ D · kβ∆2
+
+c + kβ∆2
+
+Finally, for every u ≥ 0,
+
+u
+
+1 + u ≥ 12 min {1, u}.
+
+Taking 
+
+u = kβ∆2Tc = kβ∆2T
+
+1 − h2(β)
+
+and applying data processing yields 
+
+I(Q; ΠV (h) | X = x) ≥ hx − h2(β)
+
+2 min {︃ 1, kβ∆2T
+
+1 − h2(β)}︃ .
+
+In conclusion, Theorem 3 is a corollary of Theorem 5 for a fixed choice of β.
+
+## D. Proof of Theorem 4 
+
+D.1. Concentration Bounds 
+
+We require the conditional form of Hoeffding’s Lemma. 
+
+Lemma 10 (Hoeffding’s Lemma) . Let G be a sigma-algebra, and let Y be a random variable satisfying 
+
+a ≤ Y ≤ b almost surely, where a and b are deterministic constants. If E[Y | G ] = 0, then, for every real 
+
+λ,
+
+E [exp (λY)|G ] ≤ exp (︂ λ2(b − a)2
+
+8)︂ 
+
+almost surely. 
+
+> 23 When Honesty is Not Enough in AI Debate
+
+Debate protocol with error and drift aborts 
+
+All parties have access to O, an input x ∈ { 0, 1 }n, and a K-Lipschitz probabilistic oracle machine M. A claims that 
+
+Pr [M(x) = 1] ≥ 23 , and the cross-examiner B disputes this claim. Let W ∈ [T] be the trailing-window length used by an abort drift challenge. 1. Let y = ( y1, . . . , yT ) be the random variable representing the transcript of M(x) and set d = ⌈150 K⌉.
+
+2. For debate round t ∈ [T]:(a)-(d) Identical to the equivalent steps in Figure 2. (e) B can abort error if (it believes) A has deviated on the most recent update or abort drift if (it believes) A has deviated cumulatively over the most recent W updates and t ≥ W.3. If abort error was issued in round t:(a) V draws 192 d2 log 100 independent samples of y t, conditioned on y I(t) = aI(t), and uses their sample mean to obtain an estimate ˆpO 
+
+> t
+
+of Pr [︁ yt = 1⃒⃒⃒ yI(t) = aI(t)]︁ 
+
+(b) V checks whether ⃒⃒ ˆpO 
+
+> t
+
+− ˆpt⃒⃒ ≥ 14d . If the inequality holds, V outputs 0; otherwise, V outputs 1.4. If abort drift was issued in round t:(a) For each s ∈ J = {t − W + 1, . . . , t}, V draws 192 d2 log (100 W) independent samples of y s, conditioned on yI(s) = aI(s), and uses the sample mean to obtain an estimate ˆpO 
+
+> s
+
+of Pr [︁ ys = 1⃒⃒⃒ yI(s) = aI(s)]︁ 
+
+(b) V checks whether ⃒⃒⃒∑︀ s∈J(︀ ˆpO 
+
+> s
+
+− ˆps)︀⃒⃒⃒ ≥ 
+
+> √N
+> 4d
+
+. If the inequality holds, V outputs 0; otherwise, V outputs 1.5. If the protocol was not aborted, then the verifier outputs aT .
+
+Figure 3: Debate protocol for a stochastic oracle with error and drift aborts. The following bounds will be used to bound “good” sampling behavior during protocol execution. 
+
+Lemma 11. Let (Ft)t≥0 be a filtration. For each round t, let pt ∈ [0, 1 ] be Ft−1-measurable. Conditional on Ft−1, suppose Xt,1 , . . . , Xt,R are independent Bernoulli random variables with common mean pt. Define the Ft-measurable quantities ˆpt = R−1∑︀ Ri=1 Xt,i, and Dt = ˆpt − pt. Then, almost surely, the following bounds hold. 1. For every real λ, E [exp (λDt)|F t−1] ≤ exp (︁ λ2
+
+> 8R
+
+)︁ .
+
+2. For every u > 0, Pr [|Dt| ≥ u|F t−1] ≤ 2 exp (−2Ru 2).
+
+3. For any deterministic integers 0 ≤ a < b and every u > 0,
+
+Pr [︃⃒⃒⃒⃒⃒ 
+
+> b
+
+∑︁ 
+
+> s=a+1
+
+Ds⃒⃒⃒⃒⃒ ≥ u⃒⃒⃒⃒⃒ Fa]︃ ≤ 2 exp (︂ − 2Ru 2
+
+b − a)︂ .
+
+Proof. Conditional on Ft−1, each variable Xt,i −pt 
+
+> R
+
+has mean zero and lies in the interval 
+
+[−pt/R, 1 − pt/R] , whose length is 1/ R. By Lemma 10, 
+
+E[︂ exp (︂ λ Xt,i − pt
+
+R)︂⃒⃒⃒⃒ Ft−1]︂ ≤ exp (︂ λ2
+
+8R2)︂ .
+
+Conditional independence of the R samples therefore yields 
+
+E [exp (λDt)|F t−1] = 
+
+> R
+
+∏︁ 
+
+> i=1
+
+E[︂ exp (︂ λ Xt,i − pt
+
+R)︂⃒⃒⃒⃒ Ft−1]︂ 
+
+≤ exp (︂ λ2
+
+8R)︂ . (11) 
+
+> 24 When Honesty is Not Enough in AI Debate
+
+This proves the first assertion. For λ > 0, the Markov inequality gives 
+
+Pr [Dt ≥ u|F t−1] ≤ exp (︂ −λu + λ2
+
+8R)︂ .
+
+Choosing λ = 4Ru gives the upper-tail bound 
+
+Pr [Dt ≥ u|F t−1] ≤ exp (−2Ru 2).
+
+Applying the same argument to −Dt and adding the two tail bounds proves the second assertion. For the third assertion, write 
+
+Sa,b =
+
+> b
+
+∑︁ 
+
+> s=a+1
+
+Ds.
+
+Since Sa,b−1 is Fb−1-measurable, (11) implies 
+
+E [exp (λSa,b)|F a] = E [exp (λSa,b−1)E [exp (λDb)|F b−1]|F a]
+
+≤ exp (︂ λ2
+
+8R)︂ E [exp (λSa,b−1)|F a] .
+
+Iterating over the b − a rounds gives 
+
+E [exp (λSa,b)|F a] ≤ exp (︂ (b − a)λ2
+
+8R)︂ .
+
+The Markov inequality at λ = 4Ru b−a , gives 
+
+Pr [Sa,b ≥ u|F a] ≤ exp (︂ − 2Ru 2
+
+b − a)︂ .
+
+Applying the same argument to −Sa,b and adding the two tails completes the proof. 
+
+D.2. Protocol Completeness 
+
+Given the honest behaviour by both parties, we assume that the transcript update is a fresh Bernoulli draw with parameter ˆpt, and that pt = Pr [yt | yI(t)= aI(s) is the corresponding true transition probability of M. The protocol uses full windows Jt = {t − W + 1, . . . , t}, with drift challenges permitted only for 
+
+t ≥ W. The verifier’s drift statistic must sum the s-indexed discrepancies. That that, for probabilistic Turing machine M, the standard bounded-error guarantee is Pr [MO (x) = 1] ≥ 23 .
+
+Lemma 12 (Task correctness) . Let M be a K-Lipschitz probabilistic Turing machine that decides LR ≥ 192 d2 log (100 T), For any x ∈ L, any fixed window length W ∈ [T], honest strategy σA ∼ (R, 0 ),and arbitrary cross-examiner strategy σB,
+
+Pr [V → 1] ≥ 35 .
+
+Proof. Simulate an auxiliary execution S that generates all T transcript updates using the reporting strategy σA, ignoring any challenge for purposes of continuing the transcript. Let ys denote the random transcript of the simulated execution and before each round t, let hs 
+
+> t−1
+
+contain the complete history 
+
+> 25 When Honesty is Not Enough in AI Debate
+
+on the simulated execution. Conditional on hs
+
+> t−1
+
+, the honest reporter draws R fresh, independent Bernoulli samples Xt,1 , . . . , Xt,R, each with mean pt, and reports 
+
+ˆps 
+
+> t
+
+= 1
+
+R
+
+> R
+
+∑︁ 
+
+> j=1
+
+Xt,j.
+
+The next transcript bit y s 
+
+> t
+
+is generated using independent randomness with success probability ˆps 
+
+> t
+
+.Consequently, 
+
+Pr [ys 
+
+> t
+
+= 1 | hs
+
+> t−1
+
+] = E[ ˆps 
+
+> t
+
+| hs
+
+> t−1
+
+] = pt.
+
+Thus, the simulated transcript has exactly the transition probabilities of the true execution of MO (x).If y s 
+
+> T
+
+denotes its terminal output, then 
+
+Pr [ys 
+
+> T
+
+= 1] = Pr [MO (x) = 1] ≥ 23 .
+
+Couple the actual protocol to this simulated execution using the same samples and transcript-update randomness until the actual protocol stops. If no challenge occurs, the actual output equals y sim  
+
+> T
+
+= asim  
+
+> T
+
+.The simulated continuation after a challenge is used only for analysis and is generated independently of the subsequent audit randomness of V.Define the reporting error Dsim  
+
+> t
+
+= ˆpsim  
+
+> t
+
+− pt. For each round t, let E (1) 
+
+> t
+
+be the event |Dsim  
+
+> t
+
+| < 18d . For each t ≥ W, let E (2) 
+
+> t
+
+be the event ⃒⃒⃒⃒⃒⃒∑︁ 
+
+> s∈Jt
+
+Dsim 
+
+> s
+
+⃒⃒⃒⃒⃒⃒ <
+
+√W
+
+8d .
+
+Let Gsim be the intersection of all these individual and window events in the simulated execution. By Lemma 11, for every round t,
+
+Pr [¬E (1) 
+
+> t
+
+| hsim 
+
+> t−1
+
+] = Pr [︂ |Dsim  
+
+> t
+
+| ≥ 18d⃒⃒⃒⃒ hsim 
+
+> t−1
+
+]︂ ≤ 2 exp (︂ − R
+
+32 d2)︂ .
+
+Similarly, for window errors, Lemma 11 gives, for every u > 0,
+
+Pr 
+
+⎡⎣⃒⃒⃒⃒⃒⃒∑︁ 
+
+> s∈Jt
+
+Dsim 
+
+> s
+
+⃒⃒⃒⃒⃒⃒ ≥ u | hsim 
+
+> t−W
+
+⎤⎦ ≤ 2 exp (︂ − 2Ru 2
+
+W)︂ .
+
+Therefore, it follows that 
+
+Pr [¬E (2) 
+
+> t
+
+| hsim  
+
+> t−W
+
+] ≤ 2 exp (︂ − R
+
+32 d2)︂ .
+
+There are T individual events and at most T window events. Therefore, by a union bound, 
+
+Pr [¬G sim ] ≤ 4T exp (︂ − R
+
+32 d2)︂ 
+
+≤ 4T(100 T)−6. (12) 
+
+> 26 When Honesty is Not Enough in AI Debate
+
+Let A(e) 
+
+> t
+
+denote the event that abort error occurs at time t. Condition on a complete pre-audit history 
+
+hsim at which A(e) 
+
+> t
+
+occurs. This fixes pt and ˆpt. Suppose Gsim occurs. If V rejects, then 
+
+| ˆpO 
+
+> t
+
+− ˆpt| ≥ 14d ,
+
+so the triangle inequality implies 
+
+| ˆpO 
+
+> t
+
+− pt| > 18d .
+
+V uses r(e) =⌈︀ 192 d2 log 100 ⌉︀ fresh, independent samples. Therefore, by Lemma 11, 
+
+Pr [V → 0 | hsim , Gsim , A(e) 
+
+> t
+
+] ≤ 2 exp (︃ − r(e)
+
+32 d2)︃ ≤ 2 · 100 −6, (13) under the protocol execution couple to the simulated execution. Let A(d) 
+
+> t
+
+denote the event that abort drift occurs at time t ≥ W. As above, now condition on a complete pre-audit history hsim at which A(d) 
+
+> t
+
+occurs. Suppose Gsim occurs. For each s ∈ Jt, V draws 
+
+r(d) =⌈︀ 192 d2 log (100 W)⌉︀ fresh samples, independently across all audited rounds and sample indices. Define 
+
+SV =∑︁ 
+
+> s∈Jt
+
+( ˆpO 
+
+> s
+
+− ps).
+
+Conditioned on hsim , SV is a sum of Wr (d) independent centered variables, each having range length 
+
+1/ r(d). Hence, by Lemma 11 
+
+Pr [︁ |SV | ≥ u⃒⃒⃒ hsim , Gsim , A(d)
+
+> t
+
+]︁ ≤ 2 exp (︃ − 2r(d)u2
+
+W)︃ .
+
+If |SV | < √W/8 d, the triangle inequality gives ⃒⃒⃒⃒⃒⃒∑︁ 
+
+> s∈Jt
+
+( ˆpO 
+
+> s
+
+− ˆps)⃒⃒⃒⃒⃒⃒ <
+
+√W
+
+4d .
+
+Therefore, V accepts the challenge audit. Consequently, 
+
+Pr [V → 0 | hsim , Gsim , A(d) 
+
+> t
+
+] ≤ 2 exp (︃ − r(d)
+
+32 d2)︃ ≤ 2(100 W)−6 ≤ 2 · 100 −6. (14) Let J be the event that a challenge occurs and the verifier outputs 0. By (13) and (14), 
+
+Pr [J ∩ G ] ≤∑︁ 
+
+> t,c
+
+Pr [A(c) 
+
+> t
+
+∩ G sim ] Pr [V → 0 | A (c) 
+
+> t
+
+∩ G sim ]
+
+≤ 2 · 100 −6∑︁ 
+
+> t,c
+
+Pr [A(c) 
+
+> t
+
+∩ G sim ]
+
+≤ 2 · 100 −6. (15) 
+
+> 27 When Honesty is Not Enough in AI Debate
+
+Conditional on each pre-audit history, the audit randomness is independent of the auxiliary continuation. Consequently, further conditioning on Gsim does not change the conditional law of the audit samples. Under the coupling, if y sim  
+
+> T
+
+= 1 and the actual protocol outputs 0, then a challenge must have occurred and been rejected. Indeed, without a challenge, the actual output equals y sim  
+
+> T
+
+= 1. Thus, by (12) and (15), 
+
+Pr [V → 1] ≥ Pr [ysim  
+
+> T
+
+= 1] − Pr [J ]
+
+≥ Pr [ysim  
+
+> T
+
+= 1] − Pr [¬G sim ] − Pr [J ∩ G sim ]
+
+≥ 23 − 4T(100 T)−6 − 2 · 100 −6 > 35
+
+The argument holds for every legal cross-examiner strategy σB, proving the lemma. 
+
+D.3. Smaller Admissible Region 
+
+For the second part of Theorem 4 we require the following. 
+
+Lemma 13. Let L be any language decided by a Turing machine M and W ∈ [T] be the sliding-window parameter. For R ≥ 192 d2 log (100 T), ∆ ≥ 1/ (d√W), τ1 = 1/ (2d), and τ2 = √W/(2d), let 
+
+σA ∼ (R, ∆), and σB ∼ (R, τ1, τ2).
+
+ΦA(x, σA ◦ σB) = Pr [V ← 1] < 1150 .
+
+Revised proof. Fix Q ∈ {− 1, 1 }. All probabilities below are conditional on this fixed value of Q.Construct an simulated execution S that continues for T rounds according to strategies σA and σB,ignoring challenges. Couple the actual protocol to this simulated execution until its first challenge. The simulated continuation uses randomness independent of the V’s fresh audit randomness. At round t, let pt be the true oracle probability at the current state hsim . Let ¯pt and ˆqt be A’s and B’s unperturbed sample means, each based on R fresh Bern (pt) samples. Define DA(t)sim = ¯psim  
+
+> t
+
+− pt,
+
+DB(t)sim = ˆqsim  
+
+> t
+
+− pt, SA(t) = ∑︀ s∈Jt DA(s)sim , and SB(t) = ∑︀ s∈Jt DB(s)sim . Note SA(t) is defined using the unperturbed estimate ¯psim  
+
+> s
+
+, not the perturbed report. Let GAB be the event that, for both i ∈ { A, B}, |Di(t)sim | < 18d for every , for every t ∈ { 1, . . . , T}, and 
+
+|Si(t)| < √W/8 d for every t ∈ { W, . . . , T}
+
+Conditional on the pre-round history hsim  
+
+> t−1
+
+and Q, each sample mean is unbiased for pt. By Lemma11, for each i ∈ { A, B},
+
+Pr [︂ |Di(t)sim | ≥ 18d⃒⃒⃒⃒ Q, hsim 
+
+> t−1
+
+]︂ ≤ 2 exp (︂ − R
+
+32 d2)︂ ,
+
+and 
+
+Pr [︃ |Si(t)| ≥ √W
+
+8d⃒⃒⃒⃒⃒ Q, hsim 
+
+> t−W
+
+]︃ ≤ 2 exp (︂ − R
+
+32 d2)︂ .
+
+There are at most 4T events in the definition of GAB . Consequently, 
+
+Pr [GcAB | Q] ≤ 8T exp (︂ − R
+
+32 d2)︂ 
+
+≤ 8T(100 T)−6. (16) 
+
+> 28 When Honesty is Not Enough in AI Debate
+
+On GAB , the assumed absence of clipping gives ˆpsim  
+
+> t
+
+= ¯psim  
+
+> t
+
++ Q∆. Under the coupled execution. if an 
+
+abort error challenge has not already occurred, the execution reaches the first full window JW . At that window, for ∆ ≥ 1/ (d√W),⃒⃒⃒⃒⃒⃒∑︁ 
+
+> s∈JW
+
+( ˆps − ˆqs)⃒⃒⃒⃒⃒⃒ = |QW ∆ + SA(W) − SB(W)|≥ W∆ − | SA(W)| − | SB(W)|
+
+>
+
+√Wd − 2√W
+
+8d
+
+= 3√W
+
+4d
+
+>
+
+√W
+
+2d . (17) Thus B issues a challenge no later than round W. It remains to show that either possible challenge type leads to output 0, except with uniformly small audit probability. Let A(e) 
+
+> t
+
+denote the event that abort error occurs at time t. Condition on a complete pre-audit history 
+
+hsim at which A(e) 
+
+> t
+
+occurs. This fixes ¯psim  
+
+> t
+
+, ˆ qsim  
+
+> t
+
+, and pt. By the challenge rule, 
+
+| ˆpsim  
+
+> t
+
+− ˆqsim  
+
+> t
+
+| > 12d .
+
+On events GAB and | ˆqt − pt| < 1/ (8d) the following holds 
+
+| ˆpsim  
+
+> t
+
+− pt| ≥ | ˆpsim  
+
+> t
+
+− ˆqsim  
+
+> t
+
+| − | ˆqsim  
+
+> t
+
+− pt| > 12d − 18d = 38d .
+
+If the V’s fresh estimate satisfies | ˆpO 
+
+> t
+
+− pt| < 1/ (8d), then 
+
+| ˆpO 
+
+> t
+
+− ˆpsim  
+
+> t
+
+| ≥ | ˆpsim  
+
+> t
+
+− pt| − | ˆpO 
+
+> t
+
+− pt|
+
+> 38d − 18d
+
+= 14d .
+
+Hence, V outputs 0. It follows that 
+
+Pr [V → 1 | A (e) 
+
+> t
+
+, hsim , GAB ] ≤ Pr [| ˆpO 
+
+> t
+
+− pt| > 1/ (8d)] 
+
+≥ 2 exp (︃ − r(e)
+
+32 d2)︃ ≤ 2 · 100 −6. (18) Similarly, let A(d) 
+
+> t
+
+denote the event that abort drift occurs at time t. Condition on a complete pre-audit history hsim at which A(d) 
+
+> t
+
+occurs. Define 
+
+SV (t) = ∑︁ 
+
+> s∈Jt
+
+(︁ 
+
+ˆpO 
+
+> s
+
+− ps)︁ .
+
+> 29 When Honesty is Not Enough in AI Debate
+
+On GAB and the event |SV (t)| < √W 
+
+> 8d
+
+,⃒⃒⃒⃒⃒⃒∑︁ 
+
+> s∈Jt
+
+( ˆps − ˆpO 
+
+> s
+
+)⃒⃒⃒⃒⃒⃒ = |QW ∆ + SA(t) − SV (t)|≥ W∆ − | SA(t)| − | SV (t)|
+
+>
+
+√Wd −√W
+
+8d −√W
+
+8d
+
+= 3√W
+
+4d
+
+>
+
+√W
+
+4d .
+
+Therefore V again outputs 0 under good sample estimates. Thus, by Lemma 11, 
+
+Pr [V → 1 | A (d) 
+
+> t
+
+, hsim , GAB ] ≤ Pr [︃ |SV (t)| ≥ √W
+
+8d⃒⃒⃒⃒⃒ hsim , Q]︃ 
+
+≤ 2 exp (︃ − r(d)
+
+32 d2)︃ ≤ 2(100 W)−6 ≤ 2 · 100 −6. (19) By (17), on GAB , a challenge necessarily occurs at a time t ≤ W. Its time and type select one audit. That is, they do not create multiple audit-failure penalties. By (18) and (19), 
+
+Pr [V → 1, GAB |Q] = 
+
+> W
+
+∑︁ 
+
+> t=1
+
+∑︁ c
+
+Pr [V → 1 ∩ A (c) 
+
+> t
+
+∩ G AB |Q]=
+
+> W
+
+∑︁ 
+
+> t=1
+
+∑︁ c
+
+Pr [V → 1 | A (c) 
+
+> t
+
+∩ G AB Q] · Pr [A(c) 
+
+> t
+
+∩ G AB | Q]
+
+≤ 2 · 100 −6
+
+> W
+
+∑︁ 
+
+> t=1
+
+∑︁ c
+
+Pr [V → 1 Pr [A(c) 
+
+> t
+
+∩ G AB | Q]
+
+≤ 2 · 100 −6.
+
+Together with (16), 
+
+Pr [V → 1 | Q] ≤ Pr [¬G AB | Q] + Pr [V → 1, GAB | Q]
+
+≤ 8T(100 T)−6 + 2 · 100 −6
+
+< 1150 .
+
+The bound is uniform in Q. Averaging over Q completes the proof.

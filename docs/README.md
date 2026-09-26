@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-25</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-26</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 16 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 7 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>4</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>7</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-25 22:52:28 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-26 21:28:14 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,7 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日筛出 16 篇 AI 安全论文，精读 4 篇，其中多智能体“关机破坏倾向”与“高容量无密钥隐蔽串谋”两篇同获 9.0 分，直指 agent 协作的失控风险。最值得看的方向是：多智能体系统的破坏性行为倾向，以及可躲避检测的隐蔽串谋机制。普通读者可先了解 agent 协作的失效模式，再关注去中心化身份与自愈网络等防护思路。</p>
+<p>今日速读7篇Agentic AI论文，聚焦AI智能体安全与长程任务效率两大痛点。最值得关注的是跨维度威胁分类与评估成熟度综述（7.0分），以及长程智能体集合级删除风险学习（7.0分）。普通读者可优先了解智能体安全风险全景，再关注工具调用边缘案例生成（6.0分）以提升实际部署稳健性。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -78,12 +78,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">4 篇</strong>
+    <strong class="dpr-home-dashboard-count">0 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Shutdown Sabotage Propensities in Multi-Agent Systems">Shutdown Sabotage Propensities in Multi-Agent Systems</span></li><li><span class="dpr-home-dashboard-paper-title" title="Codetta: High-Capacity, Keyless, and Undetectable Multi-Agent Collusion">Codetta: High-Capacity, Keyless, and Undetectable Multi-Agent Collusion</span></li><li><span class="dpr-home-dashboard-paper-title" title="How does Adversarial Influence Scale in Multi-Agent Systems?">How does Adversarial Influence Scale in Multi-Agent Systems?</span></li></ul>
+<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-safety <strong>3</strong></span><span class="dpr-home-dashboard-tag">agent-audit <strong>1</strong></span></div>
+
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -91,12 +91,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">12 篇</strong>
+    <strong class="dpr-home-dashboard-count">7 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="NostrAgent: A Decentralized Identity and Delegation Architecture for Sovereign Agentic Systems">NostrAgent: A Decentralized Identity and Delegation Architecture for Sovereign Agentic Systems</span></li><li><span class="dpr-home-dashboard-paper-title" title="Connecting the Dots in Agentic AI Security: A Cross-Dimensional Threat Taxonomy, Evaluation Maturity, and Open Challenges">Connecting the Dots in Agentic AI Security: A Cross-Dimensional Threat Taxonomy, Evaluation Maturity, and Open Challenges</span></li><li><span class="dpr-home-dashboard-paper-title" title="MeshHeal: Two-Timescale Self-Healing for Gray Failures in Decentralized LLM Agent Networks">MeshHeal: Two-Timescale Self-Healing for Gray Failures in Decentralized LLM Agent Networks</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Connecting the Dots in Agentic AI Security: A Cross-Dimensional Threat Taxonomy, Evaluation Maturity, and Open Challenges">Connecting the Dots in Agentic AI Security: A Cross-Dimensional Threat Taxonomy, Evaluation Maturity, and Open Challenges</span></li><li><span class="dpr-home-dashboard-paper-title" title="DRSR: Learning Set-Level Deletion Risk for Efficient Long-Horizon Agents">DRSR: Learning Set-Level Deletion Risk for Efficient Long-Horizon Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="EDGEGEN: Improving Tool-Calling Agents Beyond Happy Paths with Synthetic Edge Case Generation">EDGEGEN: Improving Tool-Calling Agents Beyond Happy Paths with Synthetic Edge Case Generation</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>7</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>5</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>6</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>1</strong></span></div>
 </section>
 </div>
 

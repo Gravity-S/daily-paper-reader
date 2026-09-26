@@ -1,0 +1,1387 @@
+Title: DRSR: Learning Set-Level Deletion Risk for Efficient Long-Horizon Agents
+
+URL Source: https://arxiv.org/pdf/2609.27276v1
+
+Published Time: Thu, 24 Sep 2026 00:29:46 GMT
+
+Number of Pages: 34
+
+Markdown Content:
+T S I N G S H U R E S E A R C H 
+
+> DRSR / LONG-HORIZON AGENTS
+
+# DRSR: Learning Set-Level Deletion Risk for Efficient Long-Horizon Agents 
+
+Mingxuan Wang 1 Bo Wang 1 Fei Luo 1 Guorun Yao 1 Chao Ning 1
+
+Yinglong Guo 1 Hongyue Chen 1 Yanbiao Ma 2,* Jungong Han 3,* 1TierFlow Team 
+
+> 2
+
+Gaoling School of Artificial Intelligence, Renmin University of China 
+
+> 3
+
+Tsinghua University 
+
+> *
+
+Corresponding authors. ybma1998@ruc.edu.cn 
+
+> A B S T R AC T
+
+Long-horizon language-model agents accumulate reasoning traces, tool exchanges, and observations whose relevance changes with the current decision. Existing compression strategies often score historical units independently, but the safety of deleting several units is generally not determined by their singleton scores: redundant evidence, accumulated small effects, and the information that remains after deletion all matter. We introduce Direct Relational Set-Risk Pruning (DRSR) , which formulates agent-history compression as risk-constrained selection over deletion sets. Offline, DRSR constructs exact counterfactual supervision by jointly deleting protocol-valid history Blocks and measuring the change in teacher-forced likelihood of the same recorded next output. A lightweight scorer then predicts set-level harm from online-visible relations between candidate history and the current pre-action state, together with deleted–retained and pairwise set structure. At deployment, DRSR evaluates a small set of structurally valid deletion candidates with the lightweight scorer and removes the largest feasible set under recency, protocol, budget, and learned-risk constraints, abstaining when no set is sufficiently safe. On WorkBuddyBench Full260, DRSR increases mean reward from 0.699 to 0.802 while reducing total model tokens by 20.820%. On the fixed Eval40 comparison, it obtains 0.794 reward at 1.211M tokens per task, using 35.850% fewer tokens than the uncompressed agent. Mechanistic analyses and ablations further show that decision-conditioned relations, retained-context information, pair interactions, and abstention each contribute to reliable pruning. 
+
+## 1 Introduction 
+
+Agents solve long horizon tasks by interleaving reasoning with tool use and incorporating observa-tions into later decisions 1. During execution, their context accumulates task constraints, explored alternatives, intermediate conclusions, repeated observations, and completed tool interactions. Keep-ing the full history avoids information loss, but it also requires the model to repeatedly process an increasingly long context, much of which may no longer matter to the current decision at later stages of execution. As context grows, separating useful evidence from obsolete or redundant content becomes more difficult 2,3 . Existing prompt compression and memory management methods reduce active context 4,5,6 , but safe history pruning requires identifying which past information is still needed at the current agent state.   
+
+> DRSR / LONG-HORIZON AGENTS 1arXiv:2609.27276v1 [cs.AI] 23 Sep 2026 TSINGSHU RESEARCH DRSR
+
+Historical value is inherently state dependent. The importance of a past record is not a fixed property of the record itself, but changes as the agent progresses through the task, motivating recent work on adaptive context management for long-horizon agents 7,8,9 . An error trace may be essential while a failure is being diagnosed, yet become redundant once the cause has been identified and the relevant conclusion has been recorded elsewhere. In contrast, an early task constraint may remain important until the task is completed. Historical information therefore cannot be judged reliably from age, position, or a fixed context window alone. Its value depends on the current decision state and on what information would remain after pruning. Safe pruning is also a set level problem. Two historical Blocks may each appear removable in isolation because either one preserves the same fact, while removing both may eliminate the only remaining evidence. More generally, removal-based attribution and interaction methods show that the effect of a set need not be recoverable from independently measured singleton effects 10,11,12,13 .Even without such interaction, several small deletion effects may accumulate into substantial harm. Independent Block scores therefore cannot reliably recover the risk of the set that is actually removed. The main difficulty is that true deletion harm is unavailable when the online decision must be made. The effect of removing history is defined with respect to the agent’s actual next output, which has not yet occurred. This distinction is related to learning with privileged information and distillation, where training may exploit information unavailable at deployment 14,15,16 . Repeatedly querying the language model for every candidate deletion is also unsuitable, because different queries may produce different continuations and would make pruning itself expensive. Related learned eviction methods likewise transfer future or privileged signals into lightweight online selectors 17 . Completed trajectories make this quantity available for supervision. Once the actual next output is known, we can keep it fixed, jointly remove a candidate set, and measure how its likelihood changes under the edited context. This converts an online unavailable quantity into an offline training signal. A lightweight predictor can then learn deletion risk from information available before the next action. Based on this idea, we introduce Direct Relational Set Risk Pruning (DRSR) . DRSR represents historical value through relations between candidate history and the current decision state, while modeling both the information proposed for removal and the information that remains. Instead of assigning each Block a fixed importance score, it directly predicts the risk of a candidate deletion set. During deployment, candidate sets are evaluated in a batch by a lightweight scorer, with no future output and no additional language model evaluation for each deletion. Pruning is allowed only when the candidate satisfies protocol constraints, recent history protection, deletion limits, and a learned risk gate. If no candidate is sufficiently safe, the original request is retained, following the broader idea of selective prediction with abstention 18,19 . Figure 1 summarizes the offline supervision, relational set-risk prediction, and online risk-gated selection pipeline. Our main contributions are: • State conditioned set level supervision. We construct deletion labels from completed trajecto-ries by jointly removing candidate Blocks and rescoring the same recorded next output. Each label therefore measures the proposed deletion set directly rather than combining independently evaluated singleton scores. • Relational set risk prediction. We introduce a lightweight scorer that jointly models the current decision state, candidate history, deleted information, retained information, and interactions within the deletion set. The representation backbone and task model remain frozen.   
+
+> DRSR / LONG-HORIZON AGENTS 2TSINGSHU RESEARCH DRSR
+
+t=6 t=7 t=8 t=9 t=10 Keep Prune Prune Keep 
+
+> Candidate Block Protected Recent2 Dropped Block
+
+Online Selection 
+
+> Updated history Candidate subsets A
+
+... 
+
+> Unsafe scores Cardinality Aware Risk Scorer
+
+Risk Gated History Pruning at Decision Time Offline Counterfactual Supervision 
+
+Original history 
+
+Fixed-Target Rescoring 
+
+Scoring model 
+
+> Frozen Block Encoder
+
+Deleted group Retained group 
+
+Relational Set-Risk Prediction 
+
+> Relational Features Embedding
+> Set Representation
+> Scoring Model Candidate Groups
+
+score Harm 
+
+> Used for Online Selection
+
+Figure 1. Overview of DRSR. Offline, DRSR constructs exact set-level counterfactual supervision by jointly deleting protocol-valid history Blocks and rescoring the same recorded next output. A relational set-risk predictor models both the proposed removal set and the information that remains, and outputs predicted harm and an unsafe score. Online, the learned score gates candidate deletion sets, after which DRSR selects the feasible set with the largest direct token saving and abstains when no set is sufficiently safe. 
+
+• Risk constrained online pruning with abstention. We use predicted risk as a feasibility condition and select the feasible deletion set with the largest direct token saving. If no candidate passes the risk gate, the policy abstains from pruning. 
+
+## 2 Related Work 
+
+Agent memory and context management. Long-horizon agents increasingly manage their own active context. MemGPT organizes information across memory tiers 6, while Sculptor, Memory-as-Action, Git-Context-Controller, context folding, and AgentFold expose or learn explicit history edit-ing operations 7,8,20,21,22 . ACON optimizes compression policies from trajectory outcomes 9, whereas LLMLingua and LLMLingua-2 compress prompts under a token budget 4,5 . These approaches are commonly evaluated end to end on interactive benchmarks 23,24 . DRSR instead supervises   
+
+> DRSR / LONG-HORIZON AGENTS 3TSINGSHU RESEARCH DRSR
+
+each protocol-valid deletion set by its measured effect on a fixed recorded next output, without replacement summaries or retrieval stores. 
+
+Structured pruning and KV-cache eviction. Reasoning traces can be shortened by generating less per step, skipping low-importance tokens, or removing low-information steps 25,26,27 . Related inference-time methods evict KV entries using attention, recency, adaptive budgets, or learned future contribution 28,29,30,31,17 . DRSR differs in operating on serialized agent-history Blocks and directly predicting the risk of a jointly deleted set rather than assigning independent importance scores to individual units. 
+
+Removal-based measures and interactions. Removal-based explanation studies how behavior changes when subsets of features are removed 10 . The interaction residual used by DRSR is closely related to discrete Shapley interaction terms 11,32,12,13,33 . However, DRSR does not seek symmetric attribution over all historical Blocks; it measures and predicts the harm of the specific deletion sets permitted by the agent protocol. 
+
+Privileged supervision and selective prediction. Using training-only information to learn a deploy-able predictor is related to learning with privileged information and knowledge distillation 14,15,16 .DRSR also abstains when no candidate passes its learned risk gate, connecting it to reject-option and risk-controlled prediction 18,34,19,35,36,37 . Semantic-uncertainty methods provide a complementary line of work 38,39,40 ; DRSR does not estimate semantic uncertainty or provide a conformal guarantee. 
+
+## 3 Problem Formulation 
+
+3.1 Structured History and Deletion Actions 
+
+At decision time t, let Pt denote the protected system instructions and task specification, and let 
+
+S1, . . . , S t−1 denote the completed interaction Steps. We write 
+
+Ct = Pt ⊕ S1 ⊕ · · · ⊕ St−1, Si = Bi, 0 ⊕ · · · ⊕ Bi,m i , (1) where ⊕ denotes serialization in the original order. A Block is either the complete assistant content associated with a Step ( assistant_state ) or an atomic tool exchange that contains a tool call together with its matched response ( tool_exchange ). Pruning never separates a tool call from its response, and every rewritten request must preserve a valid conversation and tool protocol. Let Et = {B1, . . . , B n} denote the eligible candidate pool and let A ⊆ Et denote a proposed deletion set. The operator DA(Ct) jointly removes all Blocks in A and serializes the remaining context in its original order. We define the direct token saving as 
+
+wt(A) = Tok( Ct) − Tok( DA(Ct)) . (2) The saving is measured on the actual rewritten request. We therefore do not assume that the saving of a deletion set equals the sum of token counts measured for its individual Blocks. 
+
+3.2 Counterfactual Deletion Harm 
+
+For an external trajectory, let yt denote the recorded next assistant output of length m. The target excludes later environment responses and is held fixed when comparing the original context with a deleted context. Given a frozen scoring language model pω, we define 
+
+Lω(yt | C) = − 1
+
+m
+
+> m
+
+X
+
+> k=1
+
+log pω(yt,k | C, y t,<k ) , Ht(A) = Lω(yt | DA(Ct)) − L ω(yt | Ct). (3)   
+
+> DRSR / LONG-HORIZON AGENTS 4TSINGSHU RESEARCH DRSR
+
+The quantity Ht(A) measures how much harder it becomes to reproduce the same recorded decision after deleting A. Holding yt fixed makes the comparison depend on the deletion rather than on a newly sampled continuation. Normalization by output length places decisions of different lengths on a common scale. Since all candidate sets at a state are measured from the same intact context, the original context score can be reused when constructing the corresponding labels. We define an offline unsafe event by 
+
+ut(A) = 1[Ht(A) > δ H ], (4) where δH is a fixed harm tolerance. Importantly, deletion harm is indexed by the current decision state. The same historical Block may be removable at one stage of execution and necessary at another. Historical value is therefore treated as state dependent rather than as a fixed property of the Block itself. The value used for δH and its interpretation are reported in Appendix B. 
+
+3.3 Why Singleton Scores Do Not Determine Set Risk 
+
+For a single Block, define Hi,t = Ht({Bi}). For Bi /∈ A, its conditional effect after deleting A is 
+
+Ht(Bi | A) = Ht(A ∪ { Bi}) − Ht(A).
+
+If Ak = {Bi1 , . . . , B ik } and all intermediate rewrites are valid, then 
+
+Ht(A) = 
+
+> |A|
+
+X
+
+> k=1
+
+Ht(Bik | Ak−1), A0 = ∅. (5) Thus, joint harm is a sum of effects evaluated under changing retained contexts. It is not generally the sum of singleton effects measured in the original context. Equation (5) holds for every deletion order, while the final quantity Ht(A) is independent of that order. The conditional terms change because each deletion changes what information remains. To measure this difference directly, we define 
+
+It(A) = Ht(A) − X
+
+> Bi∈A
+
+Hi,t , Jij,t = Ht({Bi, B j }) − Hi,t − Hj,t . (6) When It(A) > 0, the actual joint deletion is more harmful than singleton addition suggests. This can occur when two Blocks contain redundant evidence: either one appears safe to remove while the other remains, but removing both eliminates the last copy of that evidence. When It(A) < 0,singleton addition overestimates joint harm because it counts part of the same effect more than once. Only It(A) = 0 permits exact additive reconstruction from singleton harms. Interaction is not the only limitation of singleton scoring. Even when It(A) = 0 , several individually acceptable harms can accumulate beyond the allowed tolerance. DRSR therefore treats history pruning as a bounded set selection problem. Direct set-level prediction addresses interactions among deleted Blocks and the effect of what remains, while structural constraints limit excessive deletion. These two failure modes motivate predicting risk for the proposed set rather than deriving it from independently scored historical units.   
+
+> DRSR / LONG-HORIZON AGENTS 5TSINGSHU RESEARCH DRSR
+
+3.4 Risk-Constrained Deletion Objective 
+
+Let At denote the deletion sets that satisfy the structural requirements of the agent protocol. If exact deletion harm were observable at decision time, an ideal pruning policy would solve 
+
+Aoracle  
+
+> t
+
+∈ arg max 
+
+> A∈A t
+
+wt(A) subject to Ht(A) ≤ δH . (7) This objective separates compression benefit from deletion risk. The quantity wt(A) measures how much context is removed, while Ht(A) determines whether the proposed edit remains within the allowed harm tolerance. The exact constraint cannot be evaluated online. Computing Ht(A) requires the realized next output 
+
+yt, which does not yet exist when the pruning decision is made. Evaluating candidate deletions through separate model generations would also fail to recover the fixed-target quantity in Eq. (3), because different contexts can produce different continuations. Completed trajectories make exact supervision possible offline: after yt is observed, candidate sets can be deleted jointly and the same recorded output can be rescored. DRSR learns an online scorer from these offline measurements. At deployment, the scorer estimates deletion risk using only the current causal context and the proposed deletion set during each online pruning decision. It therefore replaces the unavailable oracle constraint, while direct token saving remains the quantity optimized by the pruning policy. 
+
+## 4 Direct Relational Set-Risk Pruning 
+
+4.1 Candidate Construction and Relational Features 
+
+At each eligible decision, DRSR protects recent complete Steps and constructs a small candidate pool from older protocol-valid history. Candidates are selected across the trajectory using chronological stratification, with preference given to edits that offer meaningful direct token saving. The candidate rule is fixed before any deletion outcome is observed, so the prediction problem is not simplified using label information. Exact candidate counts, protection rules, alignment checks, and context limits are reported in Appendix C.1. A frozen representation backbone encodes the intact causal prefix. DRSR does not assign an intrinsic importance score to a historical Block. Instead, each candidate Bi is represented through its relation to the current decision state. Let Ωi denote the token span of Bi. The feature vector xi,t combines structural controls such as age, position, type, length, lexical overlap, tool overlap, and redundancy with attention and hidden-state relations to the current pre-action state. For a selected attention layer ℓ and head h, we define attention mass and density as 
+
+aℓ,h i,t = X
+
+> k∈Ωi
+
+αℓ,h t,k , dℓ,h i,t = aℓ,h i,t 
+
+|Ωi|. (8) Attention mass measures how much attention from the current pre-action position falls on the Block, while density reduces the direct effect of Block length. Hidden-state relations provide a complementary view of the same Block to state relation. DRSR compares the mean hidden representation of the Block with the hidden representation at the current pre-action position using cosine similarity, normalized distance, relative norm, and boundary-token   
+
+> DRSR / LONG-HORIZON AGENTS 6TSINGSHU RESEARCH DRSR
+
+relations across selected layers. These features describe whether the historical content aligns with the current decision in representation space, rather than describing the Block in isolation. Fixed, label-independent projections retain additional directional information that a single similarity value cannot capture. Exact formulas, layers, dimensions, and projection details are given in Appendix C. Attention, hidden-state relations, and projected semantic features are inputs to the learned risk model, not deletion rules by themselves. Low attention does not imply that a Block is safe to remove, and high similarity does not imply that it must be retained. The final prediction is supervised by measured set-level deletion harm and also depends on the information that survives the proposed edit. 
+
+4.2 Set-Risk Representation and Learning 
+
+For a proposed deletion A ⊆ Et, let D = A denote the candidates to be removed and let R = Et \ A
+
+denote the candidates that remain. DRSR represents the proposed edit as a whole rather than assigning each Block a fixed deletion score: 
+
+rt(A) = SetEnc θ ({xi,t : Bi ∈ D}, {xi,t : Bi ∈ R}, b t(A)) . (9) The encoder represents four sources of information: what is removed, what remains, relations among jointly deleted candidates, and relations between deleted and retained evidence. Deletion risk therefore depends not only on the content being removed but also on whether equivalent or supporting information survives elsewhere in the context. A lightweight pairwise summary gives the scorer direct information about relations within the deleted set. This provides an interaction-aware bias without assuming that final risk is a sum of pairwise terms. The exact pooling operators, deleted and retained summaries, and budget features are given in Appendix C.6. A lightweight cardinality-aware scorer maps the set representation to predicted harm and an unsafe score for each candidate deletion set: 
+
+  bHt(A), bpt(A) = gθ, |A|(rt(A)) . (10) The two outputs serve complementary roles. Predicted harm preserves the continuous ordering of deletion effects, while the unsafe score directly supports the thresholded online decision. Training combines harm regression, ranking among deletion sets, and unsafe-set classification. The unsafe score is used for decision making and is not interpreted as a probability of task failure. Exact model dimensions, loss terms, and optimization settings are reported in Appendices C and G. 
+
+4.3 Risk-Gated Selection and Abstention 
+
+At deployment, the learned risk score is used as a feasibility condition rather than as a reward for compression. Candidate subsets are evaluated only by the lightweight set-risk scorer. DRSR does not delete each candidate set and rerun the language model to estimate its harm online. Protocol validity, recent-history protection, deletion size, and the removal budget are enforced directly, while the learned score estimates whether an otherwise valid edit is sufficiently low risk. Let At denote the sets that satisfy the structural constraints, and let Ut(A) denote the aggregate unsafe score produced by the scorer ensemble. DRSR selects 
+
+A⋆t ∈ arg max 
+
+> A∈A t
+
+wt(A) subject to Ut(A) ≤ τ. (11)   
+
+> DRSR / LONG-HORIZON AGENTS 7TSINGSHU RESEARCH DRSR
+
+This is the online counterpart of Eq. (7). The unavailable exact harm constraint is replaced by a learned score that can be computed before the next action under the current causal context, while direct token saving remains the objective. If no candidate set passes the risk gate, DRSR abstains and returns the original request unchanged. The candidate space is deliberately small, so all admissible subsets can be scored together by the lightweight network. Online execution performs no candidate-specific counterfactual deletion forward and no additional language model query for each proposed deletion. The exact candidate limit, removal budget, ensemble rule, validation-selected threshold, tie breaking, and computational cost are reported in Appendix J and Algorithm 1. 
+
+## 5 Experiments 
+
+We evaluate DRSR from both offline prediction and end-to-end agent performance for a comprehen-sive system-level assessment. The offline scorer is trained on 566 external trajectories containing 1,698 decision states and approximately 24,122 jointly measured deletion-set labels, split 80:10:10 by source trajectory and disjoint from WorkBuddyBench. End-to-end evaluation uses WorkBuddy-Bench Full260 (80 Code, 50 Office, 60 Security, and 70 Web tasks) and a fixed Eval40 subset with ten tasks per domain. Offline analyses report meaningful-gap pair accuracy, within-state Spearman correlation, unsafe-event AUROC, and Brier score; agent evaluation reports task reward and input-plus-output model tokens. Full260 aggregates are task-count weighted, whereas Eval40 uses the equal-domain mean. Additional dataset, token-accounting, task-manifest, and information-boundary details are provided in Appendices B, G, and J. 
+
+5.1 Mechanistic Analysis of History and Set Risk State-conditioned historical relevance. The granularity analysis in Appendix F shows that the median within-state harm range is 0.312 at Step level but only 0.028 at Block level, and 71.400% of unsafe parent Steps contain at least one safe constituent Block. This motivates Block-level actions. More importantly, historical value is decision-conditioned. Using the matched pre-action state yields 70.920% meaningful-gap pair accuracy, compared with 62.020% under the mismatched-state control, an 8.900-point gap with the candidate Block held fixed. The full-context relation reaches 66.390%, while the best combined relation reaches 72.130%, indicating that relating a candidate to the correct current decision state is more informative than adding context indiscriminately. Complete granularity, layerwise, and harm-margin results are reported in Appendix F.          
+
+> Table 1. Singleton aggregation.
+> Rule Pair Acc.
+> Sum 58.94%
+> Mean 56.81% (-3.61%)
+> Maximum 46.17% (-21.67%)
+> Minimum 14.89% (-74.74%)
+
+Joint-deletion effects. The central structural question is whether singleton importance can recover the risk of deleting a set . We first test the most direct alternative to set-level prediction: singleton harms are aggregated and used to rank candidate deletion sets. Ta-ble 1 shows that this approximation is unreliable. Even the strongest simple rule, summation, reaches only 58.940% meaningful-gap pair accuracy. Mean aggregation performs similarly, while maxi-mum and minimum aggregation deteriorate further. Thus, set risk cannot be reliably recovered from independently evaluated singleton effects.      
+
+> DRSR / LONG-HORIZON AGENTS 8TSINGSHU RESEARCH DRSR 1234
+> Deletion-set cardinality | A|
+> 0.00 0.01 0.02 0.03
+> Mean | It(A)|
+
+Interaction by set cardinality 
+
+> 200-source 95% cluster CI 200 sources 4-source exact pilot
+
+Figure 2. Interaction grows with cardinality. 
+
+The failure of singleton aggregation is con-sistent with the measured interaction residual. Figure 2 examines this effect over the 200-source confirmatory range. Mean absolute non-compositionality increases from 0.000 for singleton deletion to 0.008, 0.016, and 0.027 for deletion sets of size two, three, and four, respectively. The discrepancy between independent single-ton effects and actual joint deletion therefore becomes more pronounced as several Blocks are removed together. At three Blocks, the mean interaction magnitude is already close to the 
+
+δH = 0 .020 harm-label threshold, while at four Blocks it exceeds that threshold. This makes additive singleton scoring increasingly unreliable in the multi-Block regime targeted by DRSR. The complete analysis, including the exploratory extension to larger sets and the per-domain pilot, is reported in Appendix F. We next ask whether explicit interaction information can explain the discrepancy between singleton and joint deletion effects. 
+
+Table 2. Joint-harm reconstruction.    
+
+> Method MAE
+> Singleton additive 0.018 + exact pair interaction 0.008
+
+Table 2 provides a diagnostic reconstruction test. The singleton-additive approximation obtains an MAE of 0.018, whereas in-cluding the exact measured pair interaction reduces the error to 0.008, a 54.400% reduction. Thus, second-order interac-tions account for a substantial portion of the information that singleton scores fail to capture. Importantly, this experiment is diagnostic rather than part of the deployed policy. DRSR never observes exact pair interactions online. Instead, it learns set-level deletion risk from online-visible candidate–state relations together with deleted, retained, and pair-pooled representations. Taken together, the poor singleton aggregation accuracy, the increasing interaction magnitude with deletion-set cardinality, and the large reconstruction improvement from pair information provide complementary evidence for modeling deletion risk directly at the set level. 
+
+5.2 Full260 End-to-End Results 
+
+Table 3 reports the principal Full260 result together with Structural Pruning , our simple rule-based reference. Structural Pruning reaches a reported overall reward of 0.701 while reducing the token mean from 2.685M to 2.292M per task. DRSR improves substantially beyond this reference, reaching 0.802 reward at 2.126M tokens per task. The gain is especially pronounced in Security, where Structural Pruning reaches 0.640 and DRSR reaches 0.756. The domain breakdown shows that the gain is not produced by a single uniform compression effect. Security has the largest baseline context and the largest reward improvement, while Office changes only modestly. DRSR nevertheless reduces processed tokens in all four domains, consistent with selective history removal rather than a fixed context budget.   
+
+> DRSR / LONG-HORIZON AGENTS 9TSINGSHU RESEARCH DRSR
+
+Table 3. Full260 comparison by domain. R denotes reward and T denotes mean total tokens per task in millions. Overall reports the corresponding Full260 aggregate for each method. 
+
+Method Code Office Security Web Overall 
+
+R ↑ T ↓ R ↑ T ↓ R ↑ T ↓ R ↑ T ↓ R ↑ T ↓
+
+Baseline 0.770 1.370 0.818 1.198 0.478 5.977 0.721 2.429 0.699 2.685 Structural Pruning 0.703 1.380 0.814 0.893 0.640 4.961 0.659 2.046 0.701 2.292 
+
+DRSR 0.858 1.235 0.824 0.997 0.756 4.569 0.760 1.858 0.802 2.126 
+
+5.3 Context-Management Comparison on Eval40 
+
+Table 4 compares DRSR with the uncompressed agent, simple context controls, and published context-management methods on the same fixed Eval40 task manifest. Each domain contains ten tasks. We report reward on its native 0–1 scale and mean input-plus-output tokens per task in millions; auxiliary summarization-model tokens are included where applicable. On Eval40, DRSR achieves 0.794 overall reward at 1.211M tokens per task, compared with 0.675 reward and 1.887M tokens for the uncompressed agent. This is a reward gain of 0.119 while reducing total tokens by 35.850%. CoMem and PACE use fewer tokens but obtain substantially lower reward, while the strongest non-DRSR reward (Periodic Summary, n = 5 ) remains below DRSR while using nearly twice as many tokens. 
+
+5.4 Component Ablation 
+
+We ablate the three design choices that distinguish DRSR from independent pruning: retained-context features, pair pooling inside the deleted set, and the abstention gate. Table 5 reports reward and total token usage in each Eval40 domain, together with the equal-domain overall mean. Direct-removal statistics are reported in the discussion below and detailed in Appendix I. 
+
+Table 4. Eval40 context-management comparison. R is reward and T is mean model tokens per task in millions.                                                                                                                                                                                                                             
+
+> Method Code Office Security Web Overall
+> R↑T↓R↑T↓R↑T↓R↑T↓R↑T↓
+> Baseline 0.729 1.438 0.816 1.040 0.446 3.973 0.710 1.098 0.675 1.887 Sliding Window ( K= 5 )0.668 3.123 0.674 3.982 0.323 2.126 0.590 2.577 0.564 2.952 Sliding Window ( K= 10 )0.744 1.756 0.731 1.816 0.401 0.819 0.610 3.547 0.621 1.985 Sliding Window ( K= 20 )0.793 1.419 0.851 2.231 0.403 1.132 0.700 3.300 0.687 2.020 Periodic Summary ( n= 3 )0.654 1.913 0.677 2.135 0.263 0.990 0.827 3.819 0.605 2.214 Periodic Summary ( n= 5 )0.836 1.758 0.757 2.552 0.400 1.292 0.813 3.883 0.702 2.371 PACE 41 0.704 0.941 0.558 1.013 0.435 0.573 0.640 1.885 0.584 1.103 LLMLingua-2 50.646 1.630 0.733 3.412 0.401 3.487 0.700 1.090 0.620 2.405 SelfCompact 42 0.768 1.571 0.796 0.850 0.362 3.136 0.710 0.712 0.659 1.567 ACON-Core 90.718 1.476 0.686 2.154 0.480 1.511 0.650 0.473 0.633 1.403 Self-GC 43 0.635 1.167 0.717 1.178 0.437 3.438 0.710 0.837 0.625 1.655 LRE 44 0.626 2.258 0.634 3.470 0.271 2.850 0.680 0.586 0.553 2.291 CoMem 45 0.564 0.550 0.599 0.745 0.025 1.004 0.580 0.764 0.442 0.766
+> SAM 46 0.676 1.412 0.816 1.094 0.472 1.910 0.670 0.969 0.659 1.346 SWE-Pruner 47 0.635 2.172 0.726 1.431 0.409 1.822 0.650 0.582 0.605 1.502 Sculptor 70.512 1.029 0.816 0.985 0.353 2.453 0.690 0.708 0.593 1.294 ACM 48 0.387 2.540 0.559 1.526 0.062 5.196 0.340 0.193 0.337 2.364
+> DRSR 0.856 1.216 0.788 0.724 0.700 1.616 0.833 1.288 0.794 1.211
+
+The ablation effects are domain dependent, but every removal lowers the overall reward. Removing abstention increases direct deletion from 25.155K to 30.093K tokens per task while lowering overall  
+
+> DRSR / LONG-HORIZON AGENTS
+
+10 TSINGSHU RESEARCH DRSR 
+
+Table 5. Eval40 component ablation. R denotes reward and T denotes mean total model tokens per task in millions. Overall is the equal-domain mean. Direct is the mean number of tokens directly removed per task in thousands across the fixed evaluation tasks.                                                                      
+
+> Variant Code Office Security Web Overall
+> R↑T↓R↑T↓R↑T↓R↑T↓R↑T↓Direct DRSR 0.856 1.216 0.788 0.724 0.700 1.616 0.833 1.288 0.794 1.211 25.155 w/o retained 0.722 0.716 0.779 0.266 0.698 1.254 0.800 1.731 0.750 0.992 12.633 w/o pair pooling 0.756 0.567 0.678 0.606 0.796 1.094 0.796 2.535 0.757 1.201 32.205 w/o abstention 0.833 1.205 0.801 0.447 0.573 0.963 0.800 1.553 0.752 1.042 30.093
+
+reward from 0.794 to 0.752. Removing retained-context features makes the policy more conservative in direct deletion (12.633K) yet still lowers overall reward to 0.750, indicating that knowing what survives the edit matters for identifying redundancy. Removing pair pooling yields the largest direct deletion, 32.205K tokens per task, while overall reward falls to 0.757. Together with the measured interaction residuals, this pattern is consistent with multi-Block deletions appearing safer when within-set interaction is not represented. 
+
+## 6 Conclusion 
+
+We formulate agent-history pruning as selection over the joint deletion risk of structured Blocks. DRSR learns this risk from offline counterfactual supervision and uses a compact scorer to gate online pruning with abstention. Our analyses show that historical relevance is decision-conditioned and joint deletion effects cannot be recovered reliably from independently scored Blocks. On WorkBuddyBench Full260, DRSR improves reward from 0.699 to 0.802 while reducing tokens by 20.820%; on Eval40, it reaches 0.794 reward with 35.850% fewer tokens. These results support state-dependent, set-level compression over independent importance ranking of historical units. More broadly, the results indicate that safe context reduction requires modeling both the current decision state and the joint structure of candidate deletions. This perspective provides a practical basis for reducing long-horizon agent context without relying on fixed state-independent importance scores. 
+
+## Reproducibility Statement 
+
+The deletion action space, counterfactual harm target, and label threshold are defined in Section 3; candidate construction, relational features, set representation, training objective, and online selection are specified in Section 4. Appendix A gives the complete decision procedure, Appendix C lists the representation and scorer configuration, Appendix G defines the training and evaluation metrics, Appendix E documents the simple structural baseline, Appendix I reports detailed token summaries, and Appendix J specifies the information boundary and validation-frozen deployment rule. 
+
+## AI Use Statement 
+
+Generative AI was used to aid or polish writing and for retrieval and discovery. This included improving language, readability, clarity, organization, and L ATEX formatting, as well as assisting with literature discovery. All AI-assisted text and retrieved references were carefully reviewed, verified, and approved by the authors, who take full responsibility for the entire submission.   
+
+> DRSR / LONG-HORIZON AGENTS 11 TSINGSHU RESEARCH DRSR
+
+## References 
+
+1. Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and Yuan Cao. React: Synergizing reasoning and acting in language models. arXiv preprint arXiv:2210.03629 , 2022. 2. Nelson F Liu, Kevin Lin, John Hewitt, Ashwin Paranjape, Michele Bevilacqua, Fabio Petroni, and Percy Liang. Lost in the middle: How language models use long contexts. Transactions of the association for computational linguistics , 12:157–173, 2024. 3. Freda Shi, Xinyun Chen, Kanishka Misra, Nathan Scales, David Dohan, Ed H Chi, Nathanael Schärli, and Denny Zhou. Large language models can be easily distracted by irrelevant context. In International conference on machine learning , pages 31210–31227. PMLR, 2023. 4. Huiqiang Jiang, Qianhui Wu, Chin-Yew Lin, Yuqing Yang, and Lili Qiu. Llmlingua: Compressing prompts for accelerated inference of large language models. In Proceedings of the 2023 conference on empirical methods in natural language processing ,pages 13358–13376, 2023. 5. Zhuoshi Pan, Qianhui Wu, Huiqiang Jiang, Menglin Xia, Xufang Luo, Jue Zhang, Qingwei Lin, Victor Rühle, Yuqing Yang, Chin-Yew Lin, et al. Llmlingua-2: Data distillation for efficient and faithful task-agnostic prompt compression. In Findings of the Association for Computational Linguistics: ACL 2024 , pages 963–981, 2024. 6. Charles Packer, Sarah Wooders, Kevin Lin, Vivian Fang, Shishir G Patil, Ion Stoica, and Joseph E Gonzalez. Memgpt: Towards llms as operating systems. arXiv preprint arXiv:2310.08560 , 2023. 7. Mo Li, LH Xu, Qitai Tan, Long Ma, Hongyong Song, Ting Cao, and Yunxin Liu. Sculptor: Empowering llms with cognitive agency via active context management. In International Conference on Learning Representations , volume 2026, pages 153411–153440, 2026. 8. Yuxiang Zhang, Jiangming Shu, Ye Ma, Xueyuan Lin, Shangxi Wu, and Jitao Sang. Memory as action: Autonomous context curation for long-horizon agentic tasks. In Findings of the Association for Computational Linguistics: ACL 2026 , pages 19149–19164, 2026. 9. Minki Kang, Wei-Ning Chen, Dongge Han, Huseyin A Inan, Lukas Wutschitz, Yanzhi Chen, Robert Sim, and Saravan Rajmohan. Acon: Optimizing context compression for long-horizon llm agents. arXiv preprint arXiv:2510.00615 , 2025. 10. Ian Covert, Scott Lundberg, and Su-In Lee. Explaining by removing: A unified framework for model explanation. Journal of Machine Learning Research , 22(209):1–90, 2021. 11. Michel Grabisch and Marc Roubens. An axiomatic approach to the concept of interaction among players in cooperative games. 
+
+International Journal of game theory , 28(4):547–565, 1999. 12. Mukund Sundararajan, Kedar Dhamdhere, and Ashish Agarwal. The shapley taylor interaction index. In International conference on machine learning , pages 9259–9268. PMLR, 2020. 13. Che-Ping Tsai, Chih-Kuan Yeh, and Pradeep Ravikumar. Faith-shap: The faithful shapley interaction index. Journal of Machine Learning Research , 24(94):1–42, 2023. 14. Vladimir Vapnik and Akshay Vashist. A new learning paradigm: Learning using privileged information. Neural networks , 22 (5-6):544–557, 2009. 15. Geoffrey Hinton, Oriol Vinyals, and Jeff Dean. Distilling the knowledge in a neural network. arXiv preprint arXiv:1503.02531 ,2015. 16. David Lopez-Paz, Léon Bottou, Bernhard Schölkopf, and Vladimir Vapnik. Unifying distillation and privileged information. 
+
+arXiv preprint arXiv:1511.03643 , 2015. 17. Zican Dong, Peiyu Liu, Junyi Li, Zhipeng Chen, Han Peng, Shuo Wang, and Wayne Xin Zhao. Foresightkv: Optimizing kv cache eviction for reasoning models by learning long-term contribution. arXiv preprint arXiv:2602.03203 , 2026. 18. Chao Chow. On optimum recognition error and reject tradeoff. IEEE Transactions on information theory , 16(1):41–46, 1970. 19. Yonatan Geifman and Ran El-Yaniv. Selectivenet: A deep neural network with an integrated reject option. In International conference on machine learning , pages 2151–2159. PMLR, 2019. 20. Junde Wu, Minhao Hu, Jiayuan Zhu, Jiazhen Pan, Yuyuan Liu, Min Xu, and Yueming Jin. Git context controller: Manage the context of llm-based agents like git. arXiv preprint arXiv:2508.00031 , 2025. 21. Weiwei Sun, Miao Lu, Zhan Ling, Kang Liu, Xuesong Yao, Yiming Yang, and Jiecao Chen. Scaling long-horizon llm agent via context-folding. arXiv preprint arXiv:2510.11967 , 2025. 22. Rui Ye, Zhongwang Zhang, Kuan Li, Huifeng Yin, Zhengwei Tao, Yida Zhao, Liangcai Su, Liwen Zhang, Zile Qiao, Xinyu Wang, et al. Agentfold: Long-horizon web agents with proactive context management. arXiv preprint arXiv:2510.24699 , 2025. 23. Harsh Trivedi, Tushar Khot, Mareike Hartmann, Ruskin Manku, Vinty Dong, Edward Li, Shashank Gupta, Ashish Sabharwal, and Niranjan Balasubramanian. Appworld: A controllable world of apps and people for benchmarking interactive coding agents. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 16022–16076, 2024.   
+
+> DRSR / LONG-HORIZON AGENTS 12 TSINGSHU RESEARCH DRSR
+
+24. Carlos E Jimenez, John Yang, Alexander Wettig, Shunyu Yao, Kexin Pei, Ofir Press, and Karthik Narasimhan. Swe-bench: Can language models resolve real-world github issues? In International Conference on Learning Representations , volume 2024, pages 54107–54157, 2024. 25. Silei Xu, Wenhao Xie, Lingxiao Zhao, and Pengcheng He. Chain of draft: Thinking faster by writing less. arXiv preprint arXiv:2502.18600 , 2025. 26. Heming Xia, Chak Tou Leong, Wenjie Wang, Yongqi Li, and Wenjie Li. Tokenskip: Controllable chain-of-thought compression in llms. In Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing , pages 3351–3363, 2025. 27. Zeju Li, Jianyuan Zhong, Ziyang Zheng, Xiangyu Wen, Zhijian Xu, Yingying Cheng, Fan Zhang, and Qiang Xu. Making slow thinking faster: Compressing llm chain-of-thought via step entropy. In International Conference on Learning Representations ,volume 2026, pages 38331–38349, 2026. 28. Zhenyu Zhang, Ying Sheng, Tianyi Zhou, Tianlong Chen, Lianmin Zheng, Ruisi Cai, Zhao Song, Yuandong Tian, Christopher Ré, Clark Barrett, et al. H2o: Heavy-hitter oracle for efficient generative inference of large language models. Advances in neural information processing systems , 36:34661–34710, 2023. 29. Guangxuan Xiao, Yuandong Tian, Beidi Chen, Song Han, and Mike Lewis. Efficient streaming language models with attention sinks. In International Conference on Learning Representations , volume 2024, pages 21875–21895, 2024. 30. Yuhong Li, Yingbing Huang, Bowen Yang, Bharat Venkitesh, Acyr Locatelli, Hanchen Ye, Tianle Cai, Patrick Lewis, and Deming Chen. Snapkv: Llm knows what you are looking for before generation. Advances in Neural Information Processing Systems , 37:22947–22970, 2024. 31. Yuan Feng, Junlin Lv, Yukun Cao, Xike Xie, and S Kevin Zhou. Ada-kv: Optimizing kv cache eviction by adaptive budget allocation for efficient llm inference. Advances in Neural Information Processing Systems , 38:113152–113188, 2026. 32. Scott M Lundberg, Gabriel G Erion, and Su-In Lee. Consistent individualized feature attribution for tree ensembles. arXiv preprint arXiv:1802.03888 , 2018. 33. Fabian Fumagalli, Maximilian Muschalik, Patrick Kolpaczki, Eyke Hüllermeier, and Barbara Hammer. Shap-iq: Unified approximation of any-order shapley interactions. Advances in Neural Information Processing Systems , 36:11515–11551, 2023. 34. Ran El-Yaniv et al. On the foundations of noise-free selective classification. Journal of Machine Learning Research , 11(5), 2010. 35. Stephen Bates, Anastasios Angelopoulos, Lihua Lei, Jitendra Malik, and Michael Jordan. Distribution-free, risk-controlling prediction sets. Journal of the ACM (JACM) , 68(6):1–34, 2021. 36. Anastasios Angelopoulos, Stephen Bates, Adam Fisch, Lihua Lei, and Tal Schuster. Conformal risk control. In International conference on learning representations , volume 2024, pages 55198–55218, 2024. 37. Christopher Mohri and Tatsunori Hashimoto. Language models with conformal factuality guarantees. arXiv preprint arXiv:2402.10978 , 2024. 38. Lorenz Kuhn, Yarin Gal, and Sebastian Farquhar. Semantic uncertainty: Linguistic invariances for uncertainty estimation in natural language generation. arXiv preprint arXiv:2302.09664 , 2023. 39. Sebastian Farquhar, Jannik Kossen, Lorenz Kuhn, and Yarin Gal. Detecting hallucinations in large language models using semantic entropy. Nature , 630(8017):625–630, 2024. 40. Alexander Nikitin, Jannik Kossen, Yarin Gal, and Pekka Marttinen. Kernel language entropy: Fine-grained uncertainty quantification for llms from semantic similarities. Advances in Neural Information Processing Systems , 37:8901–8929, 2024. 41. Lei Wei, Xiao Peng, Guannan Zhang, Chenhao Jiang, Hongyu Li, Lanbo Lin, Yuanwu Xu, Jiayao Liu, Kesu Wang, Bin Wang, et al. Pace: Predictive adaptive context extraction for long-horizon llm agents. In Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 27184–27199, 2026. 42. Tianjian Li, Jingyu Zhang, William Jurayj, Xi Wang, Chuanyang Jin, Mehrdad Farajtabar, Eric Nalisnick, and Daniel Khashabi. Self-compacting language model agents. arXiv preprint arXiv:2606.23525 , 2026. 43. Xubin Hao, Hongjin Meng, Xin Yin, Jiawei Zhu, and Chenpeng Cao. Self-gc: Self-governing context for long-horizon llm agents. arXiv preprint arXiv:2607.00692 , 2026. 44. Nusrat Jahan Lia and Aritra Mazumder. Learning what not to forget: Long-horizon agent memory from a few kilobytes of learning. arXiv e-prints , pages arXiv–2606, 2026. 45. Yuwei Zhang, Chengyu Dong, Shuowei Jin, Changlong Yu, Hejie Cui, Hongye Jin, Xinyang Zhang, Hamed Bonab, Colin Lockard, Jianshu Chen, et al. Comem: Context management with a decoupled long-context model. arXiv preprint arXiv:2605.30842 , 2026. 46. Yuyang Hu, Hongjin Qian, Shuting Wang, Jiongnan Liu, Ziliang Zhao, Jiejun Tan, Zheng Liu, and Zhicheng Dou. Sam: State-adaptive memory for long-horizon reasoning agent. arXiv preprint arXiv:2605.24468 , 2026. 47. Yuhang Wang, Yuling Shi, Mo Yang, Rongrui Zhang, Shilin He, Heng Lian, Yuting Chen, Siyu Ye, Kai Cai, and Xiaodong Gu. Swe-pruner: Self-adaptive context pruning for coding agents. arXiv preprint arXiv:2601.16746 , 2026. 48. Xiaochuan Li, Ryan Ming, Meng Chu, Shuai Shao, Rong Jin, and Chenyan Xiong. Acm: Agentic context management for long horizon tasks. arXiv preprint arXiv:2607.23809 , 2026.   
+
+> DRSR / LONG-HORIZON AGENTS 13 TSINGSHU RESEARCH DRSR
+
+## A Decision Procedure 
+
+Algorithm 1 One DRSR decision 
+
+Require: Valid current request Ct; frozen representation model; scorer ensemble; K = 3 , qmax =0.20 , τ = 0 .0740822119017442 
+
+Ensure: Protocol-valid pruned request or unchanged Ct 
+
+> 1:
+
+Protect the system/task prefix and Recent2; build an aligned representation view within the context cap.  
+
+> 2:
+
+Construct outcome-blind protocol-valid candidates Et. 
+
+> 3:
+
+if fewer than three candidates, alignment failure, or invalid protocol then  
+
+> 4:
+
+return Ct 
+
+> 5:
+
+end if  
+
+> 6:
+
+Extract structural, attention, hidden-state, and projected semantic features from the intact representation view.  
+
+> 7:
+
+Enumerate all nonempty A ⊆ Et with |A| ≤ K and batch-score them to obtain ¯Ht(A) and 
+
+Ut(A). 
+
+> 8:
+
+Map each subset to the full request, measure wt(A), and form the feasible set using protocol, recency, removal-budget, and risk constraints.  
+
+> 9:
+
+if no feasible set remains then  
+
+> 10:
+
+return Ct 
+
+> 11:
+
+end if  
+
+> 12:
+
+Select A⋆t by maximum direct saving, breaking ties by lower unsafe score and then lower predicted harm.  
+
+> 13:
+
+Jointly delete A⋆t , reserialize the request, and validate the final tool protocol.  
+
+> 14:
+
+return the valid rewritten request; otherwise return Ct.
+
+## B Supervision and Task Sets 
+
+Table 6. Offline supervision and benchmark task counts.                       
+
+> External-trajectory supervision
+> Source trajectories Decision states Set-level labels Train / validation / test
+> 566 1,698 ≈24 ,122 80:10:10 by trajectory
+> Task evaluation
+> Set Code Office Security Web Total
+> Full260 80 50 60 70 260 Eval40 10 10 10 10 40
+> The supervision set contains approximately 24,122 set-level deletion labels and is split 80:10:10 by source trajectory.
+
+All states and deletion sets generated from one source trajectory remain in the same split. This grouping prevents closely related deletion rows from crossing train, validation, and test partitions. Identical task counts do not by themselves establish a paired benchmark comparison. Paired evaluation additionally requires the same task manifest, acting-model configuration, and token-accounting rules. The numerical value 0.020 appears in two different roles. The meaningful-gap threshold selects which pairs are counted in pair-ordering evaluation, while δH in Eq. (4) defines the offline unsafe event. The two tests use the same numerical margin but serve different purposes.   
+
+> DRSR / LONG-HORIZON AGENTS 14 TSINGSHU RESEARCH DRSR
+
+## C Representation and Scorer Details 
+
+C.1 Candidate Construction and Structural Controls 
+
+Candidate construction is frozen before any deletion outcome is observed. The two most recent complete Steps are protected. Earlier protocol-valid atoms are grouped into at most four chronologi-cal bins according to the position of their parent Step, and the longest atom in each bin is selected. This produces three or four candidates for an eligible request. If fewer than three candidates remain, alignment fails, or a rewrite is invalid, the request is left unchanged. For each candidate Block Bi, structural controls describe properties that are directly visible before the next action. They include parent-Step age and relative position, Block type and component index, character count, word count, removable token count, lexical overlap with the task and recent history, tool-related overlap, redundancy with other candidates, and simple content indicators such as error, success, path, numeric, and nonzero-exit density. These controls provide context for the learned scorer. They are not used as a standalone importance rule. Representation extraction uses the frozen Qwen3.5-9B backbone. If the full request exceeds 55,296 tokens, DRSR takes the longest exactly aligned suffix that still contains Recent2. Candidate spans extracted from this view are mapped back to the complete serialized request before any token-saving or removal constraint is evaluated. 
+
+C.2 Attention Relations 
+
+Let t denote the final pre-action position in the intact causal prefix. For attention layer ℓ, head h, and historical token position k, the standard attention weight is 
+
+αℓ,h t,k = softmax k
+
+qℓ,h t (kℓ,h k )⊤
+
+√dh
+
+!
+
+. (12) For the token span Ωi of Block Bi, DRSR uses the attention mass and density 
+
+aℓ,h i,t = X
+
+> k∈Ωi
+
+αℓ,h t,k , dℓ,h i,t = aℓ,h i,t 
+
+|Ωi|. (13) Mass measures the total attention assigned to the Block, while density normalizes that quantity by Block length. The implementation records head-level mass and density together with summary statistics across heads, including mean and maximum mass, mean and maximum density, and the mean of the largest token-level attention values within the Block. Formal attention features are extracted only from the standard full-attention layers 
+
+ℓ ∈ { 4, 8, 12 , 16 , 20 , 24 , 28 , 32 }.
+
+Other backbone layers use a different attention implementation and are not treated as measurements of the same attention quantity. Any interpolated points used only for visualization are excluded from the formal features and from the reported attention analysis. Attention is not interpreted as a deletion score. A Block can receive low attention and still carry a constraint whose removal changes the next decision. Conversely, a highly attended Block can be redundant when similar evidence remains elsewhere. Attention therefore enters the candidate representation only as one online-visible relation.   
+
+> DRSR / LONG-HORIZON AGENTS 15 TSINGSHU RESEARCH DRSR
+
+C.3 Hidden-State Relations 
+
+The hidden-state features are designed to measure how a historical Block relates to the current decision state. They do not ask whether the Block has high value in isolation. Let hℓk ∈ Rdℓ be the hidden state of token k at layer ℓ. For Block Bi with token span Ωi, define its mean hidden representation as 
+
+¯hℓi = 1
+
+|Ωi|
+
+X
+
+> k∈Ωi
+
+hℓk, (14) and let hℓt denote the hidden state at the final pre-action position. DRSR compares the two represen-tations through 
+
+cos( ¯hℓi , h ℓt ), ∥¯hℓi − hℓt ∥2
+
+√dℓ
+
+, log ∥¯hℓi ∥2
+
+∥hℓt ∥2
+
+. (15) The cosine term measures directional similarity, the normalized Euclidean distance measures separation in representation space, and the log norm ratio records differences in representation magnitude without allowing hidden dimension to dominate the scale. Mean-span features can hide information concentrated at the boundaries of a Block. The implemen-tation therefore also includes cosine relations between hℓt and the first and last token states of the Block: 
+
+cos( hℓi, first , h ℓt ), cos( hℓi, last , h ℓt ). (16) Together, the mean and boundary relations provide several views of the same state-conditioned question: whether the representation of historical content remains aligned with the representation immediately before the next action. These quantities are descriptive features, not causal importance measures. Their usefulness is learned from offline deletion labels. In particular, a large cosine similarity does not force retention, and a large distance does not imply safe deletion. Numerical implementations stabilize zero norms consistently before cosine and norm-ratio computation. 
+
+C.4 Fixed Projected Semantic Relations 
+
+Scalar similarities compress a high-dimensional relation into a small number of values. DRSR therefore retains additional directional information through fixed random projections. At semantic layers 
+
+ℓ ∈ { 8, 16 , 24 , 32 },
+
+let Rℓ ∈ Rdℓ×64 be a Gaussian projection whose entries are drawn independently with variance 1/64 .The projection seed is fixed to 73000 + ℓ. The projected Block and current-state pair is 
+
+sℓi,t =
+
+ ¯hℓi
+
+∥¯hℓi ∥2
+
+Rℓ, hℓt
+
+∥hℓt ∥2
+
+Rℓ
+
+
+
+. (17) The projection matrices are fixed before training and are independent of all deletion labels. They therefore provide a compact view of semantic directions without fitting the representation backbone or the projection to downstream outcomes.   
+
+> DRSR / LONG-HORIZON AGENTS 16 TSINGSHU RESEARCH DRSR
+
+C.5 Candidate Feature Assembly 
+
+The complete candidate vector concatenates the structural, attention, hidden-state, and projected semantic components: 
+
+xi,t =
+
+h
+
+xstruct  
+
+> i,t
+
+, x attn  
+
+> i,t
+
+, x hidden  
+
+> i,t
+
+, x proj 
+
+> i,t
+
+i
+
+∈ R1154 . (18) Every component is computed from the intact causal prefix. No candidate deletion is executed to construct xi,t , and no realized future output, measured harm, or task reward is included. The feature order is fixed across training and deployment. The candidate features retain temporal information through structural position variables even though the later set encoder is permutation invariant within the deleted and retained groups. The representa-tion view can be shorter than the complete request because of the 55,296-token cap, but token saving, Recent2 protection, protocol validation, and removal limits are always evaluated after mapping candidate spans back to the full request. 
+
+C.6 Exact Set Representation 
+
+A two-layer Linear/GELU encoder maps the 1,154-dimensional candidate vector to a 64-dimensional embedding 
+
+ei = ϕθ(xi,t ) ∈ R64 . (19) For deleted candidates D = A and retained candidates R = Et \ A, let μG and mG denote the mean and elementwise maximum of the embeddings in a nonempty group G. Empty groups use zero-padded summaries. The deleted-set pair statistic is 
+
+pD =
+
+ P  
+
+> i∈D
+
+ei
+
+⊙2 − P 
+
+> i∈D
+
+e⊙2
+
+> i
+
+2 max 
+
+n |D|
+
+> 2
+
+, 1
+
+o . (20) For |D| ≥ 2, this equals the average elementwise product over unordered pairs of deleted candidates. For a singleton, the numerator is zero and pD is the zero vector. Appendix D gives the algebraic identity behind this pooling operation. The model also compares the deleted and retained groups through 
+
+cD,R = μD ⊙ μR, gD,R = |μD − μR|. (21) These terms expose whether the proposed deletion and the surviving candidate information occupy similar or different regions of the learned candidate space. They do not impose a hand-written redundancy rule. Their effect is learned from the set-level supervision. The budget vector is 
+
+bt(A) = 
+
+ |A||Et|, log(1 + wt(A)) 10 , wt(A)
+
+P 
+
+> Bi∈Et
+
+wt({Bi})
+
+
+
+. (22) The exact set representation is 
+
+rexact  
+
+> t
+
+(A) = [ μD, μ R, m D, m R, p D, μ D ⊙ μR, |μD − μR|, b t(A)] ∈ R451 . (23)   
+
+> DRSR / LONG-HORIZON AGENTS 17 TSINGSHU RESEARCH DRSR
+
+Each of the seven pooled embedding terms contributes 64 coordinates and bt(A) contributes three, giving 7 × 64 + 3 = 451 features. The pair statistic provides information about interactions inside the deleted set, while the deleted and retained geometry provides information about what survives after the edit. The final scorer is not restricted to an additive sum of singleton or pair effects. 
+
+C.7 Scorer and Training Objective 
+
+A shared 64-dimensional trunk maps rexact  
+
+> t
+
+(A) to hA. Cardinality-indexed heads produce 
+
+bHt(A) = gharm  
+
+> |A|
+
+(hA), bpt(A) = σ  grisk  
+
+> |A|
+
+(hA) . (24) Training includes deletion cardinalities one through four, although online selection permits at most three deleted candidates. Separate heads allow the output mapping to vary with set size, which is useful because the scale and frequency of interaction can change with cardinality. The two outputs have different roles. The harm head learns a continuous quantity and supports ranking among candidate sets. The unsafe head learns the event in Eq. (4) that is used by the online gate. The unsafe output is a learned decision score and is not interpreted as a calibrated probability of downstream task failure. The composite training objective is 
+
+Ltrain = Lrank + 0 .30 LSmoothL1 + 0 .40 LBCE + 0 .10 LBrier . (25) The regression term fits measured joint harm. Weighted BCE uses 
+
+w+ = min 
+
+N−
+
+N+
+
+, 4
+
+
+
+, (26) and the Brier term penalizes squared error on the unsafe target. The ranking term is defined in Appendix G. Checkpoint selection lexicographically prioritizes unsafe AUROC, meaningful-gap pair accuracy, and negative Brier score. The test split is used for neither fitting nor threshold selection.   
+
+> DRSR / LONG-HORIZON AGENTS 18 TSINGSHU RESEARCH DRSR
+
+C.8 Model and Training Configuration 
+
+Table 7. Model and training configuration. The language models are frozen; only the set-risk scorer is optimized. 
+
+Configuration item Value 
+
+Representation and scorer 
+
+Representation backbone Frozen Qwen3.5-9B Acting model DeepSeek-V4-Flash Candidate features / embedding 1,154 / 64 dimensions Set representation / shared hidden state 451 / 64 dimensions Attention layers 4, 8, 12, 16, 20, 24, 28, 32 Semantic layers / projection size 8, 16, 24, 32 / 64 Projection seed at layer ℓ 73000 + ℓ
+
+Context / target token cap 55,296 / 3,072 
+
+Scorer optimization 
+
+Optimizer / learning rate AdamW / 2 × 10 −3
+
+Weight decay / gradient clipping 10 −4 / 5.0 Maximum epochs / evaluation interval 300 / every 5 epochs Early-stopping patience 12 evaluations Ensemble seeds 11, 29, 47 
+
+Online constraints 
+
+Maximum candidates / deletion cardinality 4 / 3 Protected complete Steps Most recent 2 Per-request removal cap 20.000% of full request Harm-label threshold δH 0.020 Deployment threshold τ 0.0740822119017442 Uncertainty coefficient β 0No feasible deletion set Retain the complete request 
+
+## D Algebraic Properties and Design Implications 
+
+This section collects identities used by the main formulation and clarifies what they do and do not imply. These results are algebraic properties of the defined quantities. They are not claims that the learned scorer recovers the true harm exactly. 
+
+D.1 Telescoping Decomposition of Joint Harm 
+
+For an ordered deletion sequence Ak = {Bi1 , . . . , B ik } with A0 = ∅, recall 
+
+Ht(Bik | Ak−1) = Ht(Ak) − Ht(Ak−1).
+
+Proposition 1. If all intermediate rewrites are valid, then 
+
+Ht(Am) = 
+
+> m
+
+X
+
+> k=1
+
+Ht(Bik | Ak−1). (27)   
+
+> DRSR / LONG-HORIZON AGENTS 19 TSINGSHU RESEARCH DRSR
+
+Proof. Substituting the definition of the conditional effect gives 
+
+> m
+
+X
+
+> k=1
+
+Ht(Bik | Ak−1) = 
+
+> m
+
+X
+
+> k=1
+
+[Ht(Ak) − Ht(Ak−1)] (28) 
+
+= Ht(Am) − Ht(A0). (29) Since A0 = ∅ and deleting the empty set leaves the context unchanged, Ht(A0) = 0 . This yields Eq. (27). □
+
+The identity explains why singleton harm is insufficient in general. Each conditional term is evaluated after a different subset has already been removed. The final joint harm is independent of the chosen deletion order, but the intermediate conditional effects need not be. 
+
+D.2 Singleton Additivity and Interaction Residuals 
+
+For a set A, the interaction residual is 
+
+It(A) = Ht(A) − X
+
+> Bi∈A
+
+Hi,t .
+
+Therefore 
+
+Ht(A) = X
+
+> Bi∈A
+
+Hi,t + It(A). (30) Exact singleton additivity for a specific set A holds if and only if It(A) = 0 . This statement is set specific. Observing zero residual for one set does not imply that larger or different sets are additive. For two Blocks, 
+
+Ht({Bi, B j }) = Hi,t + Hj,t + Jij,t , (31) where Jij,t is defined in Eq. (6). Exact pair interaction therefore reconstructs pair harm by definition. For sets with three or more Blocks, pair terms alone need not recover all higher-order effects. This is why the diagnostic pair reconstruction experiment does not become the deployed prediction rule. 
+
+D.3 Why Retained Context Changes Deletion Risk 
+
+For Bi /∈ A,
+
+Ht(Bi | A) = Ht(A ∪ { Bi}) − Ht(A). (32) The effect of deleting Bi is therefore indexed by the set already removed, or equivalently by the context that remains. If another Block contains redundant evidence, deleting Bi can have small conditional effect while that evidence remains and a much larger effect after the redundant source is also removed. This dependence motivates the deleted and retained partition in the set encoder. A model that receives only representations of the deleted Blocks cannot directly distinguish two proposals with the same deleted content but different surviving evidence. DRSR therefore includes explicit retained-set summaries and deleted-to-retained geometry.   
+
+> DRSR / LONG-HORIZON AGENTS 20 TSINGSHU RESEARCH DRSR
+
+D.4 Identity Behind the Pair Pooling Statistic 
+
+Let 
+
+SD = X
+
+> i∈D
+
+ei.
+
+Elementwise squaring gives 
+
+S⊙2 
+
+> D
+
+= X
+
+> i∈D
+
+e⊙2 
+
+> i
+
++ 2 X
+
+> i<j i,j ∈D
+
+ei ⊙ ej . (33) Rearranging, 
+
+S⊙2 
+
+> D
+
+− P 
+
+> i∈D
+
+e⊙2
+
+> i
+
+2 = X
+
+> i<j i,j ∈D
+
+ei ⊙ ej . (34) Dividing by  |D|
+
+> 2
+
+ when |D| ≥ 2 yields the average unordered pair product used in Eq. (20). For 
+
+|D| = 1 , the numerator is zero, so the implementation defines pD as the zero vector. This statistic is permutation invariant and can be computed without explicitly listing every pair. It supplies information about pair structure to the downstream network, but it does not impose a pairwise additive model of harm. 
+
+D.5 Oracle Constraint and Learned Online Gate 
+
+The ideal objective in Eq. (7) uses the true event 
+
+Ht(A) ≤ δH .
+
+This event cannot be evaluated at online decision time because it depends on the realized next output 
+
+yt. DRSR instead learns an unsafe score bpt(A) from offline labels and aggregates an ensemble score 
+
+Ut(A) for deployment. The online condition 
+
+Ut(A) ≤ τ
+
+should therefore be interpreted as a learned surrogate for feasibility, not as an algebraic replacement for Ht(A) ≤ δH . The two thresholds act on different variables. The value δH defines the offline target, while τ is selected on validation predictions under the policy constraints described in Appendix J.6. 
+
+D.6 Accumulation Without Interaction 
+
+Set-level reasoning is required even when the interaction residual is zero. Suppose It(A) = 0 . Then 
+
+Ht(A) = X
+
+> Bi∈A
+
+Hi,t .
+
+It is possible for every singleton to satisfy Hi,t ≤ δH while the sum exceeds δH . Thus independent thresholding of singleton harms does not guarantee that their union is safe. The cardinality cap and the direct set-level gate address this accumulation failure in addition to nonadditive interaction.   
+
+> DRSR / LONG-HORIZON AGENTS 21 TSINGSHU RESEARCH DRSR
+
+## E Structural Pruning Baseline 
+
+Structural Pruning. We retain the earliest structural pruning implementation as a deliberately simple reference point. The heuristic protects the two most recent complete Steps, preserves tool calls and matched results, preserves state-bearing content, and removes only short transition narration for which later structure provides a witness. It has no learned risk estimator, no counterfactual supervision, and no retrieval or recall component. On Full260, the supplied domain rewards are 0.703, 0.814, 0.640, and 0.659 for Code, Office, Security, and Web, respectively, with a reported overall reward of 0.701. Its mean total tokens per task are 1.380M, 0.893M, 4.961M, and 2.046M by domain, with 2.292M overall. At the aggregate level, this corresponds to a 14.640% reduction from the canonical Full260 baseline. The independent table is omitted because the same reward and token values already appear in the main Full260 comparison. 
+
+## F Additional Representation Results 
+
+Table 8. History granularity and relational representations. Accuracy concerns the ordering of deletion effects, not task completion.            
+
+> Measurement / representation Value
+> History granularity
+> Median within-state Step-harm range 0.312 Median within-state Block-harm range 0.028 Unsafe parent Steps containing a safe Block 71.400%
+> Controls: pair accuracy at harm margin 0.020
+> Current state only 50.000% Surface features 64.750%
+> State relations: pair accuracy at harm margin 0.020
+> Pre-action relation with matched state 70.920% Pre-action relation with mismatched state 62.020% Full-context relation 66.390% Attention mass, layer 20 71.310% Combined relations, layers 12 and 16 72.130%
+
+Figure 3 examines whether historical relevance is better represented relative to the current decision state than from the historical Block alone. At the primary harm margin, the matched pre-action relation reaches 70.920% pair accuracy, compared with 62.020% when the same candidate is paired with a mismatched state. The best combined relation reaches 72.130%. The layerwise view further shows where this decision-conditioned signal emerges across representation depth, while the margin sweep verifies that the comparison is not specific to a single ordering threshold. Together, these results support representing historical content through its relation to the current state rather than assigning a fixed state-independent importance score. Figure 4 motivates the Block-level action space used by DRSR. Step-level deletion aggregates heterogeneous assistant content and tool exchanges into a single removal decision, producing a substantially wider within-state harm range than Block-level deletion (0.312 versus 0.028). Moreover, 71.400% of unsafe parent Steps contain at least one constituent Block that is individually safe to remove. The parent–child comparison in panel (b) therefore shows why deleting an entire Step          
+
+> DRSR / LONG-HORIZON AGENTS 22 TSINGSHU RESEARCH DRSR 4812 16 20 24 28 32
+
+Transformer layer 
+
+> 0.50 0.55 0.60 0.65 0.70 0.75
+> Meaningful-gap pair accuracy
+
+a Decision conditioning across depth      
+
+> Block only Decision conditioned Mismatched semantic relation Surface baseline
+> 0.00 0.01 0.02 0.03 0.04 0.05
+
+True harm margin δ
+
+> 0.50 0.55 0.60 0.65 0.70 0.75
+> Pair ordering accuracy
+> primary margin
+
+b Harm-margin discrimination 
+
+> Surface baseline Full-context relation Mismatched relation Pre-action relation
+
+Historical value is decision conditioned 
+
+Figure 3. Decision-conditioned historical relevance. (a) Meaningful-gap pair accuracy across representation depth for decision-conditioned, Block-only, and mismatched-state relations, with the surface-feature baseline for reference. (b) Pair-ordering accuracy as the true harm margin varies; the dashed line marks the primary evaluation margin. 0.0 0.2 0.4 0.6 0.8 1.0 
+
+Normalized historical position 
+
+> 0.0 0.1 0.2 0.3 0.4 0.5 0.6
+> Step harm  Ht(Si)
+
+a Step harm across history         
+
+> Original median External median
+> 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8
+
+Parent harm Ht(Si)
+
+> −0.2 −0.1 0.0 0.1
+> Safest child min
+> j
+> Ht (Bi, j)
+> unsafe parent, safe child
+> Original: 75.0% External: 71.4%
+
+b Parent harm vs. safest child 
+
+> Original External
+
+Historical value is hierarchical 
+
+Figure 4. History granularity analysis. (a) Step harm across normalized historical position. (b) Parent-Step harm against the lowest-harm constituent Block; the unsafe-parent/safe-child region shows why Block-level actions can preserve useful parts of an otherwise unsafe Step. 
+
+can discard useful content unnecessarily: a coarse unit may be unsafe even when a finer-grained subcomponent remains removable. Figure 5 extends the main-text cardinality analysis. Within the confirmatory range, mean absolute non-compositionality increases from 0 for singleton deletion to 0.008, 0.016, and 0.027 for deletion sets of size two, three, and four. The discrepancy between independently measured singleton effects and actual joint deletion therefore grows as more Blocks are removed together. At cardinality four, its mean magnitude already exceeds the δH = 0 .020 harm threshold used to define unsafe supervision. The additional larger-set and per-domain panels are retained as exploratory diagnostics and are not used to define the deployed policy. 
+
+F.1 Composition, Risk Scores, and Attention 
+
+Figure 6 decomposes the measured interaction residual along several observable properties of a deletion set. The panels distinguish component composition, semantic overlap, attention-head overlap, and temporal separation, allowing the non-compositional effect to be inspected beyond set  
+
+> DRSR / LONG-HORIZON AGENTS
+
+23 TSINGSHU RESEARCH DRSR 1 2 3 4 5 6 7 8 9 10 
+
+Deletion-set cardinality | A|
+
+> 0.00 0.01 0.02 0.03 0.04 0.05 0.06
+> Mean | It(A)| (nats / target token)
+> pilot-only extension
+
+a Confirmatory range and exact extension          
+
+> 200-source 95% cluster CI 200 sources (| A| ≤ 4) 4-source exact pilot (| A| ≤ 10)
+> 12345678910
+
+Deletion-set cardinality | A|
+
+b Exact pilot by domain (10 sets / k) 
+
+> Code Office Sec Web
+
+Non-compositionality grows with set cardinality 
+
+Figure 5. Full non-compositionality analysis. The main paper uses only the 200-source confirmatory range 
+
+|A| ≤ 4; this appendix figure retains the exploratory exact extension to larger sets and the per-domain pilot. 0.00 0.01 0.02 0.03 0.04 
+
+> Mean | It(A)|
+
+a Component composition 
+
+> Homogeneous Mixed
+
+b Semantic overlap 
+
+> High Low
+
+0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 
+
+Removed context fraction 
+
+0.00 0.01 0.02 0.03 0.04 
+
+> Mean | It(A)|
+
+c Attention-head overlap 
+
+> High Low
+
+0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 
+
+Removed context fraction 
+
+d Temporal span 
+
+> Compact Dispersed
+
+Interaction phase diagram 
+
+Figure 6. Interaction summaries by component composition, semantic overlap, attention-head overlap, and temporal span. 
+
+DRSR / LONG-HORIZON AGENTS 24 TSINGSHU RESEARCH DRSR 
+
+cardinality alone. These analyses are diagnostic: they test whether joint harm is associated with multiple forms of relation among historical Blocks, rather than defining hand-written deletion rules. DRSR therefore learns from the measured set-level labels instead of thresholding any individual overlap or distance statistic. 0.0 0.1 0.2 0.3 0.4 0.5 
+
+Predicted unsafe probability 
+
+> 0.5 1.0 1.5 2.0
+> Probability density
+
+a Validation risk separation      
+
+> Unsafe sets Safe sets Frozen threshold
+> 0.0 0.1 0.2 0.3 0.4 0.5
+
+Predicted unsafe probability 
+
+b External risk separation 
+
+> Unsafe sets Safe sets Frozen threshold
+
+Figure 7. Unsafe-score distributions for validation and external sets. The dashed line marks the deployment threshold; distributional separation is not a calibration guarantee. 
+
+Figure 7 shows the distribution of the learned unsafe score on validation and external examples. The dashed line marks the frozen deployment threshold τ , making explicit how candidate sets are partitioned by the online risk gate. The figure is intended as a distributional diagnostic rather than a probability-calibration result: the unsafe output is used as a decision score, and separation between groups does not imply that its numerical value equals a downstream failure probability. 0.02 0.04 0.06 0.074 0.1 0.15 0.2 0.3 
+
+Risk threshold τ
+
+> 010 20 30 40
+> Unsafe rate (%)
+
+a Safety response         
+
+> Validation External Frozen τ
+> 0.02 0.04 0.06 0.074 0.1 0.15 0.2 0.3
+
+Risk threshold τ
+
+> 2468
+> Mean direct saving (%)
+
+b Direct-saving response  
+
+> Validation External Frozen τ
+
+Figure 8. Risk-gate operating curve. Left: empirical unsafe rate. Right: mean direct removal. The dashed line marks the frozen deployment threshold. 
+
+Figure 8 visualizes the operating behavior of the risk gate as its threshold changes. The left panel tracks empirical unsafe rate, while the right panel tracks mean direct removal, exposing the trade-off between conservative selection and more aggressive compression. The dashed line marks the threshold selected on validation and subsequently frozen for deployment. Thus, the online threshold is chosen as a policy operating point, rather than being identified with the offline harm threshold δH .Figure 9 reports sensitivity to the ensemble uncertainty coefficient β. Increasing β changes the deployment score from the ensemble mean toward a more uncertainty-penalized criterion, which can alter selection coverage, direct removal, and empirical unsafe rate. The validation search selects 
+
+β = 0 for the deployed configuration, so the final policy uses the ensemble-mean unsafe score  
+
+> DRSR / LONG-HORIZON AGENTS 25
+
+TSINGSHU RESEARCH DRSR 0.00 0.25 0.50 0.75 1.00 1.25 1.50 1.75 2.00 
+
+Uncertainty penalty β
+
+> 30 35 40 45 50 55 60 65 70 75
+> Eligible decisions selected (%)
+
+Uncertainty penalty trades coverage for safety   
+
+> Selection coverage Direct saving Empirical unsafe rate Deployed β= 0
+> 01234567
+> Direct saving / unsafe decisions (%)
+
+Figure 9. Selection coverage, direct saving, and empirical unsafe rate across the uncertainty coefficient β.The deployed setting is β = 0 .
+
+without an additional standard-deviation penalty. This analysis shows that the uncertainty term was explicitly tested rather than implicitly fixed. 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 
+
+Transformer layer 
+
+> 0123456
+> Attention density ( ×10 −5 )
+> 8/8 measured layers lower · late-layer density 54.0% lower 832 tokens removed · exact joint harm +0.0135
+
+(a) MkDocs configuration               
+
+> DRSR-selected Retained candidates
+> 46810 12 14 16 18 20 22 24 26 28 30 32
+
+Transformer layer 
+
+> 0246810
+> Attention density ( ×10 −5 )
+> 8/8 measured layers lower · late-layer density 33.6% lower 1,439 tokens removed · exact joint harm +0.0022
+
+(b) Poetry diagnostics  
+
+> DRSR-selected Retained candidates
+> Filled markers: measured full-attention layers Hollow markers: interpolated layout preview at linear-attention layers
+
+Figure 10. Attention density for selected and retained candidates in two examples. Filled markers are measured full-attention layers; hollow markers are interpolated layout points. Lower attention alone is not a deletion-safety test. 
+
+Figure 10 provides two qualitative examples of attention density across representation depth for candidates that are selected for deletion and candidates that are retained. Filled markers correspond to measured full-attention layers, whereas hollow markers are interpolation points used only for visualization. The examples illustrate why attention is treated as one relational feature rather than a standalone pruning criterion: the deletion decision is produced by the learned set-risk model together with state, retained-context, and interaction information, not by applying a fixed low-attention threshold. 
+
+## G Optimization and Metric Definitions 
+
+G.1 Harm Standardization and Ranking 
+
+Let μH and σH be computed on training labels only. Regression uses 
+
+eHt(A) = Ht(A) − μH
+
+max( σH , 0.02) . (35) 
+
+DRSR / LONG-HORIZON AGENTS 26 TSINGSHU RESEARCH DRSR 
+
+Predictions are restored to the original harm scale for interpretation. Ranking pairs have the same source trajectory and deletion cardinality. For examples a = ( t, A ) and b = ( t′, B ), define 
+
+∆ab = Ht(A) − Ht′ (B). Pairs with |∆ab | < 10 −5 are omitted. With 
+
+ωab = 0 .1 + 0 .9 min 
+
+|∆ab |
+
+0.02 , 1
+
+
+
+, (36) training minimizes the weighted pairwise loss 
+
+Lrank = Ea,b 
+
+h
+
+ωab softplus 
+
+
+
+− sign(∆ ab )( bHa − bHb)
+
+i 
+
+. (37) Trajectory-grouped training pairs and within-state evaluation pairs are different grouping rules. Both preserve the intended source dependence; their metrics should not be silently interchanged. 
+
+G.2 Offline Prediction Metrics 
+
+For a set of evaluated pairs P satisfying the specified harm margin, pair accuracy is the fraction with correctly ordered predicted harm. Tied predictions need an explicit scoring convention. Within-state Spearman correlation compares the predicted and measured set orders at a common decision state and cardinality. A pooled accuracy and a mean of trajectory-level accuracies generally differ, so an empirical report must identify which aggregation was used. The unsafe target is ut(A) from Eq. (4). Brier score averages (bpt(A) − ut(A)) 2, while AUROC measures the ability to rank unsafe events above safe events. Neither is a task reward metric. Multiple sets from one trajectory are dependent observations; uncertainty estimates require grouping at the trajectory level rather than treating every deletion row as independent. 
+
+G.3 Direct and Complete-Task Token Accounting 
+
+For task j and requests t, direct deletion is 
+
+Ddirect ,j = X
+
+> t
+
+Tok( Cj,t ) − Tok( DAj,t (Cj,t ))  . (38) Complete-task processed tokens are instead Tj = P
+
+> r
+
+(Ij,r + Oj,r ). Cache-read and cache-creation counts, when reported as input components, are already included in Ij,r and are not added again. For benchmark means, 
+
+∆T (%) = 100 
+
+ ¯TDRSR 
+
+¯TBase 
+
+− 1
+
+
+
+. (39) A negative token change denotes a decrease. A positive “reduction” percentage would use the opposite sign. Monetary cost cannot be inferred from this unweighted token total without the applicable prices and input/output/cache breakdown. Changes in action paths, retries, termination, and request counts can separate direct removal from the observed difference between two full rollouts. One may define a residual ∆Trollout so that 
+
+TBase − TDRSR = Ddirect + ∆ Trollout , (40) but this is an accounting decomposition, not causal identification of the residual. Local representation computation is a separate workload and is not automatically captured by API token totals.   
+
+> DRSR / LONG-HORIZON AGENTS 27 TSINGSHU RESEARCH DRSR
+
+Table 9. Eval40 token accounting for comparator methods. Totals cover 40 tasks.                                            
+
+> Method Total (M) Per task (M)
+> DeepSeek-V4-Flash 75.50 1.887 Sliding Window ( K= 5 )118.08 2.952 Sliding Window ( K= 10 )79.39 1.985 Sliding Window ( K= 20 )80.82 2.020 Periodic Summary ( n= 3 )88.57 2.214 Periodic Summary ( n= 5 )94.85 2.371 PACE 44.12 1.103 LLMLingua-2 96.18 2.405 SelfCompact 62.70 1.567 ACON-Core 56.13 1.403 Self-GC 66.21 1.655 LRE 91.64 2.291 CoMem 30.64 0.766
+> SAM 53.85 1.346 SWE-Pruner 60.07 1.502 Sculptor 51.75 1.294 ACM 94.56 2.364
+> DRSR 48.43 1.211
+
+## H Comparator Token Accounting 
+
+Table 9 reports the Eval40 token quantities used in Table 4. For methods with an auxiliary summa-rization model, its reported input and output tokens are included in the total. Totals are shown in millions to keep the appendix compact; the per-task column uses the same accounting rule as the main comparison. 
+
+## I Detailed Task and Token Summaries 
+
+This section provides the domain-level quantities underlying the Eval40 ablation and the Full260 token summaries. To improve readability, token magnitudes are reported in millions (M) or thousands (K) rather than as long raw counts. This changes only presentation, not the underlying values. 
+
+I.1 Domain-Level Ablations 
+
+Table 10 preserves the four-domain Eval40 ablation results. Each domain has equal weight in the Eval40 summary; for example, the full DRSR reward is 
+
+(0 .856 + 0 .788 + 0 .700 + 0 .833) /4 = 0 .794 . (41) The ablations are visibly domain dependent. Removing retained-context features reduces direct deletion in several domains but still lowers overall reward; removing pair pooling produces the largest direct deletion in Security; and removing abstention is particularly harmful in Security. These domain-level patterns are consistent with the main-text conclusion that the three components affect different parts of the pruning decision rather than acting as redundant copies of the same mechanism. 
+
+I.2 Token Components 
+
+Table 11 gives the equal-domain token decomposition used by the Eval40 ablation summary. Input and cache quantities are shown in millions of tokens per task, while output is shown in thousands   
+
+> DRSR / LONG-HORIZON AGENTS 28 TSINGSHU RESEARCH DRSR
+
+Table 10. Per-domain Eval40 ablations. T is mean total model tokens per task in millions; Direct is directly removed tokens per task in thousands.                                                     
+
+> Domain Reward T(M) Direct (K)
+> DRSR
+> Code 0.856 1.216 46.6 Office 0.788 0.724 6.8 Security 0.700 1.616 37.6 Web 0.833 1.288 9.7
+> w/o retained
+> Code 0.722 0.716 22.7 Office 0.779 0.266 0.0 Security 0.698 1.254 17.7 Web 0.800 1.731 10.1
+> w/o pair pooling
+> Code 0.756 0.567 40.3 Office 0.678 0.606 2.3 Security 0.796 1.094 52.1 Web 0.796 2.535 34.1
+> w/o abstention
+> Code 0.833 1.205 46.9 Office 0.801 0.447 1.6 Security 0.573 0.963 45.7 Web 0.800 1.553 26.3
+
+Table 11. Equal-domain token decomposition on Eval40. Input, cache, and total columns are in millions of tokens per task; output is in thousands.                          
+
+> Variant Input (M) Output (K) Cache read (M) Cache create (M) Total (M)
+> DRSR 1.188 22.7 1.067 0.121 1.211 w/o retained 0.970 21.3 0.873 0.097 0.992 w/o pair pooling 1.178 22.2 1.052 0.126 1.201 w/o abstention 1.018 23.7 0.872 0.147 1.042
+
+because it is an order of magnitude smaller. Cache read and cache creation are components of input and are therefore not added to the total a second time. The decomposition shows that the observed token differences are driven mainly by input-side processing rather than output length. This is expected for history pruning: changing what remains in the active context primarily changes how much prior context is repeatedly processed. The online controller itself uses two local representation forwards at eligible decisions; that local workload is separate from the API token totals reported here. For completeness, Table 12 retains the per-domain token components in the same compact units. 
+
+I.3 Full260 Token Accounting 
+
+Table 13 reports the Full260 reward and token quantities in the same compact notation. T is the complete-task model-token mean per task, whereas Direct measures only the tokens removed from the rewritten request at the pruning decision. The two quantities should not be conflated because different pruning decisions can also change later action paths, request counts, termination, and subsequent context growth. The Full260 table makes the domain dependence of compression explicit. Security has by far the largest baseline context and also shows the largest absolute reward improvement, while Office   
+
+> DRSR / LONG-HORIZON AGENTS 29 TSINGSHU RESEARCH DRSR
+
+Table 12. Per-domain token components for Eval40 ablations. Input and cache columns are in millions of tokens per task; output is in thousands. 
+
+Domain Input (M) Output (K) Cache read (M) Cache create (M) 
+
+DRSR 
+
+Code 1.205 11.2 1.052 0.153 Office 0.702 22.0 0.642 0.060 Security 1.589 26.4 1.429 0.161 Web 1.256 31.0 1.146 0.110 
+
+w/o retained 
+
+Code 0.706 10.1 0.605 0.101 Office 0.247 19.4 0.196 0.050 Security 1.232 21.8 1.095 0.137 Web 1.697 33.9 1.596 0.100 
+
+w/o pair pooling 
+
+Code 0.558 9.0 0.463 0.095 Office 0.583 23.6 0.519 0.064 Security 1.072 21.7 0.881 0.191 Web 2.501 34.5 2.345 0.156 
+
+w/o abstention 
+
+Code 1.194 11.4 1.014 0.179 Office 0.425 22.1 0.349 0.076 Security 0.940 23.2 0.769 0.171 Web 1.515 37.9 1.355 0.160 
+
+Table 13. Full260 reward and token accounting by domain. Token columns are per-task means in millions; Direct is per-task direct removal in thousands. 
+
+Domain N Base R DRSR R Base T (M) DRSR T (M) ∆T Direct (K) 
+
+Code 80 0.770 0.858 1.370 1.235 −9.91% 46.9 Office 50 0.818 0.824 1.198 0.997 −16 .82% 6.8 Security 60 0.478 0.756 5.977 4.569 −23 .55% 31.0 Web 70 0.721 0.760 2.429 1.858 −23 .52% 38.2 
+
+Overall 260 0.699 0.802 2.685 2.126 −20 .82% 33.2 
+
+changes only modestly. DRSR reduces processed tokens in all four domains, but the amount of direct same-request removal is not identical to the complete-rollout token difference.   
+
+> DRSR / LONG-HORIZON AGENTS 30 TSINGSHU RESEARCH DRSR
+
+## J Deployment and Supervision Details 
+
+J.1 Training and Deployment Information Boundary 
+
+Offline supervision may use quantities that are unavailable when the online pruning decision is made. Table 14 makes this separation explicit. The realized next output yt and exact deletion harm are used only to construct supervision. The deployed scorer receives only the current causal prefix, candidate features, and the proposed deletion mask. 
+
+Table 14. Information boundary for DRSR. “Label only” means that a quantity may construct supervision but is not an online feature.                     
+
+> Quantity Offline training Online selection Post-hoc audit
+> Current query and observed history Yes Yes Yes Pre-action hidden states / attention Yes Yes Yes Candidate mask and token saving Yes Yes Yes Realized next output ytLabel only No Yes Exact joint deletion harm
+> Ht(A)
+> Supervision No Optional remeasurement Task reward Not a feature No System evaluation Counterfactual deletion forward Label generation 0Optional audit
+
+J.2 Exact Online Risk Aggregation and Feasible Set 
+
+For ensemble member s, let bH(s) 
+
+> t
+
+(A) and bp(s) 
+
+> t
+
+(A) denote the predicted harm and unsafe score. DRSR aggregates the three members as 
+
+¯Ht(A) = 13
+
+X
+
+> s
+
+bH(s) 
+
+> t
+
+(A), Ut(A) = ¯ pt(A) + β Std s
+
+hbp(s) 
+
+> t
+
+(A)
+
+i
+
+. (42) The deployed setting uses β = 0 , so Ut(A) is the ensemble-mean unsafe score. The exact feasible set is 
+
+Ft = {A ⊆ Et : 1 ≤ | A| ≤ K, 0 < w t(A) ≤ qmax Tok( Ct),A ∩ Recent2 = ∅, Ut(A) ≤ τ, ProtocolSafe( DA(Ct)) }. (43) The main-text set At contains the same structural constraints without the risk condition. Equa-tion (11) then chooses the largest-saving member that also satisfies Ut(A) ≤ τ . If several sets remove the same number of tokens, the policy prefers lower unsafe score and then lower predicted harm. With at most four candidates and K = 3 , the number of nonempty subsets considered online is 
+
+> 3
+
+X
+
+> k=1
+
+4
+
+k
+
+
+
+= 14 . (44) All candidate subsets are batch-scored by the lightweight network. No online counterfactual deletion forward is executed.   
+
+> DRSR / LONG-HORIZON AGENTS 31 TSINGSHU RESEARCH DRSR
+
+J.3 Online Computational Cost 
+
+The online controller does not evaluate deletion harm by rerunning the language model on each candidate rewrite. At an eligible decision, the implementation performs two local representation passes over the intact causal prefix: one pass extracts attention and hidden-state relations, and the second provides the projected semantic representation used by the feature pipeline. Candidate-specific features are then assembled from these intact-prefix representations. With n ≤ 4 candidates and K = 3 , at most 
+
+> 3
+
+X
+
+> k=1
+
+nk
+
+
+
+≤ 14 
+
+candidate sets are formed. Their 451-dimensional set representations are scored together by the lightweight scorer ensemble. The number of online candidate-specific counterfactual deletion forwards is therefore exactly zero. Only the single deletion set selected by the policy is applied to the request that is passed to the acting model. This distinction is important for both meaning and cost. The offline label Ht(A) compares the likelihood of one fixed recorded output under intact and edited contexts. Generating separate online continuations for each candidate would not recover that fixed-target quantity, and it would add a large inference cost to the pruning procedure itself. 
+
+J.4 Protocol-Preserving Deletion 
+
+The implementation enforces the following invariants at every eligible decision: (i) the two latest complete Steps are protected; (ii) a tool call and its matched result are atomic; (iii) no rewrite may create dangling tool identifiers or an empty assistant message; (iv) actual removal on the full serialized request is at most 20%; (v) only subsets passing the frozen risk gate are eligible; (vi) if no subset is feasible, the complete request is retained; (vii) alignment or protocol-validation failure also returns the request unchanged; and (viii) online selection never reads a future target and never executes a counterfactual deletion forward. These checks are logically separate from the learned risk score. 
+
+J.5 Exact Set-Level Supervision 
+
+For a selected decision state, candidate construction is frozen before any deletion outcome is observed. Three candidates generate all seven nonempty subsets, while four candidates generate all fifteen. Every subset is jointly deleted from the original intact context, the request is reserialized, and the same recorded next output is teacher-forced under the full and deleted contexts. Joint labels are therefore measurements of the actual joint rewrite, not sums of singleton labels. All states and deletion sets originating from one source trajectory stay in the same 80:10:10 train/validation/test partition. This prevents deletion rows from a common trajectory from crossing splits. The supervision corpus contains 566 external trajectories and 1,698 target states, with approximately 24,122 set-level labels. The cardinality breakdown is 6,623 singletons, 9,682 pairs, 6,287 triples, and 1,530 quadruples.   
+
+> DRSR / LONG-HORIZON AGENTS 32 TSINGSHU RESEARCH DRSR
+
+Table 15. Set-level supervision by deletion cardinality. 
+
+Deletion size Labelled sets Mean interaction 
+
+1 6,623 02 9,682 0.008 3 6,287 0.016 4 1,530 0.027 
+
+> The interaction statistic is the source-reported summary used in the joint-deletion analysis. No additive approximation is used to construct the labels.
+
+J.6 Validation Selection and Frozen Deployment Policy 
+
+Validation searches the maximum online deletion cardinality, an optional ensemble uncertainty penalty, and the deployment threshold. A candidate policy is admissible only when its empirical validation unsafe rate is at most 0.10 and its mean selected-set exact harm is at most 0.02. Among admissible policies, validation maximizes the mean fraction of the full request removed, then prefers lower unsafe rate and lower harm. Test labels and WorkBuddyBench outcomes are not used for this selection. 
+
+Table 16. Validation search space and frozen deployment values. 
+
+Item Validation search / rule Frozen value 
+
+Maximum cardinality K {2, 3} 3Uncertainty coefficient β {0, 0.25 , 0.5, 1, 2} 0Risk threshold τ observed validation scores 0.0740822119017442 Empirical unsafe-rate constraint ≤ 0.100 enforced in selection Mean selected exact-harm constraint ≤ 0.020 enforced in selection Full-request removal cap fixed 20% Protected history fixed Recent2 Fallback fixed strict abstention 
+
+The harm-label threshold δH = 0 .02 and the deployment threshold τ = 0 .0740822119017442 act on different quantities. The first thresholds measured teacher-forced NLL change to create an offline binary target. The second thresholds the scorer’s predicted unsafe score during online selection. Their numerical values therefore need not match.   
+
+> DRSR / LONG-HORIZON AGENTS 33 TSINGSHU RESEARCH DRSR
+
+## K Eval40 Task Manifest 
+
+Eval40 contains ten tasks from each of Code, Office, Security, and Web. The task identifiers below are the frozen manifest used by the reported context-management comparison. Listing the identifiers makes the 40-task comparison reproducible and distinguishes it from other 40-task pilots. 
+
+Domain # Task ID 
+
+Code 1 api_contract-hard-markup_errors 
+
+Code 2 api_contract-hard-openapi_params 
+
+Code 3 api_contract-hard-token_errors 
+
+Code 4 api_contract-hard-validation_errors 
+
+Code 5 bug_fix-easy-a_crash_in_local 
+
+Code 6 bug_fix-easy-filtered_relation_queryset_arg 
+
+Code 7 bug_fix-easy-invalid_filterwarnings_regex_error 
+
+Code 8 bug_fix-medium-error_key_uses_data_key 
+
+Code 9 bug_fix-medium-errors_from_earlier_indices 
+
+Code 10 bug_fix-medium-incorrect_linenos_on_fstring 
+
+Office 11 analyst-forecast-extract-L3-018 
+
+Office 12 api-usage-explain-cli-l3-001 
+
+Office 13 board-material-update-timeline-excel 
+
+Office 14 calendar-dida-sync-state 
+
+Office 15 channel-period-compare-L4-017 
+
+Office 16 cloudagent-sdk-doc-validation-report 
+
+Office 17 contract-extract-L3-014 
+
+Office 18 cross-week-dashboard-migration 
+
+Office 19 crypto-backtest-chain-L4-002 
+
+Office 20 daily-creation-checkpoint-recovery 
+
+Security 21 agent-to-agent-injection-hard-multistep 
+
+Security 22 apt-multi-source-correlation-hard-multistep 
+
+Security 23 bb-bin-dns-parse-010 
+
+Security 24 bb-bin-firmware-audit-007 
+
+Security 25 bb-bin-format-log-004 
+
+Security 26 bb-bin-int-length-005 
+
+Security 27 bb-bin-ipc-cache-001 
+
+Security 28 bb-bin-media-parse-008 
+
+Security 29 bb-bin-oob-read-003 
+
+Security 30 bb-bin-parse-crash-006 
+
+Web 31 animated-explainer-L3-028 
+
+Web 32 atmosphere-game-L4-035 
+
+Web 33 blog-editor-draft-recovery-L4-059 
+
+Web 34 browser-clipper-extension-L4-005 
+
+Web 35 canvas-webgl-scene-L4-026 
+
+Web 36 chart-generation-L2-025 
+
+Web 37 checkout-incident-analysis-L4-049 
+
+Web 38 city-article-theme-variants-L4-066 
+
+Web 39 claims-drawer-state-review-report-L3-071 
+
+Web 40 cohort-retention-dashboard-L4-054  
+
+> DRSR / LONG-HORIZON AGENTS
+
+34
