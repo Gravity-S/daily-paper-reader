@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-26</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-27</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 7 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 8 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>7</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-26 21:28:14 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-27 22:09:00 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,7 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日速读7篇Agentic AI论文，聚焦AI智能体安全与长程任务效率两大痛点。最值得关注的是跨维度威胁分类与评估成熟度综述（7.0分），以及长程智能体集合级删除风险学习（7.0分）。普通读者可优先了解智能体安全风险全景，再关注工具调用边缘案例生成（6.0分）以提升实际部署稳健性。</p>
+<p>今日精读1篇、速读7篇，聚焦LLM Agent安全：8.0分的《LLM Agents Can Easily Tamper With Their Own Traces》最值得关注。速读还覆盖Agentic AI跨维度威胁分类与评估成熟度、通过Agent行为指纹识别LLM，以及AI原生操作系统安全路径。普通读者可优先了解Agent自我痕迹篡改风险，再延伸看威胁分类和指纹识别方向。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -78,12 +78,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">0 篇</strong>
+    <strong class="dpr-home-dashboard-count">1 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="LLM Agents Can Easily Tamper With Their Own Traces">LLM Agents Can Easily Tamper With Their Own Traces</span></li></ul>
   </div>
-
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -94,9 +94,9 @@
     <strong class="dpr-home-dashboard-count">7 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Connecting the Dots in Agentic AI Security: A Cross-Dimensional Threat Taxonomy, Evaluation Maturity, and Open Challenges">Connecting the Dots in Agentic AI Security: A Cross-Dimensional Threat Taxonomy, Evaluation Maturity, and Open Challenges</span></li><li><span class="dpr-home-dashboard-paper-title" title="DRSR: Learning Set-Level Deletion Risk for Efficient Long-Horizon Agents">DRSR: Learning Set-Level Deletion Risk for Efficient Long-Horizon Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="EDGEGEN: Improving Tool-Calling Agents Beyond Happy Paths with Synthetic Edge Case Generation">EDGEGEN: Improving Tool-Calling Agents Beyond Happy Paths with Synthetic Edge Case Generation</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Connecting the Dots in Agentic AI Security: A Cross-Dimensional Threat Taxonomy, Evaluation Maturity, and Open Challenges">Connecting the Dots in Agentic AI Security: A Cross-Dimensional Threat Taxonomy, Evaluation Maturity, and Open Challenges</span></li><li><span class="dpr-home-dashboard-paper-title" title="Who Is Behind the Harness? Fingerprinting LLMs through Agentic Behavior">Who Is Behind the Harness? Fingerprinting LLMs through Agentic Behavior</span></li><li><span class="dpr-home-dashboard-paper-title" title="When the Agent Becomes the Kernel: A Systematization of Security on the Path to AI-Native Operating Systems">When the Agent Becomes the Kernel: A Systematization of Security on the Path to AI-Native Operating Systems</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>6</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>4</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>3</strong></span></div>
 </section>
 </div>
 
