@@ -1,0 +1,712 @@
+Title: GUITAR: Structured Failure Diagnosis of GUI Agents via State Transitions
+
+URL Source: https://arxiv.org/pdf/2609.34113v1
+
+Published Time: Tue, 29 Sep 2026 02:46:44 GMT
+
+Number of Pages: 29
+
+Markdown Content:
+# GUITAR: Structured Failure Diagnosis of GUI Agents via State Transitions 
+
+Shaoqing Zhang 1,2, Kehai Chen 1,2, Xuefeng Bai 1, Zhuosheng Zhang 3
+
+Pengfei Zhang 2, Yang Xiang 2, Min Zhang 1,21Harbin Institute of Technology, Shenzhen, China 
+
+> 2
+
+Pengcheng Laboratory, Shenzhen, China 
+
+> 3
+
+Shanghai Jiao Tong University, China 
+
+## Abstract 
+
+Understanding where and why Graphical User Interface (GUI) agents fail is es-sential for building more reliable systems, yet current evaluation relies on step accuracy, a metric that treats each screen independently and overlooks the under-lying structure of GUI environments. This leads to two critical blind spots: (1) functionally equivalent screens are evaluated in isolation, obscuring systematic failure patterns across shared screens; and (2) the long-tailed GUI distribution renders failures on rare but critical screens invisible under standard metrics. To address these issues, we propose GUITAR , a state-centric diagnostic framework that performs structured failure analysis over both states and transitions, using a State Transition Graph (STG) by mapping visually diverse screens to shared functional states. Across 8 agents and 6 tasks from AndroidControl and Mind2Web, GUITAR reveals that 60.4% of failures occur in 20% of states, localizing errors to a small set of bottlenecks. Bottleneck-targeted guidance improves SR by 2.8% and retains a 1.88% average gain across 7 agents under three-fold trajectory-held-out evaluation with fully automatic STGs. These findings demonstrate the diagnostic and actionable value of structure-aware evaluation within the evaluated mobile and web tasks. Code is available at https://github.com/sqzhang-lazy/GUITAR .
+
+## 1 Introduction 
+
+Recent advances in Vision-Language Models (VLMs) have enabled GUI agents capable of au-tonomously operating complex applications [1, 2, 3]. While current evaluation predominantly relies on step accuracy (SR) [4, 5, 6], this metric treats each screen as an independent observation, fundamentally ignoring the underlying structure of GUI environments. This step-level view leads to two critical blind spots, as illustrated in Figure 1. First, many screens share the same functional role in task completion despite surface-level differences. Without mapping such screens to shared functional states, evaluation remains tied to raw observations rather than interaction semantics. This obscures systematic failure patterns across functionally equivalent states. Second, GUI trajectories follow a long-tailed state distribution: high-frequency states dominate SR, causing failures on rare but critical states to contribute negligibly to the overall score. Such failures remain effectively invisible under standard metrics. To address this challenge, we propose GUITAR , a state-centric evaluation framework that diagnoses GUI agent failures through structured analysis of State Transition Graphs (STGs). Unlike similarity-based approaches, GUITAR maps screens to functional states based on behavioral equivalence, enabling structured failure analysis over both states and transitions globally. Evaluated with 8 agents across 6 tasks from AndroidControl and Mind2Web, GUITAR reveals that failures concentrate on a small set of bottleneck states (high-error states) yet remain metrically     
+
+> 40th Conference on Neural Information Processing Systems (NeurIPS 2026). Track on Evaluations and Datasets. arXiv:2609.34113v1 [cs.AI] 28 Sep 2026 Trajectory Traditional Step-level Evaluation
+> Click Click Click
+> Individual Step Match Blind Spot 1: Visually diverse but functionally equivalent screens
+> Ignores Environment Structure and Long-Tailed Distribution Blind Spot 2: Rare failure screens are masked
+> Screens share the same functional role Rare failure steps, negligible impact
+> GUITAR: State-centric Diagnostic Framework Semantically Guided Abstraction
+> Functionally equivalent State Si Destination Details
+> (Functional State)
+> State Transition Graph (STG)
+> Map Interface Search Interface Destination Details Search Result Directions Setup
+> Success Failure
+> Localization of Failure-Prone Regions
+> Map Interface Directions Setup
+> Target Improvement
+> Directions Setup Click Home Input Start Location Select
+
+Figure 1: Limitations of step-level evaluation and the need for structured failure diagnosis. Left: step-level success rate aggregates performance across all steps, obscuring where failures occur. Right: GUITAR maps execution outcomes onto the STG, enabling state-level and transition-level analysis to localize bottleneck states and failure transitions for targeted diagnosis and improvement. invisible: 60.4% of failures occur in 20% of states. Furthermore, bottleneck-targeted guidance improves SR by 2.8% and retains a 1.88% average gain across 7 agents under three-fold trajectory-held-out evaluation with fully automatic STGs. We further validate that GUITAR’s functional state abstraction achieves high behavioral consistency, outperforming similarity-based baselines and attaining strong inter-annotator agreement. The main contributions of this work are as follows: (1) We propose GUITAR , a state-centric diagnostic framework that reformulates GUI agent evaluation as a graph-structured problem. By abstracting raw screens into functional states and modeling their transitions as a State Transition Graph (STG), GUITAR introduces state- and transition-level metrics that capture structural failure patterns fundamentally inaccessible to step-level evaluation. (2) We conduct the first global, cross-trajectory analysis of GUI agent failures, revealing two previ-ously underexplored phenomena: (i) failures on low-frequency but critical states are systematically underrepresented by standard metrics, and (ii) errors are highly concentrated on a small set of bot-tleneck states and transitions, exposing a strongly skewed and structured failure distribution. We demonstrate that the failure identified by GUITAR is actionable. Through a closed-loop experiment, we show that targeting bottleneck states leads to consistent performance improvements, establishing a direct link between structured diagnosis and effective agent optimization. (3) We demonstrate that the failures identified by GUITAR are actionable. Through a closed-loop experiment, we show that targeting bottleneck states leads to positive average gains, establishing a direct link between structured diagnosis and effective agent optimization. 
+
+## 2 Related Work 
+
+2.1 Evaluation of GUI Agents. 
+
+GUI agent evaluation has evolved from static UI understanding [7, 8] and element grounding [9, 10, 11] to trajectory-based benchmarks that evaluate agents through aggregate outcome metrics such as task success rate [12, 13, 14]. However, these benchmarks remain outcome-focused, reporting aggregate metrics without exposing where and why agents fail. Recent efforts introduce process-level signals to improve diagnostic observability. Gao et al. [15] proposes exploratory defect discovery with probing and reflection mechanisms; Zhai et al. [16] decomposes trajectories into sub-tasks for interpretable diagnosis; Yang et al. [17] incorporates intermediate execution correctness as a process-level supervision signal. 2Table 1: Comparison of GUITAR with related graph-based GUI approaches. Cross-Task Aggrega-tion : cross-run trajectory aggregation into a unified graph. Abstraction Level : semantic depth of state unification, from perceptual similarity to functional equivalence. Failure Localization : whether structured failure diagnoses are produced.                     
+
+> Method Cross-Task Aggregation Abstraction Level Primary Purpose Failure Localization
+> Step-level SR [5] ✗N/A Performance Measurement ✗
+> PageAgent [18] ✓Perceptual Navigation Planning ✗
+> WebGraphEval [19] ✗Behavioral Cross-Agent Comparison ✗
+> GUITAR (Ours) ✓Semantic-Functional Failure Diagnosis ✓
+
+Despite finer granularity, failures remain bound to individual trajectory segments rather than func-tional states shared across trajectories, precluding the cross-trajectory aggregation needed to identify failure-prone states systematically. 
+
+2.2 Graph-Based Modeling of GUI Systems. 
+
+To overcome the representational limitations of trajectory-level evaluation, GUITAR draws on graph-based modeling to provide a structured substrate for failure diagnosis. Graph representations have been widely used to model GUI structure and interaction dynamics. Early work models applications as Event Flow Graphs [20] and extracts interface structure via systematic exploration [21, 22]. Later approaches explore higher-level representations: Li et al. [23] encodes screens into semantic vectors. Most relevant to our work are approaches that construct graph structures over GUI trajectories for evaluation purposes Chen et al. [18], Qian et al. [19]. Table 1 summarizes the key distinctions between these approaches and GUITAR. While these methods offer graph-based perspectives on GUI agent behavior, they fall short in distinct ways: Chen et al. [18] relies on perceptual-level similarity for state merging, risking state explosion. Qian et al. [19] targets cross-model behavioral comparison rather than failure diagnosis. Their graph nodes lack failure statistics, precluding bottleneck identification. To our knowledge, GUITAR is the first diagnosis framework to construct a globally aggregated STG 
+
+across trajectories, where each node represents a shared functional state annotated with diagnostic statistics, directly bridging failure localization with inference-time improvement. 
+
+## 3 Analysis of Step-Level Evaluation 
+
+We analyze why step-level evaluation fails to provide reliable diagnostics in GUI environments. Our analysis reveals two fundamental limitations: (1) high-frequency states dominate overall SR regardless of agent competence at low-frequency states; and (2) scalar aggregation collapses transition identity and fails to localize failures to specific states or transitions. 
+
+3.1 Performance Heterogeneity and Contribution Imbalance. 
+
+We analyze the distribution of states and their contributions to overall SR by partitioning states into four quartiles based on visitation frequency. We compute the SR within each frequency interval and measure each interval’s contribution to the overall SR. As illustrated in Figure 2, despite non-0~25% 25~50% 50~75% 75~100%            
+
+> State Freq Interval
+> 20 40 60 80 100
+> Maps
+> 0~25% 25~50% 50~75% 75~100%
+> State Freq Interval
+> 020 40 60 80 100
+> Kitchen Stories
+> 0~25% 25~50% 50~75% 75~100%
+> State Freq Interval
+> 020 40 60 80
+> Booking
+> AGUVIS-7B GUI-Owl-7B Qwen2.5-VL-72B UITARS-72B-DPO SR Score SR Contribution
+
+Figure 2: Analysis of performance and SR contribution across state frequency intervals. We observe that long-tail states contribute marginally to the overall SR, regardless of their individual performance. 3Table 2: The Data Ratio across four state fre-quency intervals. 0-25% represents top 25% high-frequency states 
+
+App State Frequency Interval (%) 0–25 25–50 50–75 75–100 
+
+Maps 40.10 33.85 22.40 3.65 Kitchen Stories 36.52 33.04 24.35 6.09 Booking 78.08 13.70 5.48 2.74 Average 51.57 26.86 17.41 4.16 A B C               
+
+> Frequency: 𝟏 𝟑
+> Frequency: 𝟏 𝟑
+> Frequency: 𝟏 𝟑
+> ABC
+> Agent 𝝅 𝟏
+> Agent 𝝅 𝟐
+> SR: 𝟐
+> 𝟑
+> A Accuracy: 𝟏 𝟐
+> B Accuracy: 𝟏
+> State-level Accuracy: 𝟐
+> 𝟑
+> SR: 𝟐 𝟑
+> A Accuracy: 𝟏 𝟐
+> B Accuracy: 𝟏
+> State-level Accuracy: 𝟐 𝟑
+> Equal
+
+Figure 3: Step-level and state-level aggregation fail to distinguish the failure locations of π1 and π2.Transition-level analysis reveals distinct bottlenecks. monotonic performance across frequency intervals, contributions to overall SR are highly skewed: high-frequency states dominate due to their prevalence, whereas low-frequency states contribute marginally regardless of their actual success rates. We partition states into four quartiles, where the 0-25% are treated as high-frequency states. As shown in Table 2, the top 25% of states account for over 51.57% of all interactions, confirming the long-tailed nature of GUI trajectories. 
+
+3.2 Analysis of Scalar Aggregation 
+
+While the previous analysis motivates the need for state-level abstraction, a natural question remains: Is scalar aggregation sufficient for failure diagnosis? We show that even with perfect state abstraction, aggregation remains insufficient, as it collapses the structure of interactions and obscures where failures occur. Consider an environment with abstract states {A, B, C } and transitions A → A →
+
+B → C, where A → A represents repeated interaction within the same state. Define two agents: • π1 frequently fails at the self-transition A → A, but reliably executes A → B and B → C.• π2 reliably executes A → A, but frequently fails at the transition A → B.Figure 3 illustrates that aggregation-based metrics collapsing transition identity assign identical scores to π1 and π2, despite their failures occurring at different structural locations. Therefore, scalar aggregation alone cannot localize errors, which necessitates a novel diagnostic framework. These results highlight a fundamental limitation of step-level evaluation and motivate finer-grained diagnostic frameworks that can localize such hidden failures. 
+
+## 4 Method 
+
+We introduce GUITAR, a diagnostic framework that analyzes GUI agent behavior through an STG abstraction. The STG serves as a reusable diagnostic substrate: constructed once from collected trajectories, it provides a stable structural representation over which multi-level failure analysis is performed. Conventional metrics such as SR remain unchanged, whereas GUITAR adds structural diagnostics to localize failures at the state and transition level. 
+
+4.1 State Transition Graph Construction 
+
+GUI environments exhibit high visual variability. Functionally equivalent screens often differ significantly in layout and content. This variability hinders the construction of a consistent graph from raw observations. Direct alignment of visually distinct screens across trajectories based on image similarity is challenging. It is therefore necessary to bypass visual differences and abstract raw screens into semantically meaningful states. 
+
+State Definition. We define a state by what a screen does in the task, not what it looks like. Two screens are considered the same state if they serve the same functional role, enabling the same task-relevant action toward the same goal, regardless of their visual differences. As illustrated in Figure 4, visually different screens can share the same functional role (e.g., both enabling item 4Product Detail 
+
+> Page
+> Similar visual appearance,
+> however different functional role
+> Different visual appearance,
+> however same functional role
+> Directions Setup Page
+> Route Map Page
+
+Figure 4: Examples of screen-to-functional-role mappings. Left: visually different screens mapped to the same functional role (item purchasing). Right: visually similar screens mapped to different functional roles, e.g., Directions Setup Page vs. Route Map Page. purchasing), while visually similar screens can represent distinct states (e.g., a Directions Setup Page vs. a Route Map Page). Let x denote a screen observation, a denote an execution action, and g denote the task goal. Then ϕ(x, a, g ) → s, which maps a raw screen to an abstract state s
+
+representing its functional role in the workflow. Two xi and xj are assigned to the same state if 
+
+ϕ(xi, a, g ) = ϕ(xj , a, g ), regardless of their visual differences. 
+
+Graph Construction. Given a set of trajectories with step-level correctness annotations in the same app or website, GUITAR constructs an STG to model agent behavior. The construction process consists of two stages: (1) State Abstraction. Each trajectory is first converted into a sequence of abstract states by applying the abstraction function ϕ(x, a, g ) to every observed screen. This produces a state-level trajectory that captures the functional progression of the task. (2) Graph Aggregation. We then merge state sequences across trajectories to form a unified graph. Each state corresponds to a node, and transitions between consecutive states define directed edges. The resulting STG captures both (i) the structural patterns of interaction and (ii) the distribution of successes and failures over states and transitions. Importantly, this abstraction enables the alignment of semantically equivalent screens across diverse trajectories. Detailed construction procedures are provided in the Appendix A.1. Overall, the STG provides a structured representation of agent behavior, serving as the foundation for our multi-level analysis. 
+
+4.2 Multi-level Behavioral Analysis 
+
+Once the STG is constructed, GUITAR enables multi-level behavioral analysis by examining agent performance at different levels of structural granularity. These levels form a hierarchy of diagnostic resolution, where each level addresses limitations of the previous one. 
+
+State-level Analysis. At the state level, the STG aggregates execution outcomes over abstract GUI states. For each state s ∈ S, we define the state-level success rate as: 
+
+C(s) = successful executions at s
+
+total visits from s . (1) This aggregation localizes failures to specific interaction stages. By examining C(s) across states, GUITAR identifies failure-prone regions in the workflow, i.e., states where execution frequently breaks down. Compared to step-level metrics, which mix heterogeneous contexts, state-level analysis provides a structured view of where failures concentrate. However, state-level aggregation merges multiple interaction outcomes within a state and therefore cannot distinguish between different types of failures occurring in that state. 50 20 40 60 80 100               
+
+> Failure State Rank%
+> 020 40 60 80 100
+> Cumulative Failure %
+> Top 20% 69.8%
+> Maps
+> 020 40 60 80 100
+> Failure State Rank%
+> Top 20% 66.7%
+> Kitchen Stories
+> 020 40 60 80 100
+> Failure State Rank%
+> Top 20% 76.3%
+> Booking
+> AGUVIS-7B GUI-Owl-7B Qwen2.5-VL-72B UITARS-72B-DPO Uniform
+
+Figure 5: Cumulative distribution of failures across states ranked by failure frequency. A small fraction of states accounts for a disproportionately large portion of total errors, indicating strong failure concentration. 
+
+Transition-level Analysis. To overcome this limitation, GUITAR further analyzes behavior at the transition level. Each directed edge (si → sj ) in the STG represents a concrete interaction step that moves the interface between functional stages. We define the transition-level success rate as: 
+
+T (si, s j ) = successful executions of (si → sj )
+
+attempts of (si → sj ) . (2) By measuring T (si, s j ) over all transitions, GUITAR pinpoints failure-prone transitions, correspond-ing to specific decision points where agents consistently make errors. Unlike state-level aggregation, transition-level analysis isolates individual decisions and preserves their structural dependencies. This enables root cause analysis: failures can be attributed to specific transitions rather than entire states, revealing recurring error patterns tied to navigation or decision processes. Together, state-level metrics identify bottleneck regions, while transition-level metrics attribute errors to specific decision points, enabling a hierarchical analysis that transforms evaluation from coarse outcome measurement to a structured diagnosis of agent behavior. 
+
+## 5 Experiments 
+
+In this section, we validate GUITAR through failure-concentration analysis, agent-specific bottleneck patterns, bottleneck-guided inference, held-out robustness tests, and STG quality evaluation. 
+
+5.1 Dataset and Setups 
+
+We evaluate eight GUI agents [24, 25, 26, 27, 28] on 3 apps from AndroidControl [29] and 3 websites from Mind2Web [30]; apps and websites are selected by the number of trajectories in each dataset. 
+
+5.2 Failure Structure Beyond Aggregate Metrics 
+
+We leverage the STG to uncover structured failure patterns that are obscured by step-level metrics. Our analysis reveals that agent failures exhibit clear regularities across states and transitions. 
+
+Failure Concentration Across States. We first examine where failures occur by analyzing their distribution over states. Specifically, we rank states by their failure counts and compute the cumulative proportion of errors. As shown in Figure 5, failures are highly concentrated: on average, 60 .4% (95% CI: [36.1%, 76.2%]) of failures concentrate in the 20% of states across all evaluation settings (8 models × 6 tasks). This concentration significantly deviates from a uniform distribution ( χ2 test, all 
+
+p < 0.001 ), and a mean Gini coefficient of 0.584 further confirms that failures are highly localized rather than evenly spread. These results consistently indicate that agent failures are not uniformly distributed but localized to a small set of bottleneck states .
+
+State-Level Performance Heterogeneity. We next investigate how agent performance varies across states. Figure 6 (a) shows state-wise success rates on the Maps application. We observe substantial 6Start Location Search Interface Route Map Page Phone Home Screen Destination Location Search Interface Search Results Page 020 40 60 80 100                                              
+
+> State-level Accuracy (%) (a) Bottleneck States Maps (Top-5 Lowest Accuracy)
+> AGUVIS-7B GUI-Owl-7B Qwen2.5-VL-72B UI-TARS-72B-DPO
+> S1 S2 S3 S4 S5 S6 S7 S8 S9 S10 S11 S12 To State S2 S7 S8 S11 S12 From State (Bottleneck)  067 000100 50 033 100 50 50 64 67
+> (b) Error Transition Heatmap (AGUVIS-7B)
+> 020 40 60 80 100
+> S1:Depart Time Setting S2:Destination Location Search Interface S3:Directions Setup Page S4:Location Details Page S5:Map Interface S6:Mode Selection Page S7:Phone Home Screen S8:Route Map Page S9:Route Preview S10:Search Interface S11:Search Results Page S12:Start Location Search Interface
+
+Figure 6: Analysis of bottleneck states in Maps : (a) state-level accuracy of the five most challenging states across all models, and (b) error transition rates originating from bottleneck states ( AGUVIS-7B ). GUITAR clearly reveals concentrated failure patterns at both the state and transition levels. Table 3: SR Improvement ( ∆SR%) of Targeted ( Tgt. ) vs. Uniform ( Uni. ) Guidance over Original Baseline. Tgt. denotes GUITAR-guided inference targeting bottleneck states (Threshold = 0.6); Uni. denotes uniform guidance applied to all states (Threshold = 0). Best results per model are bolded .
+
+Model Maps Kitchen CNN Booking Carmax Kayak Avg. 
+
+Uni. Tgt. Uni. Tgt. Uni. Tgt. Uni. Tgt. Uni. Tgt. Uni. Tgt. Uni. Tgt. Qwen2.5-VL-7B -3.5 +1.0 +8.3 +4.6 -7.6 +2.6 -12.3 +1.4 -13.1 -0.7 -17.3 +1.1 -7.6 +1.7 
+
+Qwen2.5-VL-72B 0.0 +0.6 +3.0 +1.8 -17.9 0.0 -9.6 +1.4 -9.2 +3.9 +3.9 +3.9 -5.0 +2.0 
+
+OS-Atlas-7B 0.0 +3.5 -1.4 +2.3 +1.3 +2.5 +0.4 +0.3 +3.0 +8.0 +9.5 +9.5 +2.1 +4.4 
+
+GUI-Owl-7B +5.5 +6.0 +7.5 +1.5 -7.6 +1.3 +1.0 +3.1 -0.9 -8.7 -2.7 -6.0 +0.5 -0.5 GUI-Owl-32B +8.5 +8.5 +11.2 +12.5 -6.4 +2.5 +0.5 +5.3 -4.8 +6.3 -11.5 -12.0 -0.4 +3.9 
+
+Aguvis-7B +1.5 +5.0 0.0 0.0 -3.7 +1.3 -4.1 +0.7 -12.4 0.0 -19.4 0.0 -6.4 +1.2 
+
+UITARS-1.5-7B -16.1 +18.7 -6.5 +21.2 +8.8 +6.3 -3.4 +2.1 -1.2 0.0 +1.6 -2.8 -2.8 +7.6 
+
+UITARS-72B-DPO -10.2 +4.3 -3.0 +12.6 -9.9 -6.1 -4.8 -1.3 -7.2 +0.7 +0.5 0.0 -5.8 +1.7 Avg. -1.8 +5.9 +2.4 +7.1 -5.4 +1.3 -4.0 +1.6 -5.7 +1.2 -4.4 -0.5 -3.2 +2.8 
+
+heterogeneity: (1) individual agents exhibit large performance variation across states, and (2) different agents perform inconsistently on the same state. This demonstrates that aggregate step-level metrics obscure important differences in agent capabilities. 
+
+Transition-Level Failure Structure. While state-level analysis reveals where failures occur, it does not explain how they arise. We therefore extend our analysis to transitions between states. Figure 6 (b) presents a transition-level error heatmap, where each entry corresponds to the failure frequency of a state transition. We observe clear structural patterns: a small number of transitions consistently exhibit high error rates. This indicates that failures are tied to specific decision rather than isolated states. Such transition-level bottlenecks cannot be captured by step-level or state-level analysis alone, highlighting the importance of modeling state transitions for failure diagnosis. 
+
+5.3 Effectiveness of Identified Bottleneck States 
+
+To validate that the bottleneck states identified by GUITAR reflect genuine capability deficiencies, we inject targeted guidance at identified bottleneck states during inference and compare against uniform guidance across all states as a control. Table 3 shows that targeted guidance achieves an average SR improvement of +2.8%, while uniform guidance yields -3.2%, confirming that the improvement stems from precise bottleneck identification rather than the mere introduction of additional information. Table 4 reveals the underlying mechanism: bottleneck state SR improves by an average of +18.1% under targeted guidance, directly demonstrating that the identified bottlenecks are successfully mitigated. Critically, a strong task-level correspondence exists between bottleneck mitigation and SR improvement: tasks with higher ∆C(s) (Kitchen: +37.5%, Maps: +32.6%) consistently yield larger SR gains (+7.1%, +5.9%), while tasks with limited mitigation (Carmax: +5.1%, Kayak: +5.6%) 7Table 4: Bottleneck State Success Rate Change ∆C(s) (%) before and after targeted guidance across six tasks. Values represent GUITAR-guided − Original (%).                                                                                                                                                          
+
+> Model Maps Kitchen CNN Booking Carmax Kayak Avg.
+> Orig. Tgt. Orig. Tgt. Orig. Tgt. Orig. Tgt. Orig. Tgt. Orig. Tgt. Orig. Tgt. Qwen2.5-VL-7B 23.6 38.3 10.5 52.4 0.0 33.3 10.0 40.0 25.0 8.3 14.3 14.3 13.9 31.1 Qwen2.5-VL-72B 27.8 39.3 22.0 47.6 0.0 0.0 23.5 47.1 16.0 40.0 14.3 14.3 17.3 31.4 OS-Atlas-7B 27.9 31.2 22.9 36.4 27.8 44.4 34.2 35.5 16.2 27.6 28.4 49.1 26.2 37.4 GUI-Owl-7B 24.1 54.0 16.7 29.3 30.4 36.4 30.7 35.6 34.1 41.7 0.0 0.0 22.7 32.8 GUI-Owl-32B 25.4 62.8 17.4 60.7 26.7 34.9 30.2 36.1 34.4 47.8 16.7 16.7 25.1 43.2 Aguvis-7B 21.9 44.6 6.5 50.0 0.0 33.3 25.0 37.5 0.0 0.0 16.7 33.3 11.7 33.1 UITARS-1.5-7B 2.8 64.3 6.9 65.9 13.6 42.1 19.4 24.2 17.6 16.8 21.4 23.7 13.6 39.5 UITARS-72B-DPO 6.7 86.4 5.2 65.9 22.2 34.9 15.1 17.9 15.4 16.9 16.2 21.7 13.5 40.6
+> Avg. 20.0 52.6 13.5 51.0 15.1 32.4 23.5 34.2 19.8 24.9 16.0 21.6 18.0 36.1
+> ∆C(s)+32.6 +37.5 +17.3 +10.7 +5.1 +5.6 +18.1
+
+Table 5: Robustness to manual verification and trajectory reuse on the six primary tasks. Panel A compares fully automatic and manually verified STGs; Panel B reports three-fold held-out guidance using fully automatic STGs. 
+
+Panel A: Fully automatic vs. manually verified STGs Dataset Top-20% Jaccard Spearman ρ |∆Gini | |∆Coverage | (pp) 
+
+AndroidControl 0.932 ± 0.214 0.989 ± 0.029 0.017 ± 0.024 1.89 ± 2.70 
+
+Mind2Web † 0.500 ± 0.136 0.942 ± 0.035 0.043 ± 0.025 6.26 ± 3.00 
+
+Panel B: Three-fold trajectory-held-out guidance with fully automatic STGs Maps Kitchen CNN Booking Carmax Kayak Overall 
+
+Mean ∆SR (%) +2 .98 +3 .29 +0 .87 +1 .20 +1 .09 +1 .27 +1 .88 
+
+Improved/Tied/Decreased 4/3/0 5/2/0 4/3/0 1/4/0 2/2/1 1/2/2 17 /16 /3   
+
+> †Jaccard uses exact node-name matching. |∆Coverage |is the absolute change in the failure mass captured by the Top-20% states. Overall ∆SR averages 36 task–agent pairs drawn from seven agents.
+
+show minimal SR improvement (+1.2%, -0.5%). This positive correlation confirms that overall performance gains are driven by bottleneck mitigation. However, three failure modes limit improvements in certain cases. First, during retrieval, not only are bottleneck states retrieved, but some well-performing states are also retrieved, thereby triggering auxiliary reasoning unnecessarily. Second, when the assistant model fails to generate valid sub-goals, the bottleneck states cannot be alleviated, resulting in negligible SR gains. Finally, even when correct sub-goals are generated, in some scenarios the agent fails to take the correct actions, indicating the need for more fine-grained guidance mechanisms. 
+
+5.4 Robustness and Held-out Validation 
+
+We examine whether GUITAR’s conclusions depend on (i) post-hoc manual verification or (ii) trajectory reuse between bottleneck estimation and guided inference. 
+
+Automatic vs. Verified STGs. We recompute the failure statistics using the fully automatic Stage 5 assignments. As shown in Table 5 (Panel A), automatic and verified STGs produce strongly correlated failure rankings ( ρ = 0 .989 /0.942 on AndroidControl/Mind2Web), with small changes in Gini coefficient and Top-20% failure coverage. The lower exact-name Jaccard on Mind2Web is primarily due to differently named but semantically aligned states. Thus, manual verification improves assignment fidelity but is not necessary to recover the principal bottleneck structure. 
+
+Trajectory-Held-out Guidance. Beyond the baseline task instruction, STG guidance contains only cross-trajectory functional roles and abstract transitions; it does not reveal the evaluated episode’s future trajectory, outcome, or prescribed next action. Nevertheless, because the original +2 .8% result uses overlapping trajectories for STG construction, error estimation, and evaluation, we conduct three-fold evaluation using two thirds of the trajectories for construction and the untouched third for 8Table 7: Comparison of STGs constructed by different methods, including PageAgent [18]. GUITAR achieves a more compact state abstraction while preserving both visual similarity and behavioral consistency,. Ratio denotes the proportion of image pairs with similarity above 70%. Intra and Inter represent the textual similarity within and across transitions, respectively. ↑indicates higher is better, and ↓indicates lower is better. Bold denotes the best result.                                                                                                                                                           
+
+> App Method States State Image Similarity Action Similarity
+> Mean ↑Std ↓Ratio ↑Intra ↑Inter ↓Gap ↑p-value Kitchen Stories ImageHash 12 75.4 14.8 57.1 54.0 37.4 16.6 4.7e-10
+> PageAgent 45 82.2 9.7 83.3 78.6 29.0 27.3 6.1e-06
+> GUITAR 780.9 9.7 85.7 75.8 41.0 34.8 5.2e-09 Maps ImageHash 12 68.2 12.1 37.9 42.1 42.7 −0.7 0.6679 PageAgent 63 71.5 13.4 48.0 37.0 39.9 −2.9 0.8907
+> GUITAR 12 70.6 9.5 41.2 60.3 38.4 21.9 0.0000
+> CNN ImageHash 968.1 15.4 35.7 60.1 35.4 24.7 3.86e-9
+> PageAgent 38 69.4 12.6 30.8 45.1 33.0 12.1 0.1727
+> GUITAR 771.9 15.1 53.9 65.7 28.5 37.2 0.0000 Booking ImageHash 19 80.4 9.2 88.5 43.4 42.4 1.0 0.3732 PageAgent 12 82.6 8.1 100.0 29.0 22.9 6.1 0.0907
+> GUITAR 17 77.8 8.9 82.4 65.6 35.2 30.5 0.0000
+> Carmax ImageHash 22 88.9 8.7 93.8 45.2 33.8 11.4 1.30e-8 PageAgent 12 84.6 8.6 90.9 39.1 28.9 10.2 0.0302
+> GUITAR 12 82.3 9.3 89.0 47.0 36.8 10.2 2.95e-10
+> Kayak ImageHash 884.2 8.1 92.5 38.0 32.5 5.5 1.09e-4 PageAgent 787.4 9.3 100.0 29.7 18.4 11.3 0.1289
+> GUITAR 13 78.9 5.7 92.3 42.9 35.3 7.6 1e-12
+
+testing. Across the same six tasks, guidance improves SR by +1 .88% over 36 task–agent pairs (17 improved, 16 tied, and 3 decreased; Table 5, Panel B). This demonstrates within-task generalization to unseen trajectories; results on three additional tasks are in Appendix C.1. 
+
+5.5 Validation of State Abstraction 
+
+The effectiveness of GUITAR depends on the quality of the constructed state abstractions. We evaluate both the semantic coherence of states and the validity of alternative abstraction strategies. 
+
+Sensitivity to Abstraction Errors. We test whether imperfect state abstraction changes bottlenecks by randomly introducing over-merge and over-split errors into 10% of state labels. On AndroidControl and Mind2Web, the perturbed graphs retain Top-20% bottleneck Jaccard overlaps of 0.892 and 0.855 ,failure-rank correlations of 0.961 and 0.973 , and Top-1 bottleneck survival rates of 0.920 and 0.962 ,respectively. The diagnostic conclusions remain stable under plausible assignment noise. Table 6: Inter-annotator agree-ment for state abstraction evalu-ation (5 annotators, 71 states).    
+
+> Metric Score
+> Gwet’s AC1 0.848 Raw Agreement 83.1%
+
+Reliable and Consistent State Abstraction. To verify that GUI-TAR’s state descriptions are semantically coherent and consistently identifiable, we conduct a human annotation study over 71 states spanning all 6 tasks. As shown in Table 6, raw agreement reaches 83.1%, and Gwet’s AC1 score is 0.848. These results confirm that GUITAR’s state abstractions are well-defined and reliably recognized by independent annotators across all evaluated tasks, providing a strong foundation for the failure diagnosis analyses that follow. Further details are provided in Appendix A.2. 
+
+Limitations of Similarity-Based State Abstraction A natural alternative is to construct states via visual or textual similarity clustering. We consider two representative baselines: (i) low-level similarity clustering using image hashing and sentence embeddings, and (ii) a VLM-based merging 9strategy [18] 1. As shown in Table 7, the three methods exhibit distinct trade-offs. Note that the GUITAR used in this comparison is constructed without manual correction, ensuring a fair evaluation of the automated pipeline’s intrinsic abstraction capability. ImageHash produces compact states (14) but achieves the lowest action consistency (gap: 9.75), indicating that low-level features are insufficient for grouping functionally related screens. PageAgent generates a substantially larger number of states (30), achieving the highest image similarity (Mean: 79.6) but limited behavioral consistency (gap: 10.7), suggesting that VLM-based similarity merging captures visual resemblance but fails to preserve functional structure and results in over-fragmented state representations. In contrast, GUITAR produces equally compact states (11) while achieving the highest intra-transition action similarity (60.1) and the largest intra-inter gap (24.2), demonstrating that functionally grounded abstraction better separates behaviorally distinct states. These results highlight that similarity-based methods capture superficial resemblance but fail to preserve behavioral consistency, underscoring the necessity of functionally grounded state abstractions for reliable failure diagnosis. Detailed evaluation implementations are provided in Appendix A.3. Table 8: VLM call efficiency and graph compactness comparison on Android-Control.          
+
+> Method VLM Calls Avg. States ( N)
+> PageAgent 1,167 ≈49 GUITAR 933 ≈9Reduction 20.1% 82.6%
+
+Cost Analysis. We compare the computational cost of GUITAR and PageAgent by the number of VLM calls, which dominates overall overhead. As shown in Table 8, on AndroidControl, GUITAR requires 933 VLM calls compared to 1,167 for PageAgent, achieving a 20.1% re-duction in computational cost. Concurrently, GUITAR produces a substantially more compact state representa-tion ( N ≈ 9 vs. N ≈ 49 , an 82.6% reduction in graph size). These two improvements are not independent: by leveraging functional page semantics to decouple state abstraction from graph construction, GUITAR avoids the redundant pairwise comparisons inherent in similarity-based merging approaches, where the number of required comparisons grows quadratically with the number of trajectories. 
+
+## 6 Conclusion 
+
+We present GUITAR, a state-centric framework that reframes GUI agent evaluation as a structured analysis problem over STGs. By abstracting screens into functional states based on behavioral equivalence, GUITAR enables systematic diagnosis of agent failures at both the state and transition levels, going beyond step-level metrics. GUITAR reveals that failures concentrate on a small set of bottleneck states. Bottleneck-targeted guidance improves SR by 2.8% and retains a 1.88% average gain across 7 agents under three-fold trajectory-held-out evaluation with fully automatic STGs. These results demonstrate that structure-aware diagnosis provides actionable signals for understanding and improving GUI agents within the evaluated mobile and web tasks. 
+
+## References 
+
+[1] Wenyi Hong, Weihan Wang, Qingsong Lv, Jiazheng Xu, Wenmeng Yu, Junhui Ji, Yan Wang, Zihan Wang, Yuxiao Dong, Ming Ding, et al. Cogagent: A visual language model for gui agents. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,pages 14281–14290, 2024. [2] Hui Yang, Sifu Yue, and Yunzhong He. Auto-gpt for online decision making: Benchmarks and additional opinions. arXiv preprint arXiv:2306.02224 , 2023. [3] An Yan, Zhengyuan Yang, Wanrong Zhu, Kevin Lin, Linjie Li, Jianfeng Wang, Jianwei Yang, Yiwu Zhong, Julian McAuley, Jianfeng Gao, et al. Gpt-4v in wonderland: Large multimodal models for zero-shot smartphone gui navigation. arXiv preprint arXiv:2311.07562 , 2023. 
+
+> 1The Mind2Web dataset contains trajectories with missing screenshots. When PageAgent encounters a missing image during the merging process, it terminates the merging of that trajectory early, resulting in fewer nodes being merged and thus an artificially reduced node count. This partially explains the lower node counts observed for PageAgent on Mind2Web tasks.
+
+10 [4] Zhuosheng Zhang and Aston Zhang. You only look at screens: Multimodal chain-of-action agents. In Findings of the Association for Computational Linguistics ACL 2024 , pages 3132– 3149, 2024. [5] Christopher Rawles, Sarah Clinckemaillie, Yifan Chang, Jonathan Waltz, Gabrielle Lau, Mary-beth Fair, Alice Li, William Bishop, Wei Li, Folawiyo Campbell-Ajala, et al. Androidworld: A dynamic benchmarking environment for autonomous agents. arXiv preprint arXiv:2405.14573 ,2024. [6] Zihan Zheng, Tianle Cui, Chuwen Xie, Jiahui Zhang, Jiahui Pan, Lewei He, and Qianglong Chen. Naturegaia: Pushing the frontiers of gui agents with a challenging benchmark and high-quality trajectory dataset. arXiv preprint arXiv:2508.01330 , 2025. [7] Chongyang Bai, Xiaoxue Zang, Ying Xu, Srinivas Sunkara, Abhinav Rastogi, Jindong Chen, and Blaise Agüera y Arcas. Uibert: Learning generic multimodal representations for ui understanding. In IJCAI , 2021. [8] Biplab Deka, Zifeng Huang, Chad Franzen, Joshua Hibschman, Daniel Afergan, Yang Li, Jeffrey Nichols, and Ranjitha Kumar. Rico: A mobile app dataset for building data-driven design applications. In Proceedings of the 30th annual ACM symposium on user interface software and technology , pages 845–854, 2017. [9] Kanzhi Cheng, Qiushi Sun, Yougang Chu, Fangzhi Xu, Li YanTao, Jianbing Zhang, and Zhiyong Wu. Seeclick: Harnessing gui grounding for advanced visual gui agents. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 9313–9332, 2024. [10] Christopher Rawles, Alice Li, Daniel Rodriguez, Oriana Riva, and Timothy Lillicrap. An-droidinthewild: A large-scale dataset for android device control. Advances in Neural Information Processing Systems , 36:59708–59728, 2023. [11] Kaixin Li, Ziyang Meng, Hongzhan Lin, Ziyang Luo, Yuchen Tian, Jing Ma, Zhiyong Huang, and Tat-Seng Chua. Screenspot-pro: Gui grounding for professional high-resolution computer use. arXiv preprint arXiv:2504.07981 , 2025. [12] Shuyan Zhou, Frank F Xu, Hao Zhu, Xuhui Zhou, Robert Lo, Abishek Sridhar, Xianyi Cheng, Tianyue Ou, Yonatan Bisk, Daniel Fried, et al. Webarena: A realistic web environment for building autonomous agents. In 12th International Conference on Learning Representations, ICLR 2024 , 2024. [13] Tianbao Xie, Danyang Zhang, Jixuan Chen, Xiaochuan Li, Siheng Zhao, Ruisheng Cao, Toh J Hua, Zhoujun Cheng, Dongchan Shin, Fangyu Lei, et al. Osworld: Benchmarking multimodal agents for open-ended tasks in real computer environments. Advances in Neural Information Processing Systems , 37:52040–52094, 2024. [14] Quanfeng Lu, Wenqi Shao, Zitao Liu, Fanqing Meng, Boxuan Li, Botong Chen, Siyuan Huang, Kaipeng Zhang, Yu Qiao, and Ping Luo. Gui odyssey: A comprehensive dataset for cross-app gui navigation on mobile devices. arXiv preprint arXiv:2406.08451 , 2024. [15] Yifei Gao, Jiang Wu, Xiaoyi Chen, Yifan Yang, Zhe Cui, Tianyi Ma, Jiaming Zhang, and Jitao Sang. Guitester: Enabling gui agents for exploratory defect discovery. arXiv preprint arXiv:2601.04500 , 2026. [16] Yuwen Zhai, Runze Li, Liang Wang, Nian Shi, Liwu Xu, Wei Zhang, Ran Lin, Bo Xu, and Benlei Cui. Guide: Interpretable gui agent evaluation via hierarchical diagnosis. arXiv preprint arXiv:2604.04399 , 2026. [17] Leyang Yang, Ziwei Wang, Xiaoxuan Tang, Sheng Zhou, Dajun Chen, Wei Jiang, and Yong Li. Probench: Benchmarking gui agents with accurate process information. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 40, pages 27547–27555, 2026. [18] Weizhi Chen, Ziwei Wang, Leyang Yang, Sheng Zhou, Xiaoxuan Tang, Jiajun Bu, Yong Li, and Wei Jiang. Pg-agent: An agent powered by page graph. In Proceedings of the 33rd ACM International Conference on Multimedia , pages 6878–6887, 2025. 11 [19] Yaoyao Qian, Yuanli Wang, Jinda Zhang, Yun Zong, Meixu Chen, Hanhan Zhou, Jindan Huang, Yifan Zeng, Xinyu Hu, Chan Hee Song, et al. Webgrapheval: Multi-turn trajectory evaluation for web agents using graph representation. arXiv preprint arXiv:2510.19205 , 2025. [20] Atif M Memon. An event-flow model of gui-based applications for testing. Software testing, verification and reliability , 17(3):137–157, 2007. [21] Atif M Memon, Ishan Banerjee, and Adithya Nagarajan. Gui ripping: reverse engineering of graphical user interfaces for testing. In Wcre , volume 3, page 260, 2003. [22] Ting Su, Guozhu Meng, Yuting Chen, Ke Wu, Weiming Yang, Yao Yao, Geguang Pu, Yang Liu, and Zhendong Su. Guided, stochastic model-based gui testing of android apps. In Proceedings of the 2017 11th joint meeting on foundations of software engineering , pages 245–256, 2017. [23] Toby Jia-Jun Li, Lindsay Popowski, Tom Mitchell, and Brad A Myers. Screen2vec: Semantic embedding of gui screens and gui components. In Proceedings of the 2021 CHI Conference on Human Factors in Computing Systems , pages 1–15, 2021. [24] Yujia Qin, Yining Ye, Junjie Fang, Haoming Wang, Shihao Liang, Shizuo Tian, Junda Zhang, Jiahao Li, Yunxin Li, Shijue Huang, et al. Ui-tars: Pioneering automated gui interaction with native agents. arXiv preprint arXiv:2501.12326 , 2025. [25] Jiabo Ye, Xi Zhang, Haiyang Xu, Haowei Liu, Junyang Wang, Zhaoqing Zhu, Ziwei Zheng, Feiyu Gao, Junjie Cao, Zhengxi Lu, et al. Mobile-agent-v3: Fundamental agents for gui automation. arXiv preprint arXiv:2508.15144 , 2025. [26] Yiheng Xu, Zekun Wang, Junli Wang, Dunjie Lu, Tianbao Xie, Amrita Saha, Doyen Sahoo, Tao Yu, and Caiming Xiong. Aguvis: Unified pure vision agents for autonomous gui interaction. 
+
+arXiv preprint arXiv:2412.04454 , 2024. [27] Zhiyong Wu, Zhenyu Wu, Fangzhi Xu, Yian Wang, Qiushi Sun, Chengyou Jia, Kanzhi Cheng, Zichen Ding, Liheng Chen, Paul Pu Liang, et al. Os-atlas: A foundation action model for generalist gui agents. arXiv preprint arXiv:2410.23218 , 2024. [28] Shuai Bai, Keqin Chen, Xuejing Liu, Jialin Wang, Wenbin Ge, Sibo Song, Kai Dang, Peng Wang, Shijie Wang, Jun Tang, Humen Zhong, Yuanzhi Zhu, Mingkun Yang, Zhaohai Li, Jianqiang Wan, Pengfei Wang, Wei Ding, Zheren Fu, Yiheng Xu, Jiabo Ye, Xi Zhang, Tianbao Xie, Zesen Cheng, Hang Zhang, Zhibo Yang, Haiyang Xu, and Junyang Lin. Qwen2.5-vl technical report, 2025. URL https://arxiv.org/abs/2502.13923 .[29] Wei Li, William E Bishop, Alice Li, Christopher Rawles, Folawiyo Campbell-Ajala, Divya Tyamagundlu, and Oriana Riva. On the effects of data scale on ui control agents. Advances in Neural Information Processing Systems , 37:92130–92154, 2024. [30] Xiang Deng, Yu Gu, Boyuan Zheng, Shijie Chen, Sam Stevens, Boshi Wang, Huan Sun, and Yu Su. Mind2web: Towards a generalist agent for the web. Advances in Neural Information Processing Systems , 36:28091–28114, 2023. [31] Venus Team, Changlong Gao, Zhangxuan Gu, Yulin Liu, Xinyu Qiu, Shuheng Shen, Yue Wen, Tianyu Xia, Zhenyu Xu, Zhengwen Zeng, et al. Ui-venus-1.5 technical report. arXiv preprint arXiv:2602.09082 , 2026. [32] Shuai Bai, Yuxuan Cai, Ruizhe Chen, Keqin Chen, Xionghui Chen, Zesen Cheng, Lianghao Deng, Wei Ding, Chang Gao, Chunjiang Ge, et al. Qwen3-vl technical report. arXiv preprint arXiv:2511.21631 , 2025. [33] Wenyi Hong, Wenmeng Yu, Xiaotao Gu, Guo Wang, Guobing Gan, Haomiao Tang, Jiale Cheng, Ji Qi, Junhui Ji, Lihang Pan, et al. Glm-4.5 v and glm-4.1 v-thinking: Towards versatile multimodal reasoning with scalable reinforcement learning. arXiv preprint arXiv:2507.01006 ,2025. 12 Limitations 
+
+While GUITAR demonstrates promising diagnostic capabilities, several limitations remain. 
+
+(1) Dependency on STG Construction Quality. GUITAR relies on the quality of its functional state abstractions. Although the five-stage construction pipeline is fully automatic, assignment errors may still affect the identified bottlenecks. Our comparison between automatic and manually verified STGs shows that the principal failure structure is largely preserved, but improving automatic abstraction remains important for more complex and dynamic interfaces. 
+
+(2) Dataset Scale and Generalization Scope. We evaluate GUITAR on six primary tasks from AndroidControl and Mind2Web, selected according to trajectory availability. The trajectory-held-out evaluation demonstrates generalization to unseen trajectories within the same task environments, but does not establish transfer to unseen applications, websites, or interaction domains. Evaluating GUITAR on larger and more diverse environments is therefore an important direction for future work. 
+
+(3) Offline Construction and Static STGs. GUITAR currently constructs STGs offline from a fixed set of reference trajectories. Consequently, rare states absent from the reference data may not be represented, and changes to the target application may require graph reconstruction. Online or incremental STG updates would improve scalability and adaptability. 
+
+(4) Guided Inference as a Proof of Concept. The guided-inference experiment is intended to validate the actionable value of the identified bottlenecks rather than provide a fully optimized inference system. Targeted guidance improves SR by +2 .8% in the primary setting and retains a 
+
++1 .88% gain under trajectory-held-out evaluation, but gains vary across agents and tasks. Better retrieval, sub-goal generation, and agent-specific guidance remain open directions. 
+
+## A Construction and Evaluation Details 
+
+A.1 STG Construction Details State                           
+
+> Assignment
+> (𝑴 𝒂𝒔𝒔𝒊𝒈𝒏 )
+> Align each original observation 𝒐 𝒕
+> a final state label 𝒔 𝒕 based on 𝒂 𝒕 and ෡𝒉 𝒊 .
+> Aligned Labels (𝒐 𝒕 , 𝒔 𝒕 )
+> State Chain Reconstruction
+> (𝑴 𝒓𝒆𝒄𝒐𝒏 )
+> Align each independent chain 𝒉 𝒊 ,to the canonical state in 𝑮 .
+> Reconstructed Chains ෡𝒉 𝒊
+> State Transition Graph Construction
+> (𝑴 𝒈𝒓𝒂𝒑𝒉 )
+> Aggregate all chains 𝑯 to construct a global, canonical STG (𝑮 = (𝑺, 𝑬) ).
+> State
+> Trajectory Abstraction
+> (𝑴 𝒂𝒃𝒔 )
+> Trajectory
+> Chains 𝑯
+> Abstract (𝑪 𝒊 , { 𝒂 𝒕 }) into high-level state transition chain ( 𝒉 𝒊 ).
+> Screen
+> Caption
+> Extraction
+> (𝑴 𝒄𝒂𝒑 )
+> Caption
+> Sequence 𝑪 𝒊
+> Convert each screen observation (𝒐 𝒕 ) into natural language ( 𝒄 𝒕 ).
+> …
+> Raw UI
+> Interaction
+> Trajectories
+> STG-Aligned
+> Data
+
+Figure 7: The fully automatic STG construction pipeline. It transforms raw UI interaction trajectories into a State Transition Graph through five VLM-based stages: (1) extracting semantic captions via 
+
+Mcap , (2) abstracting trajectories into state chains via Mabs , (3) aggregating chains into a global STG via Mgraph , (4) reconstructing chains for semantic consistency via Mrecon , and (5) performing fine-grained screenshot-to-state assignment via Massign . Manual verification, when used, is a separate post-hoc step and is not part of this pipeline. We construct the canonical STG topology from successfully executed trajectories so that its state and transition vocabulary is grounded in valid task workflows rather than erroneous actions. As illustrated in Figure 7, the construction pipeline progressively transforms low-level screen observations into a structured, semantically consistent graph. All five stages are performed automatically using Qwen2.5-VL-72B. The output of Stage 5 is therefore a fully automatic STG; the post-hoc human 13 verification described below is used only to obtain the manually verified variant employed in our primary diagnostic analysis. 
+
+Notations. Let T = {τ1, . . . , τ N } denote a set of trajectories, where each trajectory τi =(gi, {(ot, a t)}Ti
+
+> t=1
+
+) contains a task goal gi, screen observations ot, and corresponding user actions 
+
+at. We use ct to denote the natural language caption of ot, and Ci = {ct} the caption sequence of trajectory τi. Each trajectory is abstracted into a state transition chain hi, and we denote the set of all chains as H = {hi}. The final STG is defined as G = ( S, E), where S is the set of states and E is the set of transitions. After graph construction, each trajectory is aligned to the graph as ˆhi, and each observation is assigned a state label st ∈ S . We denote different functional modules of the VLMs as 
+
+Mcap , Mabs , Mgraph , Mrecon , and Massign , corresponding to different stages in the pipeline. 
+
+Operational Criterion for Functional Equivalence. State identity is determined by a screen’s role in the task trajectory rather than by visual appearance alone. Two observations are assigned to the same state when, conditioned on the task goal and trajectory context, they support the same task-relevant operation and occupy the same functional position in the workflow. Conversely, visually similar observations are kept separate when they require different next decisions or lead to different downstream transitions. The pipeline operationalizes this criterion using the screen caption, the action executed between consecutive observations, and the surrounding state-transition context. Thus, visually different pages are merged only when their action-conditioned trajectory roles agree. 
+
+Stage 1: Screen Caption Extraction. We first convert each screen observation into a natural language description. Specifically, for each ot, we obtain a caption ct = Mcap (ot), producing a caption sequence Ci for each trajectory. These captions provide a unified semantic representation of UI states, bridging visual content and language-based reasoning. This stage consumes the raw screenshot but does not yet decide state identity. 
+
+Stage 2: State Trajectory Abstraction. Given the task goal gi, caption sequence Ci, and action sequence {at}, we abstract each trajectory into a state transition chain: 
+
+hi = Mabs (gi, Ci, {at})
+
+where each node represents a high-level UI state and each edge corresponds to a user action. This step compresses low-level interactions into semantically meaningful transitions. In particular, the action between consecutive observations provides behavioral evidence for the functional role of each state. 
+
+Stage 3: State Transition Graph Construction. We aggregate all trajectory-level chains H and construct a global STG: 
+
+G = Mgraph (H)
+
+This process merges states with equivalent action-conditioned trajectory roles across trajectories and resolves redundant descriptions, resulting in a unified graph structure. No raw images are used in this aggregation stage. 
+
+Stage 4: State Chain Reconstruction. Since trajectory-level abstractions are generated indepen-dently, their state representations may be inconsistent. To address this, we align each chain hi with the canonical state space defined by G:
+
+ˆhi = Mrecon (hi, G)
+
+This step enforces consistency across trajectories by mapping states to shared semantic identities. 
+
+Stage 5: State Assignment. We assign each observation ot to a state in G by considering the task goal, its caption, the preceding action history a<t , the next action at, and the reconstructed trajectory context: 
+
+st = Massign (ot, c t, g i, a <t , a t, ˆhi)
+
+This produces a fine-grained alignment between raw observations and abstract states. Together with Stage 1, this is the only construction stage that directly consumes the raw screenshot; Stages 2–4 operate on textual state/action representations. 14 The screen displays the 'Explore' section of a map application. At the top, there is a search bar for inputting queries…  
+
+> Stage 1: Screen Caption Extraction Stage 2: State Trajectory Abstraction
+> Click on the Search bar. Screen 1 Caption Screen 2 Caption Screen 3 Caption Click on the Home option
+
+…
+
+> Map Interface –[Click Search Bar]-> Search Interface –[Select Location]-> Directions Setup Page –[…]-> …
+> Stage 3: State Transition Graph Construction
+> Map Interface Search Interface Directions Setup Page
+
+…
+
+> Home Screen Search Interface Search Results Page
+
+…
+
+> Map Interface Search Interface Directions Setup Page Search Results Page
+> Stage 4: State Chain Reconstruction
+
+… …
+
+> Home Screen Search Interface Search Results Page
+
+…
+
+> Map Interface Search Interface Search Results Page
+
+…  
+
+> Before After
+> Stage 5: State Assignment
+> Map Interface Caption: The screen displays the 'Explore' section of a map application. At the top, there is a search bar for inputting queries… Action: Click on the Search bar. Trajectory 1 Trajectory 2
+
+Figure 8: An illustrative example of STG construction. Stage 1: extract screen captions from raw screenshots. Stage 2: abstract state trajectories from captions and actions. Stage 3: merge state trajectories into a unified STG. Stage 4: refine state trajectories guided by the constructed STG. Stage 5: assign each screen to its best-matching state based on the screenshot, caption, and executed action. 
+
+Post-hoc Manual Verification. For the manually verified STG variant used in our primary diag-nostic analysis, annotators verify the screenshot-to-state assignments produced by Stage 5 using the reconstructed trajectory chains from Stage 4 as context. When an assignment is incorrect, the annotator reassigns the screenshot to an existing state with the appropriate functional role. This step corrects only the final observation-to-state mapping; annotators do not define state semantics or construct the graph topology. It is also not required to run the five-stage pipeline: the unverified output of Stage 5 is the fully automatic STG used in our automatic-pipeline evaluations. Table 9 reports the fraction of assignments changed during this post-hoc verification. As shown in Table 9, correction rates range from 0.0% to 25.3%. CNN and Kitchen Stories require little or no correction, whereas Maps and the three web tasks require more intervention. The latter settings contain richer dynamic content and more varied layouts, which make fine-grained screenshot-to-state assignment more difficult. These rates quantify post-hoc changes to Stage 5 assignments, rather than the fraction of the construction pipeline performed by humans. 
+
+A.2 STG Evaluation Details 
+
+We design a human evaluation protocol to assess the quality of the constructed STG, focusing on the consistency between screen observations and their assigned state labels. For each state s ∈ S , we Table 9: Post-hoc screenshot-to-state correction rates across tasks. A correction changes the Stage 5 assignment but does not redefine state semantics or graph topology. 
+
+Platform Task Correction Rate (%) 
+
+Android Kitchen Stories 5.1 Maps 25.3 CNN 0.0 Web Booking 20.8 Carmax 22.7 Kayak 23.7 15 Map Interface Location Detail Page 
+
+> Detailed information about the selected location. Main page with primary navigation functions like search and directions. Correct: 5/5 Correct: 5/5
+
+Figure 9: Human evaluation of STG state classification accuracy. Annotators are shown screenshots and asked whether each matches its assigned state label and description. Numbers indicate the count of confirmed matches per state. randomly sample up to five screen observations associated with that state. 2 As shown in Figure 9, annotators are presented with the state description and the sampled images, and are asked to judge whether each image is consistent with the semantic meaning of the state. Each judgment is binary, indicating consistency or inconsistency. To measure inter-annotator agreement, we compute Gwet’s AC1 on the resulting binary state-level labels across annotators. We adopt AC1 instead of Cohen’s kappa due to its robustness to prevalence and marginal distribution issues, which are common in skewed labeling scenarios. A higher AC1 score indicates stronger agreement among annotators on the overall quality of the STG. To obtain a state-level quality label, we aggregate the image-level judgments. Specifically, a state is considered valid if the proportion of images judged as consistent exceeds a predefined threshold δ. In our experiments, we set δ = 0 .8.
+
+A.3 Similarity-Based Abstraction and Evaluation A.3.1 Low-Level Similarity Clustering 
+
+We employ ImageHash to compute perceptual similarity for low-level state clustering. A screenshot is merged into an existing state if either of the following conditions is satisfied: • The Hamming distance between the image’s hash and the hashes stored within the state is less than 25; or • The cosine similarity between the action text embedding of the current screenshot and the action text vector maintained within the state exceeds 0.75. Upon merging, the action text vector of the target state is updated accordingly to reflect the newly incorporated action. 
+
+A.3.2 Abstraction Evaluation 
+
+To quantitatively evaluate the quality of the constructed abstraction, we assess both visual and behavioral consistency across states and transitions. 
+
+> 2If fewer than five observations are available, all observations are used.
+
+16 Models. We adopt the following pre-trained models for similarity computation: • Image similarity: clip-vit-base-patch16 
+
+• Text similarity: all-MiniLM-L6-v2 
+
+Intra-State Image Similarity. For each state, we compute the pairwise image similarity among all screenshots contained within it using the CLIP model. We report the following statistics: • Mean and standard deviation of pairwise similarity scores; • Ratio: the proportion of image pairs whose similarity score exceeds the threshold of 0.70. 
+
+Transition-Level Action Similarity. To evaluate behavioral consistency across transitions, we compute text similarity between action embeddings at the transition level: • Intra-transition similarity: average similarity among actions belonging to the same transi-tion; • Inter-transition similarity: average similarity among actions belonging to different transi-tions. To assess the statistical significance of the observed intra-transition cohesion, we conduct a Permuta-tion Test: 1. All action embeddings are randomly shuffled and reassigned into groups matching the original transition group sizes. 2. The mean intra-group similarity is computed for each permutation. 3. This procedure is repeated 1000 times to construct a null distribution, against which the observed similarity is compared. 
+
+## B Complete Experimental Results 
+
+B.1 Contribution Imbalance 
+
+GUI interaction naturally follows a long-tailed distribution, where a small number of high-frequency states dominate trajectories while the majority of states are visited rarely. This structural property has a direct consequence for evaluation: step-level metrics are disproportionately influenced by high-frequency states, leaving agent performance on rare but critical states largely unaccounted for. Figures 10 illustrate the SR contribution across state frequency intervals for 8 models over 6 tasks. Across all settings, low-frequency states contribute marginally to the overall SR regardless of their individual performance, confirming that SR systematically underrepresents agent behavior in the long tail. 
+
+B.2 Failure Concentration Across States 
+
+We analyze the distribution of failures across states for 8 models over 6 tasks. As shown in Figure 11, the top 20% of states ranked by failure frequency account for the majority of total errors across all settings, revealing that agent failures are highly concentrated rather than uniformly distributed. For instance, this concentration reaches 80% for GUI-Owl-7B on CNN and 65.5% for UITARS-72B-DPO on Carmax, demonstrating that a small set of bottleneck states drives the majority of failures regardless of model capability. This concentration suggests that targeted intervention on a small set of bottleneck states is sufficient to address the majority of agent failures. 
+
+B.3 Controlled SFT–DPO Comparison 
+
+To examine whether post-training strategy affects model-specific bottlenecks, we compare UI-TARS-7B-SFT and UI-TARS-7B-DPO while holding the base model and action space fixed. Table 10 shows that DPO slightly reduces average failure concentration (Gini: 0.555 vs. 0.589 ), while the state rankings remain strongly correlated (mean Spearman ρ = 0 .913 ). However, the overlap is not 17 Table 10: Controlled comparison of failure patterns between UI-TARS-7B-SFT and UI-TARS-7B-DPO. Jaccard measures the overlap between their Top-20% bottleneck states, and Spearman ρ
+
+compares the full state-level failure rankings.                      
+
+> Task Gini (SFT) Gini (DPO) Jaccard Spearman ρ
+> Maps 0.648 0.571 0.333 0.972 Kitchen Stories 0.464 0.449 1.000 0.905 CNN 0.654 0.644 1.000 0.863
+> Mean 0.589 0.555 0.778 0.913
+
+Table 11: Full three-fold trajectory-held-out guidance results with fully automatic STGs, summarized by task (Panel A) and agent (Panel B). N is the number of evaluated task–agent pairs, and I/T/D denotes improved/tied/decreased. Overall values average all 57 available pairs.                                                               
+
+> Panel A: Results by task Task NMean ∆SR (%) I/T/D
+> CNN 7+0 .87 4/3/0
+> Kitchen Stories 7+3 .29 5/2/0
+> Maps 7+2 .98 4/3/0
+> Arts & Culture 7+6 .04 5/0/2
+> Artsy 7+4 .37 5/0/2
+> Pinterest 7+5 .09 7/0/0
+> Booking 5+1 .20 1/4/0
+> Carmax 5+1 .09 2/2/1
+> Kayak 5+1 .27 1/2/2
+> Overall 57 +3 .09 34 /16 /7
+> Panel B: Results by agent Agent NMean ∆SR (%) I/T/D
+> Aguvis-7B 9+1 .39 4/3/2
+> GUI-Owl-7B 9+5 .23 7/1/1
+> OS-Atlas-7B 9+3 .51 7/1/1
+> Qwen2.5-VL-7B 9+0 .29 4/3/2
+> UI-TARS-1.5-7B 9+3 .00 3/5/1
+> GUI-Owl-32B 6+5 .38 6/0/0
+> UI-TARS-72B-DPO 6+3 .85 3/3/0
+> Overall 57 +3 .09 34 /16 /7
+> GUI-Owl-32B and UI-TARS-72B-DPO are evaluated on the six AndroidControl tasks; the other five agents are evaluated on all nine tasks.
+
+complete (mean Top-20% Jaccard: 0.778 ), indicating that post-training redistributes failure mass across states rather than uniformly improving all states. The largest compositional shift occurs on Maps: the SFT model’s unique Top-20% bottleneck is the 
+
+Route Map Page , whose inspected failures are mostly discriminative-action errors such as misjudging the map state or selecting an incorrect target. In contrast, the DPO model’s unique bottleneck is the 
+
+Start Location Search Interface , where the inspected failures are mostly generative-action errors such as entering an incorrect location. Across the three tasks, DPO reduces the error rate on discriminative actions by 0.015 on average, more than on generative actions. These results suggest that DPO can shift both bottleneck location and error composition, but they constitute evidence from one controlled model pair rather than a causal conclusion across training paradigms. 
+
+## C GUITAR-Guided Inference 
+
+C.1 Full Trajectory-Held-out Results 
+
+The main paper reports trajectory-held-out guidance on the six primary tasks. We apply the same three-fold protocol to three additional AndroidControl tasks—Arts & Culture, Artsy, and Pinterest— and summarize the complete nine-task evaluation in Table 11. In each fold, the fully automatic STG topology and state-level error statistics are constructed from two thirds of the trajectories, while the untouched third is used only for guided-inference evaluation. Across the 57 task–agent pairs, guidance improves SR by +3 .09% on average, with 34 improvements, 16 ties, and 7 decreases. The mean gain is positive on every task and for every agent, supporting within-task generalization to unseen trajectories across the evaluated environments. 
+
+Held-out State Coverage. Across 771 held-out steps, the mean top-1 state similarity is 0.770 , and the out-of-graph rate P (sim top1 < τ sim ) is 3.89% at τsim = 0 .6. The three fold-specific rates are 18 Table 12: Guidance performance ( ∆SR, %) on recent model families over the six primary tasks. The Qwen3-VL row is averaged across its 2B, 4B, and 8B variants; the remaining rows report individual models.                                    
+
+> Model Maps Kitchen CNN Booking Carmax Kayak Mean
+> Qwen3-VL (2B/4B/8B avg.) +9 .05 +7 .75 +3 .79 +2 .85 +0 .17 +0 .40 +4 .00
+> UI-Venus-1.5-2B +3 .11 +2 .32 +7 .95 +1 .67 +3 .04 −3.32 +2 .46
+> UI-Venus-1.5-8B −0.38 +1 .44 +9 .97 +4 .72 +4 .30 −1.52 +3 .09
+> GLM-4.6V-Flash −0.61 +3 .60 +11 .49 +2 .62 −1.69 −2.28 +2 .19
+
+6.25% , 2.36% , and 2.62% (standard deviation: 1.8 percentage points), indicating that low-confidence state matching is uncommon under the evaluated node libraries. 
+
+C.2 Evaluation on Recent Model Families 
+
+We further evaluate Qwen3-VL (2B/4B/8B), UI-Venus-1.5 (2B/8B), and GLM-4.6V-Flash under the same guidance protocol on the six primary tasks [31, 32, 33]. Table 12 summarizes the results against the corresponding unguided baselines. For Qwen3-VL, guidance yields a +4 .00% average gain over 18 task–model pairs (14 improved, 1 tied, and 3 decreased); the model-wise gains are +4 .61% ,
+
++6 .67% , and +0 .72% for 2B, 4B, and 8B, respectively. UI-Venus-1.5 and GLM-4.6V-Flash jointly improve by +2 .58% over 18 pairs (12 improved and 6 decreased). Across all six recent models, the mean gain is +3 .29% (26 improved, 1 tied, and 9 decreased), showing a positive average effect without implying uniform gains across every model–task pair. 
+
+C.3 GUITAR-Guided Inference Implementation Details 
+
+GUITAR-Guided Inference operates in two stages: state matching and STG-guided sub-goal gen-eration. State matching is performed by retrieving the top-K (K = 3 ) most similar states from the STG. For each candidate state, a fused similarity score is computed by combining textual and visual signals: s = 0 .5 × stext + 0 .5 × svisual , where stext is computed using all-MiniLM-L6-v2 over the full execution history and svisual is computed using clip-vit-base-patch16 over the current screenshot. Both signals are computed simultaneously and fused into a score for state retrieval. STG-guided sub-goal generation is triggered only when at least one of the top-3 candidate states has a historical error rate exceeding 0.6, as recorded in the STG. Candidate states with no historical records in the STG are skipped. In such cases, all transitions associated with the candidate states are retrieved from the STG, where each transition is represented as a natural language action accompanied by summarized execution statistics, providing contextual reference for comparison with the current task. The retrieved transitions are passed to Qwen2.5-VL-7B, which generates a sub-goal to guide the agent’s next decision. The sub-goal replaces the original task goal in the inference prompt, while the original task goal is retained as additional context. Prompt templates are provided in Appendix E. 
+
+## D Graph-Structured Analysis of Bottleneck Failures. 
+
+Based on the identified bottleneck states and transitions, we further analyze representative failure patterns. We manually examine these failures and categorize them into several recurring structural patterns. Table 13 summarizes the distribution of these failure categories. • Task Completion Failures (Terminal-State Misidentification). These failures occur at terminal or near-terminal states, where agents fail to determine whether the task has been completed correctly. In the STG, they manifest as redundant outgoing transitions from terminal states or missing termination edges. This suggests that agents lack an explicit notion of task completion and rely on local observations rather than global trajectory context. • State Perception Failures (State Delta Insensitivity). These failures arise when agents fail to perceive state changes after executing an action or incorrectly assume that no further interaction is required. In the STG, they appear as repeated transitions between semantically equivalent states or skipped transitions that bypass necessary intermediate states. This reflects limited sensitivity to state changes, leading to redundant actions or unstable behavior. 19 Table 13: Distribution of failure categories (%) observed in GUI agent trajectories. The results reveal a highly structured failure space, where Task Completion Failures (TCF), State Perception Failures (SPF), Instruction Grounding Failures (IGF), and Interaction Knowledge Failures (IKF) account for the majority of errors, while a small portion falls into the Others category.           
+
+> Categories TCF SPF IGF IKF Others Percentage 28.7 27.3 18.2 11.2 14.6
+
+• Instruction Grounding Failures (Constraint Misalignment). These failures occur when agents cannot correctly ground multi-constraint instructions into executable steps. In the STG, they are characterized by missing or partially executed transitions among multiple outgoing edges that must be completed before reaching the next state. This indicates deficiencies in compositional reasoning and constraint integration. • Interaction Knowledge Failures (Component-Specific Bottlenecks). These failures are associated with specific interaction patterns or UI components (e.g., filters or mode switches). In the STG, they manifest as consistently high-error transitions concentrated on particular edges shared across trajectories and agents. This suggests limited generalization to specialized interaction patterns and insufficient prior knowledge of such components. Overall, these findings reveal that failure modes are not only semantically meaningful but also structurally grounded in the transition graph. By mapping errors to graph patterns, GUITAR enables a unified diagnosis of GUI agent limitations across perception, reasoning, and interaction. 
+
+## E Prompts 
+
+E.1 The Prompts for Building STGs 
+
+20 0~25% 25~50% 50~75% 75~100% 
+
+State Freq Interval 
+
+020 40 60 80 
+
+CNN 
+
+0~25% 25~50% 50~75% 75~100% 
+
+State Freq Interval 
+
+020 40 60 
+
+Carmax 
+
+0~25% 25~50% 50~75% 75~100% 
+
+State Freq Interval 
+
+020 40 60 80 100 
+
+Kayak 
+
+AGUVIS-7B GUI-Owl-7B Qwen2.5-VL-72B UITARS-72B-DPO SR Score SR Contribution 0~25% 25~50% 50~75% 75~100% 
+
+State Freq Interval 
+
+020 40 60 80 
+
+Maps 
+
+0~25% 25~50% 50~75% 75~100% 
+
+State Freq Interval 
+
+020 40 60 80 100 
+
+Kitchen Stories 
+
+0~25% 25~50% 50~75% 75~100% 
+
+State Freq Interval 
+
+020 40 60 80 
+
+Booking 
+
+OSAtlas-7B-Pro GUI-Owl-32B Qwen2.5-VL-7B UITARS-1.5-7B SR Score SR Contribution 0~25% 25~50% 50~75% 75~100% 
+
+State Freq Interval 
+
+020 40 60 80 100 
+
+CNN 
+
+0~25% 25~50% 50~75% 75~100% 
+
+State Freq Interval 
+
+020 40 60 
+
+Carmax 
+
+0~25% 25~50% 50~75% 75~100% 
+
+State Freq Interval 
+
+020 40 60 80 100 
+
+Kayak 
+
+OSAtlas-7B-Pro GUI-Owl-32B Qwen2.5-VL-7B UITARS-1.5-7B SR Score SR Contribution Figure 10: Analysis of SR contribution across state frequency intervals for 8 models over 6 tasks. Across all settings, low-frequency states contribute marginally to the overall SR regardless of their individual performance, confirming that SR systematically underrepresents agent behavior in the long tail. 21 0 20 40 60 80 100 
+
+Failure State Rank% 
+
+020 40 60 80 100 
+
+> Cumulative Failure %
+
+Top 20% 80.0% 
+
+CNN 
+
+0 20 40 60 80 100 
+
+Failure State Rank% 
+
+Top 20% 65.5% 
+
+Carmax 
+
+0 20 40 60 80 100 
+
+Failure State Rank% 
+
+Top 20% 56.0% 
+
+Kayak 
+
+AGUVIS-7B GUI-Owl-7B Qwen2.5-VL-72B UITARS-72B-DPO Uniform 0 20 40 60 80 100 
+
+Failure State Rank% 
+
+020 40 60 80 100 
+
+> Cumulative Failure %
+
+Top 20% 63.4% 
+
+Maps 
+
+0 20 40 60 80 100 
+
+Failure State Rank% 
+
+Top 20% 47.3% 
+
+Kitchen Stories 
+
+0 20 40 60 80 100 
+
+Failure State Rank% 
+
+Top 20% 74.5% 
+
+Booking 
+
+OSAtlas-7B-Pro GUI-Owl-32B Qwen2.5-VL-7B UITARS-1.5-7B Uniform 0 20 40 60 80 100 
+
+Failure State Rank% 
+
+020 40 60 80 100 
+
+> Cumulative Failure %
+
+Top 20% 85.0% 
+
+CNN 
+
+0 20 40 60 80 100 
+
+Failure State Rank% 
+
+Top 20% 66.7% 
+
+Carmax 
+
+0 20 40 60 80 100 
+
+Failure State Rank% 
+
+Top 20% 59.0% 
+
+Kayak 
+
+OSAtlas-7B-Pro GUI-Owl-32B Qwen2.5-VL-7B UITARS-1.5-7B Uniform Figure 11: Cumulative distribution of failures across states ranked by failure frequency for 8 models over 6 tasks. The top 20% of states account for the majority of total errors across all settings, indicating strong and consistent failure concentration. 22 Prompt for State Trajectory Abstraction. You are an assistant skilled in GUI operations. In a GUI environment, actions are taken according to instructions, and each action transitions from the current page to a new page. I will provide you with a single task trajectory, including the pages visited during the process and the actions taken. I need you to **abstract this trajectory into a state transition sequence**. —**Input Format:** “‘ Trajectory: <Goal> - Page: <Page Description> Action: <Action Taken> - Page: <Next Page Description> Action: <Action Taken> - ... - Page: <Final Page Description> “‘ —**Output Format:** Please provide the abstracted state transition sequence in the following format: ### State Transition Sequence “‘ <Abstract State 1> –[Abstract Action 1]–> <Abstract State 2> –[Abstract Action 2]–> <Abstract State 3> ... “‘ ### State & Action Descriptions | Step | Abstract State | Abstract Action | Next Abstract State | |——|—————|—————–|———————| | 1 | S1: ... | A1: ... | S2: ... | | 2 | S2: ... | A2: ... | S3: ... | | ... | | | | —**Key Principles:** - **States** should reflect the **functional role** of the page, not its specific content (e.g., "Product Detail Page" rather than "iPhone 15 Detail Page") - **Actions** should be described **generically** (e.g., "Select item" rather than "Click iPhone 15") - Focus on capturing the **essential navigation logic** of the task Figure 12: Prompt for State Trajectory Abstraction. 23 Prompt for State Transition Graph Construction. You are an assistant skilled in GUI operations. In a GUI environment, actions are taken according to instructions, and each action transitions from the current page to a new page. When performing different tasks in an app, similar pages may be encountered; these pages may display different content depending on the task, but the available operations on these pages remain the same. I will provide you with several different task trajectories, including the pages visited during the process and the actions taken. I need you to: 1. **Analyze** the provided trajectories (page changes and actions between them) 2. **Identify** similar/equivalent pages across different tasks (pages that serve the same functional role even if displaying different content) 3. **Abstract** all trajectories into a unified **state transition graph**, where: - **Nodes** = abstract page states (merged similar pages) - **Edges** = actions that trigger transitions between states —**Input Format:** “‘ Trajectory Task n: <Goal> S1: <Page> –> A1: <Action> –> S2: <Page> –> A2: <Action> –> ... –> Sn: <Final Page> “‘ —**Output Format:** Please provide: ### 1. Page Abstraction List the abstract page states identified, explaining which concrete pages from the trajectories map to each abstract state. | Abstract State | Concrete Pages (from trajectories) | Description | |—|—|—| | S1: ... | Traj1-Page1, Traj2-Page1 | ... | ### 2. State Transition Graph Describe the edges in the format: “‘ <Source State> –[Action]–> <Target State> “‘ ### 3. Summary Diagram (Text-based) Provide a concise visual representation of the full state transition graph. —**Key Principles:** - Pages with the **same functional role** should be merged into one abstract state, even if their content differs - Actions on edges should be described **generically** (e.g., "click product" rather than "click iPhone 15") - If a page can be reached via **multiple actions**, represent all corresponding edges Figure 13: Prompt for State Transition Graph Construction. 24 Prompt for State Chain Reconstruction. You are an assistant skilled in GUI operations. In GUI environments, actions are performed according to instructions, and each action transitions the interface from the current screen to a new one. When executing different tasks in a appliaction, you often pass through similar screens; these screens may display different content depending on the task, but the available operations are often the same. We have merged the state transition information from related trajectories into a corre-sponding state transition diagram. I will provide you with: 1. **The state transition graph** (nodes and edges) 2. **A single task trajectory** to be re-mapped Your task is to **re-label each state and action** in the trajectory using the abstract nodes and edges from the state transition graph. —**Input Format:** ### State Transition Graph **Nodes:** | Node ID | Description | |———|————-| | S_Home | The starting point of the web | | S_PregnancyTools | Pages related to pregnancy tools | | ... | ... | **Edges:** “‘ S_Home –[Navigate to Pregnancy Section]–> S_PregnancyTools S_PregnancyTools –[Select Calculator]–> S_CalculatorInput ... “‘ —### Trajectory to Re-map “‘ S1: <Page Description> –> A1: <Action> –> S2: <Page Description> –> A2: <Action> –> ... –> Sn: <Page Description> “‘ —**Output Format:** Please output the re-mapped trajectory in the following format: ### Re-mapped Trajectory “‘ <Node ID> –[<Edge>]–> <Node ID> –[<Edge>]–> ... –> <Node ID> “‘ ### Mapping Details | Original | Mapped | Reason | |———-|——–|——–| | S1: Home Page | S_Home | Home Page serves as the web entry point | | A1: Navigate to Pregnancy Section | Navigate to Pregnancy Section | Direct match to graph edge | | S2: Pregnancy Tools Page | S_PregnancyTools | Pregnancy Tools Page matches the pregnancy tools node | | ... | ... | ... | —**Key Principles:** - Map each concrete page to the **most functionally similar** node in the graph - Map each action to the **closest matching edge** in the graph - If no exact match exists, choose the **nearest equivalent** and explain your reasoning in the "Reason" column - Maintain the **sequential order** of the original trajectory —Figure 14: Prompt for State Chain Reconstruction. 25 Prompt for State Assignment. (Part 1) You are an assistant skilled in GUI operations. In GUI environments, actions are performed according to instructions, and each action transitions the interface from the current screen to a new one. When executing different tasks in an application, you often pass through similar screens; these screens may display different content depending on the task, but the available operations are often the same. I will provide you with: 1. **A task trajectory** consisting of a sequence of states and actions 2. **An action history** recording the actions that have been taken so far in the trajectory 3. **A single screen’s text description** corresponding to one specific state in the trajectory 4. **A next execution action** that will be performed on the current screen Your task is to **map this screen to the most appropriate state** in the state transition trajectory based on its text content and functional role. —**Input Format:** ### State Description “‘ State A: <State description> ... “‘ ### Task Trajectory “‘ S_A –[Action 1]–> S_B –[Action 2]–> S_C –[Action 3]–> ... “‘ ### Action History “‘ Step 1: <Action taken> Step 2: <Action taken> Step 3: <Action taken> ... “‘ ### Current Action “‘ <text content of the screen> “‘ ### Next Execution Action “‘ <action that will be performed on the current screen> “‘ ### Screen Description “‘ <image of the screen> “‘ 26 Prompt for State Assignment. (Cont.) —**Output Format:** Please output the result in the following JSON format: “‘json {"mapped_state": "<State descriptive name>", "reason": "..." }“‘ —**Field Descriptions:** | Field | Type | Description | |——-|——|————-| | ‘mapped_state‘ | ‘string‘ | The most appropriate State ID from the graph, or a new descriptive name if no match exists | | ‘reason‘ | ‘string‘ | Brief explanation of why this screen was mapped to this state | —**Key Principles:** - Use the **action history** to determine how far along the trajectory the current screen is - Use the **next execution action** to verify the mapping — the mapped state should have an outgoing edge in the trajectory that matches or is functionally similar to the next action - Use the **trajectory context** to understand the functional role of the current state (e.g., what actions came before and after) - Match the screen to the state whose **position in the trajectory** best aligns with the completed actions, current screen content, and next action - Focus on the **functional purpose** of the screen rather than its specific content details - Output **only the JSON result**, no additional explanation needed —Figure 15: Prompt for State Assignment. (Cont.) 27 Prompt for GUITAR-Guided Inference. (Part 1) You are a web operation advisor with access to historical execution experiences. Your job is to analyze the current situation and suggest the most appropriate next action by carefully comparing the current execution context with similar historical experiences. ## Analysis Process (follow this order): ### Step 1 - Understand Current Context - What is the overall task goal? - What has been done so far (current action history)? - What does the current screen show? ### Step 2 - Task Completion Check (CRITICAL) Before suggesting any action, explicitly determine whether the task is already complete. Check the following: | Checkpoint | Question to answer | |———————-|———————————————————| | Goal achievement | Has the core objective of the task been fulfilled? | | Screen evidence | Does the current screen visually confirm task success? | | History sufficiency | Have all necessary steps been taken? | | No pending actions | Is there anything still required to complete the task? | Common completion signals to look for on screen: - Booking/reservation confirmation page is shown - Search result matches the target criteria - Form has been submitted successfully - A confirmation message or success state is visible Common mistakes that lead to WRONG completion judgment: - Marking complete when a confirmation click is still needed - Marking complete when only part of the task is done - NOT marking complete when the final state is clearly achieved ### Step 3 - Compare with Historical Experiences For each provided historical experience, carefully compare: - History alignment : How similar is the historical action history to the current one? Are they at the same stage? Did they follow the same path? - Screen alignment : Does the historical screen description match the current screen? - Error pattern : What went wrong in that historical state (high error rate)? - Continuity check : Is the historical last action similar to the current last action? ### Step 4 - Derive Guidance - Which historical experience is most relevant? - What mistakes should be avoided? - What is the most appropriate next action? Figure 16: Prompt for GUITAR-Guided Inference. (Part 1) 28 Prompt for GUITAR-Guided Inference. (Cont.) ## Output Format Respond in the following JSON format ONLY, no extra text: {"context_analysis": { "current_stage": "Describe what stage of the task we are currently at", "screen_state": "Describe what the current screen likely shows", "last_action_effect": "What effect did the last action have" }, "completion_check": { "is_complete": "yes / no", "evidence": "What on the current screen supports this conclusion?", "missing": "If not complete, what is still needed? If complete, write N/A" }, "experience_comparison": [ { "experience_rank": 1, "history_alignment": "How well does this historical history match current history?", "screen_alignment": "Does the historical screen match the current screen?", "relevance": "high / medium / low", "key_lesson": "The most important lesson learned from this experience" }], "next_step": "COMPLETE if task is done, otherwise a clear description of the next action", "reason": "Why this action is appropriate", "caution": "Specific mistakes to avoid" }Requirements: - completion_check.is_complete MUST be answered before suggesting any action - If completion_check.is_complete is yes, next_step MUST be COMPLETE - experience_comparison must contain one entry per provided historical experience - relevance must be one of: high / medium / low - next_step must NOT include exact pixel coordinates - All values must be strings Figure 17: Prompt for GUITAR-Guided Inference. (Cont.) 29

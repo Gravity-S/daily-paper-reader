@@ -1,0 +1,872 @@
+Title: DAAF: From Failure Localization to Editable System Assets in LLM Agents
+
+URL Source: https://arxiv.org/pdf/2609.32498v1
+
+Published Time: Tue, 29 Sep 2026 00:56:52 GMT
+
+Number of Pages: 21
+
+Markdown Content:
+# DAAF: F ROM FAILURE LOCALIZATION TO EDITABLE 
+
+# SYSTEM ASSETS IN LLM A GENTS 
+
+Xiaoyang Yuan ∗
+
+, Qi Liu ∗
+
+, Yubin Ruan, Xinyi Mou, Zhuomeng Zhang, Wenjin Wang, Hanying Jiao, Di Wu, Mingye Xu, Yi Bin, Ke Feng, Zixun Sun Tencent 
+
+## ABSTRACT 
+
+Deployed LLM agents increasingly rely on persistent, versioned system assets such as routing rules, knowledge segments, prompt instructions, and reusable skills. Failure-localization methods can identify where an error manifests in an agent or execution trace, but repair requires a different decision: which ed-itable system asset should be changed, and is that change expected to improve the task outcome? We study this gap through component-attribute failure at-tribution, where diagnosis targets versioned, addressable items rather than ex-ecution locations. We propose the Detection-Aware Attribution Framework (DAAF) , which learns the effects of valid attribute replacements and amortizes this intervention evidence into deployment-time diagnosis. DAAF combines sparse and noisy failure signals to decide whether intervention is warranted, learns component-type-conditioned replacement effects from controlled replays evalu-ated by executable task outcomes, and shares supervision across requests with compatible intervention responses. At diagnosis time, DAAF uses only the ob-served execution, registered candidates, and available failure signals; it requires neither counterfactual replay nor task reward and returns no_change , a repair target, or an unresolved decision when evidence is insufficient. On held-out τ 2-bench Telecom tasks, DAAF achieves 80.72% attribute Hit@1, recovers 62.65% of failed executions while limiting clean-task regression to 3.23%, and reaches 71.93% overall task success. These results show that intervention-grounded at-tribute attribution can connect failure localization to executable system repair. 
+
+## 1 INTRODUCTION 
+
+LLM agents increasingly operate as persistent systems rather than isolated single-turn programs. A deployed agent may serve many requests through shared routing rules, retrieval knowledge, prompt instructions, runtime policies, and reusable skills (Yao et al., 2022; Wu et al., 2023; Wang et al., 2023). As these assets evolve with data, policies, and dependencies, failures may arise from sys-tem state that persists across requests rather than from a single input. Existing failure-localization methods identify responsible agents, execution steps, or functional modules and provide useful evi-dence for debugging and recovery (Zhang et al., 2025; Zhu et al., 2025; 2026). Multi-agent studies likewise identify system design and coordination as recurring sources of failure (Cemri et al., 2025). However, localization alone does not determine which persistent system element should be changed. Its output is typically an agent identity, step index, or module label (Zhang et al., 2025; Chen et al., 2026; Zhang et al., 2026; Zhu et al., 2025), which need not correspond to a versioned, addressable object that can be modified and independently re-evaluated. A retrieval step, for example, may exe-cute correctly while using stale knowledge selected by an upstream rule. Effective repair therefore requires identifying not only where a failure appears, but which concrete system change is likely to improve the outcome. Consider an information-retrieval agent that repeatedly returns outdated policy information. Pos-sible repairs include replacing the knowledge segment, changing the selection rule, or revising the instruction. These changes act on different persistent objects, may affect other requests that reuse them, and can have beneficial, neutral, harmful, or interaction-dependent effects. Selecting among 
+
+> ∗
+
+Equal contribution. 
+
+1arXiv:2609.32498v1 [cs.AI] 26 Sep 2026 them therefore requires evidence about what happens when the objects are actually modified, con-sistent with recent intervention- and counterfactual-based approaches to agent debugging (Ma et al., 2026; Shah, 2026; Bonagiri et al., 2026). We study whether such intervention outcomes, collected during training, can predict for a new execution whether a change is needed and which registered edit is most likely to help. This problem raises three practical challenges. First, failure evidence is incomplete: trajectory anomalies, user feedback, and disagreement across repeated executions may all be informative, but their availability and reliability vary across requests (Kuhn et al., 2023; Farquhar et al., 2024; Pathak et al., 2025; Mehta, 2026). Second, edits are heterogeneous and interacting. Changing a knowledge segment and changing a runtime setting follow different constraints, yet their effects must be compared using the same task-level outcome. Third, repair evidence must transfer selectively across requests: two executions may touch the same assets without sharing the same failure cause, so evidence should be shared only when their contexts and intervention responses are compatible. We propose the Detection-Aware Attribution Framework (DAAF) to address these challenges. DAAF treats the expected task-level effect of changing a registered editable asset as the attribution target. Multi-Signal Weakly-Supervised Detection (MSWSD) combines available failure signals while representing unavailable observations explicitly. Component-Type Conditional Attribution (CTCA) learns signed effects of registered replacements from controlled replays evaluated by exe-cutable task outcomes, using type-conditioned predictors for different edit roles. To capture inter-actions, CTCA estimates marginal effects in composed replacement settings rather than only from isolated edits. DAAF further builds fixed training neighborhoods from requests with compatible contexts and intervention responses to share repair evidence across related executions. At diagno-sis time, MSWSD determines whether intervention is warranted and CTCA scores the registered candidates, returning no_change , a single registered repair, or an unresolved outcome. No task evaluator or counterfactual replay is required during diagnosis, and DAAF does not generate re-placement content. On held-out τ 2-bench Telecom tasks (Barres et al., 2025), DAAF achieves 80.72% attribute Hit@1, recovers 62.65% of failed executions while limiting clean-task regression to 3.23%, and reaches 71.93% overall task success. Controlled intervention analysis further shows that non-zero replace-ment effects increase from 11.36% under isolated edits to 31.02% in composed settings, while training-derived conditional effects remain informative for unseen repair decisions. Our main contributions are: • We introduce component-attribute failure attribution , which targets versioned, editable system assets rather than execution locations and defines attribution through the signed task-level effect of valid replacements. • We propose DAAF , which combines weak-signal failure detection, intervention-supervised component-type-conditioned effect prediction, interaction-aware replay targets, and cross-request consistency. Controlled interventions provide offline supervision, while diagnosis re-quires only the observed execution, available failure signals, and registered candidates. • We demonstrate that attribute-level diagnosis translates into executable repair. DAAF reaches 80.72% attribute Hit@1 and 62.65% failure recovery with 3.23% clean-task regression on held-out Telecom tasks, while controlled analyses support interaction-aware attribution and transfer of intervention evidence to unseen repairs. 
+
+## 2 RELATED WORK 
+
+Failure detection from weak signals. Semantic uncertainty and semantic entropy use variation across generated answers as evidence of model uncertainty (Kuhn et al., 2023; Farquhar et al., 2024). In agent executions, trajectory anomalies and behavioral inconsistency provide additional signals of failure (Pathak et al., 2025; Mehta, 2026). Data programming and Snorkel combine multiple noisy labeling sources (Ratner et al., 2016; 2017), while FlyingSquid studies efficient estimation from latent weak sources (Fu et al., 2020). DAAF uses this line of work for failure detection, but detection is only the first stage of the repair problem. MSWSD combines signals with different availability and reliability to decide whether an execution should enter the repair stage; the subsequent attribution problem is supervised by executed interventions rather than weak failure evidence alone. 2Failure attribution and intervention-based debugging. Existing failure-attribution methods pri-marily localize responsible agents, execution steps, or other execution-level causes (Zhang et al., 2025; Chen et al., 2026; Zhang et al., 2026; Wang et al., 2026). Who&When predicts responsible agents and decisive steps (Zhang et al., 2025); TraceElephant and CHIEF incorporate broader exe-cution context and hierarchical causal structure (Chen et al., 2026; Wang et al., 2026). AgenTracer constructs attribution supervision through counterfactual replay and fault injection (Zhang et al., 2026), OAT scores anomalous steps using dynamics learned from successful trajectories (Yeh et al., 2026), and AgentDebug and AgentDebugX connect structured failure diagnosis with recovery (Zhu et al., 2025; 2026). CAR, CausalFlow, and DoVer use counterfactual replay or targeted interventions to identify, validate, or repair failure-inducing execution decisions (Shah, 2026; Bonagiri et al., 2026; Ma et al., 2026), while MP-Bench evaluates settings with multiple plausible attributions (In et al., 2026). DAAF focuses on a different attribution target: a versioned, addressable system asset whose registered replacement can be executed and evaluated. Controlled interventions provide supervi-sion for the effect of these replacements, and the learned effects are used at diagnosis time without replaying candidate edits for each new request. 
+
+Feedback-driven repair and system optimization. Reflexion stores feedback in reflective memory (Shinn et al., 2023), while Self-Refine iteratively revises model outputs using self-feedback (Madaan et al., 2023). Work on intrinsic self-correction further examines the limitations of self-generated feedback for improving reasoning (Huang et al., 2024). At the system level, ProTeGi searches over prompt edits using textual feedback (Pryzant et al., 2023), DSPy optimizes parameter-ized language-model pipelines (Khattab et al., 2023), and TextGrad propagates feedback to system variables (Yuksekgonul et al., 2025). These system-optimization methods address how prompts or other pipeline variables can be improved once an optimization objective is available. DAAF in-stead addresses the preceding diagnosis problem: given an observed execution and a registry of editable assets, it estimates which asset has evidence supporting a change. The selected asset can subsequently be passed to an optimizer or human maintainer to construct a new replacement. 
+
+## 3 DAAF: L EARNING WHICH ATTRIBUTES TO CHANGE 
+
+DAAF formulates agent diagnosis as a repair decision over persistent, editable system assets. Given a new execution, the method first determines whether the observed evidence warrants intervention and then predicts which registered change is expected to improve the task outcome. Training has access to executable environments, so registered replacements can be applied, replayed, and evalu-ated by task outcomes. Diagnosis does not have this access. It uses only the observed execution, the current system registry, and the failure signals available at that time. The key distinction from execution-level localization is that DAAF predicts the effect of changing an addressable system asset rather than only identifying where a failure appears. Figure 1 summarizes the training and diagnosis pipelines. DAAF has three learned parts. MSWSD estimates failure evidence from weak deployment signals (Section 3.2). CTCA learns the signed effect of each registered replacement from controlled re-plays (Section 3.3). Joint learning shares repair evidence across compatible requests and combines detection and attribution into an abstaining repair decision (Section 3.4). 3.1 PROBLEM SETUP AND REGISTERED EDITS 
+
+Let Av denote an agent system at version v. A request q, initial environment state e, and execution randomness ξ produce a trajectory τ = Av (q, e ; ξ). The diagnostic input is 
+
+z = ( q, τ, v, Cv , s, m ), s ∈ [0 , 1] J , m ∈ { 0, 1}J , (1) where Cv is the editable registry for system version v, si is a failure signal, and mi records whether that signal is available. 
+
+Editable assets. A component groups system elements with a common functional role, and an at-tribute is the atomic registered item that DAAF can select for repair. Each attribute c ∈ C v has a stable identifier, component type t(c), source location, current version, and one or more validated replacements. We organize attributes into five roles: Node, Harness, Knowledge, Prompt, and Skill. These correspond to routing or iteration control, execution hooks, retrieval evidence, model instruc-tions, and reusable procedures, respectively. The taxonomy is not required to be exhaustive; DAAF 3Train from offline supervision 
+
+New execution 
+
+> Help resolve a
+
+connectivity issue. 
+
+> Execution trace
+> tool calls
+> observations
+> model responses
+> final answer
+> Weak signals
+> trajectory anomaly
+> user feedback
+> run disagreement
+
+LLM Agent 
+
+> Interacts with tools and
+> environments
+
+Registered editable assets    
+
+> Pre-registered repair candidates.
+> Prompt
+> e.g., system template,
+> instruction diagnostic instruction
+> Knowledge
+> e.g., troubleshooting
+> guide, policy
+> evidence-aware
+> variant
+> Harness
+> e.g., tool configuration,
+> runtime setting
+> parallel tool calls
+> disabled
+> Skill
+> e.g., support procedure,
+> agent workflow
+> workflow procedure
+
+DAAF 
+
+> Detect failures and attribute edits.
+
+MSWSD 
+
+> Should we intervene?
+
+Failure Score  = 0.82 
+
+CTCA 
+
+Which edit will help? 
+
+> Prompt instruction
+> Knowledge policy
+> Harness setting
+> Skill procedure
+
++ 0.62 
+
+> - 0.10
+
++ 0.08 
+
+Repair decision 
+
+> Select an action based on predicted effects.
+
+no_change 
+
+repair(c*) 
+
+> Example: Prompt edit (c*)
+> “Use connectivity diagnostic
+> instruction v2.”
+
+unresolved 
+
+> No online counterfactual replay.
+
+Offline supervision 
+
+> Train detection and attribution offline.
+
+1. Weak supervision for MSWSD   
+
+> Weak outcome seeds +available failure signals
+> outcome seeds
+> (e.g., task success / failure)
+
++
+
+> failure signals
+> (e.g., trajectory, feedback,
+> run disagreement)
+> soft
+> failure
+> targets
+
+2. Intervention supervision for CTCA   
+
+> Context-dependent interventions.
+> Sampled edit order
+> (composed context)
+> Prompt ′
+> Harness′ +Knowledge′
+> Replay with and
+> without the edit
+> beneficial
+> neutral
+> harmful
+> +1
+> 0
+> -1
+> (same task conditions)
+> Exam and Verify
+> Train detection and attribution with consistency.
+
+ℒ = ℒdet  + λ ℒattr  + μ ℒcons 
+
+> Intervention-compatible neighborhoods
+> Request +
+> intervention similarity
+
+Joint learning  
+
+> Failure likely, but no supported edit
+> Insufficient failure evidence
+> Highest-weight positive
+> registered edit
+
+0.00    
+
+> Add candidate edit Matched replay Task evaluator Signed marginal effect
+
+Figure 1: Overview of DAAF. At diagnosis time (solid arrows), MSWSD estimates whether inter-vention is warranted and CTCA predicts signed effects for registered edits; their outputs determine 
+
+no_change , a single repair, or an unresolved decision. During training (dashed arrows), weak-label targets supervise failure detection, controlled replacements evaluated by executable task out-comes supervise attribute effects, and intervention-compatible requests provide cross-request con-sistency. only assumes that candidate attributes are addressable and can be replaced through a validated inter-face. Table 1 gives examples from the Telecom environment. All replacements are versioned and validated before training or evaluation. DAAF therefore predicts which registered asset should be changed ;generating new replacement content is outside the diagnosis procedure. 
+
+Intervention outcomes. For executable training tasks, let C(z) ⊆ C v be the candidate set and let 
+
+AS,ρ v denote the system obtained by applying replacement policy ρ to attributes S ⊆ C (z). Starting from matched task conditions, the outcome of a replacement set is 
+
+Rz (S) = Eξ
+
+Eval  AS,ρ v (q, e ; ξ) . (2) Here Eval is an executable task evaluator. In our τ 2-bench experiments (Barres et al., 2025), it is the official binary task evaluator rather than an LLM judge. Controlled comparisons of Rz (S) provide supervision about whether a registered change improves, preserves, or harms task success. Invalid or unavailable replays do not produce attribution targets. 3.2 WEAK -S IGNAL FAILURE DETECTION 
+
+The first decision is whether an execution should enter the repair stage. DAAF uses a registered set of weak failure signals S, including trajectory anomalies (Pathak et al., 2025), visible user feedback, and disagreement across matched repeated executions when repeated runs are available (Mehta, 2026). For signal i, si ∈ [0 , 1] denotes failure evidence, mi ∈ { 0, 1} its availability, and ui ∈ [0 , 1] 
+
+a fixed reliability value. The detector represents unavailable observations explicitly: 
+
+pθ (z) = σ b + X
+
+i∈S 
+
+wimiuisi + X
+
+i∈S 
+
+vi(1 − mi)
+
+!
+
+. (3) The output pθ (z) estimates the evidence that intervention is warranted. Signal transformations and reliability values are fitted or specified from training data and frozen before evaluation. Following data programming (Ratner et al., 2016; 2017), noisy seed annotations and labeling func-tions are combined into soft failure targets eyz with confidence cz . Label-model fitting and target 4Table 1: Examples of registered edits in the Telecom environment. Replacements are fixed before diagnosis and are not generated by DAAF.                  
+
+> Role Registered attribute Admissible replacement Skill Support procedure tech_support_manual.md →
+> tech_support_workflow.md
+> Knowledge Policy evidence segment Official policy →registered policy variant with evidence-handling guidance Prompt Instruction / system template Official text →text with a fixed diagnostic or verification suffix Harness Parallel tool-call setting Provider default →disabled
+
+generation use separate training folds. The detector is trained with 
+
+Ldet = 1
+
+|D seed |
+
+X
+
+> z∈D seed
+
+cz BCE( eyz , p θ (z)) + β
+
+|D u|
+
+X
+
+> z∈D u
+
+cz BCE( eyz , p θ (z)) , (4) where Du contains the remaining training interactions and β controls their contribution. Develop-ment data are used only for calibration and threshold selection. 3.3 INTERVENTION -S UPERVISED ATTRIBUTE EFFECTS 
+
+Detection indicates that a change may be needed, but it does not identify which change will help. CTCA learns this distinction from the outcomes of controlled interventions. 
+
+Marginal intervention effects. The effect of an edit can depend on other changes already applied to the system. For a uniformly sampled permutation π of C(z), let Pπ (c) contain the attributes appearing before c. We define the attribution target 
+
+ϕρc (z) = Eπ [Rz (Pπ (c) ∪ { c}) − Rz (Pπ (c))] . (5) This Shapley-style marginal effect (Shapley, 1953) is estimated with sampled permutations (Castro et al., 2009). Positive values indicate that the registered replacement tends to improve task outcome, while negative values indicate harm. Evaluating edits in composed settings also exposes effects that may be absent when each replacement is tested only against the original system. 
+
+Predicting effects without replay. For each candidate attribute, a shared encoder represents the request, relevant execution context, current attribute content, and replacement description. Component-type-conditioned heads then predict the same signed quantity: 
+
+aψ,c (z) ≈ ϕρc (z), aψ,c (z) ∈ [−1, 1] . (6) For training interactions DI , let Oz contain the attributes with valid replay-derived targets. CTCA minimizes 
+
+Lattr = 1
+
+|D I |
+
+X
+
+> z∈D I
+
+1
+
+|Oz |
+
+X
+
+> c∈Oz
+
+
+
+aψ,c (z) − bϕMC  
+
+> c
+
+(z)
+
+2
+
+. (7) Unavailable comparisons are omitted rather than treated as zero. Once trained, CTCA predicts replacement effects directly from a new execution and its registered candidates. The task evaluator and intervention replays are used only to construct offline supervision. 3.4 JOINT LEARNING AND REPAIR DECISION 
+
+The two learned quantities serve different roles. The detector estimates whether intervention is needed, while CTCA estimates how each registered change is expected to affect the task. DAAF also uses replay outcomes to determine when evidence can be shared across requests. 
+
+Cross-request consistency. Executions that touch the same assets do not necessarily benefit from the same repair. We therefore construct training neighborhoods only between cases that share a compatible system version, candidate set, replacement policy, and task evaluator. For an eligible pair, 
+
+Wij = κ(qi, q j ) ωiωj exp − ∥ bϕMC  
+
+> i
+
+− bϕMC  
+
+> j
+
+∥22
+
+2ℓ2
+
+!
+
+, (8) 5where κ measures request compatibility, ℓ controls sensitivity to intervention-response differences, and ωi, ω j are fixed validity weights. The neighborhoods are constructed from training data and frozen before joint optimization. DAAF converts positive predicted effects into routing weights, 
+
+rc = [aψ,c ]+
+
+ϵ0 + P 
+
+> j
+
+[aψ,j ]+
+
+, r⊥ = ϵ0
+
+ϵ0 + P 
+
+> j
+
+[aψ,j ]+
+
+, fc = pθ rc, (9) with unresolved mass f⊥ = pθ r⊥. Let fθ,ψ (z) collect the candidate and unresolved masses. With 
+
+ZW = P 
+
+> i<j
+
+Wij , the joint objective is 
+
+L = Ldet + λLattr + μZW
+
+X
+
+> i<j
+
+Wij ∥fθ,ψ (zi) − fθ,ψ (zj )∥22 , (10) where the consistency term is zero when ZW = 0 . This term follows the general idea of graph-based regularization (Zhou et al., 2003; Belkin et al., 2006), but the edges here depend on observed inter-vention responses in addition to request compatibility. The model therefore shares repair evidence between requests that behave similarly under actual system changes, rather than between requests that are merely similar in text. 
+
+Diagnosis. The primary DAAF policy returns at most one registered edit. Let τf be the development-selected intervention threshold. The final decision is 
+
+d(z) = 
+
+
+
+no_change , pθ (z) < τ f ,
+
+⊥, pθ (z) ≥ τf and max c rc ≤ r⊥,
+
+repair( c⋆), otherwise ,c⋆ = arg max   
+
+> c:aψ,c >0
+
+rc. (11) Low failure evidence leaves the current system unchanged. When intervention is warranted but no candidate has enough positive support, DAAF returns an unresolved decision. Otherwise it se-lects the registered edit with the strongest predicted positive effect. Composed repairs are studied separately in Section 4; they are not part of the primary single-edit diagnosis rule. The resulting model uses controlled interventions only as offline supervision. Diagnosis requires no task reward, environment replay, or search over candidate replacements. Finite-sample results for repeated signals and replay-based effect estimation are given in Appendix D. 
+
+## 4 EXPERIMENTS 
+
+We evaluate DAAF from failure diagnosis to executable system repair. τ 2-bench Telecom (Barres et al., 2025) is our primary benchmark because it provides an executable environment, an offi-cial task evaluator, and persistent assets that can be modified and re-executed. We first measure whether attribute diagnosis leads to actual task recovery, then examine the interaction structure used to supervise CTCA and whether training-side intervention effects transfer to unseen tasks. Ad-ditional analyses study incomplete failure evidence and cross-request evidence sharing. We use Who&When (Zhang et al., 2025) as an auxiliary check of conventional trajectory-level localization. 4.1 EXPERIMENTAL SETUP 
+
+Benchmarks. τ 2-bench Telecom provides an executable customer-service environment with an official task evaluator and persistent system assets. We use it for attribute diagnosis, executed repair, and intervention analysis. Who&When contains recorded multi-agent trajectories with native agent-and step-level failure labels. Since it does not expose editable system assets, it is used only for trajectory-level localization. 
+
+Models and task splits. Telecom execution, user simulation, and the component-aware LLM diag-nostician use GPT-5.6-luna (OpenAI, 2026b). The held-out evaluation set contains all 114 official Telecom default tasks, with 83 natural failures and 31 natural successes under the frozen evaluation configuration. Training, development, and evaluation partitions are separated by canonical base-task identity. Who&When localization uses DeepSeek-V4-Flash (Xu et al., 2026); we treat this experi-ment as an auxiliary localization check rather than a model-matched repair comparison. Full split and model details are given in Appendix G. 6Training supervision. MSWSD is trained from 476 trajectories over 395 tasks using weak outcome seeds and diagnosis-time signals. CTCA uses 220 training tasks with five registered attributes. Two sampled replacement orders and two matched repetitions produce 5,280 controlled executions and 1,100 signed marginal-effect targets. A disjoint 50-task development set is used only for model selection and calibration. 
+
+Evaluation protocol. Attribute Hit@1 measures whether the top-ranked edit belongs to the indepen-dently validated repair set. Joint F1 also accounts for unnecessary interventions. Failure Recovery is the fraction of natural failures that succeed after repair, Clean Regression is the fraction of nat-ural successes that become failures, and Overall Success measures final success over all 114 tasks. Repair results use three matched execution repeats with shared task–repeat seeds across methods and report mean ± standard deviation. Metric definitions, repair-label validation, paired confidence intervals, and matched-seed construction are detailed in Appendix E and Appendix G.3. 4.2 ATTRIBUTE DIAGNOSIS AND EXECUTED REPAIR 
+
+We begin with the main question: does DAAF identify an editable asset whose modification im-proves the underlying task? No-edit Rerun measures recovery from rerunning the unchanged system. Component-aware LLM receives the full execution trace and descriptions of the registered candi-dates and directly selects an edit. LLM + MSWSD adds the learned failure detector while retain-ing the same LLM-based edit proposal. Full DAAF combines failure detection with intervention-supervised prediction of replacement effects. Table 2: End-to-end results on the 114 held-out τ 2-bench Telecom tasks. Attribute Hit@1 is evaluated on 83 natural failures; Joint F1 also includes the 31 natural successes. Repair metrics are mean ± standard deviation over three matched execution repeats.                                                  
+
+> Method Attribute Hit@1 ↑
+> Joint F1 ↑
+> Failure Recovery ↑
+> Clean Regression ↓
+> Overall Success ↑
+> No-edit Rerun ––12 .05 ±3.62 26 .88 ±1.86 28 .66 ±2.20
+> Component-aware LLM 40.96 51.13 35 .74 ±4.56 19 .35 ±3.23 47 .95 ±2.53
+> LLM + MSWSD 36.14 47.62 33 .73 ±4.82 24 .73 ±3.72 45 .03 ±2.68
+> DAAF 80.72 68.02 62 .65 ±3.19 3.23 ±3.23 71 .93 ±1.52
+
+Attribute diagnosis translates into task recovery. DAAF reaches 80.72% Attribute Hit@1, com-pared with 40.96% for the component-aware LLM. Uniform selection over the validated candidate sets gives 37.35% expected Hit@1, so the improvement cannot be explained by the presence of mul-tiple acceptable repairs alone (Appendix F.1). The difference remains visible after the selected edits are executed. DAAF repairs 62 .65 ± 3.19% of the original failures, compared with 35 .74 ± 4.56% 
+
+for the component-aware LLM and 12 .05 ± 3.62% for rerunning the unchanged system. Overall Success reaches 71 .93 ± 1.52% . The main result therefore connects attribute-level diagnosis to realized task recovery rather than evaluating attribution only against diagnostic labels. 
+
+Failure recognition is not sufficient for repair selection. Adding MSWSD to the LLM proposal process does not improve repair over the component-aware LLM. A stricter detector-only control keeps the DAAF repair pipeline fixed but removes replacement-effect supervision; its Failure Re-covery falls to 4.42 ± 2.51% , 58.23 percentage points below Full DAAF, and Clean Regression rises to 24 .73 ± 1.86% (Appendix F.2). Conversely, attaching CTCA to the original LLM proposal interface reaches only 34.94% Hit@1 and 46.03% Joint F1 (Appendix F.1). These controls indicate that intervention-derived effect supervision is important within the joint diagnosis and attribution decision, rather than failure detection or replacement scoring alone being sufficient. 
+
+The learned effects improve repair selectivity without online candidate search. DAAF reduces Clean Regression to 3.23 ± 3.23% , compared with 19 .35 ± 3.23% for the component-aware LLM. The higher recovery is therefore not obtained by applying more edits indiscriminately. The learned effect estimates distinguish beneficial replacements from neutral or harmful alternatives. The 5,280 intervention executions used to train CTCA are collected offline; diagnosis does not replay all five candidates for each new request. Under the evaluation protocol, Full DAAF uses 2.00 online envi-ronment executions per natural failure, with the detailed accounting reported in Appendix F.6. 74.3 INTERACTION -A WARE ATTRIBUTION AND TRANSFER 
+
+CTCA is trained on marginal effects from composed replacement settings because the effect of one edit can depend on other changes already present in the system. We first test whether this dependence is substantial in the replay corpus, then examine whether conditional effects estimated only from training interventions remain informative on unseen Telecom tasks. 
+
+Replacement effects depend strongly on intervention context. Across all five registered at-tributes, 11.36% of standalone replacements change the official task outcome, compared with 31.02% in composed configurations. Four attributes that are nearly inactive in isolation, with ac-tivity rates of 0.53–1.25%, affect 21.34–30.85% of composed states. Standalone probing finds only 59 of the 515 task–attribute pairs that exhibit a measurable effect somewhere in their replacement chain, missing 88.54% of the observed effective pairs. For 472 of the 1,100 task–attribute targets, sampled marginal contributions differ in sign across replacement orders. These results support mod-eling replacement effects as context-dependent rather than assigning each edit a fixed effect from isolated behavior. Per-attribute statistics are reported in Appendix F.3. We next rank candidate second edits using conditional effects computed exclusively from the train-ing replay corpus. Held-out outcomes are not used to determine this ordering. Table 3: Transfer of training-derived conditional replacement effects. Each candidate is applied after the Full DAAF repair on held-out Telecom tasks. ∆ Recovery is measured in percentage points relative to Full DAAF.                                                 
+
+> Second edit Train Conditional Effect (pp) Failure Recovery ↑
+> ∆Recovery 95% CI Clean Regression ↓
+> Prompt: instruction +6 .79 81 .53 ±2.51 +18 .88 [10 .84 ,26 .91 ]2.15 ±3.72
+> Prompt: system template +1 .71 64 .26 ±0.70 +1 .61 [ −4.02 ,7.23] 6.45 ±3.23
+> None (Full DAAF) 0.00 62 .65 ±3.19 reference 3.23 ±3.23
+> Harness: parallel tool calls −1.72 62 .25 ±2.78 −0.40 [ −6.83 ,6.02] 4.30 ±1.86
+> Knowledge: main policy −5.02 60 .64 ±1.84 −2.01 [ −8.03 ,6.02] 8.60 ±1.86
+
+Training-side conditional effects remain informative on held-out tasks. The held-out recov-ery values follow the same ordering as the training-derived conditional effects in this five-policy comparison. Prompt Instruction has the largest positive training effect and raises Failure Recovery from 62 .65% to 81 .53% . The gain is 18.88 percentage points with a 95% confidence interval of 
+
+[10 .84 , 26 .91] , while Clean Regression decreases to 2.15 ± 3.72% . The other candidates follow the same ordering, although their recovery differences are smaller and their confidence intervals in-clude zero. These results provide evidence that intervention structure estimated from the training replay corpus can transfer to unseen repair decisions without using held-out outcomes to construct the ranking. 4.4 SUPPORTING ANALYSES 
+
+Unavailable evidence should not be treated as observed negative evidence. Zero-filling unavail-able signals reduces AUPRC from 75.77% to 71.31% and AUROC from 56.06% to 44.58% on the natural cohort. On the balanced development set, the corresponding scores fall from 66.00%/73.92% to 50.00%/48.00%. Mean imputation matches the missingness-aware representation on both re-ported splits. The supported conclusion is therefore that missing evidence should be distinguished from an observed zero, rather than that explicit masks dominate all imputation strategies. Full com-parisons are reported in Appendix F.4. 
+
+Intervention responses provide additional structure for cross-request sharing. Intervention-response neighborhoods reach 62.63% held-out agreement, compared with 60.09% for request-similarity neighborhoods and 58.59% for random edges. The intervention-based construction has the highest agreement on all ten attribute hold-out splits (Appendix F.5). The improvement is modest in absolute terms but consistent across splits, suggesting that observed responses to system changes provide information beyond lexical request similarity when selecting cases from which repair evi-dence should be shared. 84.5 CONVENTIONAL FAILURE LOCALIZATION 
+
+Who&When does not expose editable system assets, so this experiment is not used to support the executable repair claims above. Instead, it checks whether the trajectory frontend retains conven-tional agent- and step-level localization capability. Table 4 reports the benchmark’s native Step and Joint metrics; reporting details are given in Appendix G.4. Table 4: Native Who&When (Zhang et al., 2025) accuracy (%, higher is better). Step measures exact step-level agreement; Joint requires both agent and step.                          
+
+> Algorithm Handcrafted Method Step Joint Step Joint All-at-Once 22.22 12.70 1.72 1.72 Step-by-Step 30.16 30.16 24.14 22.41 Binary Search 0.79 0.79 12.07 12.07 AgentDebugX (Zhu et al., 2026) 42.06 42.06 18.97 17.24 DAAF frontend 48.02 48.02 25.86 24.14
+
+The DAAF frontend retains trajectory-level localization capability. Under this reporting setup, the DAAF frontend reaches 48.02% Step and Joint accuracy on Algorithm traces, compared with 42.06% for AgentDebugX. On Handcrafted traces, it reaches 25.86% Step and 24.14% Joint accu-racy, compared with 18.97% and 17.24%, respectively. We treat these results as an auxiliary compat-ibility check because Who&When does not provide editable-asset interventions and the comparison is not a model-matched executable repair evaluation. The repair and intervention claims of DAAF are established by the Telecom experiments. 
+
+## 5 CONCLUSION 
+
+DAAF addresses the gap between locating an agent failure and identifying which persistent sys-tem asset should be changed. It connects weak failure evidence to versioned, editable repair tar-gets by learning the effects of registered replacements from controlled interventions, using these outcomes as offline supervision while requiring no per-candidate replay or task reward at diagno-sis time. On held-out τ 2-bench Telecom tasks, DAAF achieves 80.72% attribute Hit@1, recovers 62.65% of failed executions, and limits clean-task regression to 3.23%. Controlled replay analy-sis further shows that non-zero replacement effects increase from 11.36% under isolated edits to 31.02% in composed settings, supporting context-dependent attribution rather than fixed isolated edit relevance. Together, these results show that intervention-grounded attribution can connect fail-ure localization to executable repair decisions over persistent system assets. The current formulation assumes a registered candidate set, leaving automatic asset discovery and replacement generation for future work. 
+
+## REPRODUCIBILITY STATEMENT 
+
+We provide the information needed to reproduce the DAAF training and evaluation pipeline through-out the paper and appendices. Appendix A specifies failure-signal extraction, weak supervision, and intervention-target construction. Appendix B describes the editable-asset registry, registered re-placements, replay semantics, attribution representation, and replay budget. Appendix C reports the learning procedure and final configuration, including Table 7 and Algorithm 1. Appendix D gives the estimation results and proofs, while Appendix E defines the evaluation metrics, independent repair-label validation, matched execution seeds, paired confidence intervals, and conditional-effect analysis. Additional controls and implementation settings are provided in Appendices F and G. We will release the training and evaluation code, model checkpoints, registered-asset configurations, and Telecom replay artifacts where redistribution permits. 9ETHICS STATEMENT 
+
+This work studies failure diagnosis and system repair in controlled benchmark environments and does not involve live deployment or human-subject experiments. Controlled interventions modify registered assets only within executable evaluation environments and do not affect production sys-tems or real users. Existing benchmark data are used under their original access and licensing con-ditions, and released artifacts will follow applicable redistribution requirements. Because changes to persistent agent assets may affect many subsequent requests, results in these controlled environ-ments should not be interpreted as sufficient evidence for unsupervised deployment in safety-critical settings. Practical deployment of automated repair systems should include appropriate validation, access control, monitoring, and human oversight. 
+
+## AI U SE STATEMENT 
+
+Generative AI tools were used as research assistants in this work. ChatGPT (OpenAI, 2026a) and other generative AI systems assisted with literature-metadata checks, manuscript drafting and lan-guage editing, mathematical derivation checks, code debugging and optimization, and experimental analysis. Generative models are also used within the experimental pipeline: LLM-assisted weak annotations contribute to the failure-detection supervision described in Appendix A, and language models serve as agents, simulators, or diagnosticians under the settings reported in Appendix G. The core research problem, methodological contributions, intervention design, and experimental proto-col were developed by the authors. All AI-assisted text, code, analyses, and generated annotations were reviewed by the authors, who take responsibility for the final content, claims, references, and reported results. 
+
+## REFERENCES 
+
+Victor Barres, Honghua Dong, Soham Ray, Xujie Si, and Karthik Narasimhan. τ 2-bench: Evaluating conversational agents in a dual-control environment. arXiv preprint arXiv:2506.07982 , 2025. Mikhail Belkin, Partha Niyogi, and Vikas Sindhwani. Manifold regularization: A geometric frame-work for learning from labeled and unlabeled examples. Journal of machine learning research , 7 (11), 2006. Akash Bonagiri, Devang Borkar, Gerard Janno Anderias, Setareh Rafatirad, and Houman Homay-oun. Causalflow: Causal attribution and counterfactual repair for llm agent failures. arXiv preprint arXiv:2605.25338 , 2026. Javier Castro, Daniel Gómez, and Juan Tejada. Polynomial calculation of the shapley value based on sampling. Computers & operations research , 36(5):1726–1730, 2009. Mert Cemri, Melissa Z Pan, Shuyi Yang, Lakshya A Agrawal, Bhavya Chopra, Rishabh Tiwari, Kurt Keutzer, Aditya Parameswaran, Dan Klein, Kannan Ramchandran, et al. Why do multi-agent llm systems fail? Advances in Neural Information Processing Systems , 38, 2025. Mengzhuo Chen, Junjie Wang, Fangwen Mu, Yawen Wang, Zhe Liu, Huanxiang Feng, and Qing Wang. Seeing the whole elephant: A benchmark for failure attribution in llm-based multi-agent systems. In Proceedings of the 64th Annual Meeting of the Association for Computational Lin-guistics (Volume 1: Long Papers) , pp. 19888–19905, 2026. Sebastian Farquhar, Jannik Kossen, Lorenz Kuhn, and Yarin Gal. Detecting hallucinations in large language models using semantic entropy. Nature , 630(8017):625–630, 2024. Daniel Fu, Mayee Chen, Frederic Sala, Sarah Hooper, Kayvon Fatahalian, and Christopher Ré. Fast and three-rious: Speeding up weak supervision with triplet methods. In International conference on machine learning , pp. 3280–3291. PMLR, 2020. Wassily Hoeffding. Probability inequalities for sums of bounded random variables. Journal of the American statistical association , 58(301):13–30, 1963. 10 Jie Huang, Xinyun Chen, Swaroop Mishra, Huaixiu Steven Zheng, Adams Yu, Xinying Song, and Denny Zhou. Large language models cannot self-correct reasoning yet. In International confer-ence on learning representations , volume 2024, pp. 32808–32824, 2024. Yeonjun In, Mehrab Tanjim, Jayakumar Subramanian, Sungchul Kim, Uttaran Bhattacharya, Won-joong Kim, Sangwu Park, Somdeb Sarkhel, and Chanyoung Park. Rethinking failure attribu-tion in multi-agent systems: A multi-perspective benchmark and evaluation. arXiv preprint arXiv:2603.25001 , 2026. Omar Khattab, Arnav Singhvi, Paridhi Maheshwari, Zhiyuan Zhang, Keshav Santhanam, Sri Vardhamanan, Saiful Haq, Ashutosh Sharma, Thomas T Joshi, Hanna Moazam, et al. Dspy: Compiling declarative language model calls into self-improving pipelines. arXiv preprint arXiv:2310.03714 , 2023. Lorenz Kuhn, Yarin Gal, and Sebastian Farquhar. Semantic uncertainty: Linguistic invariances for uncertainty estimation in natural language generation. arXiv preprint arXiv:2302.09664 , 2023. Ming Ma, Jue Zhang, Fangkai Yang, Yu Kang, Qingwei Lin, Saravan Rajmohan, and Dongmei Zhang. Dover: Intervention-driven auto debugging for llm multi-agent systems. In International Conference on Learning Representations , volume 2026, pp. 28059–28087, 2026. Aman Madaan, Niket Tandon, Prakhar Gupta, Skyler Hallinan, Luyu Gao, Sarah Wiegreffe, Uri Alon, Nouha Dziri, Shrimai Prabhumoye, Yiming Yang, et al. Self-refine: Iterative refinement with self-feedback. Advances in neural information processing systems , 36:46534–46594, 2023. Aman Mehta. When agents disagree with themselves: Behavioral consistency as an uncertainty signal for llm agents. arXiv preprint arXiv:2602.11619 , 2026. OpenAI. ChatGPT. https://chatgpt.com/ , 2026a. Generative AI assistant; accessed September 26, 2026. OpenAI. GPT-5.6: Frontier intelligence that scales with your ambition. Official release blog, 2026b. URL https://openai.com/index/gpt-5-6/ . Released July 9, 2026; accessed Septem-ber 26, 2026. Divya Pathak, Harshit Kumar, Anuska Roy, Felix George, Mudit Verma, and Pratibha Moogi. De-tecting silent failures in multi-agentic ai trajectories. arXiv preprint arXiv:2511.04032 , 2025. Reid Pryzant, Dan Iter, Jerry Li, Yin Lee, Chenguang Zhu, and Michael Zeng. Automatic prompt optimization with “gradient descent” and beam search. In Proceedings of the 2023 conference on empirical methods in natural language processing , pp. 7957–7968, 2023. Alexander Ratner, Stephen H Bach, Henry Ehrenberg, Jason Fries, Sen Wu, and Christopher Ré. Snorkel: Rapid training data creation with weak supervision. In Proceedings of the VLDB en-dowment. International conference on very large data bases , volume 11, pp. 269, 2017. Alexander J Ratner, Christopher De Sa, Sen Wu, Daniel Selsam, and Christopher Ré. Data program-ming: Creating large training sets, quickly. Advances in neural information processing systems ,29, 2016. Jaineet Shah. Causal agent replay: Counterfactual attribution for llm-agent failures. arXiv preprint arXiv:2606.08275 , 2026. Lloyd S. Shapley. A value for n-person games. In Harold W. Kuhn and Albert W. Tucker (eds.), 
+
+Contributions to the Theory of Games II , pp. 307–317. Princeton University Press, 1953. Noah Shinn, Federico Cassano, Ashwin Gopinath, Karthik Narasimhan, and Shunyu Yao. Reflexion: Language agents with verbal reinforcement learning. Advances in neural information processing systems , 36:8634–8652, 2023. Guanzhi Wang, Yuqi Xie, Yunfan Jiang, Ajay Mandlekar, Chaowei Xiao, Yuke Zhu, Linxi Fan, and Anima Anandkumar. Voyager: An open-ended embodied agent with large language models. 
+
+arXiv preprint arXiv:2305.16291 , 2023. 11 Yawen Wang, Wenjie Wu, Junjie Wang, and Qing Wang. From flat logs to causal graphs: Hier-archical failure attribution for llm-based multi-agent systems. arXiv preprint arXiv:2602.23701 ,2026. Qingyun Wu, Gagan Bansal, Jieyu Zhang, Yiran Wu, Beibin Li, Erkang Zhu, Li Jiang, Xiaoyun Zhang, Shaokun Zhang, Jiale Liu, et al. Autogen: Enabling next-gen llm applications via multi-agent conversation. arXiv preprint arXiv:2308.08155 , 2023. Anyi Xu, Bangcai Lin, Bing Xue, Bingxuan Wang, Bingzheng Xu, Bochao Wu, Bowei Zhang, Chaofan Lin, Chen Dong, Chenchen Ling, et al. Deepseek-v4: Towards highly efficient million-token context intelligence. arXiv preprint arXiv:2606.19348 , 2026. Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and Yuan Cao. React: Synergizing reasoning and acting in language models. arXiv preprint arXiv:2210.03629 ,2022. Samuel Yeh, Yiwen Zhu, Shaleen Deep, and Sharon Li. Tracing agentic failure from the flow of success. arXiv preprint arXiv:2607.12747 , 2026. Mert Yuksekgonul, Federico Bianchi, Joseph Boen, Sheng Liu, Pan Lu, Zhi Huang, Carlos Guestrin, and James Zou. Optimizing generative ai by backpropagating language model feedback. Nature ,639(8055):609–616, 2025. Guibin Zhang, Junhao Wang, Junjie Chen, Wangchunshu Zhou, Kun Wang, and Shuicheng Yan. Agentracer: Who is inducing failure in the llm agentic systems? In International Conference on Learning Representations , volume 2026, pp. 11377–11399, 2026. Shaokun Zhang, Ming Yin, Jieyu Zhang, Jiale Liu, Zhiguang Han, Jingyang Zhang, Beibin Li, Chi Wang, Huazheng Wang, Yiran Chen, et al. Which agent causes task failures and when? on automated failure attribution of llm multi-agent systems. arXiv preprint arXiv:2505.00212 , 2025. Dengyong Zhou, Olivier Bousquet, Thomas Lal, Jason Weston, and Bernhard Schölkopf. Learning with local and global consistency. Advances in neural information processing systems , 16, 2003. Kunlun Zhu, Zijia Liu, Bingxuan Li, Muxin Tian, Yingxuan Yang, Jiaxun Zhang, Pengrui Han, Qipeng Xie, Fuyang Cui, Weijia Zhang, et al. Where llm agents fail and how they can learn from failures. arXiv preprint arXiv:2509.25370 , 2025. Kunlun Zhu, Xuyan Ye, Zhiguang Han, Yuchen Zhao, Bingxuan Li, Weijia Zhang, Muxin Tian, Xiangru Tang, Pan Lu, James Zou, et al. Agentdebugx: An open-source toolkit for failure observ-ability, attribution, and recovery in llm agents. arXiv preprint arXiv:2607.18754 , 2026. 
+
+## A SIGNAL EXTRACTION AND SUPERVISION 
+
+Behavioral disagreement. For K ≥ 2 repeated runs of the same request and starting state, let 
+
+d(τi, τ j ) ∈ [0 , 1] compare normalized final answers and action sequences. We define 
+
+s1 =
+
+K
+
+2
+
+−1 X
+
+> i<j
+
+d(τi, τ j ).
+
+Answer normalization follows the motivation of semantic uncertainty: semantically equivalent out-comes should receive compatible representations (Kuhn et al., 2023; Farquhar et al., 2024). Semantic comparison and action alignment are fixed on training data. If only one matched run is available, disagreement is treated as unavailable rather than assigned a default value. 
+
+Trajectory anomaly. The structural anomaly signal is 
+
+s2 = 0 .5rerr + 0 .3rrep + 0 .2eempty ,
+
+where rerr is the fraction of visible tool results containing an explicit error, rrep is the fraction of repeated tool calls with identical names and arguments beyond their first occurrence, and eempty 
+
+indicates an empty final response. The anomaly reliability is fixed to 1.0. Evidence records retain 12 the source events and observed recovery, so an intermediate anomaly does not by itself imply final task failure. 
+
+User feedback. The feedback signal uses visible outcome reports, corrections, negative reactions, and abandonment events. The extractor first uses the latest goal-specific outcome report. If none is recognized, it falls back to the latest recognized correction, negative reaction, or abandonment event. Contradictory outcome evidence yields no feedback signal. Table 5 gives the fixed score and reliability mapping used in the Telecom experiments. Table 5: Frozen user-feedback mapping used by MSWSD. Larger scores indicate stronger failure evidence.             
+
+> Feedback event Failure score Reliability Explicit positive outcome 0.00 0.75 Explicit negative outcome 1.00 0.75 Correction 0.75 0.50 Explicit negative reaction 0.60 0.40 Abandonment 0.50 0.30
+
+Weak outcome supervision. Each training seed records its source and confidence. Telecom out-come seeds are LLM-assisted weak annotations anchored to available task-outcome evidence. A confidence-weighted logistic label model with pairwise signal-interaction features is fitted by canon-ical base-task folds and produces cross-fitted soft targets eyz with confidence cz . These targets are frozen before fitting the detector. The detector represents each available signal through its reliability-weighted value and an explicit availability indicator, so an unavailable signal is not treated as an observed zero. 
+
+Intervention supervision for CTCA. CTCA uses the official executable task outcome defined in Eq. 2. For each sampled replacement order, adjacent coalitions are replayed from matched task conditions and their outcome difference provides one signed marginal sample for the added attribute. The Monte Carlo average of these samples estimates the target in Eq. 5. Positive, zero, and negative effects are retained. Official task outcomes are used only to construct offline attribution targets and are never exposed as diagnostic features at evaluation time. 
+
+## B REGISTRY , I NTERVENTIONS , AND ATTRIBUTION HEADS 
+
+Registry representation. Each editable attribute is stored with an identifier, component type, sys-tem version, content hash, source locator, dependency identifiers, allowed values, and replacement-policy identifier. Structural locators are preferred to bare line numbers so that an attributed item maps back to a persistent system asset. Inseparable changes are represented as one intervention unit, while dependencies between separable attributes remain explicit. 
+
+Telecom registered assets. Table 6 summarizes the five attributes used in the controlled Telecom study. All assets are pinned to the corresponding upstream version and file hashes in the registry. 
+
+Replacement semantics. Harness replacements change compatible execution rules; Knowledge and Prompt replacements operate on versioned semantic segments with matched roles; Skill re-placements preserve the required inputs, outputs, and dependency ordering. Candidate sets are validated before replay so that every sampled coalition has a well-defined executable interpretation. The registry restricts each intervention to its predeclared original and replacement values. 
+
+Replay semantics. Marginal comparisons begin from matched starting conditions and share exe-cution seeds when the environment permits. Telecom interventions replay each task from its initial state because a registered attribute can affect the first agent decision. Every valid replay records the coalition, replacement identities, seed, and official outcome. A fixed retry policy handles transient execution failures before a target is marked unavailable. 
+
+Attribution representation. CTCA uses fixed SHA-256 token hashing after NFKC normalization and lowercasing. Tokens are mapped to signed 64-dimensional buckets and L2-normalized. For each candidate attribute, the model concatenates a 64-dimensional request block, a 64-dimensional visible-execution block, a 64-dimensional attribute/replacement block, eight numeric features, and a 13 Table 6: Registered Telecom attributes and replacement roles used for intervention supervision.             
+
+> Type Registered attribute Replacement role Prompt Instruction Adds explicit diagnostic ordering, distinguishes agent-side from user-side actions, and requests user verification before advancing. Prompt System template Adds end-of-task verification and requires unresolved issues to be stated explicitly rather than inferred from tool completion. Harness Parallel tool calls Changes the runtime setting from provider-default behavior to disabled parallel tool calls. Knowledge Main policy Adds an evidence-handling section to the registered Telecom policy variant. Skill Tech-support procedure Replaces the manual-style support description with the registered workflow-style procedure.
+
+five-way component-type indicator, producing a 205-dimensional input row. The visible-execution representation contains the planner context, executed decisions, tool observations, final reply, and bounded visible diagnostic evidence. The attribute block contains current content, replacement con-tent, interface information, and dependencies. 
+
+Attribution heads. A 32-unit shared hidden representation feeds five type-specific signed-effect heads. The encoder is initialized with variance scaled by the input dimension; typed heads use small random initialization with a fixed bias. The signed output is bounded to [−1, 1] . The Telecom attribution model contains 6,757 trainable parameters. 
+
+Replay budget. A complete replacement permutation visits d + 1 nested coalitions and supplies one marginal sample per attribute. With M sampled replacement orders and R matched repetitions per visited coalition, the uncached budget is M (d + 1) R. The Telecom CTCA corpus uses d = 5 ,
+
+M = 2 , and R = 2 , yielding 24 valid replay executions per training task and 5,280 valid executions over 220 tasks. These executions provide offline supervision; diagnosis does not enumerate the candidate replacements online. 
+
+## C LEARNING AND OPTIMIZATION DETAILS 
+
+Detection supervision. For seeded interactions Dseed and remaining training interactions Du, the confidence-weighted detector loss is 
+
+Ldet = 1
+
+|D seed |
+
+X
+
+> z∈D seed
+
+cz BCE( eyz , p θ (z)) + β
+
+|D u|
+
+X
+
+> z∈D u
+
+cz BCE( eyz , p θ (z)) . (12) A term is omitted when its set is empty. Cross-fitted targets and reliability values remain fixed during subsequent joint training. 
+
+Attribution supervision. For cases DI with at least one observed replay target, let Oz denote the observed attributes. The implementation uses a fixed case weight ωattr  
+
+> z
+
+:
+
+Lattr = 1
+
+|D I |
+
+X
+
+> z∈D I
+
+ωattr 
+
+> z
+
+|Oz |
+
+X
+
+> c∈Oz
+
+ aψ,c (z) − bϕMC  
+
+> c
+
+(z)2. (13) Observed zero and negative effects remain in the loss. In the final Telecom configuration, the case weight follows the target-weight × weak-label-confidence rule reported in Table 7. 
+
+Routing and abstention. The implementation follows Eq. 9. The final inference setting uses ϵ0 =0.01 .14 Intervention-compatible neighborhoods. Eligible training pairs share a compatible system ver-sion, candidate set, replacement policy, and task evaluator. For such a pair, 
+
+Wij = κ(qi, q j ) ωiωj exp − ∥ bϕMC  
+
+> i
+
+− bϕMC  
+
+> j
+
+∥22
+
+2ℓ2
+
+!
+
+, (14) where κ is the nonnegative cosine similarity of fixed request features and ωi summarizes supervision reliability. The graph retains the five highest-weight neighbors per case, is symmetrized, and is frozen before joint optimization. We use ℓ = 0 .2.
+
+Final configuration. Table 7 reports the development-selected configuration used for the Telecom results. The development partition is used only for model selection and calibration. Table 7: Final DAAF configuration used for the Telecom experiments.                           
+
+> Setting Value Training seed 20260924 Base-task folds 3Candidate budget 12 Feature / hidden dimension 64 / 32 Training epochs / warm-up 200 / 100 Learning rate 0.2 Detector weight β1.0 Attribution weight λ1.0 Consistency weight μ0.1 Failure threshold 0.7449 (dev-selected) Temperature 2.0 Routing ϵ00.01 Neighborhood scale ℓ0.2 Neighbors per case 5Gradient clipping global norm 5.0 Attribution heads type-specific Attribution weighting target weight ×weak-label confidence Supervision scorer official task reward
+
+## D ESTIMATION PROPERTIES AND OPTIMIZATION DETAILS 
+
+Two finite-sample effects arise in DAAF. The detector may aggregate repeated observations of noisy failure signals, while CTCA estimates attribute effects from a finite number of sampled intervention orders. The following results characterize how these estimates concentrate as their sampling budgets increase. They provide qualitative finite-sample guidance and are not used to select the experimental budgets. 
+
+Proposition 1 (Repeated-signal concentration) . For a fixed request and availability mask m, let 
+
+S(1) , . . . , S (n) ∈ [0 , 1] J be independent signal vectors with common mean ν. Coordinates within each vector may be dependent. Define 
+
+S = 1
+
+n
+
+> n
+
+X
+
+> r=1
+
+S(r), αi = wimiui, bm = b +
+
+> J
+
+X
+
+> i=1
+
+vi(1 − mi),
+
+with α and bm fixed independently of S(1) , . . . , S (n). Let 
+
+pn = σ(bm + α⊤S), p∞ = σ(bm + α⊤ν).
+
+For ∥α∥1 > 0 and t > 0,
+
+Pr( |pn − p∞| ≥ t) ≤ 2 exp 
+
+
+
+− 32 nt 2
+
+∥α∥21
+
+
+
+.
+
+The result characterizes sampling variation around the detector output obtained from the mean signal vector. If p∗ denotes the true failure probability and γ = |p∞ − p∗| is a separate calibration error, then deviations beyond γ + t satisfy the same tail bound. 15 Algorithm 1 DAAF training and diagnosis 
+
+Require: Training traces, noisy seeds, registry, replacement policy ρ, replay budget B 
+
+> 1:
+
+Group splits by canonical base-task identity  
+
+> 2:
+
+Fit signal transforms and generate cross-fitted weak targets  
+
+> 3:
+
+Warm-start the detector; fix the task evaluator and replacement policy  
+
+> 4:
+
+Sample replacement orders and matched replay executions within B 
+
+> 5:
+
+Estimate signed targets bϕMC and train the typed attribution heads  
+
+> 6:
+
+Build fixed neighborhoods from request context and intervention responses  
+
+> 7:
+
+for each joint training round do  
+
+> 8:
+
+Update θ using Ldet + μLcons , holding ψ fixed  
+
+> 9:
+
+Update ψ using λLattr + μLcons , holding θ fixed  
+
+> 10:
+
+end for  
+
+> 11:
+
+Apply development-set selection and calibration  
+
+> 12:
+
+Diagnose new traces with frozen models using Eq. 11; return no_change , repair( c⋆), or ⊥
+
+Proposition 2 (Finite-budget attribution estimation) . For a fixed request with d registered candidate attributes, suppose each attribute has M independent unbiased marginal-contribution samples in 
+
+[−1, 1] . Let bϕMC denote the corresponding sample mean and ϕρ the expected marginal effect under replacement policy ρ. Then, for any 0 < δ < 1, with probability at least 1 − δ,
+
+∥ bϕMC − ϕρ∥∞ ≤
+
+r 2 log(2 d/δ )
+
+M .
+
+The bound decreases as O(M −1/2) and depends only logarithmically on the number of candidate attributes. At small replay budgets the worst-case bound can be loose, so it should not be inter-preted as a guarantee that closely spaced effects are distinguishable. This finite-sample uncertainty is consistent with retaining an unresolved outcome when no candidate receives sufficient positive support. In the replay-budget notation of Appendix B, M indexes sampled replacement orders and 
+
+R indexes matched execution repetitions; the proposition abstracts the resulting marginal estimates into independent bounded samples. D.1 PROOF OF PROPOSITION 1Let Xr = α⊤S(r). Its range has width at most B = ∥α∥1, even when the J coordinates of a vector are dependent. Independence is required only across vectors. Hoeffding’s bounded-sample inequality (Hoeffding, 1963) gives 
+
+Pr 1
+
+n
+
+X
+
+> r
+
+Xr − EXr ≥ u
+
+!
+
+≤ 2 exp( −2nu 2/B 2). (15) Since sup x |σ′(x)| = 1 /4, |pn − p∞| ≤ | α⊤(S − ν)|/4. Substituting u = 4 t proves the bound. If 
+
+B = 0 , pn = p∞ exactly. The triangle inequality yields |pn − p∗| ≤ | pn − p∞| + γ when a separate calibration bound γ is available. Learned coefficients are conditioned on a disjoint training sample. 
+
+□
+
+D.2 PROOF OF PROPOSITION 2For attribute c, let Xc,r be an unbiased sampled marginal contribution. Since the executable outcome is bounded in [0 , 1] , each paired difference used in Eq. 5 lies in [−1, 1] . For each fixed c,
+
+Pr M −1
+
+> M
+
+X
+
+> r=1
+
+Xc,r − ϕρc ≥ t
+
+!
+
+≤ 2 exp( −M t 2/2) . (16) A union bound over d attributes and setting 2d exp( −M t 2/2) = δ proves the result. Independence across different attributes is unnecessary. □
+
+From target estimation to learned heads. For any fixed case, 
+
+∥aψ − ϕρ∥∞ ≤ ∥ aψ − bϕMC ∥∞ + ∥ bϕMC − ϕρ∥∞. (17) 16 The first term is predictive approximation error and the second is finite-budget replay-estimation error. If the two largest true effects are separated by more than twice the total uniform error, their ranking is preserved. D.3 A D ESCENT -C OMPATIBLE ALTERNATING VARIANT 
+
+Freeze labels, replay targets, reliability weights, candidate sets, and neighborhoods. Suppose the resulting differentiable objective is lower bounded by Linf and has block Lipschitz constants 
+
+Lθ , L ψ > 0. Exact block-gradient steps of size 1/L θ and 1/L ψ satisfy 
+
+Lt − L t+1 ≥ ∥gtθ ∥22
+
+2Lθ
+
++ ∥gtψ ∥22
+
+2Lψ
+
+. (18) Summing over T rounds bounds the average block-update squared gradient norms by 2Lmax (L0 −Linf )/T . The result applies to the smoothed objective, or locally away from the kinks of the positive-part map in Eq. 9. 
+
+## E EVALUATION PROTOCOL 
+
+Attribute localization. Let F = {i : yi = 1 } be held-out failures, P = {i : pi ≥ t} predicted failures, and Gi ⊆ C v the independently validated repair set. Let T ki denote the top-k non-null predicted attributes. Attribute hit rate is 
+
+Hit@ k = 1
+
+|F |
+
+X
+
+> i∈F
+
+1[T ki ∩ Gi̸ = ∅]. (19) Candidate omissions and abstentions remain in the denominator. For the joint metric, let 
+
+C = X 
+
+> i∈F∩P
+
+1[T 1 
+
+> i
+
+∩ Gi̸ = ∅], JF1 = 2C
+
+|P | + |F | . (20) A detected failure attributed to the wrong asset therefore contributes both a false positive and a false negative under the joint decision. 
+
+Failure detection. Failure is the positive class. AUPRC is computed as non-interpolated average precision on the fixed outcome-labeled mixture, and AUROC is reported where both classes are present. Missing signal sources remain input masks rather than removing tasks. Calibration and threshold selection use only the development partition and are frozen before test scoring. 
+
+Independent repair labels. Repair locations are validated independently from method predictions. Each registered replacement is compared with the unchanged configuration on three matched ex-ecution seeds using the official evaluator. An attribute is accepted when the matched executions provide consistent evidence of failure-to-success repair without an opposing success-to-failure tran-sition. Borderline cases are resolved through a prediction-blind adjudication workflow that inspects the matched baseline/replacement trajectories, official action checks, environment assertions, and the intended replacement mechanism. These labels are used only for evaluation and are excluded from model fitting, threshold selection, and intervention ranking. 
+
+Executed repair metrics. Let Fnat and Snat denote the natural failure and success cohorts. For execution repeat r, Failure Recovery is the fraction of tasks in Fnat that succeed after the selected repair, Clean Regression is the fraction of tasks in Snat that fail after applying the same policy, and Overall Success is the success rate over all 114 evaluation tasks. Principal repair results use three matched repeats shared across methods. We first compute one cohort-level metric per repeat and then report the mean and sample standard deviation across the three repeats. 
+
+Matched execution seeds. The three execution seeds are deterministically derived per 
+
+(base task , repeat ) rather than using three global seeds. A fixed final seed 2026092601 is hashed into a base seed, and each task/repeat pair is mapped through the same deterministic paired-seed rule. All compared methods therefore encounter identical task–repeat seed pairs. 
+
+Paired confidence intervals. We use 10,000 paired base-task bootstrap resamples with random seed 20260926 and percentile intervals. For each task, the three matched outcomes are first averaged; 17 the resulting case-level treatment–reference difference is then resampled by base task, keeping all matched outcomes of a sampled task together. Reported 95% intervals are the 2.5th and 97.5th percentiles of the paired bootstrap distribution. 
+
+Training-time conditional effects. For a candidate second edit c and conditioning set S0 ⊆ C (z),the training-side conditional effect averages the marginal contribution of c over replay steps in which every attribute in S0 already appears in the current prefix: 
+
+∆( c | S0) = 1
+
+Nc
+
+X
+
+> q,π,r
+
+X 
+
+> k:S0⊆Pπ,k
+
+[rq (Pπ,k ∪ { c}) − rq (Pπ,k )] , (21) where Pπ,k is the set of replacements already applied before step k in permutation π. Valid marginal samples are pooled across training tasks, permutations, and repeats. Attributes in S0 need not be immediately adjacent to c; they only need to precede c in the sampled replacement order. In the interaction-transfer experiment of Section 4.3, S0 = {Skill }. Candidate second edits are ranked from this training statistic before any held-out repair execution. 
+
+Offline replay and test-time diagnosis. The 5,280 CTCA executions are training-time supervision. At evaluation time, DAAF predicts repair effects from the observed execution and registered assets rather than replaying every candidate replacement. Final repair executions are used only to measure the outcome of the selected policy. 
+
+## F ADDITIONAL EXPERIMENTAL EVIDENCE 
+
+F.1 EXTENDED ATTRIBUTE -L OCALIZATION CONTROLS 
+
+Table 8 reports two additional references for the attribute-localization experiment. Uniform can-didate choice averages over the accepted repair sets and can therefore exceed 20% when a failure admits more than one validated repair. LLM + CTCA retains the trajectory-based LLM proposal interface while adding CTCA as a partial component rather than using the complete DAAF decision rule. Table 8: Additional attribute-localization controls on the 83 natural Telecom failures.             
+
+> Method Attribute Hit@1 ↑Joint F1 ↑
+> Uniform candidate choice 37.35 –Component-aware LLM 40.96 51.13 LLM + CTCA 34.94 46.03 Full DAAF 80.72 68.02
+
+The partial LLM + CTCA composition does not reproduce the gain of the full decision pipeline. This result is consistent with the role of DAAF as a joint detection-and-attribution procedure rather than a replacement-effect scorer attached to an unchanged proposal rule. F.2 DETECTION -O NLY CONTROL 
+
+The detection-only control uses the same registry, candidate budget, routing rule, neighborhood construction, training length, learning rate, temperature, and evaluation protocol as Full DAAF. The detector is trained normally, while the typed attribution parameters remain fixed at initialization and receive no replacement-effect updates. The control therefore tests whether failure recognition alone can support the downstream repair decision. The paired interval excludes zero by a wide margin, showing that failure detection without learned replacement effects is insufficient for the repair policy used by DAAF. F.3 INTERACTION STATISTICS IN THE REPLAY CORPUS 
+
+Table 10 reports the per-attribute activity statistics underlying Section 4.3. “Standalone” applies an attribute to the original configuration, whereas “Composed” measures the same attribute after other registered changes have modified the system state. 18 Table 9: Detection-only control under the three-repeat Telecom repair protocol. ∆ Recovery is measured relative to Full DAAF.                     
+
+> Method Failure Recovery ↑∆Recovery 95% CI Clean Regression ↓
+> Detection-only control
+> 4.42 ±2.51 −58 .23 [ −66 .27 ,−49 .80] 24 .73 ±1.86
+> Full DAAF 62 .65 ±3.19 reference 3.23 ±3.23
+
+Table 10: Replacement activity on 4,400 controlled replay steps from 220 CTCA training tasks. Values are percentages of replacement steps that change official task reward.                       
+
+> Attribute Standalone Composed Change Harness: parallel tool calls 0.62 30.85 +30.23 Knowledge: main policy 0.53 30.00 +29.47 Prompt: system template 1.25 27.42 +26.17 Prompt: instruction 0.53 21.34 +20.81 Skill: support procedure 52.20 45.35 -6.85 All attributes 11.36 31.02 +19 .66 [14 .89 ,24 .43]
+
+Across the replay corpus, 515 task–attribute pairs exhibit a measurable effect somewhere in their re-placement chain, while standalone probing identifies only 59. Thus isolated probing misses 88.54% of the observed effective pairs. For 472 of the 1,100 task–attribute targets, sampled marginal contri-butions differ in sign across replacement orders. These statistics support modeling signed marginal effects in composed intervention contexts rather than treating each edit as having a fixed isolated effect. F.4 INCOMPLETE -E VIDENCE ANALYSIS 
+
+Table 11 compares three treatments for unavailable failure signals. Missingness-aware encoding keeps explicit availability indicators; mean imputation uses the training-side observed mean for an unavailable source; zero fill substitutes an observed value of zero. Table 11: Failure detection under incomplete evidence (%, higher is better).                  
+
+> Natural cohort Balanced development Treatment AUPRC AUROC AUPRC AUROC Missingness-aware (DAAF) 75.77 56.06 66.00 73.92
+> Mean imputation 75.77 56.06 66.00 73.92
+> Zero fill 71.31 44.58 50.00 48.00
+
+Missingness-aware encoding and mean imputation are identical on the two reported splits, so these experiments do not establish an advantage of explicit masks over mean imputation. The supported conclusion is narrower: treating an unavailable source as an observed zero degrades failure detection, especially on the balanced development set. DAAF keeps availability explicit to avoid conflating missing evidence with observed low-failure evidence. F.5 NEIGHBORHOOD QUALITY UNDER ATTRIBUTE HOLD -O UT 
+
+For each of the  53
+
+ = 10 attribute splits, three attributes are used to construct the graph and the remaining two are held out for evaluation. For each selected edge (i, j ), held-out agreement is one when the two endpoints have the same top-response attribute among the two held-out attributes: 
+
+Agree( i, j ) = 1
+
+
+
+arg max 
+
+> c∈H
+
+bϕMC  
+
+> i,c
+
+= arg max 
+
+> c∈H
+
+bϕMC 
+
+> j,c
+
+
+
+,
+
+where H is the held-out attribute pair. Intervention-response neighborhoods use the kernel in Eq. 14 with ℓ = 0 .2 and retain five neighbors per node. Request-only neighborhoods use cosine similar-19 ity of the fixed 64-dimensional request representation, and Random uses seed-fixed random edge selection. Table 12: Neighborhood quality under attribute hold-out, averaged across all ten splits.          
+
+> Construction Held-out Agreement ↑Splits Won Intervention response (DAAF) 62.63 10 / 10
+> Request similarity only 60.09 0 / 10 Random edges 58.59 0 / 10
+
+The intervention-response graph has the highest held-out agreement on every split. The attribute hold-out design tests whether the graph captures transferable repair-response structure beyond the attributes used to construct the neighborhood, rather than only lexical request similarity. F.6 ONLINE EXECUTION COST 
+
+Table 13 reports diagnosis- and repair-time environment executions. The offline CTCA replay cor-pus is excluded because it is shared training supervision rather than a per-request diagnosis cost. Table 13: Online environment executions per natural failure. Lower is better.       
+
+> Method Online Runs / Failure ↓
+> No-edit Rerun 1.00 Component-aware LLM 1.48 LLM + MSWSD 2.00 Full DAAF 2.00
+
+Full DAAF does not enumerate the five candidate replacements online. Its controlled intervention budget is paid once during training; the online count reflects only the diagnosis and selected-repair protocol used in evaluation. 
+
+## G EXPERIMENTAL SETTINGS 
+
+G.1 TASK PARTITIONS AND SUPERVISION 
+
+The Telecom evaluation set contains all 114 official default tasks grouped by canonical base-task identity, yielding 83 natural failures and 31 natural successes under the frozen evaluation configu-ration. A disjoint 50-task development set contains 25 failures and 25 successes and is used only for model selection and calibration. Training partitions exclude all evaluation and development base-task identities together with their repeated executions and intervention variants. 
+
+MSWSD training pool. The final MSWSD training pool contains 476 evaluator-anchored trajecto-ries from 395 base tasks, with 327 failure-oriented and 149 success-oriented seeds. Available sources include trajectory anomaly, visible user feedback, and repeated-run disagreement when matched ob-servations exist. All signal extraction rules are frozen before evaluation. 
+
+CTCA replay corpus. CTCA uses 220 controlled tasks with five registered candidates: two Prompt attributes and one each from Harness, Knowledge, and Skill. Two replacement permutations and two matched repetitions require 24 valid replay executions per task and provide 1,100 signed marginal-effect targets in total. The same replay corpus is used to estimate the conditional effects in Eq. 21; held-out outcomes are not consulted when ranking the evaluated compositions. 
+
+Registry correspondence for transfer experiments. All interventions remain versioned through the registry. When a training-time intervention role is evaluated under the held-out system configu-ration, correspondence is established through the registered component type, canonical source role, interface and dependency constraints, and replacement-policy identity before test execution. The transfer experiment applies the evaluation registry’s registered replacement for the selected role; only the training-side conditional-effect statistic determines the ordering used in the held-out com-parison. 20 Models. Telecom execution, user simulation, and the component-aware LLM diagnostician use GPT-5.6 Luna (OpenAI, 2026b). Who&When localization uses DeepSeek-V4-Flash. Model and execution identities are retained with the experiment artifacts. G.2 OPTIMIZATION AND MODEL SELECTION 
+
+MSWSD uses full-batch optimization with learning rate 0.2 and three base-task folds for cross-fitted weak supervision. CTCA and the full joint model use full-batch gradient descent with learning rate 0.2 and global gradient-norm clipping at 5.0. The final configuration is reported in Table 7. Thresholds and calibration parameters are selected on the 50-task development configuration and frozen before evaluation. 
+
+Detection-only control. The detection-only control uses the same training seed, candidate budget, neighborhood rule, temperature, routing epsilon, number of epochs, warm-up, learning rate, and evaluation protocol as Full DAAF. Its typed attribution parameters remain frozen at initialization and receive no replacement-effect update. The detector threshold is selected on the same development configuration and is 0.7440 .G.3 MATCHED -S EED REPAIR EVALUATION 
+
+The principal Telecom repair comparisons use three matched execution repeats for every evaluation task. The final seed identifier is 2026092601. A deterministic hash produces a common base seed and then derives one seed for each (base task , k ) pair, k ∈ { 0, 1, 2}. The same task/repeat seeds are reused across compared methods, enabling paired outcome analysis while keeping different tasks statistically distinct. G.4 WHO &W HEN REPORTING 
+
+Who&When contains 126 Algorithm traces and 58 Handcrafted traces. Agent, Step, and Joint accuracy use the benchmark’s native labels with common explicit-author-name normalization and unchanged step indices. The DAAF frontend is evaluated with the same trace inputs as the reported baselines. Because Who&When does not expose editable system assets and the compared systems are not presented as a model-matched repair evaluation, we use it only as an auxiliary localization check. The executable repair claims in the main text are established by the Telecom study. 21

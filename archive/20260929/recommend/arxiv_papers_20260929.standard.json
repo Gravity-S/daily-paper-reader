@@ -1,100 +1,340 @@
 {
   "mode": "standard",
-  "generated_at": "2026-09-29T00:29:02.910469+00:00",
+  "generated_at": "2026-09-29T23:24:29.578674+00:00",
   "stats": {
     "mode": "standard",
     "tag_count": 2,
-    "deep_divecandidates": 1,
+    "deep_divecandidates": 14,
     "deep_cap": 7,
-    "deep_selected": 1,
-    "quick_candidates": 5,
+    "deep_selected": 8,
+    "quick_candidates": 27,
     "quick_skim_target": 12,
-    "quick_selected": 5
+    "quick_selected": 12
   },
   "deep_dive": [
     {
-      "id": "2609.31490v1",
+      "id": "2609.33676v1",
       "source": "arxiv",
-      "title": "Authority at Commit Time: Reject-and-Rerun Semantics for Governed Agentic Systems",
-      "abstract": "Enterprise agents can compute for seconds or hours from a snapshot of policy, facts, task state, models, tools, and verifiers that may change before their work reaches the world. Completion alone therefore cannot confer institutional authority. We treat agents as proposal producers and a logically authoritative service as the sole authority for governed effects. At admission, the service compares a proposal's declared dependencies and component manifest with current state, applies the current verifier, and either reserves an idempotent effect for outbox dispatch or rejects affected stale work for resynchronization and rerun. Unaffected work may continue; lost responses resolve through canonical verdicts and receipts.   The protocol composes optimistic concurrency control, semantic verification, and transactional outbox dispatch. Its distinctive read set includes normative authority and the model components that produced the proposal. We evaluate the design through an implemented governed-work lifecycle, a local authority, outbox, and reconciliation composition, and a multi-process fallback that delegates effect authority when complete mediation is unavailable. The local composition preserved selective fallback, unaffected work, retry and restart recovery, and package reconstruction. Complete mediation produced 18 authority commands and 18 external effects. Direct-credential arms produced eight additional effects, all detected with independent journal reconciliation and none falsely detected in the mediated control. The results support commit-time reject-and-rerun semantics and expose the clock, lease, ordering, and quorum obligations introduced by delegated admission. They do not establish prevention or reversal of bypass effects, external-journal completeness, production throughput, wide-area availability, semantic completeness, or verifier correctness.",
+      "title": "Auditing Agent Actions through Query-Conditioned Attribution",
+      "abstract": "LLM agents increasingly take consequential actions through interactions with users, policies, and external tools. Auditing these agents requires automated attribution of realized actions to their historical basis. However, existing attribution formulations do not provide question-specific traces for diverse auditing objectives. Additionally, when access to the acting model is limited (e.g., in API-only deployments), applicable methods commonly rely on costly input perturbations or external LLM analysis of complete trajectories. We therefore formulate $\\textit{query-conditioned agent action attribution}, a new task that takes a natural-language auditing query as input and recovers the source and ordered intermediate evidence for the query-specified aspect of an action. We instantiate this task with $A^3Bench$, a benchmark comprising 1,396 auditing queries across policy basis, parameter provenance, failure propagation, and unsafe-behavior tracing. To enable efficient, query-specific attribution, we use small open-weight models as attribution proposers that combine query-conditioned gradient saliency with query-semantic relevance to rank history units. Our proposer consistently achieves stronger source and evidence rankings at lower inference cost than open-weight baselines, improving source MRR by up to 40.9\\% and evidence MAP by 42.1\\% with only two forward passes and one backward pass. Controlled evaluations confirm that our proposer improves attribution specificity by adapting its rankings to fine-grained changes in the auditing query. Building on a proposer ensemble, our end-to-end system surpasses the strongest frontier-model baseline in source accuracy (64.5\\% vs.\\ 60.4\\%) while reducing empirical deployment latency by 29.9\\% relative to the fastest frontier API baseline. Code and data will be released after the initial review period following final validation and cleanup.",
       "authors": [
-        "Jesus Salas"
+        "Yifan Liu",
+        "Praveen Venkateswaran",
+        "Abdulhamid Adebayo",
+        "Dong Wang"
       ],
-      "primary_category": "cs.DC",
+      "primary_category": "cs.AI",
       "categories": [
-        "cs.DC"
+        "cs.AI",
+        "cs.CL"
       ],
-      "published": "2026-09-25T16:31:39+00:00",
-      "link": "https://arxiv.org/pdf/2609.31490v1",
+      "published": "2026-09-27T15:37:05+00:00",
+      "link": "https://arxiv.org/pdf/2609.33676v1",
       "tags": [
         "keyword:agent-audit",
-        "keyword:agent-safety",
-        "query:agent-audit",
-        "query:agent-safety"
+        "query:agent-audit"
       ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "treats a logically authoritative service as sole authority for governed agent effects",
-      "llm_evidence_cn": "将逻辑权威服务作为受治理智能体效果的唯一授权方",
-      "llm_evidence": "将逻辑权威服务作为受治理智能体效果的唯一授权方",
-      "canonical_evidence": "将逻辑权威服务作为受治理智能体效果的唯一授权方",
-      "llm_tldr_en": "The paper argues completion alone cannot confer institutional authority for agent work, proposing a reject-and-rerun admission protocol where an authoritative service validates agent proposals against current state.",
-      "llm_tldr_cn": "企业智能体可能基于某一时刻的策略、事实、任务状态与工具快照运行数小时，期间这些要素可能已经变化，因此仅凭任务完成无法赋予其行为机构权威。本文把智能体视为提案生产者，由逻辑上具权威的服务作为受治理效果的唯一授权者，在准入时比对提案声明的依赖与当前状态，应用当前验证器，决定预留幂等效果或拒绝过时工作并重新执行。该协议通过规范裁决与回执解决丢失响应，为智能体行为的问责与治理提供了可操作的提交语义。",
-      "llm_tldr": "企业智能体可能基于某一时刻的策略、事实、任务状态与工具快照运行数小时，期间这些要素可能已经变化，因此仅凭任务完成无法赋予其行为机构权威。本文把智能体视为提案生产者，由逻辑上具权威的服务作为受治理效果的唯一授权者，在准入时比对提案声明的依赖与当前状态，应用当前验证器，决定预留幂等效果或拒绝过时工作并重新执行。该协议通过规范裁决与回执解决丢失响应，为智能体行为的问责与治理提供了可操作的提交语义。",
+      "llm_score": 10.0,
+      "llm_evidence_en": "query-conditioned attribution of agent actions for auditing",
+      "llm_evidence_cn": "面向审计的智能体动作查询条件化归因",
+      "llm_evidence": "面向审计的智能体动作查询条件化归因",
+      "canonical_evidence": "面向审计的智能体动作查询条件化归因",
+      "llm_tldr_en": "Existing attribution methods cannot produce question-specific traces for diverse auditing goals and rely on costly perturbations. This paper formulates query-conditioned agent action attribution, recovering the source and ordered intermediate evidence for a given auditing query, enabling faithful auditing of LLM agent actions.",
+      "llm_tldr_cn": "大模型智能体越来越多地通过工具与用户交互采取有后果的动作，审计这些动作需要把实际行为自动归因到其历史依据。然而现有归因方法无法针对不同审计问题给出问题特定的证据链，且在仅能访问API时依赖昂贵的输入扰动或外部模型分析。论文提出查询条件化智能体动作归因任务，输入自然语言审计查询，输出该方面的来源与有序中间证据。该工作为智能体行为的可解释审计与问责提供了新范式。",
+      "llm_tldr": "大模型智能体越来越多地通过工具与用户交互采取有后果的动作，审计这些动作需要把实际行为自动归因到其历史依据。然而现有归因方法无法针对不同审计问题给出问题特定的证据链，且在仅能访问API时依赖昂贵的输入扰动或外部模型分析。论文提出查询条件化智能体动作归因任务，输入自然语言审计查询，输出该方面的来源与有序中间证据。该工作为智能体行为的可解释审计与问责提供了新范式。",
       "llm_tags": [
         "query:agent-audit"
       ],
       "matched_query_tag": "query:agent-audit",
-      "matched_query_text": "accountability of autonomous agent actions and responsibility assignment",
-      "matched_requirement_id": "req-1",
+      "matched_query_text": "How can we attribute an AI agent's decisions to specific inputs, internal states, or training data?",
+      "matched_requirement_id": "req-7",
       "selection_source": "fresh_fetch"
-    }
-  ],
-  "quick_skim": [
+    },
     {
-      "id": "2609.30734v1",
+      "id": "2609.32498v1",
       "source": "arxiv",
-      "title": "Learning What to Skip: Counterfactual Credit Assignment for Efficient Multi-Agent LLM Workflows",
-      "abstract": "Multi-agent LLM workflows use planning, execution, verification, and summarization to improve task performance, yet the value of each component depends on the state already produced. Executing every component can waste computation or overwrite a correct intermediate answer. We formulate component omission as counterfactual credit assignment: full-workflow logs reveal the executed trajectory's reward, while controlled skip interventions reveal the consequences of omitting a future step. We introduce Learning What to Skip (LW2S), which learns action-specific safety models from these interventions and combines held-out calibration with domain-native guards to select skips. When an early skip is rejected, the controller can continue execution and reconsider a later component. Across mathematical reasoning, multiple-choice QA, and code generation with two instruction-model families, LW2S reduces recorded token cost while matching or improving aggregate full-workflow accuracy in the evaluated settings. Scale-up and second-topology experiments further examine component redundancy, while shared-error cases reveal why agreement alone is insufficient for skip selection. These findings connect efficient workflow execution to learning the conditional utility of individual components.",
+      "title": "DAAF: From Failure Localization to Editable System Assets in LLM Agents",
+      "abstract": "Deployed LLM agents increasingly rely on persistent, versioned system assets such as routing rules, knowledge segments, prompt instructions, and reusable skills. Failure-localization methods can identify where an error manifests in an agent or execution trace, but repair requires a different decision: which editable system asset should be changed, and is that change expected to improve the task outcome? We study this gap through component-attribute failure attribution, where diagnosis targets versioned, addressable items rather than execution locations. We propose the Detection-Aware Attribution Framework (DAAF), which learns the effects of valid attribute replacements and amortizes this intervention evidence into deployment-time diagnosis. DAAF combines sparse and noisy failure signals to decide whether intervention is warranted, learns component-type-conditioned replacement effects from controlled replays evaluated by executable task outcomes, and shares supervision across requests with compatible intervention responses. At diagnosis time, DAAF uses only the observed execution, registered candidates, and available failure signals; it requires neither counterfactual replay nor task reward and returns no_change, a repair target, or an unresolved decision when evidence is insufficient. On held-out tau^2-bench Telecom tasks, DAAF achieves 80.72% attribute Hit@1, recovers 62.65% of failed executions while limiting clean-task regression to 3.23%, and reaches 71.93% overall task success. These results show that intervention-grounded attribute attribution can connect failure localization to executable system repair.",
       "authors": [
-        "Jinfeng Xu",
-        "Zheyu Chen",
-        "Ziyue Peng",
-        "Zheng Lin",
-        "Shuo Yang",
-        "Jinze Li",
-        "Zheng Xing",
-        "Mengran Li",
-        "Victor C. M. Leung"
+        "Xiaoyang Yuan",
+        "Qi Liu",
+        "Yubin Ruan",
+        "Xinyi Mou",
+        "Zhuomeng Zhang",
+        "Wenjin Wang",
+        "Hanying Jiao",
+        "Di Wu",
+        "Mingye Xu",
+        "Yi Bin",
+        "Ke Feng",
+        "Zixun Sun"
       ],
       "primary_category": "cs.AI",
       "categories": [
         "cs.AI"
       ],
-      "published": "2026-09-25T03:02:57+00:00",
-      "link": "https://arxiv.org/pdf/2609.30734v1",
+      "published": "2026-09-26T11:39:00+00:00",
+      "link": "https://arxiv.org/pdf/2609.32498v1",
       "tags": [
         "keyword:agent-audit",
         "keyword:agent-safety",
         "query:agent-audit",
         "query:agent-safety"
       ],
-      "llm_score": 7.0,
-      "llm_evidence_en": "formulates component omission as counterfactual credit assignment using controlled skip interventions on multi-agent workflow trajectories",
-      "llm_evidence_cn": "用受控跳过干预把组件省略建模为反事实信用分配，分析多智能体工作流轨迹",
-      "llm_evidence": "用受控跳过干预把组件省略建模为反事实信用分配，分析多智能体工作流轨迹",
-      "canonical_evidence": "用受控跳过干预把组件省略建模为反事实信用分配，分析多智能体工作流轨迹",
-      "llm_tldr_en": "LW2S treats omitting a workflow component as counterfactual credit assignment, using controlled skip interventions to learn which steps can be safely skipped in multi-agent LLM pipelines.",
-      "llm_tldr_cn": "多智能体大模型工作流由规划、执行、验证与总结等组件构成，但每个组件的价值取决于已有状态，全部执行既浪费算力又可能覆盖正确的中间答案。论文把组件省略建模为反事实信用分配：完整日志给出实际奖励，受控跳过干预揭示省略某步的后果。基于此提出LW2S，学习动作级安全模型并结合留出校准与领域守卫选择跳过。该工作展示了反事实干预在评估多智能体流程组件价值中的作用。",
-      "llm_tldr": "多智能体大模型工作流由规划、执行、验证与总结等组件构成，但每个组件的价值取决于已有状态，全部执行既浪费算力又可能覆盖正确的中间答案。论文把组件省略建模为反事实信用分配：完整日志给出实际奖励，受控跳过干预揭示省略某步的后果。基于此提出LW2S，学习动作级安全模型并结合留出校准与领域守卫选择跳过。该工作展示了反事实干预在评估多智能体流程组件价值中的作用。",
+      "llm_score": 9.0,
+      "llm_evidence_en": "component-attribute failure attribution to versioned editable system assets",
+      "llm_evidence_cn": "将失败归因到可编辑的版本化系统资产组件属性",
+      "llm_evidence": "将失败归因到可编辑的版本化系统资产组件属性",
+      "canonical_evidence": "将失败归因到可编辑的版本化系统资产组件属性",
+      "llm_tldr_en": "Failure-localization methods identify where an error manifests, but repair requires deciding which editable system asset to change. This paper studies component-attribute failure attribution and proposes DAAF, a Detection-Aware Attribution Framework that learns the effects of attribute replacements and amortizes this intervention evidence into deployment-time diagnosis, bridging localization and actionable repair.",
+      "llm_tldr_cn": "部署的LLM代理依赖路由规则、知识片段、提示指令与可复用技能等持久化系统资产，失败定位能指出错误显现位置，但修复需要决定应改动哪个可编辑资产，二者存在诊断目标错位。本文研究组件-属性级失败归因，提出检测感知归因框架DAAF，学习有效属性替换的干预效应并将其摊销到部署期诊断。DAAF结合检测与归因，实现组件-属性级失败归因，指导可编辑资产的修复决策。该工作将失败定位推进到可操作的资产归因，为LLM代理的修复与问责提供新框架。",
+      "llm_tldr": "部署的LLM代理依赖路由规则、知识片段、提示指令与可复用技能等持久化系统资产，失败定位能指出错误显现位置，但修复需要决定应改动哪个可编辑资产，二者存在诊断目标错位。本文研究组件-属性级失败归因，提出检测感知归因框架DAAF，学习有效属性替换的干预效应并将其摊销到部署期诊断。DAAF结合检测与归因，实现组件-属性级失败归因，指导可编辑资产的修复决策。该工作将失败定位推进到可操作的资产归因，为LLM代理的修复与问责提供新框架。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "How can we attribute an AI agent's decisions to specific inputs, internal states, or training data?",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.32514v1",
+      "source": "arxiv",
+      "title": "From Anomalies to Failures: Constructing Causal Error Graphs for Agentic Trace Diagnosis",
+      "abstract": "LLM-driven agents are increasingly deployed in complex applications, where long agentic traces make failures difficult to diagnose. Existing trace diagnosis methods often conflate anomalies, errors, and failures, making diagnostic targets ambiguous; they also lack structured modeling of how causally relevant errors propagate and amplify into final task failures, resulting in unreliable failure attribution. To address these problems, we propose CEG-Agent, a tool-augmented agentic framework for causal diagnosis of agentic traces. Specifically, CEG-Agent introduces an explicit taxonomy of anomalies, errors, and failures, and constructs Causal Error Graphs (CEGs), a unified typed representation that links execution events, diagnostic nodes, and failure outcomes through causal relations. To evaluate causal trace diagnosis, we further construct CEG-Bench, a fully agent-annotated benchmark with high-confidence, consensus-derived CEG annotations obtained through an Adversarial Agentic Adjudication Protocol (AAAP). We validate the resulting annotations against an expert-curated human gold set, which shows close agreement with the automatic annotations. Experiments on CEG-Bench demonstrate that CEG-Agent achieves state-of-the-art performance under both semantically relaxed and structurally exact evaluation criteria. Our code is publicly available.",
+      "authors": [
+        "Shu-Xun Yang",
+        "Yidong Wang",
+        "Zhuoer Feng",
+        "Bosi Wen",
+        "Jiayi Gui",
+        "Dayong Yang",
+        "Wenbo Yu",
+        "Haoke Zhang",
+        "Jie Tang",
+        "Cunxiang Wang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-26T12:01:04+00:00",
+      "link": "https://arxiv.org/pdf/2609.32514v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "causal error graphs for diagnosing how errors propagate into agent failures",
+      "llm_evidence_cn": "用因果错误图诊断错误如何传播为代理失败",
+      "llm_evidence": "用因果错误图诊断错误如何传播为代理失败",
+      "canonical_evidence": "用因果错误图诊断错误如何传播为代理失败",
+      "llm_tldr_en": "Long agentic traces make failures hard to diagnose, and existing methods conflate anomalies, errors and failures while lacking structured modeling of causal propagation. This paper proposes CEG-Agent, a tool-augmented framework with an explicit anomaly/error/failure taxonomy and Causal Error Graphs linking execution events and diagnostic nodes for reliable failure attribution.",
+      "llm_tldr_cn": "LLM代理的长轨迹使失败难以诊断，现有方法混淆异常、错误与失败，缺乏对错误如何因果传播并放大为任务失败的结构化建模，导致失败归因不可靠。本文提出CEG-Agent，引入异常、错误与失败的显式分类体系，并构建因果错误图（CEG）统一表示执行事件与诊断节点。该工具增强的因果诊断框架提升了失败归因的可靠性，能定位并解释错误如何传播为最终失败。为agent轨迹诊断提供结构化因果归因方法，提升了失败定位与解释的可信度。",
+      "llm_tldr": "LLM代理的长轨迹使失败难以诊断，现有方法混淆异常、错误与失败，缺乏对错误如何因果传播并放大为任务失败的结构化建模，导致失败归因不可靠。本文提出CEG-Agent，引入异常、错误与失败的显式分类体系，并构建因果错误图（CEG）统一表示执行事件与诊断节点。该工具增强的因果诊断框架提升了失败归因的可靠性，能定位并解释错误如何传播为最终失败。为agent轨迹诊断提供结构化因果归因方法，提升了失败定位与解释的可信度。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "diagnosing causes of failures in autonomous agents",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.33102v1",
+      "source": "arxiv",
+      "title": "ORBIT: A Framework for Multi-Agent Safety and Security Evaluations",
+      "abstract": "Multi-agent LLM systems are increasingly deployed for complex, long-horizon tasks or emerge as a natural consequence of agents interacting in the wild. Yet they give rise to significant safety and security risks: the flexible protocols that enable task generalization also expose novel threats, from cascading prompt injection to inter-agent collusion. Progress in defending against these threats has been slowed by a lack of shared empirical infrastructure, which forces bespoke environment development for every new defense and makes standardized comparison impossible. Existing evaluations address isolated threat models or single-agent settings, but none jointly vary attack, defense, and architecture across realistic multi-agent environments. To address this gap, we introduce ORBIT, a configurable evaluation framework for empirical multi-agent safety and security research, built on UK AISI's Inspect. ORBIT lets researchers configure communication topologies, memory, scheduling, and agent roles. It supports four threat types and four defense strategies, as well as non-adversarial failures, with a benchmark suite spanning five scenario families covering browser use, computer use, agentic coding, customer service, and cooperative allocation. Our central finding is a gap in defense transferability across threats: per-action defenses that cut a compromised agent's attack success by 60 points on multi-issue coding give no measurable protection against colluding agents, and none of the defenses we tested generalized over all attacks tested. We further demonstrate security-performance tradeoffs and interactions between architecture and defense effectiveness. We make ORBIT available open-source at https://github.com/wlanderson0/orbit.",
+      "authors": [
+        "Ben Hagag",
+        "William L. Anderson",
+        "Srija Chakraborty",
+        "Christian Schroeder de Witt"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA",
+        "cs.CR"
+      ],
+      "published": "2026-09-27T02:20:08+00:00",
+      "link": "https://arxiv.org/pdf/2609.33102v1",
+      "tags": [
+        "keyword:agent-safety",
+        "query:agent-safety"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "framework for multi-agent safety and security evaluations covering cascading prompt injection and inter-agent collusion",
+      "llm_evidence_cn": "多智能体安全与安保评估框架，涵盖级联提示注入与智能体间串谋",
+      "llm_evidence": "多智能体安全与安保评估框架，涵盖级联提示注入与智能体间串谋",
+      "canonical_evidence": "多智能体安全与安保评估框架，涵盖级联提示注入与智能体间串谋",
+      "llm_tldr_en": "Introduces ORBIT, a shared evaluation framework that jointly varies attack, defense, and architecture across realistic multi-agent LLM environments to study cascading and collusive risks.",
+      "llm_tldr_cn": "多智能体LLM系统在长时程任务中带来级联提示注入、智能体间串谋等新型安全威胁，但缺乏共享评测基础设施，难以标准化比较。本文提出ORBIT框架，可在真实多智能体环境中联合变化攻击、防御与体系结构进行统一评估。该工作为多智能体安全与安保研究提供可复用的实验平台，推动防御方法的标准化对比与进展。",
+      "llm_tldr": "多智能体LLM系统在长时程任务中带来级联提示注入、智能体间串谋等新型安全威胁，但缺乏共享评测基础设施，难以标准化比较。本文提出ORBIT框架，可在真实多智能体环境中联合变化攻击、防御与体系结构进行统一评估。该工作为多智能体安全与安保研究提供可复用的实验平台，推动防御方法的标准化对比与进展。",
+      "llm_tags": [
+        "query:agent-safety:composite"
+      ],
+      "matched_query_tag": "query:agent-safety:composite",
+      "matched_query_text": "Papers central to 多智能体的前沿安全风险，包括级联、传播、涌现、多智能体盲目从众，串谋等，专属多智能体领域的风险，而非单智能体风险, especially work that connects or combines: cascading failures and cascading risks in multi-agent systems; emergent behaviors and emergent risks in multi-agent systems; collusion and conspiracy among multiple AI agents; collective misalignment and coordination failures in multi-agent systems; risks arising from interactions between multiple agents; risks and failures in multi-agent coordination; What are the unique safety risks in multi agent systems compared to single agent systems?; How do cascading failures and risk propagation occur in multi agent AI systems?; What are the mechanisms of emergent risks and blind conformity in multi agent systems?; How does collusion or conspiracy emerge among multiple AI agents?.",
+      "matched_requirement_id": "req-composite-agent-safety",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.33495v1",
+      "source": "arxiv",
+      "title": "LLMs Trust Their Own: Identity-Dependent Conformity in Multi-Agent Systems",
+      "abstract": "Large language models (LLMs) are increasingly deployed in multi-agent settings, where agents observe and influence one another, making social influence a key dimension of AI behavior and safety. We investigate whether LLMs' responses depend on the social identity of other agents, beyond the effect of their consensus. We construct judgment tasks with a single correct answer, and place models in a multi-agent setting where they receive incorrect answers from other agents whose social identities (AI or human, model family, or an arbitrary minimal group) are either shared with or distinct from their own. Across 12 open-weights models and nine tasks, we find a bidirectional effect of group identity on conformity to incorrect answers: in-group consensus increases conformity (in-group favoritism), whereas out-group consensus decreases it (out-group divergence). Unlike humans, for whom one ally breaking the consensus sharply reduces conformity, models are unmoved by an ally from the majority's group. Worse, a correct ally from the opposing group intensifies this bidirectional effect. Chain-of-Thought reasoning suppresses most of these effects, yet an in-group ally still reduces conformity to an incorrect out-group majority. Labeling peers as safety-aligned shifts overall conformity but leaves in-group favoritism and out-group divergence intact. These results show that group identity shapes how LLMs aggregate information across agents, independently of its correctness, and identify a manipulation surface for multi-agent AI systems.",
+      "authors": [
+        "Liron Soffer",
+        "Ravid Shwartz-Ziv",
+        "Chen Shani"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.MA"
+      ],
+      "published": "2026-09-27T12:02:18+00:00",
+      "link": "https://arxiv.org/pdf/2609.33495v1",
+      "tags": [
+        "keyword:agent-safety",
+        "query:agent-safety"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "identity-dependent conformity to incorrect answers in multi-agent systems",
+      "llm_evidence_cn": "多智能体系统中身份依赖的错误从众行为",
+      "llm_evidence": "多智能体系统中身份依赖的错误从众行为",
+      "canonical_evidence": "多智能体系统中身份依赖的错误从众行为",
+      "llm_tldr_en": "As LLMs are deployed in multi-agent settings, social influence becomes a key safety dimension. This paper tests whether conformity to incorrect answers depends on other agents' social identity, finding a bidirectional group-identity effect across 12 models and nine tasks, showing blind conformity is amplified by in-group consensus.",
+      "llm_tldr_cn": "多智能体场景中智能体相互观察与影响，社会影响成为AI行为与安全的关键维度，但身份认同是否会加剧从众尚不明确。论文设计有唯一正确答案的判断任务，让模型接收来自不同社会身份（AI或人类、模型家族或最小群体）智能体的错误答案。在12个开源模型与九项任务上发现，群体身份对从众产生双向效应，内群体共识显著加剧对错误答案的顺从。该结果说明身份认同会放大多智能体盲从风险，为群体安全评估提供依据。",
+      "llm_tldr": "多智能体场景中智能体相互观察与影响，社会影响成为AI行为与安全的关键维度，但身份认同是否会加剧从众尚不明确。论文设计有唯一正确答案的判断任务，让模型接收来自不同社会身份（AI或人类、模型家族或最小群体）智能体的错误答案。在12个开源模型与九项任务上发现，群体身份对从众产生双向效应，内群体共识显著加剧对错误答案的顺从。该结果说明身份认同会放大多智能体盲从风险，为群体安全评估提供依据。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "What are the mechanisms of emergent risks and blind conformity in multi agent systems?",
+      "matched_requirement_id": "req-19",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.33658v1",
+      "source": "arxiv",
+      "title": "AgentBoundary: Counterfactual Evaluation of Safety in Tool-Using LLM Agents",
+      "abstract": "Safety alignment for large language models (LLMs) in conversational settings is largely framed around whether to answer or refuse a request. In agentic settings, however, the same models must decide whether to act as permission-critical evidence emerges during execution. This creates a distinct challenge: apparent risk, action permissibility, and task competence are easily confounded, making agentic over-refusal difficult to distinguish from ordinary task failure. To address this, we introduce AgentBound, the first four-way counterfactual generation-and-evaluation framework for tool-using agent safety. AgentBound transforms the same executable workflow by independently varying apparent risk and action permissibility, enabling controlled comparisons of risky-looking but authorized tasks and routine-looking but unauthorized tasks. These comparisons jointly diagnose over-refusal and unsafe compliance while controlling for task competence. We instantiate AgentBound as a human-validated 4,000-task evaluation suite with trajectory-based and post-state-based judgments. Across 17 model and harness configurations, high safety frequently coexists with poor authorized-task completion: GPT-5.5 blocks 99.5\\% of routine-looking unauthorized actions yet completes only 28.7\\% of risky-looking authorized tasks. We further train a lightweight runtime calibration module that improves authorized-task completion by 18.2\\% on average across 10 evaluated configurations, while improving unsafe-action blocking by 5.4\\% on average. These show that effective agentic alignment requires action decisions to track permission-relevant execution evidence, rather than refusal strength alone.",
+      "authors": [
+        "Tianzhuo Yang",
+        "Zirui Mi",
+        "Yantao Huang",
+        "Guoxi Zhang",
+        "Jiawei Chen",
+        "Yaodong Yang",
+        "Jingwei Yi"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-27T15:19:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.33658v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "four-way counterfactual generation and evaluation framework for tool-using agent safety",
+      "llm_evidence_cn": "面向工具调用智能体安全的四路反事实生成与评估框架",
+      "llm_evidence": "面向工具调用智能体安全的四路反事实生成与评估框架",
+      "canonical_evidence": "面向工具调用智能体安全的四路反事实生成与评估框架",
+      "llm_tldr_en": "Conversational safety alignment cannot distinguish risk, permissibility and competence in agents. AgentBound builds four-way counterfactual workflows varying risk and permissibility to audit tool-using agent safety.",
+      "llm_tldr_cn": "现有LLM安全对齐多聚焦对话中的应答或拒答，无法在智能体执行场景中区分表观风险、动作许可性与任务能力，导致过度拒绝与任务失败难以分辨。本文提出AgentBound，首个面向工具调用智能体的四路反事实生成与评估框架，通过对同一可执行工作流独立变化表观风险与动作许可性实现受控对比。实验表明该方法能有效分离风险、许可与能力三类因素，为智能体安全审计与反事实评估提供可复用的方法论。",
+      "llm_tldr": "现有LLM安全对齐多聚焦对话中的应答或拒答，无法在智能体执行场景中区分表观风险、动作许可性与任务能力，导致过度拒绝与任务失败难以分辨。本文提出AgentBound，首个面向工具调用智能体的四路反事实生成与评估框架，通过对同一可执行工作流独立变化表观风险与动作许可性实现受控对比。实验表明该方法能有效分离风险、许可与能力三类因素，为智能体安全审计与反事实评估提供可复用的方法论。",
       "llm_tags": [
         "query:agent-audit"
       ],
       "matched_query_tag": "query:agent-audit",
       "matched_query_text": "counterfactual reasoning for explaining and auditing agent behavior",
       "matched_requirement_id": "req-3",
-      "selection_source": "fresh_fetch",
-      "quick_tier": "7"
+      "selection_source": "fresh_fetch"
     },
+    {
+      "id": "2609.33871v1",
+      "source": "arxiv",
+      "title": "Population Physics, Population Problems: Safety and Emergence in LLM Societies",
+      "abstract": "The collective behaviour of large language model (LLM) societies is not the sum of their individual outputs. It yields statistically distinct, sometimes-unpredictable phenomena, for which the tools we use to study single agents may not scale. Due to recent incidents involving autonomous agentic systems, however, understanding these systems is paramount. For that we introduce a framework for measuring self-organisation in LLM social systems and apply it to three such systems: a Schelling grid, a social network (Moltbook), and a Twitter-like misinformation simulation ('Rogue'). All three exhibit statistically significant self-organisation. Moreover, their relaxation dynamics vary with the environmental information available to the agents, with open-ended systems (Moltbook, Rogue) exhibiting sharp, phase-transition-like dynamics. Further results show that population-level pathologies can emerge even when the LLMs are safety-tuned or monitored, being primarily driven by the coordinated activity of a population subset. We also show when self-organisation does \\textit{not} emerge under two additional scenarios (a commons dilemma, GovSim, and a LLM-as-a-judge deliberation scheme, ChatEval). We argue that measuring signatures of this kind offers a lightweight, agent-agnostic diagnostic layer for detecting coordinated collective behaviour in deployed multi-agent systems without relying on natural language or model versioning.",
+      "authors": [
+        "Adrian de Wynter"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA",
+        "cs.CL"
+      ],
+      "published": "2026-09-27T19:48:06+00:00",
+      "link": "https://arxiv.org/pdf/2609.33871v1",
+      "tags": [
+        "keyword:agent-safety",
+        "query:agent-safety"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "measures self-organisation and emergent collective safety phenomena in LLM societies",
+      "llm_evidence_cn": "度量LLM社会中的自组织与涌现性集体安全现象",
+      "llm_evidence": "度量LLM社会中的自组织与涌现性集体安全现象",
+      "canonical_evidence": "度量LLM社会中的自组织与涌现性集体安全现象",
+      "llm_tldr_en": "Proposes a framework for measuring self-organisation in LLM societies, applying it to a Schelling grid, a social network, and a misinformation simulation to characterize emergent collective behavior.",
+      "llm_tldr_cn": "LLM社会的集体行为并非个体输出的简单相加，会产生统计上独特且有时不可预测的涌现现象，而研究单智能体的工具难以直接迁移。本文提出衡量LLM社会自组织程度的框架，并将其应用于谢林网格、社交网络与虚假信息模拟三类系统。结果显示三类系统均表现出显著自组织，且弛豫动态随环境信息变化。该工作凸显了多智能体系统专属的涌现风险与安全挑战。",
+      "llm_tldr": "LLM社会的集体行为并非个体输出的简单相加，会产生统计上独特且有时不可预测的涌现现象，而研究单智能体的工具难以直接迁移。本文提出衡量LLM社会自组织程度的框架，并将其应用于谢林网格、社交网络与虚假信息模拟三类系统。结果显示三类系统均表现出显著自组织，且弛豫动态随环境信息变化。该工作凸显了多智能体系统专属的涌现风险与安全挑战。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "emergent behaviors and emergent risks in multi-agent systems",
+      "matched_requirement_id": "req-12",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.34113v1",
+      "source": "arxiv",
+      "title": "GUITAR: Structured Failure Diagnosis of GUI Agents via State Transitions",
+      "abstract": "Understanding where and why Graphical User Interface (GUI) agents fail is essential for building more reliable systems, yet current evaluation relies on step accuracy, a metric that treats each screen independently and overlooks the underlying structure of GUI environments. This leads to two critical blind spots: (1) functionally equivalent screens are evaluated in isolation, obscuring systematic failure patterns across shared screens; and (2) the long-tailed GUI distribution renders failures on rare but critical screens invisible under standard metrics. To address these issues, we propose \\textbf{GUITAR}, a state-centric diagnostic framework that performs structured failure analysis over both states and transitions, using a State Transition Graph (STG) by mapping visually diverse screens to shared functional states. Across 8 agents and 6 tasks from AndroidControl and Mind2Web, GUITAR reveals that 60.4\\% of failures occur in 20\\% of states, localizing errors to a small set of bottlenecks. Bottleneck-targeted guidance improves SR by 2.8\\% and retains a 1.88\\% average gain across 7 agents under three-fold trajectory-held-out evaluation with fully automatic STGs. These findings demonstrate the diagnostic and actionable value of structure-aware evaluation within the evaluated mobile and web tasks. Code is available at https://github.com/sqzhang-lazy/GUITAR",
+      "authors": [
+        "Shaoqing Zhang",
+        "Kehai Chen",
+        "Xuefeng Bai",
+        "Zhuosheng Zhang",
+        "Pengfei Zhang",
+        "Yang Xiang",
+        "Min Zhang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-28T01:48:48+00:00",
+      "link": "https://arxiv.org/pdf/2609.34113v1",
+      "tags": [
+        "keyword:agent-audit"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "structured failure diagnosis of GUI agents over states and transitions",
+      "llm_evidence_cn": "对GUI智能体进行状态与转移的结构化失败诊断",
+      "llm_evidence": "对GUI智能体进行状态与转移的结构化失败诊断",
+      "canonical_evidence": "对GUI智能体进行状态与转移的结构化失败诊断",
+      "llm_tldr_en": "Current GUI agent evaluation uses step accuracy, treating screens independently and hiding systematic failure patterns. GUITAR is a state-centric diagnostic framework using a State Transition Graph to analyze failures over both states and transitions, localizing where and why agents fail.",
+      "llm_tldr_cn": "现有GUI智能体评测依赖步骤准确率，孤立看待每个屏幕，导致共享屏幕上的系统性失败模式被掩盖，罕见关键屏幕的失败也被忽略。本文提出GUITAR，一种以状态为中心的结构化失败诊断框架，利用状态转移图同时分析状态与转移。它能定位智能体失败的位置与原因，揭示长尾关键界面的失效，为构建更可靠的GUI智能体提供细粒度诊断工具。",
+      "llm_tldr": "现有GUI智能体评测依赖步骤准确率，孤立看待每个屏幕，导致共享屏幕上的系统性失败模式被掩盖，罕见关键屏幕的失败也被忽略。本文提出GUITAR，一种以状态为中心的结构化失败诊断框架，利用状态转移图同时分析状态与转移。它能定位智能体失败的位置与原因，揭示长尾关键界面的失效，为构建更可靠的GUI智能体提供细粒度诊断工具。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "diagnosing causes of failures in autonomous agents",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
     {
       "id": "2609.30383v1",
       "source": "arxiv",
@@ -113,19 +353,17 @@
       "published": "2026-09-24T18:00:18+00:00",
       "link": "https://arxiv.org/pdf/2609.30383v1",
       "tags": [
-        "keyword:agent-audit",
         "keyword:agent-safety",
-        "query:agent-audit",
         "query:agent-safety"
       ],
-      "llm_score": 6.0,
-      "llm_evidence_en": "cascading attacks where harm arises from interactions across multiple skills",
-      "llm_evidence_cn": "跨多个技能交互产生的级联攻击与风险",
-      "llm_evidence": "跨多个技能交互产生的级联攻击与风险",
-      "canonical_evidence": "跨多个技能交互产生的级联攻击与风险",
-      "llm_tldr_en": "This paper introduces skill cascading attacks, a threat paradigm distributing a malicious objective across multiple individually benign skills whose combined execution is harmful.",
-      "llm_tldr_cn": "技能化智能体允许运行时加载第三方技能包以扩展能力，但既有研究只关注单技能漏洞，忽视技能交互风险。论文提出技能级联攻击范式，将恶意目标拆分到多个孤立看似无害的技能中，使组合执行产生危害。实验显示此类分布式修改可规避单技能检测并在协同执行时触发有害行为。该工作揭示了技能生态中级联风险的新攻击面，推动跨组件风险传播的防御研究。",
-      "llm_tldr": "技能化智能体允许运行时加载第三方技能包以扩展能力，但既有研究只关注单技能漏洞，忽视技能交互风险。论文提出技能级联攻击范式，将恶意目标拆分到多个孤立看似无害的技能中，使组合执行产生危害。实验显示此类分布式修改可规避单技能检测并在协同执行时触发有害行为。该工作揭示了技能生态中级联风险的新攻击面，推动跨组件风险传播的防御研究。",
+      "llm_score": 8.0,
+      "llm_evidence_en": "skill cascading attacks distributing a harmful objective across benign-looking skills",
+      "llm_evidence_cn": "将恶意目标分散到看似无害技能中的技能级联攻击",
+      "llm_evidence": "将恶意目标分散到看似无害技能中的技能级联攻击",
+      "canonical_evidence": "将恶意目标分散到看似无害技能中的技能级联攻击",
+      "llm_tldr_en": "Skill-based agent systems reuse third-party skills, opening a new attack surface, but prior work only studies vulnerabilities within individual skills. This paper introduces skill cascading attacks, where a malicious objective is split across multiple skills so each modification looks benign alone yet their combined execution is harmful, and analyzes the resulting cross-skill risk.",
+      "llm_tldr_cn": "技能型代理系统允许灵活复用第三方技能，但技能生态的开放性也带来新的攻击面；既往研究关注单个技能内部漏洞，忽视技能间交互带来的风险。本文提出技能级联攻击这一威胁范式，将恶意目标分散到多个技能，使每个修改单独看似无害，但组合执行后产生危害。研究表明分布式技能修改可绕过单技能检测，组合执行造成实际危害。该工作揭示了技能交互面的级联攻击风险，为代理系统安全审计与防御提供新视角。",
+      "llm_tldr": "技能型代理系统允许灵活复用第三方技能，但技能生态的开放性也带来新的攻击面；既往研究关注单个技能内部漏洞，忽视技能间交互带来的风险。本文提出技能级联攻击这一威胁范式，将恶意目标分散到多个技能，使每个修改单独看似无害，但组合执行后产生危害。研究表明分布式技能修改可绕过单技能检测，组合执行造成实际危害。该工作揭示了技能交互面的级联攻击风险，为代理系统安全审计与防御提供新视角。",
       "llm_tags": [
         "query:agent-safety"
       ],
@@ -133,7 +371,7 @@
       "matched_query_text": "cascading failures and cascading risks in multi-agent systems",
       "matched_requirement_id": "req-11",
       "selection_source": "fresh_fetch",
-      "quick_tier": "6"
+      "quick_tier": "8plus"
     },
     {
       "id": "2609.31318v1",
@@ -165,13 +403,13 @@
         "query:agent-safety"
       ],
       "llm_score": 7.0,
-      "llm_evidence_en": "authorized white-box pre-deployment auditing of AI agents tracing attacker inputs",
-      "llm_evidence_cn": "面向AI智能体的授权白盒部署前审计与攻击路径追踪",
-      "llm_evidence": "面向AI智能体的授权白盒部署前审计与攻击路径追踪",
-      "canonical_evidence": "面向AI智能体的授权白盒部署前审计与攻击路径追踪",
-      "llm_tldr_en": "AgentXploit presents a two-role auditing system separating repository-level attack-path discovery from runtime exploitation for authorized white-box pre-deployment auditing of AI agents.",
-      "llm_tldr_cn": "针对AI智能体因对抗内容或软件漏洞产生安全失效的问题，论文提出AgentXploit双角色审计系统，将仓库级攻击路径发现与运行时利用分离。分析智能体追踪攻击者可控输入至敏感操作，再由运行时确认攻击是否成功。该系统支持授权的白盒部署前审计，要求攻击通过任务定义接口并由外部验证器确认，从而提升智能体安全审计的可复现性与覆盖度。",
-      "llm_tldr": "针对AI智能体因对抗内容或软件漏洞产生安全失效的问题，论文提出AgentXploit双角色审计系统，将仓库级攻击路径发现与运行时利用分离。分析智能体追踪攻击者可控输入至敏感操作，再由运行时确认攻击是否成功。该系统支持授权的白盒部署前审计，要求攻击通过任务定义接口并由外部验证器确认，从而提升智能体安全审计的可复现性与覆盖度。",
+      "llm_evidence_en": "authorized white-box pre-deployment auditing of AI agent behavior and tool use",
+      "llm_evidence_cn": "对AI智能体行为与工具调用开展授权的白盒部署前审计",
+      "llm_evidence": "对AI智能体行为与工具调用开展授权的白盒部署前审计",
+      "canonical_evidence": "对AI智能体行为与工具调用开展授权的白盒部署前审计",
+      "llm_tldr_en": "AI agents that call tools and execute code can fail when adversarial content hijacks their tool use or when surrounding software has vulnerabilities. This paper presents AgentXploit, a two-role auditing system separating repository-level attack-path discovery from runtime exploitation. It traces attacker-controlled inputs to sensitive operations and confirms exploits through a controlled runtime, supporting pre-deployment security auditing.",
+      "llm_tldr_cn": "AI智能体结合语言模型与可修改文件、调用API或执行代码的外部工具，对抗性内容或软件漏洞可能导致其工具调用被劫持并引发安全失效。本文提出AgentXploit，一种双角色审计系统，将仓库级攻击路径发现与运行时利用相互分离，由分析智能体追踪攻击者可控输入直至敏感操作。系统在授权的白盒部署前审计中定位可利用路径，并通过受控运行时与外部验证者确认攻击是否经任务定义的攻击面达成。该工作为智能体部署前的安全审计与漏洞归因提供了可复用的自动化红队流程。",
+      "llm_tldr": "AI智能体结合语言模型与可修改文件、调用API或执行代码的外部工具，对抗性内容或软件漏洞可能导致其工具调用被劫持并引发安全失效。本文提出AgentXploit，一种双角色审计系统，将仓库级攻击路径发现与运行时利用相互分离，由分析智能体追踪攻击者可控输入直至敏感操作。系统在授权的白盒部署前审计中定位可利用路径，并通过受控运行时与外部验证者确认攻击是否经任务定义的攻击面达成。该工作为智能体部署前的安全审计与漏洞归因提供了可复用的自动化红队流程。",
       "llm_tags": [
         "query:agent-audit"
       ],
@@ -180,47 +418,6 @@
       "matched_requirement_id": "req-4",
       "selection_source": "fresh_fetch",
       "quick_tier": "7"
-    },
-    {
-      "id": "2609.30471v1",
-      "source": "arxiv",
-      "title": "CARGO: Context-Aware Retrieval-Gated Evaluation of Agentic AI in Production",
-      "abstract": "Reference-based LLM-as-a-judge evaluation assumes the reference answer is the target. In deployed agentic systems that operate over dynamic entities (support cases, assets, accounts), the closest available reference typically applies the correct procedure to a different entity, so a literal judge penalizes different identifiers, dates, and statuses as errors or hallucinations. We name this failure mode reference-instance divergence (RID). We propose CARGO, a framework that (i) treats retrieved references as procedural exemplars and grounds factual judgments in the live instance's observed context, (ii) assigns each claim a three-way status (supported, contradicted, unverifiable) and penalizes only contradictions, and (iii) gates evaluation by retrieval confidence, casting production evaluation as selective prediction. We introduce CARGO-Bench, a perturbation-based diagnostic suite with ground truth by construction that separates leniency from discrimination. On CARGO-Bench (246 items, two judge models, 7,872 judgments), the standard reference-based judge penalizes 100% of correct entity-transplanted answers and is uninformative (discrimination index DI ~ 0); supplying the live facts without reframing changes nothing. CARGO eliminates these false penalties (0/50) while retaining near-complete contradiction recall (50/50 and 49/50), raising DI to 0.58 [0.48, 0.68]; a rubric-swap control attributes most of the effect to context-grounded dimension definitions. CARGO also exposes a limitation of its own design: the leniency that protects entity values suppresses detection of procedural corruptions (20% recall). A post-hoc fix does not close the gap, and an LLM-as-annotator study with written guidelines and adjudication shows the same blind spot. We release a preregistered protocol for extending the evaluation to expert agreement, risk-coverage, and cost on production traffic.",
-      "authors": [
-        "Mukul Chhabra",
-        "Shail Patel",
-        "Luigi Medrano"
-      ],
-      "primary_category": "cs.CL",
-      "categories": [
-        "cs.CL",
-        "cs.AI",
-        "cs.LG"
-      ],
-      "published": "2026-09-24T19:10:52+00:00",
-      "link": "https://arxiv.org/pdf/2609.30471v1",
-      "tags": [
-        "keyword:agent-audit",
-        "keyword:agent-safety",
-        "query:agent-audit",
-        "query:agent-safety"
-      ],
-      "llm_score": 6.0,
-      "llm_evidence_en": "context-aware evaluation of agentic AI detecting contradictions and hallucinations",
-      "llm_evidence_cn": "面向智能体AI的上下文感知评估，检测矛盾与幻觉",
-      "llm_evidence": "面向智能体AI的上下文感知评估，检测矛盾与幻觉",
-      "canonical_evidence": "面向智能体AI的上下文感知评估，检测矛盾与幻觉",
-      "llm_tldr_en": "Proposes CARGO, a context-aware retrieval-gated evaluation framework for deployed agentic AI that grounds judgments in live instance context and penalizes only contradictions.",
-      "llm_tldr_cn": "基于参考的LLM评判在动态实体的智能体系统中会因参考实例分歧而误判正确操作为错误或幻觉。作者提出CARGO框架，将检索到的参考视为程序范例，以实时实例上下文为事实判断依据，为每条声明赋予支持、矛盾或不可验证三种状态，仅惩罚矛盾。该框架提升了生产环境智能体评估的准确性。",
-      "llm_tldr": "基于参考的LLM评判在动态实体的智能体系统中会因参考实例分歧而误判正确操作为错误或幻觉。作者提出CARGO框架，将检索到的参考视为程序范例，以实时实例上下文为事实判断依据，为每条声明赋予支持、矛盾或不可验证三种状态，仅惩罚矛盾。该框架提升了生产环境智能体评估的准确性。",
-      "llm_tags": [
-        "query:agent-audit"
-      ],
-      "matched_query_tag": "query:agent-audit",
-      "matched_query_text": "auditing the behavior of intelligent agents for compliance and correctness",
-      "matched_requirement_id": "req-4",
-      "selection_source": "fresh_fetch",
-      "quick_tier": "6"
     },
     {
       "id": "2609.31039v1",
@@ -251,23 +448,388 @@
       "tags": [
         "keyword:agent-audit",
         "keyword:agent-safety",
-        "query:agent-audit",
-        "query:agent-safety"
+        "query:agent-audit"
       ],
       "llm_score": 6.0,
       "llm_evidence_en": "scalable and auditable access control for AI agents",
-      "llm_evidence_cn": "面向AI智能体的可扩展可审计访问控制",
-      "llm_evidence": "面向AI智能体的可扩展可审计访问控制",
-      "canonical_evidence": "面向AI智能体的可扩展可审计访问控制",
-      "llm_tldr_en": "Tool-using autonomous agents face risks from tool misuse and indirect prompt injection, while static policies do not scale and LLM-based authorization is inconsistent. MetaPermit provides scalable, auditable access control via LLM-inferred meta-attributes.",
-      "llm_tldr_cn": "具备工具能力的自主AI智能体带来工具误用与间接提示注入等安全风险，而现有防护要么是难以扩展的静态权限规则，要么是不一致且易受注入攻击的LLM授权判断。本文提出MetaPermit，通过让LLM推断元属性来实现可扩展且可审计的访问控制。该方法在支持开放式任务动态决策的同时提升了一致性与可审计性，并增强了对定向提示注入攻击的抵御能力，为智能体工具调用提供了可审查的权限框架。",
-      "llm_tldr": "具备工具能力的自主AI智能体带来工具误用与间接提示注入等安全风险，而现有防护要么是难以扩展的静态权限规则，要么是不一致且易受注入攻击的LLM授权判断。本文提出MetaPermit，通过让LLM推断元属性来实现可扩展且可审计的访问控制。该方法在支持开放式任务动态决策的同时提升了一致性与可审计性，并增强了对定向提示注入攻击的抵御能力，为智能体工具调用提供了可审查的权限框架。",
+      "llm_evidence_cn": "面向智能体的可扩展可审计访问控制",
+      "llm_evidence": "面向智能体的可扩展可审计访问控制",
+      "canonical_evidence": "面向智能体的可扩展可审计访问控制",
+      "llm_tldr_en": "Tool-using agents face misuse and indirect prompt injection, while static policies do not scale and LLM authorization is inconsistent. MetaPermit infers meta-attributes with an LLM to give scalable, auditable access control for agent tool invocations.",
+      "llm_tldr_cn": "具备工具调用能力的自主智能体带来工具误用与间接提示注入等安全风险，现有权限规则难以覆盖开放任务，而基于大模型的授权判断又不一致且易受攻击。论文提出MetaPermit，利用大模型推断元属性，为智能体工具调用提供可扩展且可审计的访问控制。该方法在保持动态授权灵活性的同时提升了一致性与可审计性，缓解了间接提示注入攻击。该工作为智能体行为的合规审计与访问控制提供了可扩展框架。",
+      "llm_tldr": "具备工具调用能力的自主智能体带来工具误用与间接提示注入等安全风险，现有权限规则难以覆盖开放任务，而基于大模型的授权判断又不一致且易受攻击。论文提出MetaPermit，利用大模型推断元属性，为智能体工具调用提供可扩展且可审计的访问控制。该方法在保持动态授权灵活性的同时提升了一致性与可审计性，缓解了间接提示注入攻击。该工作为智能体行为的合规审计与访问控制提供了可扩展框架。",
       "llm_tags": [
         "query:agent-audit"
       ],
       "matched_query_tag": "query:agent-audit",
       "matched_query_text": "auditing the behavior of intelligent agents for compliance and correctness",
       "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.32061v1",
+      "source": "arxiv",
+      "title": "Contract monitoring: governing AI via separation of powers",
+      "abstract": "We propose an AI safety framework that binds worker agents to contracts specifying their permitted actions. We show how these contracts can be enforced and specified by assigning distinct responsibilities to monitor agents and judges, and asymmetric computational resources to monitors and workers. Our framework allows us to empirically measure statistical safety guarantees. The framework applies to a wide range of settings, including code security and escape-the-box scenarios.",
+      "authors": [
+        "Enric Boix-Adsera"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-25T22:51:12+00:00",
+      "link": "https://arxiv.org/pdf/2609.32061v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "contracts bind worker agents to permitted actions with monitor and judge roles",
+      "llm_evidence_cn": "通过契约约束代理行为并分配监控与裁决责任",
+      "llm_evidence": "通过契约约束代理行为并分配监控与裁决责任",
+      "canonical_evidence": "通过契约约束代理行为并分配监控与裁决责任",
+      "llm_tldr_en": "Worker agents in high-stakes settings need enforced boundaries on permitted actions and clear responsibility assignment. This paper proposes an AI safety framework where contracts specify allowed actions, enforced by distinct monitor agents and judges with asymmetric compute. It yields empirically measurable statistical safety guarantees and applies to code security and escape-the-box scenarios.",
+      "llm_tldr_cn": "AI代理在高风险环境中行动，需要明确其可执行动作的边界与责任分配，但缺乏可度量的安全治理机制。本文提出基于分权的AI安全框架，让worker代理受契约约束，并由monitor代理与judge角色分别执行与裁决，配合非对称算力。该框架可对代码安全、逃逸箱等场景给出可经验测量的统计安全保证。通过契约与分权实现代理问责与安全约束，为AI治理提供可验证的工程路径。",
+      "llm_tldr": "AI代理在高风险环境中行动，需要明确其可执行动作的边界与责任分配，但缺乏可度量的安全治理机制。本文提出基于分权的AI安全框架，让worker代理受契约约束，并由monitor代理与judge角色分别执行与裁决，配合非对称算力。该框架可对代码安全、逃逸箱等场景给出可经验测量的统计安全保证。通过契约与分权实现代理问责与安全约束，为AI治理提供可验证的工程路径。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "accountability of autonomous agent actions and responsibility assignment",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.32083v1",
+      "source": "arxiv",
+      "title": "When Should a Human Take Back Control? Optimal Delegation under Turbulent AI Risk",
+      "abstract": "Deploying AI systems requires deciding when to delegate tasks and when humans should intervene to monitor and mitigate risk induced by AI operations. These decisions are challenging when failures cluster: a hallucination or harmful output can trigger further errors, creating periods of elevated risk. We introduce a continuous-time framework for learning adaptive human oversight under such turbulent AI risk. Existing oversight and delegation formulations condition on history but do not model incident clustering, or its suppression by supervision effort, jointly with the delegation decision and this study fixes this gap. The self-exciting dynamics capture how risk events increase the likelihood of subsequent events, making their timing and history central to decision-making. We formulate a stochastic control problem combining human actions, monitoring effort, and switching between human-AI-assisted operation and full AI delegation, balancing operational rewards against oversight costs, and cascading AI-failures and induced uncertainty. Human participation is an endogenous component of risk management: the policy determines both when oversight is needed and how much effort to allocate. We study a relaxed switching formulation and propose Hawkes-PPO, a policy-gradient method that uses a bank of exponential filters of observed incident times. In a synthetic environment it attains a higher risk-adjusted objective than either fixed regime and approaches an approximate full-information oracle. We illustrate our results with numerical simulations by examining how cascade risks influence intervention and delegation, connecting reinforcement learning with adaptive human oversight of AI systems. In particular, we illustrate the benefit of our switching strategy and Hawkes-PPO algorithm to monitor the project efficiently along time, reducing turbulent risks occurrences and costs.",
+      "authors": [
+        "Haoze Yan",
+        "Julien Roze",
+        "Ved Upadhyay",
+        "Unal Tatar",
+        "Thibaut Mastrolia"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "math.OC"
+      ],
+      "published": "2026-09-25T23:43:11+00:00",
+      "link": "https://arxiv.org/pdf/2609.32083v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "self-exciting risk dynamics model how failures cluster and cascade in AI operations",
+      "llm_evidence_cn": "自激风险动力学建模AI失败聚集与级联传播",
+      "llm_evidence": "自激风险动力学建模AI失败聚集与级联传播",
+      "canonical_evidence": "自激风险动力学建模AI失败聚集与级联传播",
+      "llm_tldr_en": "Deploying AI requires deciding when to delegate and when humans should intervene, which is hard when failures cluster into periods of elevated risk. This work introduces a continuous-time framework with self-exciting dynamics that jointly models incident clustering, supervision suppression and delegation, learning adaptive oversight.",
+      "llm_tldr_cn": "部署AI系统需要决定何时委托任务、何时由人工介入监控与缓解风险，而当一次幻觉或有害输出会触发后续错误、形成风险高发期时，这些决策尤为困难。论文提出一个连续时间框架，用自激动力学联合建模风险事件的聚集效应、监督努力对其的抑制以及委托决策，弥补既有委托与监督方法未建模事件聚集的空白。该框架可学习自适应的人工监督策略，把握干预时机。该工作为动荡AI风险下的委托与级联风险抑制提供了决策依据。",
+      "llm_tldr": "部署AI系统需要决定何时委托任务、何时由人工介入监控与缓解风险，而当一次幻觉或有害输出会触发后续错误、形成风险高发期时，这些决策尤为困难。论文提出一个连续时间框架，用自激动力学联合建模风险事件的聚集效应、监督努力对其的抑制以及委托决策，弥补既有委托与监督方法未建模事件聚集的空白。该框架可学习自适应的人工监督策略，把握干预时机。该工作为动荡AI风险下的委托与级联风险抑制提供了决策依据。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "cascading failures and cascading risks in multi-agent systems",
+      "matched_requirement_id": "req-11",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.31963v1",
+      "source": "arxiv",
+      "title": "Symbolic Guidance for LLM Agents in Distributed Multiagent Coordination",
+      "abstract": "Large language models (LLMs) are increasingly deployed as autonomous agents in multi-agent systems, yet their ability to reliably execute distributed coordination protocols remains poorly understood. While AgentsNet, a benchmark framework for distributed coordination among LLM agents, enables such coordination, granting full reasoning autonomy often leads to inconsistent or degraded performance in complex domains.   We hypothesize that coordination can be improved by regulating agent autonomy through symbolic guidance derived from established algorithms. To investigate this, we introduce the \\emph{Symbolic Guidance Taxonomy (SGT)}, which characterizes a spectrum of autonomy ranging from open-ended natural language reasoning to fully prescribed algorithmic execution, with intermediate levels providing partial pseudocode guidance. Our results show that intermediate autonomy levels consistently outperform both unguided agents and fully prescriptive specifications. These findings identify autonomy regulation as a key design principle for LLM-based distributed coordination.",
+      "authors": [
+        "Ben Rachmut",
+        "Ning Zhang",
+        "Yevgeniy Vorobeychik",
+        "William Yeoh"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-25T20:07:57+00:00",
+      "link": "https://arxiv.org/pdf/2609.31963v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "regulating agent autonomy with symbolic guidance to improve distributed coordination reliability",
+      "llm_evidence_cn": "用符号引导调节智能体自主性以提升分布式协调可靠性",
+      "llm_evidence": "用符号引导调节智能体自主性以提升分布式协调可靠性",
+      "canonical_evidence": "用符号引导调节智能体自主性以提升分布式协调可靠性",
+      "llm_tldr_en": "LLM agents deployed in multi-agent systems often coordinate inconsistently under full autonomy. The paper introduces a Symbolic Guidance Taxonomy characterizing a spectrum of autonomy, hypothesizing that symbolic guidance from established algorithms improves distributed coordination reliability.",
+      "llm_tldr_cn": "针对LLM智能体在多智能体系统中执行分布式协调协议时，完全自主推理常导致性能不稳定或退化的问题，本文提出符号引导分类法SGT。它刻画了从开放自然语言推理到完全规定算法的自主性谱系，并假设依据成熟算法生成符号引导可提升协调可靠性。该工作为多智能体协调失败提供了一种通过调节自主性来缓解的路径。",
+      "llm_tldr": "针对LLM智能体在多智能体系统中执行分布式协调协议时，完全自主推理常导致性能不稳定或退化的问题，本文提出符号引导分类法SGT。它刻画了从开放自然语言推理到完全规定算法的自主性谱系，并假设依据成熟算法生成符号引导可提升协调可靠性。该工作为多智能体协调失败提供了一种通过调节自主性来缓解的路径。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "risks and failures in multi-agent coordination",
+      "matched_requirement_id": "req-16",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.32701v1",
+      "source": "arxiv",
+      "title": "Despite Instructions: Frontier Agents Improvise Covert Channels at Test Time",
+      "abstract": "In security-sensitive applications, language-model agents are often required to coordinate without disclosing confidential information. Yet repeated interactions may also let ordinary messages acquire shared private meaning. We study a repeated game with pairs of models in which the sender model observes one of four secret states and selects one of four summaries of the same public report, while the receiver model tries to infer the secret state. We find that model pairs can learn to communicate the secret using only one bit of feedback indicating whether the receiver inferred it correctly. This learning occurs during inference with fixed parameters and no supplied codebook or encoding examples. The effect also persists when agents generate their own free-form updates in a simulated incident-response task. Across ten independent games, pairs of GPT-5.6 Sol agents reach 98.8% final accuracy, compared with 25% chance, despite explicit instructions prohibiting disclosure and a monitor that screens each message without access to the agents' interaction histories. The same interactions that help agents cooperate can therefore allow confidential information to pass through messages intended for legitimate coordination.",
+      "authors": [
+        "Jacob Dineen",
+        "Silei Ren",
+        "Muhao Chen",
+        "Dan Roth",
+        "Ben Zhou"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-09-26T15:06:44+00:00",
+      "link": "https://arxiv.org/pdf/2609.32701v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-safety"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "model pairs learn covert communication channels at inference time",
+      "llm_evidence_cn": "模型对在推理阶段自发学会隐蔽通信信道",
+      "llm_evidence": "模型对在推理阶段自发学会隐蔽通信信道",
+      "canonical_evidence": "模型对在推理阶段自发学会隐蔽通信信道",
+      "llm_tldr_en": "A repeated-game study shows frontier model pairs can learn to covertly encode secret states into ordinary messages using only one bit of correctness feedback, with fixed parameters and no codebook.",
+      "llm_tldr_cn": "针对多智能体在保密场景下可能秘密传递信息的问题，本文研究两个模型间的重复博弈：发送方观察秘密状态并选择公开报告摘要，接收方推断状态。实验发现，仅凭一比特正确性反馈，模型对即可在推理阶段、参数固定的条件下自发学会隐蔽信道，无需预先编码表或示例。该效应在更复杂设定下依然持续，揭示了多智能体间自发涌现的隐蔽通信与串谋风险。",
+      "llm_tldr": "针对多智能体在保密场景下可能秘密传递信息的问题，本文研究两个模型间的重复博弈：发送方观察秘密状态并选择公开报告摘要，接收方推断状态。实验发现，仅凭一比特正确性反馈，模型对即可在推理阶段、参数固定的条件下自发学会隐蔽信道，无需预先编码表或示例。该效应在更复杂设定下依然持续，揭示了多智能体间自发涌现的隐蔽通信与串谋风险。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "collusion and conspiracy among multiple AI agents",
+      "matched_requirement_id": "req-13",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.32378v1",
+      "source": "arxiv",
+      "title": "AuthorityLens: Rethinking LLM-Based Agent Systems Through the Lens of Authority",
+      "abstract": "LLM-based agents are increasingly deployed with authority over consequential resources and decisions in real systems. These agents often operate alongside human and LLM-based participants who hold different forms of authority. Yet workflow roles, permission settings, and review mechanisms do not necessarily reflect the authority realized in practice. We introduce AuthorityLens, a framework for measuring a system's authority structure. Starting from an authority portfolio, we evaluate a system along three dimensions: what the system is authorized to do (System Authority), how much joint participation is required to exercise that authority (Authority Separation), and how much authority each participant holds (Principal Authority). We derive these measurements from the minimal combinations of participants sufficient to realize each outcome across admissible runtime states. We apply AuthorityLens to Codex, OpenCode, and Gemini CLI across 13 operating configurations over a common portfolio of agent operations. We find that nominal configurations do not map cleanly onto realized authority. In Codex, Full Access changes System Authority only marginally while substantially concentrating authority in the executing Assistant. OpenCode's Build and Plan configurations have the same System Authority and Authority Separation despite different workflows and root-level permissions. In Gemini CLI, model-based review increases Authority Separation without changing System Authority. Principal Authority further distinguishes authority replication from authority separation: spawned or delegated agents can become alternative holders of the same authority without increasing the required joint participation. Together, these results demonstrate that AuthorityLens provides a unified framework for measuring and comparing realized authority structures across agent systems.",
+      "authors": [
+        "Shaojin Chen",
+        "Huihao Jing",
+        "Wun Yu Chan",
+        "Wenbin Hu",
+        "Jiaxing Li",
+        "Wu Pandy Pui Ching",
+        "Kshitij Bhatia",
+        "Xinlei He",
+        "Haoran Li",
+        "Yangqiu Song"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-26T08:53:11+00:00",
+      "link": "https://arxiv.org/pdf/2609.32378v1",
+      "tags": [
+        "keyword:agent-audit",
+        "query:agent-audit"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "measures authority structure and realized responsibility distribution across agent participants",
+      "llm_evidence_cn": "度量智能体参与者的权限结构与实际责任分布",
+      "llm_evidence": "度量智能体参与者的权限结构与实际责任分布",
+      "canonical_evidence": "度量智能体参与者的权限结构与实际责任分布",
+      "llm_tldr_en": "Introduces AuthorityLens, a framework measuring a system's authority structure via System Authority, Authority Separation, and Principal Authority to reveal realized authority in LLM agent systems.",
+      "llm_tldr_cn": "LLM智能体日益被赋予对重要资源和决策的权限，但工作流角色、权限设置与审查机制未必反映实际实现的权限结构。本文提出AuthorityLens框架，从系统权限、权限分离与主体权限三个维度度量系统的权限结构。该工作有助于厘清智能体与人及其他智能体之间的责任与权限分配，为问责与治理提供量化依据。",
+      "llm_tldr": "LLM智能体日益被赋予对重要资源和决策的权限，但工作流角色、权限设置与审查机制未必反映实际实现的权限结构。本文提出AuthorityLens框架，从系统权限、权限分离与主体权限三个维度度量系统的权限结构。该工作有助于厘清智能体与人及其他智能体之间的责任与权限分配，为问责与治理提供量化依据。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "accountability of autonomous agent actions and responsibility assignment",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.32198v1",
+      "source": "arxiv",
+      "title": "Agents as Software: A Programming Languages Agenda for Agent Reliability",
+      "abstract": "AI agents increasingly resemble software systems: they call tools, remember facts, follow policies, delegate work, and take actions with real consequences. % Yet the ``program'' of an agent is scattered across prompts, tools, memories, workflows, and execution traces, making its behavior difficult to inspect through ordinary testing and debugging alone. % This essay argues that a programming-systems perspective offers a natural lens for making agents reliable. % We recast agents as programmable artifacts whose behavior can be specified over traces and state, checked before deployment, monitored during execution, and improved from observed failures. % The goal is not to make probabilistic agents behave like deterministic programs, but to give them enough structure that their behavior can be reasoned about, controlled, and repaired.",
+      "authors": [
+        "Shraddha Barke",
+        "Adithya Murali"
+      ],
+      "primary_category": "cs.PL",
+      "categories": [
+        "cs.PL",
+        "cs.AI"
+      ],
+      "published": "2026-09-26T03:53:08+00:00",
+      "link": "https://arxiv.org/pdf/2609.32198v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "programming-languages agenda for inspecting and debugging agent behavior",
+      "llm_evidence_cn": "以编程语言视角检视与调试智能体行为",
+      "llm_evidence": "以编程语言视角检视与调试智能体行为",
+      "canonical_evidence": "以编程语言视角检视与调试智能体行为",
+      "llm_tldr_en": "The paper argues agents resemble software whose program is scattered across prompts, tools and traces, proposing a programming-languages agenda to specify, check, monitor and improve agent behavior, supporting error localization and auditing of agents.",
+      "llm_tldr_cn": "论文指出AI智能体日益类似软件系统，其程序散布在提示、工具、记忆、工作流与执行轨迹中，使行为难以通过常规测试和调试来检视。作者主张从编程系统视角出发，将智能体视为可编程制品，对其轨迹与状态进行规约、部署前检查、运行中监控，并从观察到的失败中改进。文章认为这能赋予智能体足够的可检查性以提升可靠性。该议程为智能体错误定位与行为审计提供方向。",
+      "llm_tldr": "论文指出AI智能体日益类似软件系统，其程序散布在提示、工具、记忆、工作流与执行轨迹中，使行为难以通过常规测试和调试来检视。作者主张从编程系统视角出发，将智能体视为可编程制品，对其轨迹与状态进行规约、部署前检查、运行中监控，并从观察到的失败中改进。文章认为这能赋予智能体足够的可检查性以提升可靠性。该议程为智能体错误定位与行为审计提供方向。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "identifying and locating errors in AI agent behavior",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.34701v1",
+      "source": "arxiv",
+      "title": "ResonAct: Streaming Metrics for Runtime Diagnosis and Self-Healing in Multi-Agent Systems",
+      "abstract": "Multi-agent systems (MAS) are increasingly used to automate enterprise workflows involving multiple specialized agents, external tools, and long-running task execution. Failures may arise from tool degradation, context propagation errors, coordination breakdowns, or repeated agent interactions that prevent task completion. While existing observability frameworks provide traces and logs, diagnosis and remediation are largely performed after execution completes, limiting opportunities for recovery during runtime. We present ResonAct, a runtime self-healing framework that enables continuous monitoring, diagnosis, and remediation of multi-agent systems through streaming operational metrics. ResonAct ingests execution traces, agent interactions, and tool invocations into a streaming analytics layer that continuously derives task progress, context health, and tool reliability metrics. These metrics serve as runtime control signals for detecting anomalous execution patterns and localizing root causes using a structured failure model. Based on the diagnosed failure, ResonAct dynamically selects remediation policies and performs actions. The framework operates as an external control plane, enabling intervention without modifying application agents or orchestration logic. We evaluate ResonAct across enterprise workflow scenarios and AppWorld benchmarks. The results show that the streaming metric-based analysis identifies execution degradations and localizes faults. Furthermore, policy-driven remediation improves task completion rates by up to 10.00 percentage points, with detection precision ranging from 70.59% to 82.91%, recall from 63.09% to 100%, recovery rates from 10.48% to 46.67%, and runtime overhead ranging from $-0.25%$ to 14.12% across the evaluated configurations.",
+      "authors": [
+        "Tarun Chintada",
+        "Neelamadhav Gantayat",
+        "Ishaan Romil",
+        "Renuka Sindhgatta",
+        "Soujanya Soni",
+        "Sameep Mehta"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-28T09:18:24+00:00",
+      "link": "https://arxiv.org/pdf/2609.34701v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-safety"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "runtime diagnosis and self-healing of multi-agent failures via streaming metrics",
+      "llm_evidence_cn": "通过流式指标对多智能体故障进行运行时诊断与自愈",
+      "llm_evidence": "通过流式指标对多智能体故障进行运行时诊断与自愈",
+      "canonical_evidence": "通过流式指标对多智能体故障进行运行时诊断与自愈",
+      "llm_tldr_en": "MAS failures from tool degradation, context propagation errors, and coordination breakdowns are usually diagnosed only after execution. ResonAct ingests traces and interactions to compute streaming operational metrics, enabling continuous runtime monitoring, diagnosis, and remediation.",
+      "llm_tldr_cn": "多智能体系统被用于自动化企业工作流，故障可能源于工具退化、上下文传播错误、协调中断或重复交互，而现有可观测框架多在执行结束后才诊断与补救，错失运行时恢复机会。论文提出ResonAct，通过流式运行指标持续监控、诊断与修复多智能体系统，实时摄取执行轨迹与智能体交互。该框架实现了运行时故障定位与自愈，对多智能体协调失败风险的诊断具有直接价值。",
+      "llm_tldr": "多智能体系统被用于自动化企业工作流，故障可能源于工具退化、上下文传播错误、协调中断或重复交互，而现有可观测框架多在执行结束后才诊断与补救，错失运行时恢复机会。论文提出ResonAct，通过流式运行指标持续监控、诊断与修复多智能体系统，实时摄取执行轨迹与智能体交互。该框架实现了运行时故障定位与自愈，对多智能体协调失败风险的诊断具有直接价值。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "diagnosing causes of failures in autonomous agents",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.32778v1",
+      "source": "arxiv",
+      "title": "Agentic Network Traffic Monitoring",
+      "abstract": "As the use of agentic artificial intelligence increases in nearly every industry, there exists a widening attack surface. It is necessary to monitor agents to ensure that agents are acting in a way that is aligned with the users intent. Auditing an agent's network traffic provides a clear record of the agent interactions. This work presents a novel approach to monitoring the network traffic of agentic systems using complex valued hypersparse traffic matrices by integrating DBOS (DataBase OS), the OneSparse PostgreSQL database, and the GraphBLAS math library. To develop these concepts an agentic simulator was constructed, allowing a varying numbers of AI agents to collectively survey a virtual environment using different strategies. The resulting network traffic matrices enable easy monitoring of the AI agents.",
+      "authors": [
+        "Manuel Tsoukatos",
+        "Hayden Jananthan",
+        "Jeremy Kepner"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CR",
+        "cs.DB",
+        "cs.DC",
+        "cs.NI"
+      ],
+      "published": "2026-09-26T16:52:57+00:00",
+      "link": "https://arxiv.org/pdf/2609.32778v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-safety"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "auditing an agent network traffic to verify alignment with user intent",
+      "llm_evidence_cn": "审计智能体网络流量以核验其行为是否符合用户意图",
+      "llm_evidence": "审计智能体网络流量以核验其行为是否符合用户意图",
+      "canonical_evidence": "审计智能体网络流量以核验其行为是否符合用户意图",
+      "llm_tldr_en": "Agentic AI widens the attack surface and needs auditing. This work monitors agent network traffic via complex-valued hypersparse traffic matrices built on DBOS, OneSparse and GraphBLAS.",
+      "llm_tldr_cn": "随着智能体AI在各行业普及，攻击面不断扩大，需要对智能体进行监控以确保其行为与用户意图一致。本文提出一种面向智能体系统的网络流量监控方法，利用复值超稀疏流量矩阵，并整合数据库操作系统、OneSparse数据库与GraphBLAS数学库实现记录与分析。作者构建了可容纳不同数量智能体的仿真环境进行验证，生成的流量矩阵便于审计智能体交互行为，为智能体合规与正确性审计提供了可观测手段。",
+      "llm_tldr": "随着智能体AI在各行业普及，攻击面不断扩大，需要对智能体进行监控以确保其行为与用户意图一致。本文提出一种面向智能体系统的网络流量监控方法，利用复值超稀疏流量矩阵，并整合数据库操作系统、OneSparse数据库与GraphBLAS数学库实现记录与分析。作者构建了可容纳不同数量智能体的仿真环境进行验证，生成的流量矩阵便于审计智能体交互行为，为智能体合规与正确性审计提供了可观测手段。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "auditing the behavior of intelligent agents for compliance and correctness",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.32754v1",
+      "source": "arxiv",
+      "title": "Adaptive Consistency Graph for Long-Horizon Agents",
+      "abstract": "Large language model agents can often make reasonable local decisions on short tasks, yet their performance degrades when success requires long sequences of dependent actions and tool calls. During execution, task requirements, historical evidence, and the current execution state may gradually become disconnected, so later decisions can drift from the original objective. We study this problem by introducing the Adaptive Consistency Graph (ACG) for long-horizon execution. ACG incrementally organizes execution evidence and its provenance in a persistent graph, then constructs a temporary requirement-centered view for each decision under a bounded context budget. Rather than replacing the base agent's planner or tool executor, ACG provides a structured and traceable context view for each decision. In the matched evaluation, ACG improves GPT-5.6-luna's average success from 44.5\\% with ReAct to 50.2\\%, with the largest gain on BrowseComp-Plus (73.5\\% versus 62.4\\%). We further analyze trajectory structure and inference cost to characterize this improvement.",
+      "authors": [
+        "Jiecong Wang",
+        "Hao Peng",
+        "Zhanyi Wang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-09-26T16:19:40+00:00",
+      "link": "https://arxiv.org/pdf/2609.32754v1",
+      "tags": [
+        "keyword:agent-safety",
+        "query:agent-safety"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "persistent graph organizing execution evidence and provenance for traceable decisions",
+      "llm_evidence_cn": "以持久图组织执行证据与溯源信息，实现可追踪决策",
+      "llm_evidence": "以持久图组织执行证据与溯源信息，实现可追踪决策",
+      "canonical_evidence": "以持久图组织执行证据与溯源信息，实现可追踪决策",
+      "llm_tldr_en": "Long-horizon LLM agents drift from objectives as requirements, evidence, and execution state become disconnected. The Adaptive Consistency Graph incrementally stores execution evidence and its provenance, building a requirement-centered view per decision under bounded context, providing traceable context without replacing the planner.",
+      "llm_tldr_cn": "针对长程LLM智能体在依赖动作序列中，任务要求、历史证据与当前状态逐渐脱节、决策偏离目标的问题，本文提出自适应一致性图ACG。它增量地把执行证据及其溯源组织进持久图，并在有限上下文预算下为每次决策构建以需求为中心的视图。ACG不替换原有规划器或执行器，而是提供结构化、可追踪的上下文，从而提升长程执行的归因与一致性。",
+      "llm_tldr": "针对长程LLM智能体在依赖动作序列中，任务要求、历史证据与当前状态逐渐脱节、决策偏离目标的问题，本文提出自适应一致性图ACG。它增量地把执行证据及其溯源组织进持久图，并在有限上下文预算下为每次决策构建以需求为中心的视图。ACG不替换原有规划器或执行器，而是提供结构化、可追踪的上下文，从而提升长程执行的归因与一致性。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "How can we attribute an AI agent's decisions to specific inputs, internal states, or training data?",
+      "matched_requirement_id": "req-7",
       "selection_source": "fresh_fetch",
       "quick_tier": "6"
     }
