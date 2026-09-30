@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-29</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-30</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 23 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 17 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
-    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>2 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>9</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>14</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>5</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-29 23:29:04 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-30 22:55:01 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,7 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日精读9篇、速读14篇，共筛出23篇AI Agent前沿论文。最值得看的是Agent行为审计（10分）与失败定位转可编辑资产（9分），另有技能级联攻击、契约监控等速读方向。普通读者可先关注Agent安全与可审计性，再按需深入具体方法。</p>
+<p>2026-09-30 日报共收17篇，精读5篇、速读12篇，主线聚焦多智能体安全评测与基准维护。最值得看的是《ORBIT》多智能体安全与安全评估框架（9.0）和《Maintaining Benchmarks...》对“未应得通过”的检测与修复（8.0）。普通读者可先读这两篇精读，再按兴趣看反事实自进化智能体、场景理论破多智能体协调对称陷阱、TraceDance真实轨迹建基准等7分速读。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -78,12 +78,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">9 篇</strong>
+    <strong class="dpr-home-dashboard-count">5 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Auditing Agent Actions through Query-Conditioned Attribution">Auditing Agent Actions through Query-Conditioned Attribution</span></li><li><span class="dpr-home-dashboard-paper-title" title="DAAF: From Failure Localization to Editable System Assets in LLM Agents">DAAF: From Failure Localization to Editable System Assets in LLM Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="From Anomalies to Failures: Constructing Causal Error Graphs for Agentic Trace Diagnosis">From Anomalies to Failures: Constructing Causal Error Graphs for Agentic Trace Diagnosis</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="ORBIT: A Framework for Multi-Agent Safety and Security Evaluations">ORBIT: A Framework for Multi-Agent Safety and Security Evaluations</span></li><li><span class="dpr-home-dashboard-paper-title" title="Maintaining Benchmarks Against Increasingly Capable Agents: Detection and Remediation of Unearned Passes">Maintaining Benchmarks Against Increasingly Capable Agents: Detection and Remediation of Unearned Passes</span></li><li><span class="dpr-home-dashboard-paper-title" title="Poster: Towards ProofWeave: A Privacy-Minimised, Integrity-Anchored Evidence Plane for Continuous Agentic Assurance">Poster: Towards ProofWeave: A Privacy-Minimised, Integrity-Anchored Evidence Plane for Continuous Agentic Assurance</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>6</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>3</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>3</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>2</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -91,12 +91,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">14 篇</strong>
+    <strong class="dpr-home-dashboard-count">12 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Stealth Apart, Harm Together: Skill Cascading Attacks on Skill-Based Agent Systems">Stealth Apart, Harm Together: Skill Cascading Attacks on Skill-Based Agent Systems</span></li><li><span class="dpr-home-dashboard-paper-title" title="Contract monitoring: governing AI via separation of powers">Contract monitoring: governing AI via separation of powers</span></li><li><span class="dpr-home-dashboard-paper-title" title="Despite Instructions: Frontier Agents Improvise Covert Channels at Test Time">Despite Instructions: Frontier Agents Improvise Covert Channels at Test Time</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Counterfactual Self-Evolving Agents for Evidence-Grounded Reasoning">Counterfactual Self-Evolving Agents for Evidence-Grounded Reasoning</span></li><li><span class="dpr-home-dashboard-paper-title" title="Theory of Scene: Breaking the Symmetry Trap in Multi-Agent LLM Coordination">Theory of Scene: Breaking the Symmetry Trap in Multi-Agent LLM Coordination</span></li><li><span class="dpr-home-dashboard-paper-title" title="TraceDance: An Automated System for Building Agent Behavior Benchmarks from Real-World Agent Deployment Traces">TraceDance: An Automated System for Building Agent Behavior Benchmarks from Real-World Agent Deployment Traces</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>10</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>4</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>9</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>3</strong></span></div>
 </section>
 </div>
 

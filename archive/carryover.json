@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-29T23:24:29.580775+00:00",
-  "updated_date": "20260929",
+  "generated_at": "2026-09-30T22:50:42.093964+00:00",
+  "updated_date": "20260930",
   "carryover_days": 9,
   "tag_states": {
     "MAS-security": {
@@ -9,102 +9,14 @@
       "items": []
     },
     "agent-audit": {
-      "updated_date": "20260929",
+      "updated_date": "20260930",
       "carryover_days": 9,
-      "items": [
-        {
-          "id": "2609.35234v1",
-          "source": "arxiv",
-          "title": "Poster: Towards ProofWeave: A Privacy-Minimised, Integrity-Anchored Evidence Plane for Continuous Agentic Assurance",
-          "abstract": "Agentic AI systems increasingly act via tools, memory, delegation, and external services. Existing observability and provenance mechanisms can reconstruct events post hoc, but they rarely show, at the time of the record, whether each policy-relevant action was checked by the intended control before execution. This leaves a trust-observability gap for continuous monitoring, detection, and response: later assurance may rest on evidence that is incomplete, privacy-leaking, mutable, or detached from the policy context that governed the event. What's missing in the literature is contemporaneous, policy-bound evidence that the intended control was evaluated under the policy in force at the time.   We introduce ProofWeave, a record-time chain-of-evidence concept for agentic AI assurance. At each policy-relevant action boundary, ProofWeave generates a privacy-minimised and integrity-anchored evidence transaction that binds (i) agent intent or action, (ii) control response, and (iii) a policy-at-time snapshot. Each transaction is committed to an append-only ledger and materialised into a derived proof graph. A bounded Weaver Agent translates policy intent into proof obligations, while deterministic validators check evidence completeness, privacy minimisation, policy binding, and integrity.   In the minimal scenario, an agent attempts to transmit a secret to an unapproved external sink. The audit compares a logs-only correlation baseline with ProofWeave across verdict latency, join ambiguity, privacy exposure, tamper detection, and resistance to graph-only proof injection. ProofWeave reduces candidate bindings per verdict from up to `10,201` to one, validation operations from up to `10,201` to approximately `26`, and assurance evidence storage from `0.79`MiB to `0.15`MiB per project.",
-          "authors": [
-            "Guy Lupo",
-            "Nguyen Hung Nguyen",
-            "Viet Vo",
-            "Chamikara M. A. P.",
-            "Guangdong Bai"
-          ],
-          "primary_category": "cs.CR",
-          "categories": [
-            "cs.CR"
-          ],
-          "published": "2026-09-28T14:11:15+00:00",
-          "link": "https://arxiv.org/pdf/2609.35234v1",
-          "tags": [
-            "keyword:agent-audit",
-            "keyword:agent-safety",
-            "query:agent-audit"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "Policy-bound evidence plane for continuous agentic assurance auditing",
-          "llm_evidence_cn": "面向智能体持续保障审计的策略绑定证据平面",
-          "llm_evidence": "面向智能体持续保障审计的策略绑定证据平面",
-          "canonical_evidence": "面向智能体持续保障审计的策略绑定证据平面",
-          "llm_tldr_en": "ProofWeave proposes a privacy-minimised, integrity-anchored evidence plane providing contemporaneous, policy-bound proof that intended controls were evaluated, closing the trust-observability gap for continuous agentic assurance.",
-          "llm_tldr_cn": "智能体AI日益通过工具、记忆、委派与外部服务行动，现有可观测与溯源机制虽能事后重建事件，却难以在记录当时表明每个策略相关动作是否已按预期控制被检查，形成信任-可观测性缺口。本文提出ProofWeave，构建隐私最小化、完整性锚定的证据平面，提供同时性、策略绑定的证据，证明预期控制在当时生效的策略下已被评估。该工作为智能体行为的持续监控与合规审计奠定基础。",
-          "llm_tldr": "智能体AI日益通过工具、记忆、委派与外部服务行动，现有可观测与溯源机制虽能事后重建事件，却难以在记录当时表明每个策略相关动作是否已按预期控制被检查，形成信任-可观测性缺口。本文提出ProofWeave，构建隐私最小化、完整性锚定的证据平面，提供同时性、策略绑定的证据，证明预期控制在当时生效的策略下已被评估。该工作为智能体行为的持续监控与合规审计奠定基础。",
-          "llm_tags": [
-            "query:agent-audit"
-          ],
-          "matched_query_tag": "query:agent-audit",
-          "matched_query_text": "auditing the behavior of intelligent agents for compliance and correctness",
-          "matched_requirement_id": "req-4",
-          "selection_source": "carryover_cache",
-          "paper_id": "2609.35234v1",
-          "carry_days": 1
-        }
-      ]
+      "items": []
     },
     "agent-safety": {
-      "updated_date": "20260929",
+      "updated_date": "20260930",
       "carryover_days": 9,
-      "items": [
-        {
-          "id": "2609.35576v1",
-          "source": "arxiv",
-          "title": "Share-Borne AI Virus: Memory-Hopping Attacks Across LLM Agents",
-          "abstract": "Large language models are increasingly deployed as stateful assistants that retain information across interactions and use tools to read, modify, and create persistent artifacts. As these artifacts are shared between users, they form an indirect communication channel between otherwise independent assistants. We study a failure mode in which this channel enables self-propagating attacks. We introduce artifact-mediated propagation, where adversarial content introduced through an artifact (e.g. a report), is stored in an assistant's persistent memory, reproduced in a subsequently created artifact, and acquired by another assistant that later reads it. We evaluate this process in temporal human-agent universes that model artifact exchange between independently operated assistants over time, measuring whether an attack survives successive hand-offs, how many hops it reaches, and how broadly it spreads. We find that attacks can propagate across multiple independent assistants and persist over extended interaction sequences. In larger simulated environments, even GPT-5.6 Luna exhibits substantial spread, reaching 60-80% of agents with propagation chains extending to eight hops. These results show that persistent artifacts can act as durable carriers of adversarial state, allowing attacks to outlive individual interactions and spread across isolated assistants.",
-          "authors": [
-            "Sidharth Pulipaka",
-            "Ansh Sharma",
-            "Stanislau Hlebik",
-            "Leonidas Raghav",
-            "Vyas Raina",
-            "Ivaxi Sheth",
-            "Mario Fritz"
-          ],
-          "primary_category": "cs.AI",
-          "categories": [
-            "cs.AI",
-            "cs.CL",
-            "cs.CR",
-            "cs.LG"
-          ],
-          "published": "2026-09-28T16:34:52+00:00",
-          "link": "https://arxiv.org/pdf/2609.35576v1",
-          "tags": [
-            "keyword:agent-safety",
-            "query:agent-safety"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "self-propagating attacks propagating across independent LLM agents via shared artifacts",
-          "llm_evidence_cn": "经共享工件在独立LLM智能体间自我传播的攻击",
-          "llm_evidence": "经共享工件在独立LLM智能体间自我传播的攻击",
-          "canonical_evidence": "经共享工件在独立LLM智能体间自我传播的攻击",
-          "llm_tldr_en": "Shared persistent artifacts form an indirect channel between independent assistants. This paper studies artifact-mediated propagation where adversarial content hops across agents memory.",
-          "llm_tldr_cn": "LLM日益作为有状态助手部署，可跨交互保留信息并借助工具读写持久化工件，而共享工件在用户之间形成了独立助手间的间接通信通道。本文研究一种自传播攻击失败模式，提出工件中介传播概念：恶意内容经工件注入后存入助手持久记忆，再被复制到新建工件并被另一助手读取，从而在智能体间跳跃传播。作者在模拟工件交换的时序人机宇宙中评估该过程，揭示了多智能体环境下的级联式风险传播机制。",
-          "llm_tldr": "LLM日益作为有状态助手部署，可跨交互保留信息并借助工具读写持久化工件，而共享工件在用户之间形成了独立助手间的间接通信通道。本文研究一种自传播攻击失败模式，提出工件中介传播概念：恶意内容经工件注入后存入助手持久记忆，再被复制到新建工件并被另一助手读取，从而在智能体间跳跃传播。作者在模拟工件交换的时序人机宇宙中评估该过程，揭示了多智能体环境下的级联式风险传播机制。",
-          "llm_tags": [
-            "query:agent-safety"
-          ],
-          "matched_query_tag": "query:agent-safety",
-          "matched_query_text": "How do cascading failures and risk propagation occur in multi agent AI systems?",
-          "matched_requirement_id": "req-18",
-          "selection_source": "carryover_cache",
-          "paper_id": "2609.35576v1",
-          "carry_days": 1
-        }
-      ]
+      "items": []
     }
   }
 }
