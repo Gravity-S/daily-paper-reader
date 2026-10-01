@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-30</span>
+      <span class="dpr-home-dashboard-kicker">2026-10-01</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 17 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 10 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>5</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>9</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-30 22:55:01 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-10-01 23:40:09 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,7 +69,10 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>2026-09-30 日报共收17篇，精读5篇、速读12篇，主线聚焦多智能体安全评测与基准维护。最值得看的是《ORBIT》多智能体安全与安全评估框架（9.0）和《Maintaining Benchmarks...》对“未应得通过”的检测与修复（8.0）。普通读者可先读这两篇精读，再按兴趣看反事实自进化智能体、场景理论破多智能体协调对称陷阱、TraceDance真实轨迹建基准等7分速读。</p>
+<p>今日共生成 10 篇推荐（精读 1 篇，速读 9 篇）</p>
+<p>精读：《ASCT: Attentive Search over Counterfactual Trees for Credit Assignment in Agentic Reinforcement Learning》（8.0/10）</p>
+<p>速读：《NLPG: Natural-Language Policy Gradients for Self-Evolving Language Agents》（7.0/10）, 《AgentHop: A Diagnostic Benchmark for Agentic Multi-Hop Scientific Question Answering》（7.0/10）, 《ADF-EA: A Unified Execution Assurance System for Agent Device Foundation》（6.0/10）</p>
+<p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -78,12 +81,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">5 篇</strong>
+    <strong class="dpr-home-dashboard-count">1 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="ORBIT: A Framework for Multi-Agent Safety and Security Evaluations">ORBIT: A Framework for Multi-Agent Safety and Security Evaluations</span></li><li><span class="dpr-home-dashboard-paper-title" title="Maintaining Benchmarks Against Increasingly Capable Agents: Detection and Remediation of Unearned Passes">Maintaining Benchmarks Against Increasingly Capable Agents: Detection and Remediation of Unearned Passes</span></li><li><span class="dpr-home-dashboard-paper-title" title="Poster: Towards ProofWeave: A Privacy-Minimised, Integrity-Anchored Evidence Plane for Continuous Agentic Assurance">Poster: Towards ProofWeave: A Privacy-Minimised, Integrity-Anchored Evidence Plane for Continuous Agentic Assurance</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="ASCT: Attentive Search over Counterfactual Trees for Credit Assignment in Agentic Reinforcement Learning">ASCT: Attentive Search over Counterfactual Trees for Credit Assignment in Agentic Reinforcement Learning</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>3</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>2</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -91,12 +94,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">12 篇</strong>
+    <strong class="dpr-home-dashboard-count">9 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Counterfactual Self-Evolving Agents for Evidence-Grounded Reasoning">Counterfactual Self-Evolving Agents for Evidence-Grounded Reasoning</span></li><li><span class="dpr-home-dashboard-paper-title" title="Theory of Scene: Breaking the Symmetry Trap in Multi-Agent LLM Coordination">Theory of Scene: Breaking the Symmetry Trap in Multi-Agent LLM Coordination</span></li><li><span class="dpr-home-dashboard-paper-title" title="TraceDance: An Automated System for Building Agent Behavior Benchmarks from Real-World Agent Deployment Traces">TraceDance: An Automated System for Building Agent Behavior Benchmarks from Real-World Agent Deployment Traces</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="NLPG: Natural-Language Policy Gradients for Self-Evolving Language Agents">NLPG: Natural-Language Policy Gradients for Self-Evolving Language Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="AgentHop: A Diagnostic Benchmark for Agentic Multi-Hop Scientific Question Answering">AgentHop: A Diagnostic Benchmark for Agentic Multi-Hop Scientific Question Answering</span></li><li><span class="dpr-home-dashboard-paper-title" title="ADF-EA: A Unified Execution Assurance System for Agent Device Foundation">ADF-EA: A Unified Execution Assurance System for Agent Device Foundation</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>9</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>3</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>8</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>1</strong></span></div>
 </section>
 </div>
 
