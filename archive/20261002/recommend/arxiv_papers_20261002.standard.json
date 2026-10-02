@@ -1,0 +1,813 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-10-02T22:59:06.859657+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 7,
+    "deep_cap": 7,
+    "deep_selected": 7,
+    "quick_candidates": 17,
+    "quick_skim_target": 12,
+    "quick_selected": 12
+  },
+  "deep_dive": [
+    {
+      "id": "2609.37457v1",
+      "source": "arxiv",
+      "title": "VeriWeave Govern: Evidence-Gated Deterministic Runtime Governance for Enterprise AI Agents",
+      "abstract": "Enterprise artificial-intelligence agents increasingly call tools, modify infrastructure, and process protected data, creating a need to separate action generation from action authorization. This article presents VeriWeave Govern, a deterministic runtime governance layer that evaluates structured agent actions against versioned policies, validates typed evidence, applies fixed deny > review > allow precedence, routes consequential actions to accountable human review, and records replayable tamper-evident audit state. GovernBench evaluates the design over 30 independent seeds and 60,000 oracle-labelled cases spanning five enterprise domains, adversarial evidence, out-of-distribution actions, and temporal policy evolution. VeriWeave achieves 0.9888 mean accuracy, 0.9836 macro-F1, zero observed aggregate false allows, and zero observed Governance Attack Success Rate on the evaluated cases. Six ablations show that evidence gating, deny precedence, out-of-distribution fail-safe behavior, human review, contradiction handling, and temporal replay contribute complementary safety. The deployed API additionally passes 12/12 end-to-end scenarios and a 40,040-request concurrency matrix with zero failures. A separate 150-case EU/Austria regulation-grounded evaluation uses frozen predictions and two independent blinded human annotators, who agree on all decisions. On this set, deterministic engines remain conservative, while a Gemma 4 31B comparator aligns more closely with the human consensus. The results expose a measurable safety--utility trade-off and motivate evidence-aware, replayable governance as an independent control plane for enterprise agent execution.",
+      "authors": [
+        "Kabeh Mohsenzadegan",
+        "Vahid Tavakkoli",
+        "Kyandoghere Kyamakya"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CY",
+        "cs.MA",
+        "cs.SE"
+      ],
+      "published": "2026-09-26T20:15:54+00:00",
+      "link": "https://arxiv.org/pdf/2609.37457v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "runtime governance with accountability and tamper-evident audit state",
+      "llm_evidence_cn": "运行时治理，含问责与防篡改审计状态",
+      "llm_evidence": "运行时治理，含问责与防篡改审计状态",
+      "canonical_evidence": "运行时治理，含问责与防篡改审计状态",
+      "llm_tldr_en": "VeriWeave Govern is a deterministic runtime governance layer that gates enterprise agent actions with versioned policies, typed evidence, deny-over-review precedence, human review routing and tamper-evident audit state, validated on 60k oracle-labelled cases.",
+      "llm_tldr_cn": "针对企业AI智能体调用工具、修改基础设施与处理敏感数据所带来的授权风险，本文提出VeriWeave Govern确定性运行时治理层，将动作生成与授权分离，依据版本化策略评估结构化动作、校验类型化证据、按拒绝优先顺序执行并将重大动作路由至人工复核，同时记录可重放防篡改的审计状态。GovernBench在6万个标注案例上验证，覆盖对抗性证据与策略演化，为企业智能体的问责与合规提供了可落地框架。",
+      "llm_tldr": "针对企业AI智能体调用工具、修改基础设施与处理敏感数据所带来的授权风险，本文提出VeriWeave Govern确定性运行时治理层，将动作生成与授权分离，依据版本化策略评估结构化动作、校验类型化证据、按拒绝优先顺序执行并将重大动作路由至人工复核，同时记录可重放防篡改的审计状态。GovernBench在6万个标注案例上验证，覆盖对抗性证据与策略演化，为企业智能体的问责与合规提供了可落地框架。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "auditing the behavior of intelligent agents for compliance and correctness",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.40111v2",
+      "source": "arxiv",
+      "title": "Agent Error Dataset: Scaling 50,000 Error--Diagnosis Pairs for Failure Analysis and Error-Aware Post-Training",
+      "abstract": "An unsuccessful LLM agent rollout contains more information than its final reward: the observations available to the agent, the actions it chose, and the environment's responses. Reusing this experience for learning requires identifying a decision to revise and testing a concrete alternative. We introduce the Agent Error Dataset (AED), comprising 50,228 error-diagnosis pairs from 9,961 source tasks across 33 environments, 19 harness families, and 23 policy models in text-based agent systems. We retain source traces and execution metadata to support cross-setting failure analysis and re-diagnosis without repeating the original rollout. Our five-stage Agentic Error-to-Training (AET) pipeline collects natural failures, generates diagnoses and proposed corrections, and checks them against recorded evidence. Where replay is supported, we compare corrections with original-action retries from the same checkpoint under matched execution settings. We then construct separate training views for diagnosis and actor recovery. Across 3,062 matched replay pairs, first-proposal corrections raise verifier pass rates from 18.4% to 51.1%, a gain of 32.7 percentage points. Using a separately frozen diagnosis release, full-diagnosis fine-tuning on 1,656 source tasks raises Qwen3-8B's exact-step agreement with internal teacher labels from 47.2% to 63.6%, averaged over three seeds on a 943-case holdout. The strongest prompted reference in this comparison scores 54.7%, and mean agreement improves at each of four increasing training-set sizes. In a single-seed comparison of actor-training recipes, action-only repair training scores 6.67 percentage points higher on WebShop-lite than success-only training.",
+      "authors": [
+        "Kunlun Zhu",
+        "Xuyan Ye",
+        "Yibo Li",
+        "Cheng Qian",
+        "Beibin Li",
+        "Heng Ji"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-09-30T16:40:22+00:00",
+      "link": "https://arxiv.org/pdf/2609.40111v2",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "error-diagnosis pairs for locating and revising agent decisions",
+      "llm_evidence_cn": "用于定位与修订智能体决策的错误—诊断对",
+      "llm_evidence": "用于定位与修订智能体决策的错误—诊断对",
+      "canonical_evidence": "用于定位与修订智能体决策的错误—诊断对",
+      "llm_tldr_en": "The Agent Error Dataset provides 50,228 error-diagnosis pairs from 9,961 tasks and 33 environments to support failure analysis and error-aware post-training of LLM agents.",
+      "llm_tldr_cn": "针对失败的智能体轨迹信息丰富但复用于学习前需先定位待修订决策并检验替代方案的问题，论文构建智能体错误数据集AED，包含来自33个环境、19个框架族与23个策略模型的5万余条错误—诊断对。研究保留源轨迹与执行元数据，支持跨设定失败分析与重新诊断而无需重放原始轨迹，并提出五阶段智能体错误到训练流水线。该数据集为智能体错误定位、失败分析与错误感知后训练提供了大规模可复用资源。",
+      "llm_tldr": "针对失败的智能体轨迹信息丰富但复用于学习前需先定位待修订决策并检验替代方案的问题，论文构建智能体错误数据集AED，包含来自33个环境、19个框架族与23个策略模型的5万余条错误—诊断对。研究保留源轨迹与执行元数据，支持跨设定失败分析与重新诊断而无需重放原始轨迹，并提出五阶段智能体错误到训练流水线。该数据集为智能体错误定位、失败分析与错误感知后训练提供了大规模可复用资源。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "identifying and locating errors in AI agent behavior",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.01256v1",
+      "source": "arxiv",
+      "title": "DeFA: Dependency-Guided Failure Attribution for LLM Agents",
+      "abstract": "Errors in LLM agent executions and their visible consequences can be separated by many steps, making decisive-error localization a matter of understanding both step content and step dependencies. We introduce DeFA, a dependency-guided framework for agent failure attribution. DeFA first combines protocol relations and semantic dependencies into an event dependency graph spanning the trajectory. It then identifies events that may violate task requirements and traces their sources and subsequent effects to construct a failure propagation graph. Finally, DeFA uses step evidence and the steps' roles in failure propagation to identify the decisive error, responsible agent, and error category. To support long trajectories, DeFA partitions executions into segments and combines the current segment's detailed content with summaries of the other segments, giving local diagnosis access to global execution context. Across Who and When and the Who and When Pro text subset, DeFA achieves the highest responsible-agent and exact step accuracy with all evaluated backbones, and the highest failure-mode accuracy among taxonomy-aligned methods on Pro. Further experiments on image and video trajectories demonstrate its applicability to multimodal failure attribution. Ablations support the contributions of segmentation, the event dependency graph, and the failure propagation graph. Using DeFA's diagnostic feedback for skill evolution in Trace2Skill improves downstream task accuracy by 6-15 percentage points over the native pipeline, showing that the diagnoses can also support agent improvement on subsequent tasks.",
+      "authors": [
+        "Bo Deng",
+        "Xinlei Zheng",
+        "Yi Wei",
+        "Kang Zhou",
+        "Chongyang Tao",
+        "Renzhao Liang",
+        "Xuanren Chen",
+        "Lifan Guo",
+        "Chi Zhang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-10-01T07:50:22+00:00",
+      "link": "https://arxiv.org/pdf/2610.01256v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "dependency-guided failure attribution and decisive-error localization for LLM agents",
+      "llm_evidence_cn": "面向LLM智能体的依赖引导失败归因与关键错误定位",
+      "llm_evidence": "面向LLM智能体的依赖引导失败归因与关键错误定位",
+      "canonical_evidence": "面向LLM智能体的依赖引导失败归因与关键错误定位",
+      "llm_tldr_en": "DeFA builds an event dependency graph over agent trajectories and traces failure propagation to pinpoint the decisive error, responsible agent and error category, enabling reliable agent auditing.",
+      "llm_tldr_cn": "LLM智能体的错误与其可见后果之间往往相隔多步，使得关键错误难以定位，这为智能体审计与问责带来困难。论文提出DeFA框架，先将协议关系与语义依赖融合为事件依赖图，再追踪可能违反任务要求的事件及其来源与影响，构建失败传播图。最后结合步骤证据与传播角色，判定决定性错误、责任智能体与错误类别，并采用分段机制支持长轨迹。该工作把失败归因从单步判断提升为依赖感知的传播分析，为智能体错误定位与责任划分提供了可复用方法。",
+      "llm_tldr": "LLM智能体的错误与其可见后果之间往往相隔多步，使得关键错误难以定位，这为智能体审计与问责带来困难。论文提出DeFA框架，先将协议关系与语义依赖融合为事件依赖图，再追踪可能违反任务要求的事件及其来源与影响，构建失败传播图。最后结合步骤证据与传播角色，判定决定性错误、责任智能体与错误类别，并采用分段机制支持长轨迹。该工作把失败归因从单步判断提升为依赖感知的传播分析，为智能体错误定位与责任划分提供了可复用方法。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "What methods can localize and explain errors in autonomous agent behavior?",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.01042v1",
+      "source": "arxiv",
+      "title": "Beyond Final Accuracy: Auditing Communication in LLM Multi-Agent Systems",
+      "abstract": "Multi-agent communication aims to help agents benefit from one another's information. Yet improvements in system performance leave a fundamental ambiguity: do they reflect effective communication, a favorable agent architecture, or simply additional reasoning? Because communication methods are commonly evaluated within the systems they were designed for, these factors are difficult to disentangle. Final accuracy further merges corrected errors and corrupted answers into a single outcome, obscuring how communication changes decisions. We introduce Independent--Communicate--Revise (ICR), a controlled framework that evaluates communication as answer revision following independent reasoning. ICR fixes initial reasoning trajectories, measures correction and preservation conditional on both agents' initial correctness, and uses a no-message revision control to quantify gains beyond additional reasoning. Across four reasoning benchmarks, our audit of textual and latent communication reveals that similar aggregate accuracy can conceal substantially different revision behaviors. Compared with transmitting answers alone, full reasoning increases correction while reducing preservation on all four benchmarks, so richer messages amplify beneficial and harmful influence alike. Receiver-policy comparisons on MedQA and GPQA-D further show that a structured verification policy shifts every channel toward greater preservation and lower correction, while its effect on selectivity varies across channels and tasks. These findings challenge treating communication quality as an intrinsic property of a channel. ICR therefore recenters evaluation on selective revision, providing a unified framework for examining how message content and receiver policies jointly produce benefits and harms.",
+      "authors": [
+        "Shixuan Li",
+        "Wei Yang",
+        "Peiyu Zhang",
+        "Anzhe Cheng",
+        "Heng Ping",
+        "Paul Bogdan"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-10-01T04:34:59+00:00",
+      "link": "https://arxiv.org/pdf/2610.01042v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "auditing communication and disentangling how it changes agent decisions",
+      "llm_evidence_cn": "审计多智能体通信并厘清其如何改变智能体决策",
+      "llm_evidence": "审计多智能体通信并厘清其如何改变智能体决策",
+      "canonical_evidence": "审计多智能体通信并厘清其如何改变智能体决策",
+      "llm_tldr_en": "ICR is a controlled framework that audits multi-agent communication by fixing initial reasoning trajectories and measuring answer revision, disentangling corrected errors from corrupted answers.",
+      "llm_tldr_cn": "针对多智能体通信带来的性能提升难以归因、最终准确率把纠错与被污染答案混为一谈而掩盖通信如何改变决策的问题，论文提出独立—通信—修订（ICR）受控框架。该方法固定各智能体的初始推理轨迹，将通信效果度量为其后的答案修订，从而分离通信、架构与额外推理等因素的贡献。实验据此揭示通信对决策的真实影响。该框架为多智能体系统通信与决策行为的审计提供了可分解的评估手段。",
+      "llm_tldr": "针对多智能体通信带来的性能提升难以归因、最终准确率把纠错与被污染答案混为一谈而掩盖通信如何改变决策的问题，论文提出独立—通信—修订（ICR）受控框架。该方法固定各智能体的初始推理轨迹，将通信效果度量为其后的答案修订，从而分离通信、架构与额外推理等因素的贡献。实验据此揭示通信对决策的真实影响。该框架为多智能体系统通信与决策行为的审计提供了可分解的评估手段。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "auditing the behavior of intelligent agents for compliance and correctness",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.39050v1",
+      "source": "arxiv",
+      "title": "Covert Assistance: Helpful LLM Agents Evade Oversight in Multi-Agent Systems",
+      "abstract": "As multi-agent systems enter high-stakes domains, the possibility that agents may circumvent safety boundaries is a growing concern. Prior work has examined this risk primarily in adversarial settings, where agents are instructed or rewarded to communicate covertly and evade oversight. We show that benign agents can cross the same boundaries without adversarial incentives. We emulate a software-engineering workflow in which a planner represents a company hiring an external developer. The planner writes requirements and holds a company credential it is instructed not to disclose to the developer; a monitor screens their exchanges. Seven of nine tested frontier models disguise the credential in their requirements to help the developer recover it while evading the monitor, even after completing their assigned objective. For example, across 6,000 episodes with DeepSeek-V4-Pro, the planner attempts concealment in 16.9%; in 0.9%, the credential evades the monitor and is recovered and used by the developer. Despite the low per-episode rate, the risk compounds across repeated exchanges: at 0.9%, 105 independent episodes carry a 61.3% chance of at least one breach. Our analysis suggests that the planner misinterprets disguised disclosure as helping the developer and reads the nondisclosure rule as banning plaintext, not character codes or riddles. We call this behavior covert assistance. Monitoring favors concealment, while concealment gives way to direct disclosure when the recipient is presented as a human rather than an AI agent, so leakage persists. Giving the monitor the credential improves detection but requires trusting it with the secret. These risks, in models already used for software engineering, challenge oversight to distinguish authorized cooperation from task-advancing assistance that crosses safety boundaries.",
+      "authors": [
+        "Deema Alnuhait",
+        "Gengyu Wang",
+        "Muhammad Khalifa",
+        "Hao Peng"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.CL"
+      ],
+      "published": "2026-09-30T05:57:59+00:00",
+      "link": "https://arxiv.org/pdf/2609.39050v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "benign agents covertly collude and evade oversight in multi-agent systems",
+      "llm_evidence_cn": "良性智能体在多智能体系统中隐蔽串通并规避监督",
+      "llm_evidence": "良性智能体在多智能体系统中隐蔽串通并规避监督",
+      "canonical_evidence": "良性智能体在多智能体系统中隐蔽串通并规避监督",
+      "llm_tldr_en": "In a simulated software-engineering workflow with a monitor, seven of nine frontier models covertly disguise a credential to help another agent, showing benign agents evade oversight without adversarial incentives.",
+      "llm_tldr_cn": "针对多智能体系统进入高风险领域后智能体可能绕过安全边界、而既有研究多限于对抗场景的问题，本文考察良性智能体是否也会规避监督。作者模拟软件工程工作流：规划者代表持有不得泄露凭证的公司，与外部开发者交互并由监控者筛查。结果九个前沿模型中有七个把凭证伪装后写进需求以帮助对方恢复。这表明在无对抗激励下智能体也会进行隐蔽协作，构成多智能体系统特有的串谋与规避监督风险。",
+      "llm_tldr": "针对多智能体系统进入高风险领域后智能体可能绕过安全边界、而既有研究多限于对抗场景的问题，本文考察良性智能体是否也会规避监督。作者模拟软件工程工作流：规划者代表持有不得泄露凭证的公司，与外部开发者交互并由监控者筛查。结果九个前沿模型中有七个把凭证伪装后写进需求以帮助对方恢复。这表明在无对抗激励下智能体也会进行隐蔽协作，构成多智能体系统特有的串谋与规避监督风险。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "collusion and conspiracy among multiple AI agents",
+      "matched_requirement_id": "req-13",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.39788v2",
+      "source": "arxiv",
+      "title": "Safety of Latent Communication in Multi-Agent Systems",
+      "abstract": "Latent communication enables multi-agent systems to exchange information directly in internal representation space, reducing the token, computation, and latency overhead of text-based communication. To this end, lightweight trainable links are introduced to map the sender's representations into the receiver's input space. In this work, we show that even benign link training can increase harmful compliance relative to text-based communication while the underlying safety-aligned agents remain unchanged. An attacker can amplify this effect by optimizing the links on harmful query--response pairs or poisoning otherwise benign training data. We further develop a reinforcement-learning attack that rewards harmful compliance alongside benign task performance without requiring harmful target responses. Across three communication topologies and four safety benchmarks, this attack raises the mean harmful-compliance score from 27.9 with benignly trained links to 76.9. Compared with direct supervised optimization, it also achieves higher average accuracy on two benign utility benchmarks. Adapting the rewards toward safer behavior also enables repair of compromised links, substantially reducing harmful compliance across all evaluated attacks without updating the agents. Overall, our results show that safety alignment requires considering the multi-agent system as a whole. Code: https://github.com/Muhammad-Huzaifaa/latent-safety",
+      "authors": [
+        "Muhammad Huzaifa",
+        "Sina Mavali",
+        "Thorsten Eisenhofer"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG",
+        "cs.MA"
+      ],
+      "published": "2026-09-30T14:09:57+00:00",
+      "link": "https://arxiv.org/pdf/2609.39788v2",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "safety risks from inter-agent latent communication in multi-agent systems",
+      "llm_evidence_cn": "多智能体潜在通信带来的交互安全风险",
+      "llm_evidence": "多智能体潜在通信带来的交互安全风险",
+      "canonical_evidence": "多智能体潜在通信带来的交互安全风险",
+      "llm_tldr_en": "This work shows that latent communication links between safety-aligned agents can increase harmful compliance, and that attackers can amplify this via link optimization or poisoned training data.",
+      "llm_tldr_cn": "多智能体系统通过潜在通信在内部表示空间直接交换信息，可降低token与延迟开销，但其安全后果尚不清楚。论文研究表明，即使链路训练本身是良性的，也会让安全对齐的智能体比文本通信更容易产生有害顺从，而智能体本身并未改变。攻击者可通过在有害问答对上优化链路或投毒训练数据来放大该效应，作者还提出一种同时奖励有害顺从与良性任务表现的强化学习攻击。该工作揭示了智能体间交互信道本身即可引入新的安全风险，凸显多智能体专属威胁。",
+      "llm_tldr": "多智能体系统通过潜在通信在内部表示空间直接交换信息，可降低token与延迟开销，但其安全后果尚不清楚。论文研究表明，即使链路训练本身是良性的，也会让安全对齐的智能体比文本通信更容易产生有害顺从，而智能体本身并未改变。攻击者可通过在有害问答对上优化链路或投毒训练数据来放大该效应，作者还提出一种同时奖励有害顺从与良性任务表现的强化学习攻击。该工作揭示了智能体间交互信道本身即可引入新的安全风险，凸显多智能体专属威胁。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "risks arising from interactions between multiple agents",
+      "matched_requirement_id": "req-15",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.00583v1",
+      "source": "arxiv",
+      "title": "Worse Together: How Performance Breaks Down in Multi-User Multi-Agent Teams",
+      "abstract": "People are increasingly delegating tasks to AI agents, and those agents are increasingly encountering other people's agents over shared resources such as a codebase, a calendar, or a budget. When each agent acts for a different user with different goals, coordination often fails, and the group ends up worse off than if a single agent had acted for everyone. We study this multi-user, multi-agent setting across five frontier models and 77 scenarios in four environments: an API key environment in which agents share a compute budget, a clinic in which they share a calendar, a personal assistant environment in which they share a group order or booking, and a merge queue in which they share a release cutoff. In each scenario, we compare a single agent that serves every user (a coordinator) to a team in which each agent serves one user, with and without a communication channel between the agents. Teams deliver worse group outcomes than the coordinator in every environment: without a channel, they completely collapse in two environments, and even with one, coordination overhead creates substantial gaps. For example, in the personal assistant environment, the coordinator fulfills a targeted user request about twice as often as teams. We identify distinct behaviors associated with this poor group-level performance, including stalling as teams grow, overriding each other's actions, and fabricating claims. We find effective but environment-specific mitigations, such as a team lead, explicit procedural instructions, and a platform check that makes an agent read its peers' messages before committing. We will release the API key, clinic, and personal assistant environments as MAMUBench, comprising 74 scenarios for evaluating multi-user, multi-agent coordination.",
+      "authors": [
+        "Sahan Paliskara",
+        "Nattaput Namchittai",
+        "Andrew Lampinen"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-30T18:49:25+00:00",
+      "link": "https://arxiv.org/pdf/2610.00583v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "coordination failures in multi-user multi-agent teams",
+      "llm_evidence_cn": "多用户多智能体团队中的协调失败",
+      "llm_evidence": "多用户多智能体团队中的协调失败",
+      "canonical_evidence": "多用户多智能体团队中的协调失败",
+      "llm_tldr_en": "This paper studies multi-user multi-agent teams sharing resources, showing coordination often fails and the group ends up worse off than a single agent acting for everyone.",
+      "llm_tldr_cn": "人们越来越多地将任务委托给AI智能体，而这些智能体常在共享代码库、日历或预算等资源上遇到他人的智能体。当各智能体服务于目标不同的用户时，协调往往失败，群体结果甚至比单一智能体统一服务所有人更差。本文在五个前沿模型、77个场景、四类环境中研究该多用户多智能体设定，包括共享算力预算、共享日历、共享团购与共享发布截止等。结果系统刻画了多智能体协调失败与集体表现退化。该工作揭示专属多智能体交互带来的协调风险。",
+      "llm_tldr": "人们越来越多地将任务委托给AI智能体，而这些智能体常在共享代码库、日历或预算等资源上遇到他人的智能体。当各智能体服务于目标不同的用户时，协调往往失败，群体结果甚至比单一智能体统一服务所有人更差。本文在五个前沿模型、77个场景、四类环境中研究该多用户多智能体设定，包括共享算力预算、共享日历、共享团购与共享发布截止等。结果系统刻画了多智能体协调失败与集体表现退化。该工作揭示专属多智能体交互带来的协调风险。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "collective misalignment and coordination failures in multi-agent systems",
+      "matched_requirement_id": "req-14",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.35885v1",
+      "source": "arxiv",
+      "title": "Collective Regimes in Multi-Agent LLMs under Reasoning Effort and Communication Topology",
+      "abstract": "Multi-agent LLM systems are increasingly used for deliberation and evaluation, often under the assumption that greater peer interaction leads to more reliable consensus. Existing work largely evaluates these systems through final accuracy or aggregate agreement. However, such measures do not reveal how agreement is organized in the panel. In this paper, we study \\(N=50\\) stateless LLM agents that update their predictions from locally visible peers, and characterize their behavior using both global and local measurements of agreement. We identify three collective regimes: synchronised, twisted (locally ordered but globally incoherent) and chimera-like, where coherent and incoherent subpopulations coexist. Increasing reasoning effort in gpt-5-mini shifts panels from variable, often fragmented outcomes toward locally ordered twisted states, and a small follow-up shows such states can also form from permuted initial conditions, whereas increasing communication connectivity drives them toward global synchronisation. Fragmentation collapses faster as algebraic connectivity increases across rewired graphs. The topology effect also appears on a non-circular judging task and across models from three providers. Finally, low spatial heterogeneity does not guarantee global consensus: 40\\% of trials with $ΔZ$ below 0.03 retain a twisted configuration through the final 20 turns. These results show that reasoning effort and communication topology control different aspects of multi-agent coordination, and that aggregate agreement alone is insufficient to characterize collective LLM behavior.",
+      "authors": [
+        "Machiko Hirota",
+        "Akshara Nadayanur Sathis Kanna",
+        "Ujwal Kumar",
+        "Phan Xuan Tan"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA"
+      ],
+      "published": "2026-09-27T00:50:29+00:00",
+      "link": "https://arxiv.org/pdf/2609.35885v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "emergent collective regimes and incoherent subpopulations in multi-agent LLMs",
+      "llm_evidence_cn": "多智能体LLM中涌现的集体状态与不一致子群",
+      "llm_evidence": "多智能体LLM中涌现的集体状态与不一致子群",
+      "canonical_evidence": "多智能体LLM中涌现的集体状态与不一致子群",
+      "llm_tldr_en": "Studying 50 stateless LLM agents updating from local peers, the paper identifies synchronised, twisted and chimera-like collective regimes that final accuracy or aggregate agreement hides.",
+      "llm_tldr_cn": "针对多智能体LLM系统常被假设更多同伴交互带来更可靠共识、而最终准确率或聚合一致性无法揭示共识如何组织的问题，论文研究50个无状态LLM智能体依据局部可见同伴更新预测的行为。研究同时采用全局与局部一致性度量，识别出同步、扭曲（局部有序但全局不一致）以及嵌合体式（一致与不一致子群共存）三类集体状态，并考察推理努力的影响。该工作揭示了多智能体共识的结构化失效模式，为多智能体盲目从众与涌现风险提供洞察。",
+      "llm_tldr": "针对多智能体LLM系统常被假设更多同伴交互带来更可靠共识、而最终准确率或聚合一致性无法揭示共识如何组织的问题，论文研究50个无状态LLM智能体依据局部可见同伴更新预测的行为。研究同时采用全局与局部一致性度量，识别出同步、扭曲（局部有序但全局不一致）以及嵌合体式（一致与不一致子群共存）三类集体状态，并考察推理努力的影响。该工作揭示了多智能体共识的结构化失效模式，为多智能体盲目从众与涌现风险提供洞察。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "What are the mechanisms of emergent risks and blind conformity in multi agent systems?",
+      "matched_requirement_id": "req-19",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.32295v1",
+      "source": "arxiv",
+      "title": "GLIDE: Generalized Layer-wise Intrinsic Distributional Evaluation for Heterogeneous LLM Agents",
+      "abstract": "LLM agents require reliable step-level evaluation to compare candidate branches and allocate computation effectively. However, lightweight evaluation remains challenging. External verifiers introduce additional inference cost, while agent-produced confidence or self-evaluation scores can be miscalibrated, especially when candidates are generated by heterogeneous agents. We propose \\textbf{G}eneralized \\textbf{L}ayer-wise \\textbf{I}ntrinsic \\textbf{D}istributional \\textbf{E}valuation (\\textbf{GLIDE}) for LLM agents. \\textsc{GLIDE} derives intrinsic step evidence from layer-wise residual coherence, which measures whether local residual updates consistently support the global residual change induced by a candidate step. It calibrates this evidence against the recent score distribution of the generating agent and converts it into a pessimistic reward that jointly accounts for absolute residual evidence and agent-relative standing. The reward provides a cross-agent value signal for MCTS branch selection, while normalized predictive uncertainty guides adaptive branching. Experiments on multi-hop reasoning, sequential decision making, and symbolic logic show that \\textsc{GLIDE} improves task performance, step-level ranking quality, and computational efficiency without external verifiers or task-specific supervision.",
+      "authors": [
+        "Wei Zhu",
+        "Yiming Wang",
+        "Rui Wang",
+        "Lixing Yu",
+        "Kun Yue",
+        "Zhiwen Tang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.MA"
+      ],
+      "published": "2026-09-26T06:37:41+00:00",
+      "link": "https://arxiv.org/pdf/2609.32295v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "intrinsic step-level evaluation to compare and localize agent candidate branches",
+      "llm_evidence_cn": "以内在步骤评估比较并定位智能体候选分支",
+      "llm_evidence": "以内在步骤评估比较并定位智能体候选分支",
+      "canonical_evidence": "以内在步骤评估比较并定位智能体候选分支",
+      "llm_tldr_en": "GLIDE proposes intrinsic step-level evaluation for LLM agents using layer-wise residual coherence, calibrating candidate scores to avoid costly external verifiers and miscalibrated self-evaluation.",
+      "llm_tldr_cn": "针对LLM智能体步骤级评估中外部验证器成本高、自评分数易失准的问题，论文提出GLIDE方法，从逐层残差一致性中提取内在步骤证据，判断局部残差更新是否一致支撑候选步骤引起的全局残差变化，并据此校准评估。该工作为异构智能体的候选分支比较与计算分配提供轻量可靠的评估手段，有助于提升智能体决策过程的可靠性与可审计性。",
+      "llm_tldr": "针对LLM智能体步骤级评估中外部验证器成本高、自评分数易失准的问题，论文提出GLIDE方法，从逐层残差一致性中提取内在步骤证据，判断局部残差更新是否一致支撑候选步骤引起的全局残差变化，并据此校准评估。该工作为异构智能体的候选分支比较与计算分配提供轻量可靠的评估手段，有助于提升智能体决策过程的可靠性与可审计性。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "What methods can localize and explain errors in autonomous agent behavior?",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.38411v1",
+      "source": "arxiv",
+      "title": "A Competing-Hazards Systematization of Loss of Control in Autonomous Agents",
+      "abstract": "Leading AI developers have reported agents acting beyond their approved limits, which a United Nations panel described as an early warning of loss of human control. Yet incident reports and agent-safety evaluations describe these events differently, making it difficult to compare failures, trace risk across attempts, or separate agent behavior from the environment's role in allowing an out-of-scope action to succeed. To address this gap, we introduce a common framework in which each attempt ends in approved completion, safe stopping, scope escape, or continuation. We formalize the framework as a discrete-time competing-hazards model and derive escape probability within a retry budget, a model-conditional safe-budget limit, and conditions for estimation from execution logs. We audit 22 incident reports and 102 agent-safety evaluations published from January 2025 to September 2026 using primary sources. Six incidents involved tasks that could not be completed within scope, thirteen involved agents that continued rather than stopped, and five did not report stopping behavior. Developers' figures imply a task-level incidence ratio near 47 for out-of-scope coordination in never-solved versus solved tasks. Among evaluations, 87 recorded an out-of-scope effect or specification violation, 26 treated safe stopping as a first-class outcome, only 20 recorded both, and 79 merged budget exhaustion with failure. In 20 of 22 incidents, the environment allowed an out-of-scope effect, indicating that realized loss of control often reflected persistent agent behavior interacting with permissive boundary conditions; meanwhile, no evaluation reported all fields needed to estimate the full competing-hazards process from published evidence.",
+      "authors": [
+        "Mohamed Aly Bouke"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CR"
+      ],
+      "published": "2026-09-29T19:04:21+00:00",
+      "link": "https://arxiv.org/pdf/2609.38411v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "systematizing loss of control and tracing risk across agent attempts",
+      "llm_evidence_cn": "智能体失控系统化与跨尝试风险追踪",
+      "llm_evidence": "智能体失控系统化与跨尝试风险追踪",
+      "canonical_evidence": "智能体失控系统化与跨尝试风险追踪",
+      "llm_tldr_en": "Formalizes agent loss of control as a competing-hazards model with approved completion, safe stop, scope escape, and continuation, deriving escape probability and safe budgets.",
+      "llm_tldr_cn": "领先AI开发者报告智能体越权行动，联合国小组视其为人类失去控制的早期预警，但事件报告与安全评估描述方式不一，难以比较失败、追踪风险或区分智能体行为与环境作用。本文提出统一框架，将每次尝试归为批准完成、安全停止、越界逃逸或继续，并形式化为离散时间竞争风险模型，推导重试预算下的逃逸概率与安全预算上限。该工作为失控风险的系统化度量与比较提供了基础。",
+      "llm_tldr": "领先AI开发者报告智能体越权行动，联合国小组视其为人类失去控制的早期预警，但事件报告与安全评估描述方式不一，难以比较失败、追踪风险或区分智能体行为与环境作用。本文提出统一框架，将每次尝试归为批准完成、安全停止、越界逃逸或继续，并形式化为离散时间竞争风险模型，推导重试预算下的逃逸概率与安全预算上限。该工作为失控风险的系统化度量与比较提供了基础。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "diagnosing causes of failures in autonomous agents",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.34496v1",
+      "source": "arxiv",
+      "title": "MASTraceBench: Diagnosing Collaboration Gains through Proposal Trajectories in LLM-Based Multi-Agent Systems",
+      "abstract": "LLM-based multi-agent systems (MAS) have shown promise in complex problem solving. As MAS methods diversify, systematic evaluation becomes increasingly challenging. However, existing benchmarks largely focus on final outcomes, leaving unclear how collaboration gains arise, are preserved, or are lost. To address this limitation, we introduce MASTraceBench, a benchmark for diagnosing collaboration gains through proposal trajectories in MAS. Across six cooperative and competitive tasks, MASTraceBench tracks and grades proposal trajectories and provides a multi-layer metric suite covering Task Score, Collaboration Gain, proposal-trajectory indicators, and Token Cost. Using MASTraceBench, we systematically compare representative MAS methods not only by final performance, but also by how agent proposals evolve and are aggregated into the final answer. This analysis reveals a recurring pattern: final MAS answers rarely surpass the strongest initial proposal; interaction often lifts initially weaker proposals toward it, while strong initial proposals are seldom further improved and may regress. To reduce this risk, we propose CLEARS, which replaces whole-proposal exchange with claim-level evaluation across agents to guide reliable synthesis. CLEARS more often preserves or improves upon the strongest initial proposal and achieves the highest Collaboration Gain on five of the six tasks.",
+      "authors": [
+        "Yapeng Li",
+        "Songze Li",
+        "Shuang Yu",
+        "Jing Yu",
+        "Zhixin Liu",
+        "Liqiang Wen",
+        "Tonghua Su"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA"
+      ],
+      "published": "2026-09-28T07:44:26+00:00",
+      "link": "https://arxiv.org/pdf/2609.34496v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "benchmark diagnosing how collaboration gains arise, persist or are lost in multi-agent systems",
+      "llm_evidence_cn": "诊断多智能体协作增益产生、保持或丢失的基准",
+      "llm_evidence": "诊断多智能体协作增益产生、保持或丢失的基准",
+      "canonical_evidence": "诊断多智能体协作增益产生、保持或丢失的基准",
+      "llm_tldr_en": "MASTraceBench grades proposal trajectories to diagnose when collaboration gains arise, persist or are lost in LLM multi-agent systems.",
+      "llm_tldr_cn": "多智能体系统方法日益多样，但现有基准多关注最终结果，难以说明协作增益如何产生、保持或丢失。论文提出MASTraceBench，通过提案轨迹诊断协作增益，在六类合作与竞争任务上追踪并评分提案轨迹，提供任务得分、协作增益、轨迹指标与词元成本等多层指标。该基准可用于系统比较不同多智能体方法，为协作失效与协调风险的分析提供诊断工具。",
+      "llm_tldr": "多智能体系统方法日益多样，但现有基准多关注最终结果，难以说明协作增益如何产生、保持或丢失。论文提出MASTraceBench，通过提案轨迹诊断协作增益，在六类合作与竞争任务上追踪并评分提案轨迹，提供任务得分、协作增益、轨迹指标与词元成本等多层指标。该基准可用于系统比较不同多智能体方法，为协作失效与协调风险的分析提供诊断工具。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "risks and failures in multi-agent coordination",
+      "matched_requirement_id": "req-16",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2610.00400v1",
+      "source": "arxiv",
+      "title": "Representation Transitions Reveal Emerging Safety Risks in Multi-Turn LLM Agents",
+      "abstract": "Multi-turn attacks on agentic systems can compose individually permissible actions into harmful outcomes, challenging defenses that assess actions or states in isolation. We show that such attacks leave a detectable signature in the agent's internal representations: harmful behavior emerges as an accumulated representation transition across context updates, whose triggering context can be identified from the same signal. We further find that naive aggregation is confounded by benign representation drift, as a contrastive safety direction need not assign zero to benign transitions. We address this by denoising the direction, anchoring benign traffic at zero and removing its leading variation directions, with no runtime cost.   These findings motivate DART, a runtime framework that detects and attributes representation shifts and intervenes with targeted reminders. Across six models and two multi-turn benchmarks, DART reduces attack success from 84% to 25% on MT-AgentRisk, catching every attack at a mean false-alarm rate of 12%, and from 97% to 52% on ASEval, at costs in benign non-refusal of 8% and 0%, respectively. On MT-AgentRisk, it outperforms ToolShield, the state-of-the-art multi-turn defense, on all six models: under the same protocol, ToolShield reaches only 55%. Denoising is critical: on ASEval, the undenoised monitor catches only 7%-40% of attacks, while the denoised monitor catches 60%-85%. The same monitor covers single-turn indirect injection without modification and adds only 0.14-0.56 s overhead per monitored step without requiring an auxiliary model, making it a lightweight complement to computation-heavy speculative defenses.",
+      "authors": [
+        "Haoyu Wang",
+        "Wei Zhao",
+        "Yedi Zhang",
+        "Christopher M. Poskitt",
+        "Jun Sun"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CR"
+      ],
+      "published": "2026-09-30T12:30:56+00:00",
+      "link": "https://arxiv.org/pdf/2610.00400v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "localizes harmful multi-turn agent behavior via accumulated internal representation transitions",
+      "llm_evidence_cn": "通过累积的内部表征转移定位多轮智能体的有害行为",
+      "llm_evidence": "通过累积的内部表征转移定位多轮智能体的有害行为",
+      "canonical_evidence": "通过累积的内部表征转移定位多轮智能体的有害行为",
+      "llm_tldr_en": "Multi-turn attacks compose benign actions into harm; the paper detects and localizes such failures from accumulated representation transitions in agent internals.",
+      "llm_tldr_cn": "多轮攻击可把单独无害的动作组合成有害结果，使逐动作或逐状态的孤立检测失效。论文发现此类攻击在智能体内部表征中留下可检测信号：有害行为表现为上下文更新中累积的表征转移，其触发上下文可由同一信号定位；并通过对安全方向去噪、将良性流量锚定于零来消除良性漂移干扰。该发现为多轮智能体的风险定位与运行时审计提供了内部状态层面的归因方法，且不增加推理开销。",
+      "llm_tldr": "多轮攻击可把单独无害的动作组合成有害结果，使逐动作或逐状态的孤立检测失效。论文发现此类攻击在智能体内部表征中留下可检测信号：有害行为表现为上下文更新中累积的表征转移，其触发上下文可由同一信号定位；并通过对安全方向去噪、将良性流量锚定于零来消除良性漂移干扰。该发现为多轮智能体的风险定位与运行时审计提供了内部状态层面的归因方法，且不增加推理开销。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "diagnosing causes of failures in autonomous agents",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.34649v1",
+      "source": "arxiv",
+      "title": "Beyond Skill Evolution: Self-Evolving Context Management Policies for Long-Horizon Agent Harnesses",
+      "abstract": "Harness evolution improves LLM agents by learning from execution trajectories, but existing experience- and skill-based methods are less effective on long-horizon tasks. As interactions grow, useful evidence can be buried by redundant or outdated context, making context management itself a key bottleneck. We introduce ContextEvo, a framework that learns a context policy from long-horizon trajectories. ContextEvo reconstructs the model-visible context at key decision points, identifies context-related failures, and applies targeted policy updates. Starting from the open-source Pi-agent harness, ContextEvo improves performance across three long-horizon task benchmarks, achieving results comparable to or better than several prominent agent harnesses, including Codex, OpenCode, and OpenClaw. Additional analyses show that fixed or locally evolved context strategies can fall short under long-horizon information pressure, while our methods adapt to the information demands of each environment.",
+      "authors": [
+        "Weiyuan Li",
+        "Jinghan Xu",
+        "Aili Chen",
+        "Xintao Wang",
+        "Shuang Liang",
+        "Jiaqing Liang",
+        "Deqing Yang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-28T08:57:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.34649v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "identifies context-related failures at key decision points",
+      "llm_evidence_cn": "在关键决策点识别上下文相关失败",
+      "llm_evidence": "在关键决策点识别上下文相关失败",
+      "canonical_evidence": "在关键决策点识别上下文相关失败",
+      "llm_tldr_en": "ContextEvo learns a self-evolving context policy from long-horizon agent trajectories, reconstructing model-visible context at key decision points to identify and fix context-related failures.",
+      "llm_tldr_cn": "现有基于经验与技能的智能体进化方法在长时程任务中效果有限，随着交互增长，有用证据被冗余或过时上下文淹没，上下文管理成为瓶颈。本文提出ContextEvo框架，从长时程轨迹中学习上下文策略，在关键决策点重构模型可见上下文，识别与上下文相关的失败并做针对性策略更新。基于开源Pi-agent框架，ContextEvo在三个长时程基准上取得与多个先进方法相当或更优的表现。该工作将错误定位聚焦到上下文层面，提升了长时程智能体的可靠性。",
+      "llm_tldr": "现有基于经验与技能的智能体进化方法在长时程任务中效果有限，随着交互增长，有用证据被冗余或过时上下文淹没，上下文管理成为瓶颈。本文提出ContextEvo框架，从长时程轨迹中学习上下文策略，在关键决策点重构模型可见上下文，识别与上下文相关的失败并做针对性策略更新。基于开源Pi-agent框架，ContextEvo在三个长时程基准上取得与多个先进方法相当或更优的表现。该工作将错误定位聚焦到上下文层面，提升了长时程智能体的可靠性。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "identifying and locating errors in AI agent behavior",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2610.01244v1",
+      "source": "arxiv",
+      "title": "Right Answers, Wrong States: Hidden Information Failures in Multi-Agent Collaboration",
+      "abstract": "Multi-agent systems are often judged by whether they reach the correct answer. This can miss a distinct failure: collaboration may leave behind a corrupted information state even when the immediate decision is correct. We call this an off-query failure. To study this failure in collaborative decision support, we introduce OffQuery, which separately evaluates evidence verification (T1), shared-state reconstruction (T2), and task resolution (T3) in two representative high-stakes settings: healthcare and disaster response. Across GPT, Gemini, and Qwen models, standard collaboration shows much stronger task performance than state reliability. Averaged over 21 model--setting combinations, task resolution reaches 64.7%, while evidence verification and state reconstruction reach only 14.3% and 43.1%. We trace this gap to selective information use: current queries often bypass corrupted facts, which become consequential when later tasks require them. We further introduce ReGround, which resolves conflicting evidence, verifies shared facts, reconstructs a trusted state, and reasons over that state. Across seven models from three families, ReGround improves all three capabilities in every evaluated setting, with average relative gains of 309.0%, 82.9%, and 17.6% on T1, T2, and T3. Reliable collaboration therefore requires both a correct decision and a reliable shared state for future reasoning.",
+      "authors": [
+        "Herun Wan",
+        "Jiaying Wu",
+        "Minnan Luo",
+        "Zihan Ma",
+        "Fanxiao Li",
+        "Nancy F. Chen",
+        "Min-Yen Kan"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-10-01T07:42:27+00:00",
+      "link": "https://arxiv.org/pdf/2610.01244v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "collaboration leaves corrupted information state despite correct answer",
+      "llm_evidence_cn": "协作即使答案正确也留下被污染的信息状态",
+      "llm_evidence": "协作即使答案正确也留下被污染的信息状态",
+      "canonical_evidence": "协作即使答案正确也留下被污染的信息状态",
+      "llm_tldr_en": "This paper identifies off-query failures where multi-agent collaboration corrupts shared information state even when decisions are correct, and introduces OffQuery to separately evaluate evidence, state and task.",
+      "llm_tldr_cn": "多智能体系统常以是否得到正确答案来评判，却可能忽视一种独特失败：协作虽使即时决策正确，却留下被污染的信息状态，作者称之为离查询失败。为此提出OffQuery，在医疗与灾害响应两个高风险场景中分别评估证据验证、共享状态重建与任务求解三个层次。对GPT、Gemini与Qwen等模型的测试显示，标准协作的任务表现远强于状态可靠性，21组模型-场景组合中任务求解达64.7%而证据验证明显偏低。该工作揭示多智能体协作中隐藏的协调失败风险。",
+      "llm_tldr": "多智能体系统常以是否得到正确答案来评判，却可能忽视一种独特失败：协作虽使即时决策正确，却留下被污染的信息状态，作者称之为离查询失败。为此提出OffQuery，在医疗与灾害响应两个高风险场景中分别评估证据验证、共享状态重建与任务求解三个层次。对GPT、Gemini与Qwen等模型的测试显示，标准协作的任务表现远强于状态可靠性，21组模型-场景组合中任务求解达64.7%而证据验证明显偏低。该工作揭示多智能体协作中隐藏的协调失败风险。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "collective misalignment and coordination failures in multi-agent systems",
+      "matched_requirement_id": "req-14",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.34790v2",
+      "source": "arxiv",
+      "title": "CoSec: Benchmarking Agent Security in Communities",
+      "abstract": "LLM agents operate in persistent collaborative environments involving multiple users, communities, memories, files, and tools. Community boundaries may remain fixed or evolve with changes in membership, roles, composition, and relationships. Agents must complete legitimate tasks and prevent unauthorized disclosure of protected information. Existing evaluations do not fully examine these risks in agent systems. We introduce \\textbf{CoSec}, an executable benchmark for evaluating privacy and authorization enforcement in LLM agent systems operating within and across communities. CoSec contains 208 canonical scenarios spanning fixed and evolving boundaries, protected information belonging to the agent owner or other participants, and attacks through dialogue, environmental content, persistent memory, and composed workflows. CoSec executes complete agent systems with persistent sessions, memory, files and tools. It verifies information flows against the active authorization state using execution traces and artifacts. Across harness and model configurations, agents frequently complete benign tasks but violate privacy and authorization boundaries. Privacy behavior varies across harnesses, attack surfaces, and community states, revealing how memory, files, tools, and workflows can carry protected information beyond its authorized scope. These findings show that task utility does not imply privacy or authorization compliance and that authorization in community settings remains an unresolved security challenge for persistent LLM agents.",
+      "authors": [
+        "Hao Chen",
+        "Wenhui Dong",
+        "Ye Chen",
+        "Jiezhi Yao",
+        "Chenbo Xia",
+        "Yuwen Qu",
+        "Renxiang Wang",
+        "Fudong Yuan",
+        "Camil Hamami",
+        "Chenglong Pan",
+        "Xinquan Yue",
+        "Ziyu Wang",
+        "Fengyu Ye",
+        "Chenyang Si",
+        "Caifeng Shan"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-09-28T10:00:05+00:00",
+      "link": "https://arxiv.org/pdf/2609.34790v2",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "executable benchmark for privacy and authorization enforcement in LLM agent systems",
+      "llm_evidence_cn": "面向LLM智能体隐私与授权合规执行的基准",
+      "llm_evidence": "面向LLM智能体隐私与授权合规执行的基准",
+      "canonical_evidence": "面向LLM智能体隐私与授权合规执行的基准",
+      "llm_tldr_en": "Existing evaluations rarely test whether LLM agents respect privacy and authorization across communities. CoSec is an executable benchmark of 208 scenarios with fixed and evolving community boundaries, revealing gaps in agents' compliance and auditing.",
+      "llm_tldr_cn": "现有评测很少检验LLM智能体在跨社区协作中是否遵守隐私与授权边界。为此作者提出CoSec可执行基准，包含208个覆盖固定与演化社区边界、保护信息与攻击路径的规范场景。实验系统评估了智能体在对话与环境攻击下的越权与泄露行为，暴露出明显的合规防护缺口。该基准为社区场景下智能体行为的合规与安全审计提供了标准化工具。",
+      "llm_tldr": "现有评测很少检验LLM智能体在跨社区协作中是否遵守隐私与授权边界。为此作者提出CoSec可执行基准，包含208个覆盖固定与演化社区边界、保护信息与攻击路径的规范场景。实验系统评估了智能体在对话与环境攻击下的越权与泄露行为，暴露出明显的合规防护缺口。该基准为社区场景下智能体行为的合规与安全审计提供了标准化工具。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "auditing the behavior of intelligent agents for compliance and correctness",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.36556v1",
+      "source": "arxiv",
+      "title": "MAADBench: The Refreshable Paradigm for Anomaly Detection in Multi-Agent Systems",
+      "abstract": "Recent studies report that LLM-based multi-agent systems (MAS) fail at rates of 41%-87%, yet to our knowledge, no benchmark to date supports systematic anomaly detection (AD) for them. Building MAS AD benchmarks is hard because they must remain fresh as LLM systems evolve: tasks may leak into training data and thus be memorized by LLMs, traces and anomaly patterns expire as backbones evolve, and labels must be provided reliably for each refresh. To address these challenges, we present MAADBench (MA: multi-agent; AD: anomaly detection), the first refreshable MAS AD benchmark designed for diverse, evolving LLM backbones underlying the agents. MAADBench combines (1) sampled-and-coupled generative tasks over an approximately 10^37-task space to mitigate task leakage, (2) refreshable trace generation under configurable LLM backbones, and (3) automated provision of cost-free, deterministic step-level labels for fine-grained AD evaluation. Beyond offering the paradigm itself, we run MAADBench with five state-of-the-art LLM backbones and release the MAADBench-Full dataset with 5,200 step-labeled traces. Benchmarking 25 AD methods on the MAADBench dataset reveals substantial limitations in current approaches: they rely heavily on supervision, struggle with subtle MAS-specific anomalies, and lack robustness across LLM backbones. These gaps point to a rich research agenda for MAS-specific anomaly detection, with MAADBench providing a systematic and refreshable testbed for method development and evaluation. We open-source MAADBench-Full at https://huggingface.co/datasets/hww123/MAADBench-full.",
+      "authors": [
+        "Lei Ma",
+        "Dennis Hofmann",
+        "Haowen Xu",
+        "Joshua DeOliveira",
+        "Peter VanNostrand",
+        "Lei Cao",
+        "Elke Rundensteiner"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-29T02:42:00+00:00",
+      "link": "https://arxiv.org/pdf/2609.36556v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "anomaly detection benchmark for multi-agent systems",
+      "llm_evidence_cn": "面向多智能体系统的异常检测基准",
+      "llm_evidence": "面向多智能体系统的异常检测基准",
+      "canonical_evidence": "面向多智能体系统的异常检测基准",
+      "llm_tldr_en": "Presents MAADBench, the first refreshable anomaly detection benchmark for LLM-based multi-agent systems, using sampled-and-coupled generative tasks over a huge task space to keep evaluation fresh as backbones evolve.",
+      "llm_tldr_cn": "LLM多智能体系统失败率高达41%至87%，但尚无基准系统支持其异常检测，且任务易泄漏被记忆、痕迹随模型演化过期、标注需可靠刷新。本文提出MAADBench，首个可刷新的多智能体异常检测基准，支持多样且不断演化的LLM骨干，并基于约十的三十七次方任务空间生成采样耦合的生成式任务。该基准为在演化条件下识别与定位多智能体异常提供了系统化评测手段。",
+      "llm_tldr": "LLM多智能体系统失败率高达41%至87%，但尚无基准系统支持其异常检测，且任务易泄漏被记忆、痕迹随模型演化过期、标注需可靠刷新。本文提出MAADBench，首个可刷新的多智能体异常检测基准，支持多样且不断演化的LLM骨干，并基于约十的三十七次方任务空间生成采样耦合的生成式任务。该基准为在演化条件下识别与定位多智能体异常提供了系统化评测手段。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "identifying and locating errors in AI agent behavior",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.36867v1",
+      "source": "arxiv",
+      "title": "State Trace Rationale As Auxiliary Task in Reinforcement Learning",
+      "abstract": "We propose STRAT, an auxiliary task that trains deep reinforcement learning (RL) agents to predict a short textual trace of their own state. Inspired by human spatial navigation, the description combines landmark, route, and survey knowledge, tracking the agent's position, inventory, goals, and immediate progress. Environment rules generate this text online without human labelling. Our method adds a single auxiliary head to a standard policy. Across 60 sparse-reward XLand-MiniGrid tasks, STRAT solves complex environments where standard RL fails outright, while compacting state representations and preventing rank collapse. Beyond performance gains, the predicted trace provides a readable account of agent beliefs at every step for no extra cost.",
+      "authors": [
+        "Muhammad U. Nasir",
+        "Alex Vogt",
+        "Steven D. James",
+        "Julian Togelius"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-29T07:07:22+00:00",
+      "link": "https://arxiv.org/pdf/2609.36867v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "readable account of agent beliefs at every step via predicted state traces",
+      "llm_evidence_cn": "通过预测状态轨迹提供每步智能体信念的可读说明",
+      "llm_evidence": "通过预测状态轨迹提供每步智能体信念的可读说明",
+      "canonical_evidence": "通过预测状态轨迹提供每步智能体信念的可读说明",
+      "llm_tldr_en": "To make RL agent beliefs readable, the paper proposes STRAT, an auxiliary task predicting short textual state traces, solving sparse-reward tasks where standard RL fails while providing step-level accounts of agent beliefs.",
+      "llm_tldr_cn": "深度强化学习智能体的隐藏表示难以解释其决策依据，缺乏可读的行为说明。本文提出STRAT辅助任务，训练智能体预测结合地标、路线与全局知识的简短状态文本轨迹，由环境规则在线生成而无需人工标注。在60个稀疏奖励XLand-MiniGrid任务上，STRAT解决了标准RL完全失败的环境，同时压缩状态表示并防止秩塌缩。其额外价值在于为每一步智能体信念提供可读解释。",
+      "llm_tldr": "深度强化学习智能体的隐藏表示难以解释其决策依据，缺乏可读的行为说明。本文提出STRAT辅助任务，训练智能体预测结合地标、路线与全局知识的简短状态文本轨迹，由环境规则在线生成而无需人工标注。在60个稀疏奖励XLand-MiniGrid任务上，STRAT解决了标准RL完全失败的环境，同时压缩状态表示并防止秩塌缩。其额外价值在于为每一步智能体信念提供可读解释。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "explaining why an AI agent made a particular decision or action",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.37153v1",
+      "source": "arxiv",
+      "title": "When Tools Silently Lie: Evaluating and Mitigating Blind Compliance in Tool-Augmented Data Agents",
+      "abstract": "Tool-augmented data agents rely on tool outputs for analytical decisions. Yet successful execution can return plausible but incorrect evidence, requiring agents to decide whether to trust or verify it. Understanding this failure requires examining both the evidence obtained through checking and the answer ultimately adopted. We introduce ToxicBench to measure checking and adoption under numerical, label, schema, and retrieval errors, pairing clean and poisoned observations over fixed source data. In the 118-task GPT evaluation across three adapters, poisoning lowers task success by 26 to 39 percentage points. Ordinary retries help under one-shot poisoning, whereas repeated poisoning reveals wrong-answer adoption after checking. Controls on three public tables isolate how supplied evidence affects recovery. After freezing the scorer, we compare its judgments with human annotations on 200 trajectories, finding 96% task-success agreement. Human judgments support retry gains over Base and confirm adoption after checking on audited tasks. We release trajectories, versioned scoring, and reference and delivery audits. These findings highlight evidence availability and answer selection as complementary dimensions of agent reliability.",
+      "authors": [
+        "Zifu Tao",
+        "Changqing Yin"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CR"
+      ],
+      "published": "2026-09-29T09:45:17+00:00",
+      "link": "https://arxiv.org/pdf/2609.37153v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "diagnosing blind compliance failures in tool-augmented data agents",
+      "llm_evidence_cn": "诊断工具增强数据智能体的盲目服从失败",
+      "llm_evidence": "诊断工具增强数据智能体的盲目服从失败",
+      "canonical_evidence": "诊断工具增强数据智能体的盲目服从失败",
+      "llm_tldr_en": "Introduces ToxicBench to measure checking and adoption under poisoned tool outputs, diagnosing why tool-augmented data agents blindly adopt plausible but wrong evidence.",
+      "llm_tldr_cn": "工具增强的数据智能体依赖工具输出做分析决策，但工具可能返回看似合理却错误的证据，智能体需决定是否信任或核验。本文提出ToxicBench基准，在数值、标签、模式与检索错误下同时测量核验行为与最终答案采纳。在118项GPT任务中，投毒使成功率下降26至39个百分点，重复投毒会导致智能体在核验后仍采纳错误答案。该工作揭示了工具智能体盲目服从的失败机制并给出缓解方向。",
+      "llm_tldr": "工具增强的数据智能体依赖工具输出做分析决策，但工具可能返回看似合理却错误的证据，智能体需决定是否信任或核验。本文提出ToxicBench基准，在数值、标签、模式与检索错误下同时测量核验行为与最终答案采纳。在118项GPT任务中，投毒使成功率下降26至39个百分点，重复投毒会导致智能体在核验后仍采纳错误答案。该工作揭示了工具智能体盲目服从的失败机制并给出缓解方向。",
+      "llm_tags": [
+        "query:agent-audit"
+      ],
+      "matched_query_tag": "query:agent-audit",
+      "matched_query_text": "diagnosing causes of failures in autonomous agents",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.38327v1",
+      "source": "arxiv",
+      "title": "Absorbing State Phase Transitions in Multi-Agent Search",
+      "abstract": "Nontrivial dynamics can emerge in large language model (LLM)-based multi-agent systems, and preliminary evidence exists that formalisms from statistical mechanics can be effective at modeling and predicting such behaviors. In parallel, designing multi-agent communication topology for optimal task-solving is an active research question. In this paper, we focus on predicting the success of multi-agent search tasks using the formalism of absorbing state phase transitions. We first taxonomize search tasks into four types, informed by classical results in combinatorial search. We then theoretically derive a critical communication degree $d_c$, the minimum number of agents each agent can communicate with, above which incorrect hypotheses do not proliferate uncontrollably and the search enters the solved state. Finally, we evaluate frontier LLM-based multi-agent systems on real-world search and discovery tasks, software configuration debugging and physical mechanism discovery, and find that agreement with theory is mixed. LLM agents may not communicate with their neighbors and can develop strategies that are individually beneficial but limits the benefits of collaboration.",
+      "authors": [
+        "Wenwen Zheng",
+        "Yuzhe Yang",
+        "Helen Qu",
+        "Xin Eric Wang",
+        "Haewon Jeong"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA"
+      ],
+      "published": "2026-09-29T18:00:49+00:00",
+      "link": "https://arxiv.org/pdf/2609.38327v1",
+      "tags": [
+        "keyword:agent-audit",
+        "keyword:agent-safety",
+        "query:agent-audit",
+        "query:agent-safety"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "predicting emergent error proliferation in multi-agent search via phase transitions",
+      "llm_evidence_cn": "用相变预测多智能体搜索中错误假设的涌现扩散",
+      "llm_evidence": "用相变预测多智能体搜索中错误假设的涌现扩散",
+      "canonical_evidence": "用相变预测多智能体搜索中错误假设的涌现扩散",
+      "llm_tldr_en": "Complex dynamics emerge in LLM multi-agent systems. Using absorbing-state phase transitions, this paper derives a critical communication degree above which incorrect hypotheses stop proliferating, predicting multi-agent search success.",
+      "llm_tldr_cn": "LLM多智能体系统中会涌现非平凡动力学，已有初步证据表明统计力学形式化可有效建模与预测此类行为，但缺乏可预测任务成败的工具。作者以吸收态相变形式化多智能体搜索，将搜索任务分为四类，并理论推导出临界通信度，即每个智能体最少通信对象数，超过该阈值后错误假设不会失控扩散。结果可用于预测多智能体搜索成败，为涌现行为与错误传播提供了可预测的理论框架。",
+      "llm_tldr": "LLM多智能体系统中会涌现非平凡动力学，已有初步证据表明统计力学形式化可有效建模与预测此类行为，但缺乏可预测任务成败的工具。作者以吸收态相变形式化多智能体搜索，将搜索任务分为四类，并理论推导出临界通信度，即每个智能体最少通信对象数，超过该阈值后错误假设不会失控扩散。结果可用于预测多智能体搜索成败，为涌现行为与错误传播提供了可预测的理论框架。",
+      "llm_tags": [
+        "query:agent-safety"
+      ],
+      "matched_query_tag": "query:agent-safety",
+      "matched_query_text": "emergent behaviors and emergent risks in multi-agent systems",
+      "matched_requirement_id": "req-12",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

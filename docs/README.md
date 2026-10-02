@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-10-01</span>
+      <span class="dpr-home-dashboard-kicker">2026-10-02</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 10 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 19 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>9</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>7</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-10-01 23:40:09 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-10-02 23:03:07 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,10 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日共生成 10 篇推荐（精读 1 篇，速读 9 篇）</p>
-<p>精读：《ASCT: Attentive Search over Counterfactual Trees for Credit Assignment in Agentic Reinforcement Learning》（8.0/10）</p>
-<p>速读：《NLPG: Natural-Language Policy Gradients for Self-Evolving Language Agents》（7.0/10）, 《AgentHop: A Diagnostic Benchmark for Agentic Multi-Hop Scientific Question Answering》（7.0/10）, 《ADF-EA: A Unified Execution Assurance System for Agent Device Foundation》（6.0/10）</p>
-<p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
+<p>2026-10-02 日报精选 19 篇 AI 论文，精读 7 篇、速读 12 篇，聚焦企业级 AI 智能体治理与故障分析。最值得关注的是满分 9.0 的 VeriWeave Govern（面向企业 AI 智能体的证据门控确定性运行时治理）与 Agent Error Dataset（5 万条错误—诊断对，支撑失败分析与错误感知后训练）。建议普通读者优先了解智能体出错后的诊断与治理思路，再结合多智能体推理与安全风险类速读论文拓展视野。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -81,12 +78,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">1 篇</strong>
+    <strong class="dpr-home-dashboard-count">7 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="ASCT: Attentive Search over Counterfactual Trees for Credit Assignment in Agentic Reinforcement Learning">ASCT: Attentive Search over Counterfactual Trees for Credit Assignment in Agentic Reinforcement Learning</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="VeriWeave Govern: Evidence-Gated Deterministic Runtime Governance for Enterprise AI Agents">VeriWeave Govern: Evidence-Gated Deterministic Runtime Governance for Enterprise AI Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="Agent Error Dataset: Scaling 50,000 Error--Diagnosis Pairs for Failure Analysis and Error-Aware Post-Training">Agent Error Dataset: Scaling 50,000 Error--Diagnosis Pairs for Failure Analysis and Error-Aware Post-Training</span></li><li><span class="dpr-home-dashboard-paper-title" title="DeFA: Dependency-Guided Failure Attribution for LLM Agents">DeFA: Dependency-Guided Failure Attribution for LLM Agents</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>4</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>3</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -94,12 +91,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">9 篇</strong>
+    <strong class="dpr-home-dashboard-count">12 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="NLPG: Natural-Language Policy Gradients for Self-Evolving Language Agents">NLPG: Natural-Language Policy Gradients for Self-Evolving Language Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="AgentHop: A Diagnostic Benchmark for Agentic Multi-Hop Scientific Question Answering">AgentHop: A Diagnostic Benchmark for Agentic Multi-Hop Scientific Question Answering</span></li><li><span class="dpr-home-dashboard-paper-title" title="ADF-EA: A Unified Execution Assurance System for Agent Device Foundation">ADF-EA: A Unified Execution Assurance System for Agent Device Foundation</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Collective Regimes in Multi-Agent LLMs under Reasoning Effort and Communication Topology">Collective Regimes in Multi-Agent LLMs under Reasoning Effort and Communication Topology</span></li><li><span class="dpr-home-dashboard-paper-title" title="A Competing-Hazards Systematization of Loss of Control in Autonomous Agents">A Competing-Hazards Systematization of Loss of Control in Autonomous Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="Representation Transitions Reveal Emerging Safety Risks in Multi-Turn LLM Agents">Representation Transitions Reveal Emerging Safety Risks in Multi-Turn LLM Agents</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>8</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>8</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>4</strong></span></div>
 </section>
 </div>
 
