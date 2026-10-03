@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-10-02</span>
+      <span class="dpr-home-dashboard-kicker">2026-10-03</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 19 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 9 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>7</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>8</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-10-02 23:03:07 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-10-03 22:37:58 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,7 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>2026-10-02 日报精选 19 篇 AI 论文，精读 7 篇、速读 12 篇，聚焦企业级 AI 智能体治理与故障分析。最值得关注的是满分 9.0 的 VeriWeave Govern（面向企业 AI 智能体的证据门控确定性运行时治理）与 Agent Error Dataset（5 万条错误—诊断对，支撑失败分析与错误感知后训练）。建议普通读者优先了解智能体出错后的诊断与治理思路，再结合多智能体推理与安全风险类速读论文拓展视野。</p>
+<p>今日从 9 篇新论文中精读 1 篇、速读 8 篇，聚焦多智能体协作与智能体安全、规划方向。</p>
+<p>最值得看的是 8.0 分的《Global Coherence：当每个 Agent 都正确、团队却仍然出错》——从局部到全局的语义基础；速读中另有恶意技能审计、长程任务&quot;计划—执行&quot;一致性、编码智能体何时介入三条 7.0 分线索。</p>
+<p>普通读者可先读精读那篇理解&quot;个体正确≠团队正确&quot;的根源，再按自己场景（安全审计、长程规划或编码助手）挑一篇速读跟进。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -78,12 +80,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">7 篇</strong>
+    <strong class="dpr-home-dashboard-count">1 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="VeriWeave Govern: Evidence-Gated Deterministic Runtime Governance for Enterprise AI Agents">VeriWeave Govern: Evidence-Gated Deterministic Runtime Governance for Enterprise AI Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="Agent Error Dataset: Scaling 50,000 Error--Diagnosis Pairs for Failure Analysis and Error-Aware Post-Training">Agent Error Dataset: Scaling 50,000 Error--Diagnosis Pairs for Failure Analysis and Error-Aware Post-Training</span></li><li><span class="dpr-home-dashboard-paper-title" title="DeFA: Dependency-Guided Failure Attribution for LLM Agents">DeFA: Dependency-Guided Failure Attribution for LLM Agents</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Global Coherence: When Every Agent Is Right and the Team Is Still Wrong - A Local-to-Global Semantic Foundation for Multi-Agent Collaboration">Global Coherence: When Every Agent Is Right and the Team Is Still Wrong - A Local-to-Global Semantic Foundation for Multi-Agent Collaboration</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>4</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>3</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-safety <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -91,12 +93,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">12 篇</strong>
+    <strong class="dpr-home-dashboard-count">8 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Collective Regimes in Multi-Agent LLMs under Reasoning Effort and Communication Topology">Collective Regimes in Multi-Agent LLMs under Reasoning Effort and Communication Topology</span></li><li><span class="dpr-home-dashboard-paper-title" title="A Competing-Hazards Systematization of Loss of Control in Autonomous Agents">A Competing-Hazards Systematization of Loss of Control in Autonomous Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="Representation Transitions Reveal Emerging Safety Risks in Multi-Turn LLM Agents">Representation Transitions Reveal Emerging Safety Risks in Multi-Turn LLM Agents</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="SKILLLITE: Evidence-Guided Malicious Skill Auditing with Compact LLMs">SKILLLITE: Evidence-Guided Malicious Skill Auditing with Compact LLMs</span></li><li><span class="dpr-home-dashboard-paper-title" title="Consistent Plan-Act for Long-Horizon Agentic Tasks">Consistent Plan-Act for Long-Horizon Agentic Tasks</span></li><li><span class="dpr-home-dashboard-paper-title" title="Learning When and How to Intervene: A Hindsight-Distilled Sentinel for Coding Agents">Learning When and How to Intervene: A Hindsight-Distilled Sentinel for Coding Agents</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>8</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>4</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>5</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>3</strong></span></div>
 </section>
 </div>
 
