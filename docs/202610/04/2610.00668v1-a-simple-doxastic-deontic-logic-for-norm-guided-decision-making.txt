@@ -1,0 +1,566 @@
+Title: A Simple Doxastic Deontic Logic for Norm-Guided Decision Making
+
+URL Source: https://arxiv.org/pdf/2610.00668v1
+
+Published Time: Fri, 02 Oct 2026 00:29:03 GMT
+
+Number of Pages: 21
+
+Markdown Content:
+# A Simple Doxastic Deontic Logic for Norm-Guided Decision Making 
+
+Thorsten Engesser and Agata Ciabattoni 
+
+TU Wien 
+
+thorsten@logic.at, agata@logic.at 
+
+Abstract. Making decisions despite conflicting norms and incomplete or unreliable information is a fundamental challenge for autonomous sys-tems. We introduce a simple doxastic deontic logic for this setting: a clas-sically reducible fragment of Chellas’ Minimal Deontic Logic, extended with explicit conditional norms and combined with multi-agent KD45, so that norms can depend on agents’ beliefs about both facts and norms. On this logic we define the Doxastic Norm Compliance Optimization Problem, where an agent chooses a decision minimizing weighted norm violations. We distinguish subjective optimization (relative to the agent’s beliefs) from objective optimization (relative to the actual facts). We give conditions under which (i) the two coincide and (ii) optimal decision-making can be reduced to weighted partial MaxSAT in polynomial time. 
+
+# 1 Introduction 
+
+AI systems are increasingly deployed in domains governed by legal, organiza-tional, or ethical norms, which specify obligatory and forbidden actions. Au-tonomous vehicles, assistive robots, or decision-support systems must therefore select actions that comply with applicable regulations and policies. However, these systems may face conflicting norms and partial or unreliable beliefs about their environment, making it difficult to determine which norms apply. Norm-guided decision making therefore raises two key challenges. First, full compliance with norms may be impossible. In such cases, an intelligent agent should select the action that minimizes the severity of norm violations (the lesser evil). Second, many norms are conditional, so their applicability may depend on the agent’s beliefs about the world. The agent must therefore determine which norms apply before selecting an action. Existing approaches address different aspects of these challenges but do not provide a unified framework for doxastic normative reasoning that is both expres-sive and suitable for automated decision making. Deontic logics remain the prin-cipal tool to formalize and reason about norms [8, 9]. Among these, preference-based deontic logics [3, 22] provide elegant treatments of conditional norms and contrary-to-duty (CTD) obligations 1 but struggle with factual detachment, i.e., inferring a concrete obligation from a conditional norm once the relevant facts  
+
+> 1
+
+Obligations that come into force when other obligations are violated. arXiv:2610.00668v1 [cs.AI] 30 Sep 2026 are established, e.g. [7]. Input/Output logics [17], instead, naturally support fac-tual detachment of conditional norms, and in their constrained variants [18], can accommodate certain conflicts and CTD reasoning, but not higher-order norms. Moreover, these formalisms do not work well in the presence of dilemmas (where an action is both obligatory and prohibited) or belief-dependent norms. Logic-programming approaches (e.g. [24, 11, 14]), including deontic extensions of Answer Set Programming (via modal operators [1, 10] or atomic norms [5]), offer practical implementations but have not been combined with doxastic reasoning. Motivated by this gap, we develop a logical framework for norm-guided de-cision making under imperfect information. Rather than aiming for a compre-hensive theory of deontic reasoning, our objective is to identify a fragment that captures the essential mechanisms needed for practical decision support while remaining simple and easily extensible. Our starting point is a restricted frag-ment of Chellas’ Minimal Deontic Logic [6], in which obligations and prohibitions apply only to atomic normative contents. We show that reasoning in this frag-ment reduces to ordinary classical propositional reasoning. We then enrich it with explicitly represented conditional norms and factual detachment, obtaining a Lightweight Deontic Logic (LDL) that captures key aspects of conditional nor-mative reasoning, including higher-order norms for expressing obligations that govern when other obligations apply. To capture the role of beliefs in norm applicability, we combine LDL with multi-agent doxastic logic [13, 12], allowing explicit norms to depend on agents’ beliefs, while agents themselves may reason about both factual information and their beliefs about norms. Building on this logical framework, we introduce the Doxastic Norm Compliance Optimization Problem (DNCOP), in which an act-ing agent must choose among alternative decisions while minimizing violations of weighted norms, adopting a sort of utilitarian perspective [19] that aggregates norm violations into a single quantitative measure of harm. The resulting frame-work supports encoding CTDs and exceptions through optimization of weighted norms, while separately distinguishing optimization based on the agent’s sub-jective beliefs from optimization based on the objective state of the world. We identify natural locality and truthfulness conditions under which these two per-spectives coincide; under these conditions, computing optimal decisions reduces in polynomial time to weighted partial MaxSAT [2], allowing existing optimiza-tion technology to be used directly. The resulting framework combines logical transparency with computational efficiency: norms remain explicitly represented, beliefs affect their applicabil-ity, and decisions are obtained through a well-defined optimization problem. Its modular design also allows integration with existing epistemic logics [13, 12, 15], thus supporting more expressive normative reasoning in multi-agent systems. 
+
+# 2 Preliminaries: Chellas’ Minimal Deontic Logic 
+
+Chellas’ Minimal Deontic Logic (MDL) [6] is often presented as a response to the deontic paradoxes that have beset the first formalisation of deontic logic—Standard Deontic Logic [26] (i.e., the normal modal logic KD)—and as a system that tol-erates deontic conflicts. MDL is a very weak system whose language LMDL is defined as φ := p ∈ Prop | ¬ φ | φ ∧ φ | Oφ , where (for the purposes of this paper) Prop is a finite set of (classical) atoms. 
+
+Oφ means “ φ is obligatory”. We define F φ := O¬φ (“ φ is forbidden”) and 
+
+P φ := ¬F φ (“ φ is permitted”). Boolean connectives and constants are as usual. Formulas from LMDL are evaluated over neighborhood models M = ( W, N, V ), where W is a set of worlds , N : W → 22W
+
+is a neighborhood function , and 
+
+V : W → 2Prop assigns to each world a propositional valuation . As frame prop-erties, Chellas’ semantics assumes that ∅ /∈ N (w) for all w ∈ W , and that N (w)is closed under supersets. That is, whenever U ∈ N (w) and U ⊆ X ⊆ W , then 
+
+X ∈ N (w). Truth in a world w of M is defined as follows: 
+
+M, w ⊩MDL p iff p ∈ V (w), 
+
+M, w ⊩MDL Oφ iff {w′ | M , w ′ ⊩MDL φ} ∈ N (w), 
+
+M, w ⊩MDL ¬φ iff M, w ̸ ⊩MDL φ,
+
+M, w ⊩MDL φ ∧ ψ iff M, w ⊩MDL φ and M, w ⊩MDL ψ.
+
+Remark 1. MDL obligations are monadic. A naive conditional obligation can be defined via material implication as O(φ|ψ) := ψ → Oφ . This yields detachment, since O(φ|ψ) ∧ ψ → Oφ , but it behaves inadequately when the obligation essen-tially depends on the condition. In particular, because → is true whenever its antecedent is false, O(φ|ψ) becomes true in all states where ψ does not hold. 
+
+# 3 A Tiny Fragment of MDL 
+
+We identify a fragment of MDL that admits reasoning within classical proposi-tional logic. In this fragment, obligations and prohibitions apply only to atomic normative contents rather than arbitrary formulas. This restriction is inspired by the deontic theories of the Sanskrit philosophical school of M¯ ım¯ am . s¯ a, where commands are understood as having a single goal [4], and it is also in line with the deontic extension DELX of Answer Set Programming [5]. More precisely, we define the tiny deontic language LTDL as 
+
+φ := ω | ¬ φ | φ ∧ φ and ω := p | Oω | F ω 
+
+where p ∈ Prop . We call the subset defined by ω ::= p | Oω | F ω simple normative atoms and denote by Ωt the set of all such atoms. 
+
+Remark 2. Compared to the full language LMDL , LTDL excludes obligations over Boolean combinations (and therefore also over the constants ⊤ or ⊥). In partic-ular, formulas such as O(φ ∧ ψ) are not well formed; instead, we use Oφ ∧ Oψ .Note that in Chellas’ semantics, O(φ ∧ ψ) implies Oφ ∧ Oψ , but not conversely. Also obligations over disjunctions, such as O(φ ∨ ψ), are likewise not admitted. An additional advantage of this restricted formulation is that it blocks problem-atic inferences such as Ross’ paradox [23], according to which the obligation to mail a letter entails the obligation to mail or burn it. Classical Logic as Alternative Semantics We show that reasoning in this fragment reduces to reasoning in classical propositional logic. Intuitively, the only propositionally valid implications between simple normative atoms are identities of the form ω → ω (as ⊥̸ ∈ L TDL , the MDL axiom ¬O⊥ is not in the fragment). For the formal proof we provide a canonical model ( MTDL ) for the fragment, with one world for each possible propositional valuation over the set Ωt of simple normative atoms. The lemmas are proven in the appendix. 
+
+Definition 1. MTDL is (W t, N t, V t) with W t = 2 Ωt
+
+, and for all w ∈ W t,
+
+V t(w) = w ∩ Prop, and N t(w) = closure (wO ∪ wF ), where 
+
+– wO = {{ w′ ∈ W t | ω ∈ w′} | Oω ∈ w},
+
+– wF = {{ w′ ∈ W t | ω̸ ∈ w′} | F ω ∈ w}, and 
+
+– closure (X) = {U ⊆ W t | there exists an x ∈ X such that x ⊆ U }.
+
+Lemma 2. MTDL is a Chellas-style neighborhood model. 
+
+Lemma 3. Let w ∈ W t and ω ∈ Ωt. Then MTDL , w ⊩MDL ω iff ω ∈ w.
+
+By Lemma 3, every simple normative atom ω ∈ Ωt is true in MTDL at w
+
+exactly if ω ∈ w. Since negation and conjunction have the usual classical truth conditions, it follows by structural induction that truth in MTDL agrees with truth in classical logic for all formulas of LTDL . Henceforth we use ⊩CL for the truth relation in classical propositional logic over the set of propositions Ωt:
+
+Theorem 4. Let w ⊆ Ωt and φ ∈ L TDL . Then MTDL , w ⊩MDL φ iff w ⊩CL φ.
+
+Although Ωt is infinite, every concrete finite set of formulas contains only finitely many simple normative atoms. Hence each instance of satisfiability or entailment in LTDL reduces to classical propositional reasoning over a finite set of atoms. 
+
+# 4 Lightweight Deontic Logic 
+
+We now extend the previous fragment to a deontic logic that better captures the conditional nature of normative statements: Lightweight Deontic Logic (LDL). Encoding conditional norms via material implication is inadequate (see Re-mark 1). Instead, LDL assumes explicit conditional norms over atomic propo-sitions, specified directly by the system designer. By factual detachment, these conditional norms give rise to unconditional obligations and prohibitions cor-responding to the tiny fragment of MDL, yielding the implicit unconditional norms of the system. To formalize the distinction of explicit vs implicit norms, we introduce the language LLDL below: 
+
+φ ::= ω | ¬ φ | φ ∧ φ,
+
+ω ::= p ∈ Prop | Oω | F ω | O(ω|φ) | F(ω|φ). We read O(ω|φ) as “ ω is explicitly obligatory given φ” and F(ω|φ) as “ ω is explicitly forbidden given φ”. We call a formula of the form ω ::= p | Oω | F ω |
+
+O(ω|φ) | F(ω|φ) a normative atom and denote by Ω the set of all such atoms. Note that Ω contains higher-order norms. Consider O(F smoking |F drinking ), for example. 4.1 Propositional Semantics 
+
+Although LLDL generalizes LTDL (φ ∈ L LDL for each φ ∈ L TDL ), as shown below, it can still be characterized by the semantics of classical logic. The introduced semantics makes a conceptual distinction between explicit and implicit normative atoms. We say that a given explicit conditional obligation 
+
+O(ω|φ) or prohibition F(ω|φ) is in effect if its condition φ is satisfied. This induces the corresponding implicit obligation Oω or prohibition F ω to be true (which concerns the actual state rather than hypothetical situations). 
+
+Definition 5. An LDL model is a propositional valuation M ⊆ Ω satisfying for all ω ∈ Ω and φ ∈ L LDL the LDL-consistency conditions: 2
+
+– O (ω|φ) ∈ M =⇒ M̸ ⊩CL φ or Oω ∈ M , and 
+
+– F (ω|φ) ∈ M =⇒ M̸ ⊩CL φ or F ω ∈ M .
+
+Definition 6. Let φ ∈ L LDL and let M be an LDL model. We write M ⊩LDL φ
+
+if and only if M ⊩CL φ.
+
+Intuitively, the additional consistency requirement allows us to infer (uncon-ditional) implicit obligations from (conditional) explicit obligations via factual detachment, without strengthening of the antecedent for explicit obligations, as shown by the example below. 
+
+Remark 3. Like in MDL, having a dilemma (i.e. both Oω and F ω ) does not lead to a contradiction. 
+
+Example 7. Consider φ = p ∧ O(r|p) and M = {p, O(r|p), Or }. Clearly, M is an LDL model and M ⊩CL φ ∧ ¬ O(r|p ∧ q). Therefore, M ⊩LDL φ ∧ ¬ O(r|p ∧ q).Remark 4. LDL is a conservative extension of the tiny fragment of Chellas’ MDL. 
+
+4.2 Axiomatization of LDL We define a Hilbert-style proof system for LDL. Its axiom schemata are: 
+
+(Prop) Every instance of a classical propositional tautology over Ω.
+
+(O-Det) O(ω|φ) ∧ φ → Oω , for all ω ∈ Ω and φ ∈ L LDL .
+
+(F-Det) F(ω|φ) ∧ φ → F ω , for all ω ∈ Ω and φ ∈ L LDL .The only inference rule is modus ponens: (MP) From φ and φ → ψ, infer ψ.For Γ ⊆ L LDL and φ ∈ L LDL , we write Γ ⊢LDL φ iff there exists a finite sequence of formulas φ1, . . . , φ n ∈ L LDL with φn = φ such that each φi is either a member of Γ , an instance of one of the above axiom schemata, or obtained from earlier formulas in the sequence by (MP). To prove soundness and completeness, we first provide a lemma connecting semantic consequence in LDL-theories to that of classical propositional logic. For 
+
+Γ ⊆ L LDL and φ ∈ L LDL , we write Γ |=LDL φ if every LDL model M satisfying 
+
+M ⊩LDL Γ also satisfies M ⊩LDL φ. Similarly, we write Γ |=CL φ if M ⊩CL φ for each M ⊩CL Γ . We abbreviate ∅ | =LDL φ by |=LDL φ and ∅ | =CL φ by |=CL φ.                             
+
+> 2We can equivalently write Mas a Boolean function {ω7→ ⊤ | ω∈M} ∪ { ω7→ ⊥ |
+> ω̸∈M}. For ω∈Ω, we write M⊩CL ωiff ω∈M, or equivalently iff M(ω) = ⊤.
+
+Lemma 8. Let ∆ be the set of all instances of O(ω|φ) ∧ φ → Oω and F(ω|φ) ∧
+
+φ → F ω . Then for all Γ ⊆ L LDL and φ ∈ L LDL , we have 
+
+Γ |=LDL φ ⇐⇒ Γ ∪ ∆ |=CL φ.Proof. We first note that a propositional valuation M ⊆ Ω is an LDL model iff 
+
+M ⊩CL ∆. Indeed, considering only obligations (the prohibition case is analo-gous), M violates LDL-consistency exactly when there exists O(ω|φ) such that 
+
+M ⊩CL φ, Oω /∈ M , and thus M̸ ⊩CL (O(ω|φ) ∧ φ → Oω ). Hence, LDL-inconsistency corresponds precisely to falsifying some formula in ∆, and vice versa. It follows that the models of Γ ∪ ∆ are exactly the LDL models of Γ .Therefore, by Definition 6, Γ |=LDL φ ⇐⇒ Γ ∪ ∆ |=CL φ.
+
+Theorem 9 (Soundness and Completeness). Let Γ, φ ⊆ L LDL . Then 
+
+Γ ⊢LDL φ ⇐⇒ Γ |=LDL φ.Proof. Let ∆ be defined as in Lemma 8. We know that Γ |=LDL φ iff Γ ∪ ∆ |=CL 
+
+φ. By soundness and completeness of classical propositional logic, Γ ∪ ∆ |=CL φ
+
+iff Γ ∪ ∆ ⊢CL φ (where ⊢CL is derivability in classical propositional logic over 
+
+Ω). Finally, consider that the Hilbert system is exactly classical propositional logic together with all formulas in ∆ as additional axiom instances. Therefore, 
+
+Γ ∪ ∆ ⊢CL φ ⇐⇒ Γ ⊢LDL φ. Thus, Γ |=LDL φ ⇐⇒ Γ ⊢LDL φ.Lemma 8 yields a polynomial reduction from LDL-satisfiability and LDL-validity to classical propositional satisfiability and validity over the normative atoms occurring in the input formula. For φ ∈ L LDL , let ∆φ contain the de-tachment implications corresponding to all explicit normative atoms occurring recursively in φ. Then φ is LDL-satisfiable iff φ ∧ V ∆φ is classically satisfiable, and LDL-valid iff ( V ∆φ) → φ is classically valid. Hence: 
+
+Theorem 10. Satisfiability in LDL is NP-complete, and validity is co-NP-complete. 
+
+# 5 A Doxastic Extension of LDL 
+
+We now define a direct combination of LDL with multi-agent doxastic logic KD45 [13, 12]. This allows us to express norms conditioned on what agents be-lieve and what they believe to be possible, as well as to express beliefs about norms. Let Ag be a finite set of agents. The language LLDLB is defined by the fol-lowing grammar, where p ∈ Prop and i ∈ Ag :
+
+φ ::= ω | Biφ | ¬ φ | φ ∧ φ, ω ::= p | Oω | F ω | O(ω|φ) | F(ω|φ).
+
+We read formulas Biφ as “agent i believes φ” and define ˆBiφ as an abbreviation for ¬Bi¬φ (which can be read “agent i believes it possible that φ”). We further call formulas generated by ω objective atoms and write ΩB for the set of all such atoms. An important difference from LDL is that conditions of explicit obligations and prohibitions may now contain belief operators. The normative contents of obligations and prohibitions, however, are still restricted to formulas generated by ω (in particular, we cannot model the obligation or prohibition to have a certain belief). Moreover, in LLDLB , we can also specify beliefs about normative facts, such as BiOω , BiF ω , or BiO(ω|φ). 
+
+5.1 Kripke Semantics over LDL-Valuations 
+
+The LDLB semantics combines doxastic Kripke models with LDL-consistency. 
+
+Definition 11. An LDLB premodel is a tuple 
+
+M = ( W, (Ri)i∈Ag , V )
+
+where W is a non-empty set of worlds, Ri ⊆ W × W is agent i’s doxastic 
+
+accessibility relation , and V : W → 2ΩB
+
+assigns an LDL-style valuation to each world. For x ∈ W , write Ri(x) = {y ∈ W | xR iy}. Truth in a premodel is defined as follows: 
+
+M, w ⊩LDLB ω iff ω ∈ V (w),
+
+M, w ⊩LDLB Biφ iff M, v ⊩LDLB φ for all v with wR iv, 
+
+M, w ⊩LDLB ¬φ iff M, w ̸ ⊩LDLB φ, 
+
+M, w ⊩LDLB φ ∧ ψ iff M, w ⊩LDLB φ and M, w ⊩LDLB ψ. 
+
+A premodel is an LDLB model iff it satisfies the following two conditions. (i) For every i ∈ Ag, Ri is serial , transitive , and euclidean .(ii) For every w ∈ W , every ω ∈ ΩB , and every φ ∈ L LDLB ,
+
+O(ω|φ) ∈ V (w) and M, w ⊩LDLB φ =⇒ Oω ∈ V (w),
+
+F(ω|φ) ∈ V (w) and M, w ⊩LDLB φ =⇒ F ω ∈ V (w).
+
+The first condition gives the doxastic logic KD45 for each agent: beliefs are consistent; that is, Biφ → ˆBiφ is valid. Furthermore, agents have positive and negative introspection: Biφ → BiBiφ and ¬Biφ → Bi¬Biφ.3
+
+The second condition enforces LDL-consistency at each individual world. This effectively lifts the factual detachment of LDL to the mental states of the agents: If an agent believes (or believes it possible) that at the same time an explicit norm is given and its condition is satisfied, then the agent believes (or believes it possible) that the norm is in effect. For Γ ⊆ L LDLB and φ ∈ L LDLB , we write Γ |=LDLB φ iff every world of every LDLB model satisfying all formulas in Γ also satisfies φ. 
+
+> 3Positive and negative introspection are controversial assumptions. In the case of artificial agents, however, they can be justified under the assumption that each agent has a consistent belief base, full access, and the ability to reason perfectly about it.
+
+Example 12. Let r mean that an autonomous car moves to the right to yield (e.g., if an emergency vehicle is approaching), and c that a cyclist is to the right of the car. The language distinguishes F(r|Bac) from F(r| ˆBac); only the latter captures “if a cyclist cannot be ruled out, moving right is forbidden”, that is, 
+
+{F(r| ˆBac), ˆBac} | =LDLB F r while {F(r|Bac), ˆBac}̸ | =LDLB F r. 
+
+We can also reason about an agent’s own perspective (i.e., a believes both the norm F(r| ˆBac) and that c is possible): {BaF(r| ˆBac), ˆBac} | =LDLB BaF r (via 
+
+Ba ˆBac by introspection), but {F(r| ˆBac), ˆBac}̸ | =LDLB BaF r. 
+
+Remark 5. LDLB can be axiomatized by adding the LDL detachment axioms to multi-agent KD45. The additional axiom schemata are: 
+
+(O-Det) O(ω|φ) ∧ φ → Oω , for all ω ∈ ΩB and φ ∈ L LDLB .
+
+(F-Det) F(ω|φ) ∧ φ → F ω , for all ω ∈ ΩB and φ ∈ L LDLB .
+
+# 6 Optimizing Norm Violations 
+
+We now turn to decision making itself. An acting agent a ∈ Ag must choose among several possible decisions, each of which may violate some of the appli-cable norms, each having a possibly different weight. We formalize this as the Doxastic Norm Compliance Optimization Problem (DNCOP): given a finite de-scription of the facts, the agents’ beliefs, and a set of weighted norms, find a decision that minimizes total violation weight. Two perspectives are possible. The objective perspective evaluates violations against the full, true state of the world; the subjective perspective evaluates them against what the acting agent believes. We provide conditions under which these two agree and under which optimal decisions can be found by a polynomial reduction to weighted partial MaxSAT [2]. 
+
+6.1 State Vocabulary 
+
+A DNCOP is described using a fixed, finite set of atoms – the state vocabulary .Besides plain facts, we need a compact way to talk about nested beliefs. Following restricted modal literals and proper epistemic knowledge bases [15, 20], beliefs are represented only by nested belief operators applied to a single objective atom. As agents’ beliefs are introspective, a nested belief such as B1B1B2¬B2B2B1ω
+
+is LDLB-equivalent to B1¬B2B1ω: repeated operators for the same agent col-lapse. We therefore only need belief chains that alternate agents. 
+
+Definition 13. A restricted doxastic-deontic atom (RDDA) is either an objec-tive atom ω ∈ ΩB , or a formula X1 . . . X nω (n ≥ 1), where each Xj is either 
+
+Baj or Baj ¬, consecutive operators refer to different agents ( aj̸ = aj+1 ), and ω
+
+is an objective atom. We denote the set of all RDDAs by RDDA .A finite set Σ of such atoms is a state vocabulary if it is closed under sub-atoms, i.e., (let Bool (Σ) denote all Boolean combinations over members of Σ)(i) if Biα ∈ Σ or Bi¬α ∈ Σ (for any RDDA α), then α ∈ Σ,(ii) if Oω ∈ Σ, F ω ∈ Σ, O(ω|φ) ∈ Σ, or F(ω|φ) ∈ Σ, then ω ∈ Σ; and (iii) if O(ω|φ) ∈ Σ or F(ω|φ) ∈ Σ, then φ ∈ Bool (Σ).Finally, we denote by Σa the subset of Σ consisting of RDDAs that have Ba
+
+as their outermost operator (i.e., the beliefs of the acting agent). 
+
+A state vocabulary therefore contains the atoms needed to finitely describe a norm compliance optimization problem. Later, these atoms will be classified as fixed by the environment or controlled by the acting agent. 
+
+6.2 Doxastic Norm Compliance Optimization Problems (DNCOPs) 
+
+We formulate the optimization problem faced by a fixed acting agent a ∈ Ag .The goal is to choose a decision that minimizes (weighted) norm violations. The state vocabulary Σ is partitioned into atoms fixed true by the environ-ment T (e.g., whether an emergency vehicle is approaching), fixed false F, and 
+
+D atoms under the agent’s control (its decisions and their knowledge 4). 
+
+Definition 14. A DNCOP is a tuple ∆ = ( Σ, T , F, D, χ, N, v ), where 
+
+– Σ is a finite state vocabulary, 
+
+– T ⊆ Σ (resp. F ⊆ Σ) contains the atoms fixed true (resp. false) indepen-dently of the decision the agent makes, 
+
+– D ⊆ ΩB is the set of decision atoms the acting agent sets directly, and we write D = D ∪ { Baδ, B a¬δ | δ ∈ D} for these atoms together with the agent’s (automatically correct) beliefs about them; 
+
+– χ ∈ Bool (D) is the decision constraint , defining the possible decisions 
+
+Dec (∆) = {d ⊆ D | d ⊩CL χ}
+
+– N ⊆ Σ is the set of relevant norms (of the form O(ω|φ), F(ω|φ), Oω , F ω ). 
+
+– v is a function that assigns a positive integer weight to each norm n ∈ N .We require that Σ = T ˙∪ F ˙∪ D is a disjoint union. 
+
+Unless specified otherwise, we assume χ = ⊤, so every subset of D is a possible decision. We also omit Σ when clear from the context. 
+
+Example 15. Let r and c be as in Example 12, and let e denote that an emer-gency vehicle is approaching from behind. Consider the norms O(r|e) (“move right if an emergency vehicle approaches”) and F(r|c) (“don’t move right”, once a cyclist is present). Fix e and the agent’s correct belief in it; leave open whether 
+
+c is fixed true or false. Assume v(O(r|e)) = 1 and v(F(r|c)) = 2 . We define two variants of the scenario, one where no cyclist is present ( c is false and fixed) and one where a cyclist is present ( c is true and fixed). We define the DNCOP where there is a cyclist as ∆c (with Tc, Fc), and the DNCOP without a cyclist as ∆¬c (with T¬c, F¬c). For both versions D = {r}, and N = {O(r|e), F(r|c)}.
+
+T¬c = {e, O(r|e), F(r|c), Or, B ae, B aO(r|e), B aF(r|c)}, F¬c = {c, F r, B ac, B a¬c},
+
+Tc = {e, c, O(r|e), F(r|c), Or, F r, B ae, B aO(r|e), B aF(r|c)}, Fc = {Bac, B a¬c}. 
+
+> 4Since LDLB does not have knowledge, we use true beliefs.
+
+In either case, we assume that a believes an emergency vehicle is approaching from behind and that both O(r|e) and F(r|c) hold, and therefore that Or holds. In ∆c also F r holds. All these beliefs are true beliefs .By the default χ = ⊤, the possible decisions are Dec (∆¬c) = Dec (∆c) = 
+
+{∅ , {r}} , where ∅ represents not moving right and {r} represents moving right. 
+
+6.3 Compatible Models and Violation Counts 
+
+Given a decision d in a DNCOP ∆, we can ask which models of the LDLB logic are consistent with it – either assuming full, correct information ( objective compatibility ) or only what the acting agent believes ( subjective compatibility ). 
+
+Definition 16. Let ∆ = ( Σ, T , F, D, χ, N, v ) be a DNCOP and d ⊆ D . Let 
+
+– Choice (∆, d ) = S
+
+> δ∈d
+
+{δ, B aδ, ¬Ba¬δ} ∪ S
+
+> δ∈D\ d
+
+{¬ δ, ¬Baδ, B a¬δ},(adding Ba because the agent believes their decision and thus also ˆBa). 
+
+– Obj (∆, d ) = T ∪ {¬ α | α ∈ F} ∪ Choice (∆, d )
+
+– Subj (∆, d ) = ( T ∩ Σa) ∪ {¬ α | α ∈ F ∩ Σa} ∪ Choice (∆, d )
+
+i.e., {only the acting agent’s own beliefs about T and F} ∪ Choice (∆, d ).
+
+We characterize the LDLB-models ( M, w ) that are subjectively and objec-tively compatible with a DNCOP ∆ and a decision d. For the subjective per-spective, we assume that the acting agent trusts their own beliefs. To achieve this, we restrict ourselves to models with wR aw for the actual world w.5
+
+Definition 17. A pointed LDLB model (M, w ) is objectively compatible with 
+
+(∆, d ) if M, w ⊩LDLB Obj (∆, d ). It is subjectively compatible with (∆, d ) if 
+
+M, w ⊩LDLB Subj (∆, d ) and the agent trusts itself at w, i.e., wR aw.We denote the corresponding sets of models by Mod obj (∆, d ) and Mod sub (∆, d ).Nonemptiness of the respective set defines objective or subjective admissibility. 
+
+In some DNCOPs none of the decisions are objectively admissible (due to inconsistencies in beliefs, norms, or both). In other DNCOPs, only specific deci-sions are. Consider an example from the perspective of the designer, where p ∈ T 
+
+is fixed true and Ox, O(x|p) ∈ D are decision atoms. By detachment, making 
+
+O(x|p) true requires making Ox true as well. In this example {O(x|p), Ox } is objectively admissible but {O(x|p)} is not. Since facts in T are inaccessible to the acting agent, the objective admissibility of {O(x|p)} cannot be determined subjectively (and in particular is not implied by subjective admissibility). Hence, we restrict our attention to decision-sound DNCOPs. This strong but necessary promise allows optimization from the agent’s perspective. 
+
+Definition 18. We call a DNCOP ∆ decision-sound if Dec (∆)̸ = ∅ and every 
+
+d ∈ Dec (∆) is objectively admissible.       
+
+> 5This ensures that ( M, w )⊩LDLB φwhenever ( M, w )⊩LDLB Baφ.
+
+Importantly, as shown below, every objectively admissible decision is also subjectively admissible. This justifies the use of subjectively compatible models when optimizing from the subjective perspective. 
+
+Proposition 19. Let ∆ = ( Σ, T , F, D, χ, N, v ) and d ⊆ D . If d is objectively admissible, then it is subjectively admissible. Proof. Choose ( M, w ) ∈ Mod obj (∆, d ). By seriality, wR av for some v. Transitiv-ity and euclideanness give Ra(w) = Ra(v) and vR av. Hence every RDDA whose outermost agent is a has the same truth value at w and v, so the non-decision part of Subj (∆, d ) holds at v. Because w and v have the same a-successors, all belief literals in Choice (∆, d ) that hold at w also hold at v. Moreover, Baδ or 
+
+Ba¬δ ensures that the corresponding decision literal δ or ¬δ holds at v. Hence 
+
+M, v ⊩LDLB Subj (∆, d ). Together with vR av, this gives ( M, v ) ∈ Mod sub (∆, d ). Therefore Mod sub (∆, d )̸ = ∅, so d is subjectively admissible. We show how to count and optimize norm violations for DNCOPs. We first formalize a violation condition χn for norms: An explicit or implicit obligation is violated when it exists, its content is false, and (only in the case of explicit obligations) its condition holds. Prohibitions are treated analogously. We use this to define the weighted norm violation count viol (M, w ) for a given model ( M, w ), and subsequently the number of violations viol obj (∆, d )and viol sub (∆, d ) for admissible decisions d in a DNCOP ∆, as predicted by the objective or subjective perspective. Since there may be multiple compatible models, our definitions use a pessimistic worst-case 6 assumption 
+
+Definition 20. Let ∆ = ( Σ, T , F, D, χ, N, v ) be a DNCOP. For each norm 
+
+n ∈ N we define the violation condition as 
+
+χn =
+
+
+
+O(ω|φ) ∧ φ ∧ ¬ ω, n = O(ω|φ),
+
+F(ω|φ) ∧ φ ∧ ω, n = F(ω|φ),Oω ∧ ¬ ω, n = Oω, F ω ∧ ω, n = F ω. 
+
+For a pointed model (M, w ), we define its weighted norm violation count as 
+
+viol (M, w ) = X
+
+> n∈N
+> M,w ⊩LDLB χn
+
+v(n).
+
+If d ⊆ D is objectively admissible, we define its objective violation count as 
+
+viol obj (∆, d ) = max 
+
+> (M,w )∈Mod obj (∆,d )
+
+viol (M, w ). 
+
+> 6Assuming the best case is unrealistic and assuming the average is unjustified since compatible models need not be equally likely.
+
+If d ⊆ D is subjectively admissible, we define its subjective violation count as 
+
+viol sub (∆, d ) = max 
+
+> (M,w )∈Mod sub (∆,d )
+
+viol (M, w ).
+
+Both maxima exist because, by admissibility, the respective sets of compatible models are non-empty and every violation count belongs to {0, . . . , P 
+
+> n∈N
+
+v(n)}.Remark 6. The use of weights allows our framework to handle the priority of more specific norms over more general ones ( lex specialis ), and contrary-to-duty (CTD) obligations. Priority between norms can be encoded by assigning higher weights to more specific norms, thereby incentivizing the agent to comply with them whenever they apply. For CTD obligations, independently of the concrete positive weights assigned to the primary obligation (whose violation triggers the secondary obligation) and to the secondary obligation, violating both always incurs a higher cost than violating only the primary obligation. When multiple interacting norms are present, however, appropriate weights must be chosen to reflect the desired priorities, in line with the utilitarian approach in [21] to design norm-compliant reinforcement learning agents. By minimizing over all possible decisions, we now define the objectively and subjectively optimal number of violations viol obj min (∆) and viol sub min (∆), as well as the objectively and subjectively optimal decisions optdec obj (∆) and 
+
+optdec sub (∆). This is well-defined for decision-sound DNCOPs since they have at least one possible decision and all decisions are admissible. 
+
+Definition 21. Let ∆ be a decision-sound DNCOP. We define its objectively and subjectively optimal norm violation counts as 
+
+viol obj min (∆) = min  
+
+> d∈Dec (∆)
+
+viol obj (∆, d ), and viol sub min (∆) = min  
+
+> d∈Dec (∆)
+
+viol sub (∆, d ).
+
+The corresponding sets of optimal decisions are defined as 
+
+optdec obj (∆) = {d ∈ Dec (∆) | viol obj (∆, d ) = viol obj min (∆)},
+
+optdec sub (∆) = {d ∈ Dec (∆) | viol sub (∆, d ) = viol sub min (∆)}.
+
+For a DNCOP ∆ = ( Σ, T , F, D, χ, N, v ) and every d ⊆ D , the objective description determines a propositional valuation ν∆,d = Obj (∆, d ) ∩ Σ, since it contains exactly one of α and ¬α for every α ∈ Σ. All objectively compatible models assign the same truth values to the atoms in Σ. Since each χn is a Boolean combination of these atoms, it can be evaluated under ν∆,d . Thus, whenever d
+
+is objectively admissible, the maximization in the definition of viol obj (∆, d ) is vacuous and the violation count can be computed directly from ν∆,d .
+
+Proposition 22. Let ∆ = ( Σ, T , F, D, χ, N, v ) be a DNCOP and let d ⊆ D be objectively admissible. For every pointed model (M, w ) ∈ Mod obj (∆, d ), we have 
+
+viol (M, w ) = P n∈Nν∆,d ⊩CL χn
+
+v(n). Consequently, viol obj (∆, d ) = P n∈Nν∆,d ⊩CL χn
+
+v(n).The maximization over compatible models is still relevant from the subjective perspective, since atoms relevant to the computation of violation counts may be open under the beliefs of the acting agent. 
+
+Example 23. Consider the DNCOPs ∆¬c and ∆c from Ex. 15. Both DNCOPs are decision-sound and in both variants, the agent believes e and O(r|e) – so they always believe the obligation is in force. Since c is left open in the agent’s beliefs, moving right risks the cost-2 violation in the worst case, while not moving right always costs 1 (violating O(r|e)); not moving right is therefore subjectively opti-mal regardless of the actual truth of c. Objectively, the optimal decision matches the true value of c: if no cyclist is present, moving right is objectively optimal; if one is present, not moving right is objectively optimal, as it is subjectively. 
+
+6.4 When the Two Perspectives Coincide 
+
+The mismatch described in the above example (subjective and objective opti-mum disagreeing) arises because the norms’ conditions ( e and c) are objective facts the agent may be unsure about. If instead every norm and every norm’s condition is stated directly in terms of the agent’s own beliefs, its truth value is automatically settled by the agent’s beliefs at every subjectively compatible model, making the subjective violation cost determinate. If these beliefs are also truthful, the two perspectives coincide. 
+
+Definition 24. A DNCOP ∆ = ( Σ, T , F, D, χ, N, v ) is local if every norm 
+
+n ∈ N , writing ω for its content and φ for its condition (in the case of explicit norms), satisfies the following conditions: (i) either n ∈ D , or exactly one of Ban and Ba¬n belongs to T ;(ii) either ω ∈ D , or exactly one of Baω and Ba¬ω belongs to T ; and (iii) φ ∈ Bool (Σa) (if n is an explicit norm). A DNCOP is truthful if every belief of the acting agent about a fixed atom is correct. Formally, for every α ∈ T ∪ F , we require Baα ∈ T =⇒ α ∈ T and 
+
+Ba¬α ∈ T =⇒ α ∈ F .
+
+Locality reflects a common design pattern for actionable norms: rather than conditioning obligations on facts the agent may only partially observe, the norm is phrased directly in terms of the agent’s own (introspectively accessible) beliefs. The next example restates the norms of Example 23 in this style, and we will see that this removes the discrepancy between the two examples. Truthfulness is a complementary idealization, assuming the agent’s beliefs are accurate. 
+
+Example 25. Replace in Ex. 15 the norms with nO = O(r|Bae ∧ ¬ ˆBac) (“move right if you believe an emergency vehicle is coming and do not consider a cyclist possible”) and nF = F(r| ˆBac) (“do not move right if you cannot rule out a cyclist”) with v(nO ) = v(nF ) = 1 . Hence N = {nO , n F }, D = {r}, and 
+
+T = {e, n O , n F , B ae, B anO , B anF }, F = {c, B ac, B a¬c}.The resulting DNCOP is decision-sound. Objectively, an emergency vehicle is approaching from behind and no cyclist is present to the right of the car. The acting agent believes that the emergency vehicle is approaching but has no belief about whether a cyclist is present. Since Ba¬c ∈ F , the formula ˆBac is true: moving right has objective and subjective cost one, whereas not moving right has cost zero. Thus, not moving right is uniquely optimal from both perspectives. Both norms condition only on the agent’s own beliefs, so the DNCOP is local; since the agent’s beliefs are in fact accurate, it is truthful too. The two conditions are mutually exclusive, so no priority between the norms is ever needed. 
+
+We show below that in a local, decision-sound DNCOP ∆, all subjectively compatible models for a given decision agree on the violation count: the worst case in viol sub (∆, d ) is not actually in doubt. 
+
+Proposition 26. Let ∆ be a decision-sound local DNCOP. For every d ∈ Dec (∆)
+
+and all (M, w ), (M′, w ′) ∈ Mod sub (∆, d ), viol (M, w ) = viol (M′, w ′). Hence the maximization defining viol sub (∆, d ) is vacuous. Proof. For each n ∈ N , the choice or, by reflexivity, the corresponding belief fixes both n and its content in every subjectively compatible model. The subjective fixed and choice descriptions fix all RDDAs in its local condition. Hence all such models agree on whether each n is violated, and therefore on the total count. If the DNCOP is additionally truthful, the subjective and objective violation counts coincide for every decision, and hence so do the optimal decisions and their violation counts under both perspectives. 
+
+Proposition 27. Let ∆ be a decision-sound, local, and truthful DNCOP. Then 
+
+viol sub (∆, d ) = viol obj (∆, d ) for every d ∈ Dec (∆). Consequently, viol sub min (∆) = 
+
+viol obj min (∆) and optdec sub (∆) = optdec obj (∆).Proof. For decision atoms, the objective and subjective descriptions agree by construction. For the other atoms, locality provides a positive or negative be-lief, and truthfulness makes a’s beliefs agree with what is actually true. Both descriptions also agree on every RDDA in norm conditions. Thus every sub-jectively compatible model evaluates each χn according to ν∆,d . Prop. 22 gives equality of the costs, and both optimizations range over Dec (∆). 
+
+6.5 Reduction to MaxSAT 
+
+For local DNCOPs, every subjective violation is a Boolean function of the de-cision. We can therefore optimize subjective violations directly with MaxSAT. Under truthfulness, the same construction also optimizes objective violations. 
+
+Definition 28. Let ∆ = ( Σ, T , F, D, χ, N, v ) be a local DNCOP. We directly use the decision atoms δ ∈ D as Boolean variables for the MaxSAT problem. Apart from these decision atoms, the translation uses only the acting agent’s belief part of the DNCOP, given by T ∩ Σa and F ∩ Σa.We first translate the decision constraint χ polynomially to a CNF using a Tseitin transformation [25]. The resulting clauses are used as hard constraints. For every n ∈ N , we then define a Boolean formula bχn over D characterizing the condition χn under which n is violated. We obtain this formula by replac-ing each RDDA occurring directly in χn, that is, each RDDA occurring as a propositional atom of χn, as follows: (i) any δ or Baδ with δ ∈ D is replaced by δ,(ii) any Ba¬δ with δ ∈ D is replaced by ¬δ,(iii) any remaining objective atom α ∈ ΩB (such as n itself and its content ω) is replaced by ⊤ if Baα ∈ T ∩ Σa, and by ⊥ if Ba¬α ∈ T ∩ Σa, and (iv) any remaining α ∈ Σa is replaced by ⊤ if α ∈ T ∩ Σa, and by ⊥ if α ∈ F ∩ Σa.Locality guarantees that every RDDA occurring in χn is covered by exactly one of these cases. For each norm n ∈ N , we then introduce a fresh variable zn and impose zn ↔ bχn as a hard constraint, adding ¬zn as a soft clause of weight v(n).Thus, weight v(n) is incurred exactly when n is violated. All hard constraints are converted to CNF using a Tseitin transformation. 
+
+Example 29. Consider the local DNCOP from Example 25. Its violation con-ditions are χnO = nO ∧ Bae ∧ ¬ ˆBac ∧ ¬ r and χnF = nF ∧ ˆBac ∧ r.The fixed beliefs make nO , n F , and Bae true, while Ba¬c is false and hence 
+
+ˆBac = ¬Ba¬c is true. Therefore, the translation gives bχnO = ⊥ and bχnF = r.Since the decision constraint is ⊤, the hard clauses simplify to ¬znO , ¬znF ∨ r,and znF ∨ ¬ r, and the soft clauses are (¬znO , 1) and (¬znF , 1) . Setting r false satisfies both soft clauses, while setting it true falsifies the second at cost one. Thus the unique optimal assignment encodes d = ∅, as found in Ex. 25. 
+
+Theorem 30. For a decision-sound local DNCOP ∆, the construction above is a polynomial-time reduction to weighted partial MaxSAT. The restrictions of its optimal assignments to D encode exactly the subjectively optimal decisions. If ∆
+
+is also truthful, they also encode exactly the objectively optimal decisions. Proof. For d ⊆ D , let Id be the valuation defined by Id(δ) = 1 iff δ ∈ d. By correctness of the Tseitin transformation, Id can be extended to a valuation satisfying the hard clauses obtained from χ iff d ⊩CL χ, that is, iff d ∈ Dec (∆). Now consider any n ∈ N . Cases (i) and (ii) reproduce the values fixed by the decision, case (iii) reproduces the acting agent’s fixed beliefs about the remain-ing objective atoms, and case (iv) reproduces the fixed values of the remaining belief atoms. By locality, these cases cover every RDDA occurring directly in 
+
+χn. A structural induction on χn therefore shows that Id |= bχn iff n is sub-jectively violated under d. The hard constraint zn ↔ bχn thus makes zn true exactly when n is subjectively violated. Consequently, the total weight of the falsified soft clauses in any hard-satisfying extension of Id equals viol sub (∆, d )by Proposition 26. Conversely, every assignment satisfying the hard constraints restricts to Id for some d ∈ Dec (∆). Minimizing the weight of the falsified soft clauses therefore yields exactly the subjectively optimal decisions. If ∆ is truthful, Proposition 27 gives viol sub (∆, d ) = viol obj (∆, d ) for every d ∈
+
+Dec (∆). Hence the subjective and objective optimal decisions coincide. Finally, the replacements increase the formula size at most linearly, and the Tseitin transformations are polynomial. 
+
+# 7 Conclusions and Future Work 
+
+We introduced a simple logical framework for norm-guided decision making un-der uncertainty. Starting from a restricted fragment of Chellas’ Minimal Deon-tic Logic, we identified a language where deontic reasoning reduces to classical propositional reasoning while retaining obligations and prohibitions over atomic actions. We extended this fragment with explicitly represented conditional norms and factual detachment, obtaining a lightweight deontic logic. To reason under incomplete information, we combined the framework with multi-agent doxastic logic, allowing norms to depend on agents’ beliefs and be-liefs about norms. We introduced the Doxastic Norm Compliance Optimization Problem (DNCOP), where an agent selects decisions minimizing weighted norm violations. By distinguishing optimization relative to the agent’s beliefs from optimization relative to the objective state of the world, the framework captures a key aspect of autonomous decision making under uncertainty. We identified locality and truthfulness conditions under which these perspectives coincide, guaranteeing that subjectively optimal decisions are also objectively optimal. The framework also admits efficient computation. For local, decision-sound DNCOPs, we showed that optimal decisions can be found by a polynomial-time reduction to weighted partial MaxSAT, leveraging mature optimization techniques while preserving logical rigour and transparency. The framework deliberately favors simplicity over expressiveness. Restricting normative contents to atomic propositions enables reductions to propositional reasoning and straightforward integration with epistemic formalisms, while still covering a broad range of practical decision-making scenarios. Its modular design leaves room for richer normative and epistemic extensions. Several directions remain for future work. We plan to analyze LDLB in more detail; we conjecture that LDLB-satisfiability is PSPACE-complete, as is plain multi-agent KD45 [12]. An immediate objective is to extend the optimization framework beyond local DNCOPs, where subjective optimization may require reasoning over multiple compatible belief models. We also plan to enrich the representation of agents’ beliefs, allowing belief bases to capture more complex propositional information, including constitutive norms. Appropriate candidates are belief bases in the style of Lorini [16]. Another promising direction is to study decentralized settings in which multiple agents make decisions simultaneously while reasoning about one another’s beliefs and intended actions. Finally, we intend to implement the MaxSAT translation and experimentally evaluate its scalability on representative normative decision-making benchmarks. Acknowledgments This research was funded in whole or in part by the Vienna Science and Technology Fund (WWTF) project ICT22-023 and the Austrian Science Fund (FWF) 10.55776/COE12 and 10.55776/PAT1815025. 
+
+# References 
+
+1. Alferes, J.J., Gon¸ calves, R., Leite, J.: Equivalence of defeasible normative systems. J. Appl. Non Class. Logics 23 (1-2), 25–48 (2013) 2. Ans´ otegui, C., Bonet, M.L., Levy, J.: Solving (weighted) partial maxsat through satisfiability testing. In: SAT. Lecture Notes in Computer Science, vol. 5584, pp. 427–440. Springer (2009) 3. ˚ Aqvist, L.: Deontic logic. In: Gabbay, D., Guenthner, F. (eds.) Handbook of Philo-sophical Logic: Volume II, pp. 605–714. Springer (1984) 4. van Berkel, K., Ciabattoni, A., Freschi, E., Gulisano, F., Olszewski, M.: Deontic paradoxes in m¯ ım¯ am . s¯ a logics: There and back again. J. Log. Lang. Inf. 32 (1), 19–62 (2023) 5. Cabalar, P., Ciabattoni, A., van der Torre, L.: Deontic equilibrium logic with ex-plicit negation. In: JELIA. Lecture Notes in Computer Science, vol. 14281, pp. 498–514. Springer (2023) 6. Chellas, B.F.: Modal Logic - An Introduction. Cambridge University Press (1980) 7. Ciabattoni, A., Urh, B.I., Parent, X.: Deontic explanations in ˚ aqvist’s systems. In: DEON. pp. 79–98. College Publications (2025) 8. Gabbay, D., Horty, J., Parent, X., van der Meyden, R., van der Torre, L. (eds.): Handbook of Deontic Logic and Normative Systems. College Publications (2013) 9. Gabbay, D., Horty, J., Parent, X., van der Meyden, R., van der Torre, L. (eds.): Handbook of Deontic Logic and Normative Systems, Volume 2. College Publica-tions (2021) 10. Giordano, L., Martelli, A., Dupr´ e, D.T.: Temporal deontic action logic for the verification of compliance to norms in ASP. In: ICAIL. pp. 53–62. ACM (2013) 11. Governatori, G., Olivieri, F., Rotolo, A., Scannapieco, S.: Computing strong and weak permissions in defeasible logic. J. Philos. Log. 42 (6), 799–829 (2013) 12. Halpern, J.Y., Moses, Y.: A guide to completeness and complexity for modal logics of knowledge and belief. Artif. Intell. 54 (3), 319–379 (1992) 13. Hintikka, J.: Knowledge and Belief: An Introduction to the Logic of the Two No-tions. Cornell University Press (1962) 14. Kowalski, R.A., Satoh, K.: Obligation as optimal goal satisfaction. J. Philos. Log. 
+
+47 (4), 579–609 (2018) 15. Lakemeyer, G., Lesp´ erance, Y.: Efficient reasoning in multiagent epistemic logics. In: ECAI. Frontiers in Artificial Intelligence and Applications, vol. 242, pp. 498– 503. IOS Press (2012) 16. Lorini, E.: Rethinking epistemic logic with belief bases. Artif. Intell. 282 , 103233 (2020) 17. Makinson, D., van der Torre, L.W.N.: Input/output logics. J. Philos. Log. 29 (4), 383–408 (2000) 18. Makinson, D., van der Torre, L.W.N.: Constraints for input/output logics. J. Phi-los. Log. 30 (2), 155–185 (2001) 19. Mill, J.S.: Utilitarianism. Parker, Son, and Bourn (1863) 20. Muise, C.J., Belle, V., Felli, P., McIlraith, S.A., Miller, T., Pearce, A.R., Sonenberg, L.: Planning over multi-agent epistemic states: A classical planning approach. In: AAAI. pp. 3327–3334. AAAI Press (2015) 21. Neufeld, E.A., Ciabattoni, A., Tulcan, R.F.: Combining MORL with restraining bolts to learn normative behaviour. In: IJCAI. pp. 4615–4623. ijcai.org (2025) 22. Parent, X.: Preference semantics for Hansson-type dyadic deontic logic: A survey of results. In: Gabbay, D., Horty, J., Parent, X., van der Meyden, R., van der Torre, L. (eds.) Handbook of Deontic Logic and Normative Systems, Volume 2, pp. 7–69. College Publications (2021) 23. Ross, A.: Imperatives and logic. Philos. Sci. 11 (1), 30–46 (1944) 24. Sergot, M.J., Sadri, F., Kowalski, R.A., Kriwaczek, F., Hammond, P., Cory, H.T.: The british nationality act as a logic program. Commun. ACM 29 (5), 370–386 (1986) 25. Tseitin, G.S.: On the complexity of derivation in propositional calculus. Zap. Nauchn. Sem. LOMI 8, 234–259 (1968) 26. von Wright, G.H.: Deontic logics. Am. Philos. Q. 4(2), 136–143 (1967) A Proofs for Section 3 (A Tiny Fragment of MDL) 
+
+Definition 1. MTDL is (W t, N t, V t) with W t = 2 Ωt
+
+, and for all w ∈ W t,
+
+V t(w) = w ∩ Prop, and N t(w) = closure (wO ∪ wF ), where 
+
+– wO = {{ w′ ∈ W t | ω ∈ w′} | Oω ∈ w},
+
+– wF = {{ w′ ∈ W t | ω̸ ∈ w′} | F ω ∈ w}, and 
+
+– closure (X) = {U ⊆ W t | there exists an x ∈ X such that x ⊆ U }.
+
+Lemma 2. MTDL is a Chellas-style neighborhood model. Proof. We need to show that MTDL satisfies the frame properties. Clearly, for each ω ∈ Ωt, the set {w′ ∈ W t | ω ∈ w′} is non-empty (since W t contains all subsets of Ωt). Thus, ∅ /∈ wO . Analogously, for each ω ∈ Ωt, the set {w′ ∈ W t |
+
+ω / ∈ w′} is non-empty. Thus, ∅ /∈ wF . Intuitively, closure (wO ∪ wF ) closes wO ∪
+
+wF minimally under supersets. The superset frame property follows immediately. Since ∅ /∈ wO ∪ wF , it follows that ∅ /∈ closure (wO ∪ wF ). 
+
+Lemma 3. Let w ∈ W t and ω ∈ Ωt. Then MTDL , w ⊩MDL ω iff ω ∈ w.Proof. By structural induction. Base case: ω = p for some p ∈ Prop . By defini-tion, p ∈ V t(w) iff p ∈ w. Thus, MTDL , w ⊩MDL p iff p ∈ w.For the induction step, we assume that MTDL , w ⊩MDL ω iff ω ∈ w for some fixed ω. We therefore know that {w′ ∈ W t | ω ∈ w′} contains exactly all w ∈ W t
+
+such that MTDL , w ⊩MDL ω, and that {w′ ∈ W t | ω / ∈ w′} contains exactly all 
+
+w ∈ W t such that MTDL , w ⊩MDL ¬ω.Thus, Oω ∈ w implies that {w′ ∈ W t | M TDL , w ′ ⊩MDL ω} ∈ N t(w), meaning MTDL , w ⊩MDL Oω . Analogously, F ω ∈ w implies that {w′ ∈ W t |MTDL , w ′ ⊩MDL ¬ω} ∈ N t(w), meaning MTDL , w ⊩MDL F ω .For the converse, assume first that MTDL , w ⊩MDL Oω . By the induction hypothesis, {w′ ∈ W t | M TDL , w ′ ⊩MDL ω} = {w′ ∈ W t | ω ∈ w′}. Hence 
+
+{w′ ∈ W t | ω ∈ w′} ∈ N t(w) = closure (wO ∪wF ). So there is some x ∈ wO ∪wF
+
+such that x ⊆ { w′ ∈ W t | ω ∈ w′}. Now x cannot lie in wF , since for every 
+
+ψ ∈ Ωt the world ∅ is in {w′ ∈ W t | ψ / ∈ w′}, but ∅ /∈ { w′ ∈ W t | ω ∈ w′}.Thus x ∈ wO , so x = {w′ ∈ W t | ψ ∈ w′} for some ψ with Oψ ∈ w. If ψ̸ = ω,then the world {ψ} belongs to x but not to {w′ ∈ W t | ω ∈ w′}, contradicting 
+
+x ⊆ { w′ ∈ W t | ω ∈ w′}. Therefore ψ = ω, and hence Oω ∈ w.Analogously, assume that MTDL , w ⊩MDL F ω . By the induction hypothesis, 
+
+{w′ ∈ W t | M TDL , w ′ ⊩MDL ¬ω} = {w′ ∈ W t | ω / ∈ w′}. Hence {w′ ∈ W t |
+
+ω / ∈ w′} ∈ N t(w) = closure (wO ∪ wF ). So there is some x ∈ wO ∪ wF such that 
+
+x ⊆ { w′ ∈ W t | ω / ∈ w′}. Now x cannot lie in wO , since for every ψ ∈ Ωt the world {ψ, ω } is in {w′ ∈ W t | ψ ∈ w′}, but not in {w′ ∈ W t | ω / ∈ w′}. Thus 
+
+x ∈ wF , so x = {w′ ∈ W t | ψ / ∈ w′} for some ψ with F ψ ∈ w. If ψ̸ = ω, then the world {ω} belongs to x but not to {w′ ∈ W t | ω / ∈ w′}, again a contradiction. Therefore ψ = ω, and thus F ω ∈ w.B Proofs for Section 4 (Lightweight Deontic Logic) 
+
+Theorem 31. Let Γ ⊆ L TDL and φ ∈ L TDL . Then 
+
+Γ |=MDL φ ⇐⇒ Γ |=LDL φ.Proof. We prove both directions by contraposition. Let Γ̸ |=MDL φ. Then there is a pointed MDL model ( M, w ) such that 
+
+M, w ⊩MDL Γ and M, w ̸ ⊩MDL φ. Put 
+
+u = {ω ∈ Ωt | M , w ⊩MDL ω}.
+
+Since formulas in LTDL are Boolean combinations of atoms in Ωt, structural induction gives u ⊩CL Γ and u̸ ⊩CL φ. Moreover, u ⊆ Ω is an LDL model because it contains no explicit normative atoms. Thus u ⊩LDL Γ and u̸ ⊩LDL φ,so Γ̸ |=LDL φ.Conversely, let Γ̸ |=LDL φ. Then there is an LDL model M with M ⊩LDL Γ
+
+and M̸ ⊩LDL φ. Hence M̸ ⊩CL φ. Let M ′ = M ∩ Ωt. Since Γ ⊆ L TDL and 
+
+φ ∈ L TDL , their truth depends only on the atoms in Ωt. Hence M ′ ⊩CL Γ
+
+and M ′̸ ⊩CL φ. By Theorem 4, MTDL , M ′ ⊩MDL Γ and MTDL , M ′̸ ⊩MDL φ.Therefore, Γ̸ |=MDL φ.
+
+# C Proofs for Section 5 (A Doxastic Extension of LDL) 
+
+The full axiomatization for LDLB is given as follows: 
+
+(Prop) Every instance of a classical propositional tautology. 
+
+(K) Bi(φ → ψ) → (Biφ → Biψ), for all i ∈ Ag .
+
+(D) Biφ → ˆBiφ, for all i ∈ Ag .
+
+(4) Biφ → BiBiφ, for all i ∈ Ag .
+
+(5) ¬Biφ → Bi¬Biφ, for all i ∈ Ag .
+
+(O-Det) O(ω|φ) ∧ φ → Oω , for all ω ∈ ΩB and φ ∈ L LDLB .
+
+(F-Det) F(ω|φ) ∧ φ → F ω , for all ω ∈ ΩB and φ ∈ L LDLB .The rules are modus ponens and necessitation: 
+
+(MP) From φ and φ → ψ, infer ψ.
+
+(Nec) From a theorem φ, infer Biφ, for all i ∈ Ag .We write ⊢LDLB φ for theoremhood in this system. For Γ ⊆ L LDLB , we write 
+
+Γ ⊢LDLB φ iff there are γ1, . . . , γ n ∈ Γ such that 
+
+⊢LDLB (γ1 ∧ · · · ∧ γn) → φ, 
+
+where n = 0 means ⊢LDLB φ.
+
+Theorem 32. Let Γ ⊆ L LDLB and φ ∈ L LDLB . Then 
+
+Γ ⊢LDLB φ iff Γ |=LDLB φ.Proof. Soundness is immediate. The propositional and KD45 axioms are valid on serial, transitive, and euclidean frames, and the two detachment axioms are valid by the second condition in the definition of LDLB models. The rules (MP) and (Nec) preserve validity, and the finite-premise definition of Γ ⊢LDLB φ gives soundness for local consequence from theories. For completeness, use the standard canonical model construction for multi-agent KD45, but with atoms ΩB . Let X be the set of all maximal LDLB-consistent sets. Define 
+
+xR iy iff {ψ | Biψ ∈ x} ⊆ y, V (x) = x ∩ ΩB .
+
+We first check the frame conditions. Seriality follows from axiom (D). Indeed, for any x ∈ X, the set 
+
+∆i(x) = {ψ | Biψ ∈ x}
+
+is consistent: otherwise, for some ψ1, . . . , ψ n ∈ ∆i(x), we would have ⊢LDLB 
+
+(ψ1 ∧ · · · ∧ ψn) → ⊥ . By necessitation and (K), ⊢LDLB Biψ1 ∧ · · · ∧ Biψn →
+
+Bi⊥, so Bi⊥ ∈ x. But (D) gives Bi⊥ → ˆBi⊥, while necessitation gives Bi⊤;contradiction. Hence ∆i(x) extends to some y ∈ X, and xR iy.Transitivity follows from (4). If xR iy and yR iz, and Biψ ∈ x, then BiBiψ ∈
+
+x, so Biψ ∈ y, and therefore ψ ∈ z. Thus xR iz.Euclideanness follows from (5). If xR iy and xR iz, and Biψ ∈ y, then Biψ ∈ x;otherwise ¬Biψ ∈ x, so by (5), Bi¬Biψ ∈ x, whence ¬Biψ ∈ y, a contradiction. Since Biψ ∈ x and xR iz, we get ψ ∈ z. Thus yR iz.The standard canonical-model argument for normal modal logics gives the truth lemma: 
+
+Mc, x ⊩LDLB χ iff χ ∈ x
+
+for every χ ∈ L LDLB .It remains only to check the LDLB detachment condition. Suppose O(ω|ψ) ∈
+
+V (x) and Mc, x ⊩LDLB ψ. By the truth lemma, ψ ∈ x. Since 
+
+O(ω|ψ) ∧ ψ → Oω 
+
+is an axiom instance, it belongs to x; hence Oω ∈ x, and therefore Oω ∈ V (x). The proof for prohibitions is identical. Thus the canonical model is an LDLB model. Now assume Γ̸ ⊢LDLB φ. Then Γ ∪ {¬ φ} is LDLB-consistent; otherwise some finite subset of Γ would prove φ. Extend Γ ∪ {¬ φ} to a maximal consistent set x ∈ X. By the truth lemma, Mc, x ⊩LDLB Γ and Mc, x ̸ ⊩LDLB φ. Hence 
+
+Γ̸ |=LDLB φ. This proves completeness.
