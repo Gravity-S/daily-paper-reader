@@ -51,14 +51,14 @@
       <span class="dpr-home-dashboard-kicker">2026-10-06</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 14 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 27 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
-    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>2</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>2 次</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>8</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>19</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-10-06 00:41:59 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-10-06 23:23:51 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,7 +69,10 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>AI代理安全日报：今日共处理14篇，精读2篇、速读12篇，重点聚焦“可隐藏代理”的随机监督对齐与Web Agent评估审计。最值得看两篇8.0分精读：随机监督能否对齐会隐藏的AI代理，以及WebArena-Lite上对Web Agent结果与轨迹的人类审查。普通读者建议先读这两篇精读，再扫速读中虚假记忆、模因特洛伊木马与平均场博弈安全这三个方向。</p>
+<p>今日共生成 27 篇推荐（精读 8 篇，速读 19 篇）</p>
+<p>精读：《Quantifying Collusion Among Autonomous LLM Agents: A Statistical Analysis of the Collusion Wiki Incident》（9.0/10）, 《StateWise: Diagnosing and Repairing Persistent Operational State Before Agent Actions》（9.0/10）</p>
+<p>速读：《DeReAct: Decomposed Reasoning and Acting for Reliable AI Agents》（7.0/10）, 《Coherence-Driven Belief Formation and Population Dynamics of Contagion in LLM Agents》（7.0/10）, 《Sentry: Learning to Recover from LLM Agent Failures at Test Time》（7.0/10）</p>
+<p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -78,12 +81,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">2 篇</strong>
+    <strong class="dpr-home-dashboard-count">8 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="When Does Randomized Oversight Align AI Agents That Can Conceal?">When Does Randomized Oversight Align AI Agents That Can Conceal?</span></li><li><span class="dpr-home-dashboard-paper-title" title="Auditing Web Agent Evaluation on WebArena-Lite: Human Review of Outcomes and Trajectories">Auditing Web Agent Evaluation on WebArena-Lite: Human Review of Outcomes and Trajectories</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Quantifying Collusion Among Autonomous LLM Agents: A Statistical Analysis of the Collusion Wiki Incident">Quantifying Collusion Among Autonomous LLM Agents: A Statistical Analysis of the Collusion Wiki Incident</span></li><li><span class="dpr-home-dashboard-paper-title" title="StateWise: Diagnosing and Repairing Persistent Operational State Before Agent Actions">StateWise: Diagnosing and Repairing Persistent Operational State Before Agent Actions</span></li><li><span class="dpr-home-dashboard-paper-title" title="When Does Randomized Oversight Align AI Agents That Can Conceal?">When Does Randomized Oversight Align AI Agents That Can Conceal?</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>2</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>6</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>2</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -91,12 +94,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">12 篇</strong>
+    <strong class="dpr-home-dashboard-count">19 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Beyond the Shadows of Plato&#x27;s Cave: Evaluating False Memory in Autonomous Agents via Counterfactual Reasoning">Beyond the Shadows of Plato&#x27;s Cave: Evaluating False Memory in Autonomous Agents via Counterfactual Reasoning</span></li><li><span class="dpr-home-dashboard-paper-title" title="Memetic Trojans: Social Contagions as Carriers of Adversarial Payloads in Agent Networks">Memetic Trojans: Social Contagions as Carriers of Adversarial Payloads in Agent Networks</span></li><li><span class="dpr-home-dashboard-paper-title" title="Mean field games as a tool for AI safety: a worked example from the July 2026 Hugging Face incident">Mean field games as a tool for AI safety: a worked example from the July 2026 Hugging Face incident</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="DeReAct: Decomposed Reasoning and Acting for Reliable AI Agents">DeReAct: Decomposed Reasoning and Acting for Reliable AI Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="Coherence-Driven Belief Formation and Population Dynamics of Contagion in LLM Agents">Coherence-Driven Belief Formation and Population Dynamics of Contagion in LLM Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="Sentry: Learning to Recover from LLM Agent Failures at Test Time">Sentry: Learning to Recover from LLM Agent Failures at Test Time</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>7</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>5</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>12</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>7</strong></span></div>
 </section>
 </div>
 

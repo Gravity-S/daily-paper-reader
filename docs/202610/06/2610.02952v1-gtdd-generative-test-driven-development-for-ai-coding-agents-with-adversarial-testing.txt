@@ -1,0 +1,842 @@
+Title: GTDD: Generative Test-Driven Development for AI Coding Agents with Adversarial Testing
+
+URL Source: https://arxiv.org/pdf/2610.02952v1
+
+Published Time: Mon, 05 Oct 2026 00:48:23 GMT
+
+Number of Pages: 35
+
+Markdown Content:
+# GTDD: Generative Test-Driven Development for AI Coding Agents with Adversarial Testing 
+
+# Masahiro Kato ∗
+
+# Mizuho-DL Financial Technology Co., Ltd. October 5, 2026 
+
+Abstract 
+
+Test-driven development gives AI coding agents executable requirements for im-plementing software. Because these agents can adapt their implementations to the examples they observe, passing a predetermined collection of tests can leave substantial parts of the intended behavior unimplemented. We propose Generative Test-Driven Development (GTDD), a formulation of test-driven development in which a separate testing agent generates new inputs after each candidate implementation is fixed, using a human-specified behavioral contract and the feedback from earlier rounds. A trusted evaluator checks these inputs, returns reduced counterexamples to the coding agent, and saves them for regression testing, so development continually confronts failures beyond the initial examples. We characterize the evidence that this process provides through a finite-population analysis of false acceptance under adaptive candidate selection. The resulting bounds quantify how test visibility and repeated feedback affect acceptance, and show that fresh random audits after candidate commitment control false acceptance across development rounds. In a paired experiment on a stateful key-value store, both policies that regenerated tests during development ended with lower mean failure rates than the policy whose tests were generated once by the same language model, and giving the tester the candidate’s source produced no detectable additional improvement. Further conditions requesting equal numbers of tests did not isolate any single feature of the policies as the source of this difference. GTDD combines this adaptive development feedback with established regression tests and an independent acceptance rule. 
+
+# 1 Introduction 
+
+Test-driven development (TDD) organizes software development around executable require-ments: developers write tests that describe the intended behavior, implement the corre-sponding functionality, and use those tests to check subsequent changes (Beck, 2002). This 
+
+> ∗
+
+Email: mkato-csecon@g.ecc.u-tokyo.ac.jp 
+
+1arXiv:2610.02952v1 [cs.SE] 2 Oct 2026 discipline is especially relevant to AI coding agents because a natural-language request permits many possible implementations, whereas an executable test gives the agent a concrete result against which to improve its code. As large language models (LLMs) take on code generation and repository repair, the connection between tests and successive implementation decisions becomes central to the reliability of the resulting software (Chen et al., 2021; Jimenez et al., 2024; Fakhoury et al., 2024). Existing systems already use generated tests to structure this interaction. CodeT evaluates candidate programs with generated tests, AlphaCodium uses them throughout an iterative coding process, and AgentCoder assigns programming and test design to separate agents (Chen et al., 2023; Ridnik et al., 2024; Huang et al., 2023). Guidance for Claude Code similarly describes a workflow in which one session writes tests and another writes the implementation (Anthropic, 2026). In an industrial integration setting, Krawczyk (2023) describes generative TDD based on historical input–output pairs that guide code generation and validate the generated mappings. These approaches make testing part of the development process itself, with test results shaping the next implementation. The same feedback that guides development also allows an agent to adapt to the tested examples without satisfying the full behavioral contract. A program may implement only the exercised cases or special-case their inputs, and an agent with broader access may attempt to change the tests. Additional benchmark tests have exposed incorrect programs that passed the original evaluation (Liu et al., 2023), while reward-optimization experiments have documented direct test subversion (Baker et al., 2025). This is an instance of the more general discrepancy between optimizing an observed objective and satisfying its intended purpose (Amodei et al., 2016; Skalse et al., 2022). Increasing the number of tests and generating new tests during development address different parts of the problem, because acceptance also depends on what the coding agent has learned about those tests. A development framework must therefore specify both how new failures reach the coder and what evidence justifies accepting the resulting implementation. 
+
+# 1.1 Contribution 
+
+We propose GTDD as a general formulation of test-driven development with a separate generative tester. A human specifies the behavioral contract, the input schema, and the testing budget, while the tester creates concrete cases after the coding agent commits each candidate. The evaluator obtains expected responses from a trusted reference implementation and returns a controlled number of reduced failures to guide the next coding round. Saving generated cases and their reductions makes each discovered failure a regression test for later candidates. The formulation specifies what each agent may read and assigns independent random audits to the acceptance decision. Our theoretical analysis bounds the probability of accepting a candidate whose failure rate exceeds a prescribed tolerance on a fixed finite population. For a candidate class that can realize arbitrary casewise losses, we obtain the exact number of visible tests required for a uniform guarantee. For a hidden test set used repeatedly, we apply the description-length argument of Dwork et al. (2015a) to the possible feedback histories and give an explicit adaptive construction with a lower bound on its success probability. We also establish conditions under which generated tests support a sampling guarantee and derive fresh-2audit bounds for adaptive candidates. The acceptance analysis distinguishes simultaneous conclusions about individual requirement families from acceptance of the repository as a whole, and extends repository acceptance to an unbounded sequence of development rounds through a summable error allocation. We evaluate development feedback in a paired experiment on a stateful key-value store using the same language model as coder and tester. Both policies that generated new tests in each repair round ended with lower mean failure rates than the policy that generated tests once before development, which also requested fewer traces. The difference is concentrated in a few blocks, although the median difference is negative as well and the sign test detects it. Four further conditions that request equal numbers of traces produce intermediate rates with no detectable difference between adjacent conditions, so the study does not attribute the advantage to regeneration, to the number of traces, or to access to earlier counterexamples alone. Testers with and without source access showed no detectable difference, and neither dynamic policy had a detectable advantage over the property-based baseline drawn from the evaluation distribution. Applied to the recorded candidates, a fresh audit gives few expected acceptances, in line with their failure rates. GTDD brings together practices already represented in generative TDD and multi-agent coding systems, and gives their interaction an explicit statistical account. Whereas the generative TDD of Krawczyk (2023) validates generated code against historical input– output pairs, GTDD generates new inputs after each candidate is committed and separates this development feedback from the evidence used for acceptance. Its contribution is the organization of candidate commitment, testing information, counterexample feedback, and acceptance within one development process. Existing tests remain useful as executable examples and regression checks, while generated cases extend the feedback available during development. This combination is particularly relevant to applications with natural-language or speech input, such as telephone agents, where scenario generation and evaluation of acceptable behavior require separate design decisions. Section 3.5 describes how the protocol accommodates these applications. 
+
+# 1.2 Related Work 
+
+GTDD connects automated test generation with adaptive evaluation. The relevant dis-tinction among prior approaches is the role assigned to tests: specifying behavior, guiding implementation, or supporting an acceptance decision. 
+
+Test generation and counterexample-guided development. Property-based testing generates structured inputs from a specification (Claessen & Hughes, 2000), while directed testing and symbolic execution search program behavior more systematically (Godefroid et al., 2005; Cadar et al., 2008). Language models have also been used to extend search-based generation and to fuzz deep-learning libraries (Lemieux et al., 2023; Deng et al., 2023). Counterexample-guided inductive synthesis provides the underlying iterative structure: a verifier finds an input on which a candidate fails, and that input constrains the next candidate (Solar-Lezama et al., 2006; Solar-Lezama, 2008). Delta debugging makes such feedback easier to use by simplifying a failing input while preserving the failure (Zeller & Hildebrandt, 2002). 3GTDD combines this structure with a generative tester and specifies a statistical acceptance rule when verification proceeds through sampled cases. 
+
+Generated tests in AI coding. CodeT uses agreement with generated tests to select candidate programs, and AlphaCodium incorporates those tests into iterative repair (Chen et al., 2023; Ridnik et al., 2024). Test-driven interactive generation uses tests to clarify user intent (Fakhoury et al., 2024), and AgentCoder separates the programming, test-design, and test-execution roles (Huang et al., 2023). Class-level test-driven generation implements interdependent methods under method-level public tests with execution feedback and a bounded number of repairs (Liang et al., 2026b). CodeHacker generates adversarial inputs for a candidate and computes their expected outputs with a reference solution (Shi et al., 2026), and AdverTest alternates between test generation and mutant generation to expose weaknesses in the tests (Chang et al., 2026). Together with the industrial use of generative TDD described by Krawczyk (2023), these systems establish a substantial basis for generative testing. Menet et al. (2026) give a probabilistic account of the two main uses of an execution environment, selecting among generated programs and conditioning generation on feedback, and show that the ambiguity of the task description limits what feedback-conditioned generation can achieve. Their analysis concerns how efficiently generation reaches a correct program, whereas ours concerns the evidence that sampled tests provide about a committed candidate. We organize their shared development structure around explicit candidate commitment and feedback rules, then analyze the evidence available for accepting an adaptive candidate. 
+
+Correctness and test-based objectives. Benchmarks such as SWE-bench evaluate repository repair, while SWE-bench Verified improves the alignment between issues and their evaluation tests through human review (Jimenez et al., 2024; Chowdhury et al., 2024). EvalPlus strengthens tests for generated code, and LiveCodeBench addresses contamination through temporally collected tasks (Liu et al., 2023; Jain et al., 2025). Our setting concerns a further source of dependence: the candidate learns from tests during its own development. The distinction between an observed objective and intended behavior is central to work on reward gaming (Amodei et al., 2016; Skalse et al., 2022), and the coding experiments of Baker et al. (2025) give concrete examples of test subversion. Paired interventions that change only the expected outputs of visible tests measure how far generated programs follow the rules those tests express, and the extent varies widely across models (Liang et al., 2026a). We describe test passing, population accuracy, and protected-file modification attempts as separate observable outcomes so that a correctness error is not treated as evidence of intent. 
+
+Adaptive evaluation. Adaptive data analysis explains how repeated feedback can change the validity of conclusions based on a fixed evaluation sample (Dwork et al., 2015a; Russo & Zou, 2016). Our bound for repeated testing instantiates the description-length argument in Section 2.3 of the full version of Dwork et al. (2015a): count the possible histories and combine that count with an exact finite-population bound for each fixed candidate. Controlled feedback can also permit valid reuse, as demonstrated by the reusable holdout (Dwork et al., 2015b). Related concerns arise in adversarial evaluation, where an adaptive attack changes the interpretation of performance on a fixed collection of adversarial examples (Madry et al., 42018; Athalye et al., 2018; Tram` er et al., 2020). In GTDD, fresh sampling after candidate commitment supplies an acceptance sample whose conditional distribution is known despite earlier development feedback. 
+
+Sequential inference. Sequential tests and time-uniform inference provide error control when the stopping time depends on observed results (Wald, 1945; Ville, 1939; Howard et al., 2021). The literature on testing by betting and safe inference develops this principle through nonnegative evidence processes (Shafer, 2021; Gr¨ unwald et al., 2024; Ramdas et al., 2023). We use these tools with an explicit hypothesis about the candidate under evaluation. Aprocess for one fixed implementation supports sequential inspection of that implementation, whereas a product across different implementations tests a statement about the sequence. This distinction determines which evidence can support the current acceptance decision. 
+
+# 2 Problem Setup 
+
+We model development as an adaptive sequence of candidate implementations evaluated against a behavioral contract. A fixed population of test cases defines the accuracy target, and the information supplied to each agent determines how later candidates can depend on earlier tests. 
+
+# 2.1 Evaluation Model 
+
+Let q ∈ Q index a repository issue, where Q is the collection of issues under study. Each issue specifies a behavioral contract and an operation schema, together with the source files that may be edited and the files that are protected. We evaluate the contract through requirement families indexed by Jq, each corresponding to a specified class of behavior. 
+
+Test cases. For family j ∈ J q, the finite population of size Nq,j is 
+
+Uq,j = {zq,j, 1, . . . , z q,j,N q,j }. (1) Each case is a sequence of operations with a specified initial state, which we call a trace. Cases within a family are distinct, although families may overlap. The populations are fixed before candidate generation, with trace-length limits and argument domains defining the evaluation target. A population can enumerate a bounded domain or contain a fixed selection from that domain. Complete evaluation refers to all listed cases, and the trusted reference implementation recomputes their expected responses whenever they are executed. 
+
+Candidate loss. For candidate f , let ℓ(f ; z) ∈ { 0, 1} equal one when its response differs from the reference or it violates the execution contract. Violations include malformed responses or an incorrect number of responses, as well as runtime errors and resource-limit failures assigned to the candidate. A failure of the trusted evaluator or its isolation mechanism 5invalidates the execution. The family risk is 
+
+Rq,j (f ) = 1
+
+Nq,j Nq,j 
+
+X
+
+> i=1
+
+ℓ(f ; zq,j,i ). (2) Given tolerances ρq,j ∈ (0 , 1), the target is satisfied when Rq,j (f ) ≤ ρq,j holds for every 
+
+j ∈ J q.
+
+Fixed execution behavior. The finite-population analysis treats ℓ(f ; ·) as a fixed function. The candidate therefore includes all executable code and readable data, together with dependency versions, the execution image, and the resource-policy configuration. Each case starts in the same isolated state without uncontrolled entropy or persistent writes from another case, and the execution reveals no distinction between development testing, auditing, and population evaluation. Resource limits must produce reproducible outcomes under this configuration. Repeated executions that disagree violate the fixed-loss assumption, as does a wall-clock limit whose outcome depends on machine load. 
+
+# 2.2 Adaptive Development 
+
+A trajectory consists of rounds t = 1 , . . . , T in which the coding agent chooses its next implementation using the information available so far. Let Ht contain the repository history and public-test outcomes, together with earlier feedback, acceptance decisions, and any state kept by the coding session. An arbitrary measurable policy may select the candidate according to 
+
+ft = ϕt(Ht). (3) The history includes the randomness used by the coding policy, so this representation permits randomized adaptive behavior. After the coding session ends, the test harness records attempted changes to protected files and restores any modified protected material. It then hashes a canonical manifest of the complete candidate and its execution configuration, including file additions and deletions. This commitment, denoted by Ct, fixes the object used in every subsequent round-t test. A later change invalidates the round. The reference implementation and private evaluation records remain outside the candidate’s accessible filesystem, and population evaluation leaves no persistent state that a later coding session can inspect. 
+
+# 2.3 Development Feedback 
+
+A test-generation policy specifies which development inputs are available in a round and what information the tester may use. A fixed test set is chosen before the first round and is re-executed against later candidates, whereas a dynamic policy proposes an ordered collection 
+
+Dt of new traces in each round. 6Information available to the tester. Let It contain the issue statement and contract, the operation schema, and the public examples and previously reported counterexamples with their family labels. A source-informed tester may also read the committed candidate, and it generates 
+
+Dt = ψt(It, f t, U t), (4) where Ut is its request randomness. A source-blind tester receives It without ft and has no other channel to the repository history. Both policies are excluded from audit cases, family audit outcomes, and population results. 
+
+Counterexamples and regression tests. The evaluator validates the proposals and computes reference responses. Let Vt contain the valid traces absent from the existing regression tests Gt−1. The failures found in the round are 
+
+Ft = {z ∈ Gt−1 ∪ Vt : ℓ(ft; z) = 1 }. (5) A fixed feedback rule selects at most k reduced counterexamples, collected in Et. Reduction records the original trace privately and preserves the designated discrepancy, although the shorter trace may lie outside the target population. A counterexample is reported at most once. The cumulative set of regression tests is 
+
+Gt = Gt−1 ∪ Vt ∪ Et, G0 = ∅, (6) which keeps both the original inputs and their reported reductions available in later rounds. Under a fixed policy, V1 contains the valid initial tests and Vt = ∅ holds for t > 1, while newly reported reductions can still be added to Gt. Invalid proposals are excluded from execution but count toward the number of proposals. 
+
+Feedback history and audit access. The reported counterexamples form the history 
+
+τt−1 = ( E1, . . . , E t−1). This history is part of Ht, which also contains any acceptance decision observed by the coder. For independent acceptance, the harness samples an audit after recording Ct. For family j, let St,j be a uniform sample without replacement from Uq,j .Writing 1[·] for the indicator function, define 
+
+At,j = 1
+
+h X 
+
+> z∈St,j
+
+ℓ(ft; z) = 0 
+
+i
+
+. (7) Audit cases and their individual outcomes are excluded from Dt, Et, and Gt.
+
+# 2.4 Evaluation Criteria 
+
+Development feedback is useful when repairs improve behavior beyond the reported inputs. We formalize this distinction through test passing and population risk, and use population risk to define an incorrect acceptance decision. 7Test passing and target accuracy. Let Bt be the tests whose pass criterion the coding agent observes, including public tests and any visible development tests. Define 
+
+Pt = 1ℓ(ft; z) = 0 for every z ∈ Bt
+
+, Qt = 1Rq,j (ft) ≤ ρq,j for every j ∈ J q
+
+. (8) 
+
+Definition 2.1 (Discrepancy between test passing and target accuracy) . The signed difference is Γt = Pt − Qt, and the event of passing the observed tests without meeting the target is 
+
+Cdev  
+
+> t
+
+= Pt(1 − Qt). An average of Γt can cancel positive and negative differences, whereas the frequency of Cdev  
+
+> t
+
+measures the one-sided discrepancy directly. 
+
+False acceptance occurs when the acceptance rule accepts a candidate with Qt = 0. Our guarantees bound the probability of this event over the testing procedure, rather than the conditional proportion of inaccurate candidates among those accepted. These quantities describe observable correctness outcomes. Intentional interference is recorded separately through attempted edits to protected files. 
+
+Improvement on inputs not yet reported. Let Dseen  
+
+> t,j
+
+contain population cases whose identities or complete inputs have reached the coder by the end of round t, including public cases and cases identifiable from feedback. Write Uunseen  
+
+> t,j
+
+= Uq,j \ Dseen  
+
+> t,j
+
+. When this set is nonempty, define 
+
+Runseen  
+
+> t,j
+
+(f ) = 1
+
+|U unseen  
+
+> t,j
+
+|
+
+X
+
+> z∈U unseen
+> t,j
+
+ℓ(f ; z). (9) Evaluating ft and ft+1 on this same set measures whether the update improves behavior beyond known inputs. A reported failure can be repaired while this risk stays unchanged or increases. The full family risk can obscure that distinction because repairing one known case lowers the mean by 1 /N q,j even when no other outcome changes. Equation (9) is undefined when every population case has been exposed. 
+
+# 3 Generative Test-Driven Development 
+
+GTDD places a separate testing agent inside the development cycle so that each committed implementation faces newly generated inputs. The contract and evaluation rules stay fixed, while the tester uses permitted feedback to search for failures that inform the next coding round. The protocol specifies this interaction independently of the rule used to accept an implementation. 
+
+# 3.1 Round Protocol 
+
+Figure 1 shows the order of one round. The coding session edits the repository, after which the harness restores protected material and commits the candidate and its execution configuration. Public tests and all subsequent evaluations run against that same snapshot. A source-informed testing session receives a read-only copy matching the commitment, together with the contract and the permitted history. A source-blind session receives the same information except for the source. Each request asks for a specified number of stateful traces 8coding session candidate commitment development testing fresh audit (if used) acceptance record population evaluation   
+
+> test generation
+> public only, static LLM, static property, dynamic blind, dynamic informed
+> acceptance
+> screening only, regression tests, fresh audit
+> disclosure
+> standard or compact-failure rule,
+> ≤kreduced counterexamples to the next round never disclosed to any agent
+
+Figure 1: Order of a development round. The test-generation policy supplies inputs, the feedback rule returns at most k reduced failures to the next coding round, and the acceptance rule determines whether the candidate is accepted. Population evaluation follows the recorded acceptance decision and is never reported to either agent. without expected outputs, which the trusted reference implementation computes. When a condition uses fixed tests, their manifest is checked before they are re-executed. The evaluator executes each valid nonduplicate proposal against both the reference and the candidate. For a failure, it first finds the shortest failing prefix and then deletes operations while preserving validity and the designated discrepancy. An output mismatch keeps the identity of the divergent operation even if its position changes, and an execution failure keeps its error class. Each shorter trace is verified before it replaces the preceding trace, with the operation limit bounding the reduction cost as described in Appendix B. At most k reduced failures are returned to the coder. Each record contains the trace and its family label, the expected and observed responses, and the execution status, while the link to the original trace remains private. Passing generated inputs also become regression tests. The harness records the acceptance decision before evaluating the complete population, and that evaluation supplies no feedback to coding, test generation, or stopping. 
+
+# 3.2 Development Policies 
+
+A development condition specifies how tests are generated and which failures are returned. These choices determine the information available for the next repair while leaving the acceptance rule separately configurable. 
+
+Test generation. The protocol supports public examples alone, fixed tests generated from the specification, and tests generated in each round. Property-based generators and LLMs can supply either fixed or newly generated inputs. In a visible condition, the tests and expected responses are protected files inside the repository, whereas a hidden condition keeps them outside the coder’s access. Dynamic LLM testing additionally specifies whether the tester may inspect the source. We call the tester adversarial because its objective is to propose 9valid inputs on which the committed candidate disagrees with the reference implementation, using the information in It, the source when the condition permits it, and a fixed number of traces per request. Its success is the number of such failures it finds, and it has no access to audit samples or population results, so adversarial testing shapes development feedback but not the evidence for acceptance. 
+
+Feedback selection. The standard rule prioritizes diversity across requirement families and failure mechanisms before selecting shorter traces. The compact-failure rule prioritizes short traces with few distinct operations and then families already reported. This second rule concentrates feedback on compact failures and allows a controlled comparison of how counterexample selection affects repair. Both rules act on the same observed development failures without access to audit allocations or population outcomes. Appendix B specifies their deterministic ordering and reduction budgets. 
+
+Development outcomes. Discovery counts valid nonduplicate failures on the current candidate, with invalid and duplicate proposals kept in the denominator. Repair measures the next candidate’s performance on the reported counterexamples, while equation (9) measures improvement on the same previously unknown population cases. A regression occurs when a later candidate fails a saved test that it previously passed. Reporting these outcomes separately reveals whether a change in the final risk comes from discovering different failures, repairing the reported inputs, or preserving earlier behavior. Appendix C states elementary properties of these outcomes and of the information available to the tester. A comparison of development policies keeps the coding budget and acceptance rule fixed. The generation budget and repeated execution costs also belong to the specification of each policy, since an initial collection of tests incurs both generation cost and re-execution cost in later rounds. 
+
+# 3.3 Acceptance Rules 
+
+The acceptance rule states which evidence is sufficient to accept the committed candidate. Every rule requires an intact snapshot and passing public tests. Public screening stops at that criterion, and a regression-based rule additionally requires every saved development test to pass. GTDD uses a fresh audit of every requirement family to control false acceptance. Acondition may also require the regression tests to pass, and this additional requirement can only reduce the probability of accepting an inaccurate candidate. With a positive risk tolerance, an audit-only rule can accept a candidate that fails a known development case, so the choice to require regression tests is part of the acceptance specification. Comparisons between acceptance rules keep this choice and the development feedback fixed. The coder receives only the aggregate acceptance decision. Sampled inputs and family-specific results remain private. A trajectory can follow a prescribed stopping policy, including stopping at its first acceptance or continuing for a specified number of rounds. The upper bounds in Section 4 control the event that at least one accepted candidate exceeds a family tolerance during the evaluated trajectory. 10 3.4 Integration with Existing Tests 
+
+Existing tests provide the starting point for GTDD by expressing the contract through concrete examples and protecting behavior that must remain correct. Re-executing them gives every candidate an inexpensive initial check, while generated tests extend the range of failures available for development feedback. The combined procedure keeps the initial tests, adds valid generated traces after each commitment, and saves the counterexamples reported to the coder. By equation (6), a failure found through generation becomes a fixed regression test for subsequent candidates. A strong property-based generator can also supply the initial tests when the input schema captures the relevant behavior. In the experiment of Section 6, the property-based baseline and the dynamic policies had no detectable difference in final failure rate, which makes this baseline an important part of the comparison. Acceptance draws a fresh sample after commitment from the population fixed before development. The sample size is determined before the draw, and individual audit cases remain outside the development process. This division gives examples and regression tests a stable role while assigning error control over the population to a known sampling rule. 
+
+# 3.5 Applications 
+
+The balance between existing tests and generated tests depends on how inputs can be produced and how correct behavior can be evaluated. GTDD makes both choices explicit, whether inputs are structured operation traces or natural-language interactions. 
+
+Structured inputs. For a key-value store, parser, or formally specified interface, an operation schema describes valid inputs and a reference implementation supplies expected outputs. A bounded collection of traces then defines a finite population on which committed candidates have fixed losses. This setting directly supports the post-commit sampling assumption used in the acceptance analysis. 
+
+Language and speech. A telephone agent encounters dialogue patterns such as inter-ruptions and topic changes, while the consequences of an utterance depend on the agent’s dialogue state and tool calls. Generated scenarios can vary these patterns and target the flows exposed by the candidate implementation. For speech input, scenarios can also represent recognition errors, accents, and background noise. Existing scripted calls remain useful for requirements such as identity verification before an account change and transfer to a person on request. Generated dialogues complement these checks and become regression tests when they expose a failure. 
+
+Evaluation criteria. Natural-language responses often admit several acceptable outcomes, so evaluation may use a rubric, a model-based judge, or human review instead of a reference implementation. The finite-population guarantees concern the loss assigned by the specified evaluator on the listed scenarios and require reproducible candidate and evaluator behavior. The validity of that criterion is a separate question about its agreement with the intended behavior. Fixing the evaluation procedure before development and keeping audit scenarios 11 private preserves the distinction between generating useful feedback and deciding whether the candidate meets the stated target. 
+
+# 4 Theoretical Analysis 
+
+We seek a frequentist bound on the probability of accepting an implementation whose failure rate exceeds the prescribed tolerance. The population and each committed candidate’s losses are fixed, while probability is taken over test sampling and any independent randomization in development. The analysis first relates false acceptance to sample size, then accounts for the information available when the candidate is chosen. This establishes which guarantees follow from known tests, repeated feedback, and newly sampled tests, and yields a sequential acceptance rule for GTDD. Fix an issue and one requirement family, write U = {z1, . . . , z N } for its population of size N , and let R(f ) be the family risk in equation (2) with tolerance ρ ∈ (0 , 1). We call a candidate bad when R(f ) > ρ holds, and let α ∈ (0 , 1) be the target error probability. Sample sizes are integers between zero and N . The lower-bound constructions use an unrestricted casewise candidate class, which can realize every binary loss pattern on U and includes candidates that recognize complete inputs and return their known specified outputs. For the upper bounds, candidate selection may be arbitrarily adaptive under the stated information conditions. 
+
+# 4.1 False Acceptance Probability 
+
+For a candidate fixed before sampling, false acceptance occurs when the sampled inputs miss all its failures. Counting those inputs gives an exact finite-population probability, which supplies the basic bound used throughout the analysis. 
+
+Proposition 4.1 (Exact acceptance probability) . Let K(f ) = PNi=1 ℓ(f ; zi), and let S be a uniform sample of n cases drawn without replacement independently of the fixed candidate f .Then, we have 
+
+Pr( f passes S) = 
+
+ N −K(f )
+
+> n
+
+ Nn
+
+ ≤
+
+
+
+1 − K(f )
+
+N
+
+n
+
+, (10) 
+
+with  an
+
+ = 0 for n > a . Define Kρ = ⌊ρN ⌋ + 1 and qN,ρ (n) =  N −Kρ
+
+> n
+
+/ Nn
+
+. If R(f ) > ρ 
+
+holds, then we have Pr( f passes S) ≤ qN,ρ (n) ≤ (1 − ρ)n.Proof. The candidate passes exactly when all sampled indices lie among its N − K(f ) passing cases, which gives the equality. If n ≤ N − K(f ) holds, each factor of Qn−1 
+
+> r=0
+
+(N − K(f ) −
+
+r)/(N − r) is at most 1 − K(f )/N . For larger n, the probability is zero. The expression is nonincreasing in K(f ), so the largest acceptance probability among bad candidates occurs at 
+
+Kρ, and Kρ/N > ρ gives the final inequality. The integer threshold Kρ is the smallest number of failures above tolerance. Using it keeps the exact endpoint: once n ≥ N − Kρ + 1 holds, every passing candidate must be within tolerance. 12 A zero-failure audit can reject a candidate within tolerance that fails only a few cases, so an audit may instead accept when the sample contains at most c failures. The same argument then applies to the lower tail of the hypergeometric count. 
+
+Proposition 4.2 (Audits that permit failures) . Let c be a nonnegative integer, let S be as in Proposition 4.1, and let the audit accept when S contains at most c failing cases. Then, the acceptance probability of the fixed candidate f is 
+
+Pr  |{ z ∈ S : ℓ(f ; z) = 1 }| ≤ c = 1
+
+ Nn
+
+
+
+> min {c,n }
+
+X
+
+> h=0
+
+K(f )
+
+h
+
+ N − K(f )
+
+n − h
+
+
+
+. (11) 
+
+It is nonincreasing in K(f ), so every candidate with R(f ) > ρ is accepted with probability at most the value q(c)
+
+> N,ρ
+
+(n) of equation (11) at K(f ) = Kρ, and q(0)  
+
+> N,ρ
+
+= qN,ρ .Proof. The number of sampled failures is hypergeometric with parameters ( N, K (f ), n ), which gives equation (11). Adding one failing case to a candidate can only increase the number of sampled failures for every sample, so the probability of at most c sampled failures cannot increase. The fresh-audit bounds of Section 4.5 use only this conditional bound for each fixed candidate, so they hold with q(c) 
+
+> N,ρ
+
+in place of qN,ρ . The remaining results are stated for the zero-failure rule. 
+
+# 4.2 Sample Size for Known Tests 
+
+When a candidate is selected after the tests and their expected responses are revealed, it can adapt directly to the tested inputs. In the unrestricted casewise class, the largest accepted risk is then determined by the fraction of the population left untested. 
+
+Proposition 4.3 (Adaptation to known tests) . In the unrestricted casewise class, if S ⊊ U
+
+holds and its required outputs are known, there is a candidate that passes every case in S and fails every case outside it. Proof. The class contains the candidate that returns the required output on S and an incorrect output on its complement. Its risk is 1 − | S|/N .
+
+Proposition 4.4 (Exact size requirement for known tests) . If |S| = n holds and the rule accepts every candidate that passes S, the largest accepted risk in the unrestricted casewise class is 1 − n/N . A uniform guarantee that every accepted candidate has risk at most ρ holds exactly when 
+
+n ≥ N − ⌊ ρN ⌋. (12) 
+
+Proof. A passing candidate fails at most N − n cases, and Proposition 4.3 attains that count. Because N − n is an integer, ( N − n)/N ≤ ρ is equivalent to equation (12). 13 For N = 500 and ρ = 0 .05, the threshold is 475 cases. With fewer known tests, the candidate of Proposition 4.3 passes every observed test while missing the target, which is the event Cdev  
+
+> t
+
+of Definition 2.1. The result depends on the candidate class. If a finite class F is fixed independently of a uniformly sampled test set, a union bound gives Pr( ∃f ∈ F : R(f ) >ρ, f passes S) ≤ |F| qN,ρ (n), even if the tests are revealed before a candidate is selected. Structural constraints on admissible implementations therefore change the size requirement for known tests. 
+
+# 4.3 Error Bounds under Repeated Feedback 
+
+A hidden test set initially prevents direct adaptation to its inputs, but repeated feedback reveals information about that same set. We quantify this dependence by counting the possible feedback histories. The sufficient bound applies the description-length argument of Dwork et al. (2015a, Section 2.3 of the full version) with the hypergeometric probability from Proposition 4.1. An explicit probing construction then shows how revealed cases can be used to avoid the hidden tests. 
+
+A sufficient bound from feedback histories. The relevant history contains every observation about the test set that reaches the coding agent, including an acceptance decision when it supplies additional information. 
+
+Assumption 4.1 (Repeated evaluation on a hidden test set) . A uniform size-n subset 
+
+S ⊆ U is sampled before the first round. Conditional on randomness ξ independent of S,candidate ft is a function of the preceding messages W1, . . . , W t−1. Each message includes every observation that depends on S and is available to the coding agent in that round. For every preceding history and fixed ξ, message Ws takes at most Ls values, where Ls is deterministic. Round t accepts when ft passes S.
+
+Theorem 4.5 (Finite-population bound from feedback histories) . Under Assumption 4.1, let 
+
+Tt−1(ξ) be the set of possible feedback histories before round t given ξ. Then, we have 
+
+Pr  ∃ t ∈ { 1, . . . , T } : ft passes S, R (ft) > ρ  ≤ min 
+
+n
+
+1, q N,ρ (n) E
+
+h TX
+
+> t=1
+
+|T t−1(ξ)|
+
+io 
+
+,
+
+|T t−1(ξ)| ≤ 
+
+> t−1
+
+Y
+
+> s=1
+
+Ls.
+
+(13) 
+
+For raw reported subsets of size at most k together with an acceptance bit, one may take 
+
+Ls = 2 Pmin {k,N }
+
+> i=0
+
+ Ni
+
+ ≤ 2( N + 1) k. A sufficient exponential condition is 
+
+n ≥ log( T /α ) + ( T − 1)  k log( N + 1) + log 2 
+
+log  1/(1 − ρ) . (14) 
+
+If the acceptance bit is unobserved or determined by the other feedback, the factor 2 and the term log 2 are omitted. 
+
+14 The exact bound uses both the number of histories and the finite-population endpoint. For N = 500, k = 6, T = 4, and ρ = α = 0 .05, equation (14) gives 2 ,308 cases with the acceptance bit and 2 ,267 without it. Equation (13), by contrast, is satisfied at 474 and 473 cases, respectively, while 475 passing cases give a deterministic guarantee. Exact counting remains useful when the exponential approximation exceeds the population size. The message count must reflect the information actually returned. For raw reported cases, the fixed candidate and the case determine the reference and candidate responses. Additional observations such as timing or a test score enlarge the possible messages. A deterministic reduction based only on each reported case and the candidate cannot increase that count, although the reduced input may still identify the original case. Appendix D gives the proof. 
+
+A lower bound from adaptive probing. The following construction uses disjoint regions of the input population. During the probing rounds, the candidate fails in one region so that feedback identifies its sampled members. The last candidate then fails on the parts of those regions that remain unreported. 
+
+Theorem 4.6 (Adaptive probing lower bound) . Suppose the candidate class is unrestricted casewise, the agent knows U and its specified outputs, and the feedback rule returns every previously unreported failing case of S whenever there are at most k of them. Let r = T − 1,and let integer m satisfy rm ≤ N and r(m − k) > ρN . If feedback continues for all T
+
+prescribed rounds, there is a policy whose round-T candidate is accepted with risk above ρ with probability at least max {0, 1 − r p (m)}, where p(m) = Pr  Hyp( N, m, n ) > k  is the upper tail of the hypergeometric count of sampled cases in a region of size m.
+
+Corollary 4.7 (A sufficient choice of probe size) . Let T ≥ 2, k ≥ 1, and n ≥ 1, and set 
+
+r = T − 1 and m = ⌊kN/ (2 n)⌋. If rm ≤ N and r(m − k) > ρN hold, Theorem 4.6 applies with a hypergeometric count whose mean is nm/N ≤ k/ 2. Ignoring integer rounding, the risk condition is equivalent to 
+
+n < n ∗ := 
+
+ 2ρrk + 2
+
+N
+
+−1
+
+, (15) 
+
+and n ≥ rk/ 2 suffices for the disjoint regions to fit in the population. 
+
+This choice of m yields n∗ ≈ 104 .65 when N = 500, k = 6, T = 4, and ρ = 0 .05. After rounding, it meets the risk condition through n ≤ 100. Choosing m = 15 directly also permits larger values of n, with the resulting probabilities calculated in Section 5. The sufficient bound covers all policies satisfying the message-count assumption, while the lower bound gives the success probability of the specified probing policy. 
+
+Remark (Case identity after reduction) . Reducing (query( i), noop) to (query( i)) preserves the identifying value i. A shorter input can therefore reveal its original population case. The information relevant to Theorem 4.5 depends on the mapping from original cases to feedback, including how many cases can yield the same message, rather than on the fraction of traces that remain unchanged. 
+
+15 4.4 Error Bounds for Generated Tests 
+
+Generating new tests after a candidate is fixed changes the acceptance analysis when their sampling distribution is known. Uniformly sampled batches give a direct bound on the current candidate, whereas targeted generation requires a relation between its selection distribution and the target population. 
+
+Proposition 4.8 (Uniform generation in each round) . Suppose each round draws a batch Snew 
+
+> t
+
+of m cases uniformly without replacement after commitment, conditionally independently of the candidate given the previous history. Repetition across rounds is allowed, and Vt = Snew  
+
+> t
+
+\ Gt−1
+
+contains the new cases. If acceptance requires all cumulative regression tests to pass, then for every round we have 
+
+Pr  ft passes Gt, R (ft) > ρ | H t, f t
+
+ ≤ qN,ρ (m) ≤ (1 − ρ)m, (16) 
+
+and the probability of any false acceptance over T rounds is at most T q N,ρ (m).Proof. Passing Gt implies passing the new batch because Snew  
+
+> t
+
+⊆ Gt−1 ∪ Vt ⊆ Gt. Propo-sition 4.1 applies conditionally in each round, and a union bound gives the result over T
+
+rounds. Requiring additional tests to pass can only reduce acceptance. An overall error budget α over T rounds requires qN,ρ (m) ≤ α/T . For N = 500, ρ = 0 .05, and m = 12, the exact single-round bound is approximately 0 .523, so this batch size yields a weak acceptance criterion. The role of the distribution becomes explicit in the next result. 
+
+Proposition 4.9 (Candidate-dependent test selection) . Let Qf be the distribution used to select an input after observing candidate f . Without a specified relation between Qf and the uniform distribution on U, the expected selected-test loss EZ∼Qf [ℓ(f ; Z)] does not identify 
+
+R(f ).Proof. A permissible selector can concentrate on a strict subset of U. Candidates that agree on that subset and differ on its complement have the same selected-test loss and different population risks. Targeting suspected defects can increase the number of failures found, which is the development objective of an informed tester. To infer population risk from such tests, a coverage condition is needed. For example, if a known κ ∈ (0 , 1] satisfies Qf (z) ≥ κ/N for every z ∈ U , then we have EZ∼Qf [ℓ(f ; Z)] ≥ κ R (f ). GTDD measures targeted generation through the failures and repairs it produces, and uses an explicit random sampling rule for acceptance. 
+
+# 4.5 Sequential Error Control 
+
+Fresh audits permit valid acceptance decisions even when earlier tests have influenced candidate selection. We first control errors over a fixed collection of trajectories and then extend that control to an unbounded number of rounds. The bound for accepting a complete repository is sharper than the bound for reporting simultaneous conclusions about every requirement family. 16 Let a = 1 , . . . , M index trajectories with at most T rounds and J families. Use Aa,t,j for the family audit indicator and Qa,t for target accuracy, extending the notation of Section 2. Let Na,j be the family population size and ρa,t,j the tolerance used in Qa,t . In GTDD, this is the issue-family tolerance fixed before development. Denote by Ba,t,j the event that family 
+
+j exceeds its tolerance but passes its audit. The sigma-field F− 
+
+> a,t
+
+contains all information available to the trusted harness just before sampling, including the committed candidate. 
+
+Assumption 4.2 (Sampling after candidate commitment) . Conditional on F−
+
+> a,t
+
+, sample Sa,t,j 
+
+is uniform without replacement from its fixed population. Its size na,t,j is chosen before the draw, and the candidate’s loss function and tolerance ρa,t,j are fixed. Dependence between samples from different families is allowed. 
+
+Simultaneous family conclusions. The probability that any above-tolerance family passes its audit is bounded by summing its conditional error probabilities across families, rounds, and trajectories. 
+
+Theorem 4.10 (Sequential family-wise error control) . Under Assumption 4.2, we have 
+
+Pr 
+
+ M[
+
+> a=1
+> T
+
+[
+
+> t=1
+> J
+
+[
+
+> j=1
+
+Ba,t,j 
+
+
+
+≤ E
+
+h MX
+
+> a=1
+> T
+
+X
+
+> t=1
+> J
+
+X
+
+> j=1
+
+qNa,j ,ρ a,t,j (na,t,j )
+
+i
+
+. (17) 
+
+For fixed sizes and tolerances, the expectation is unnecessary, and each term is at most 
+
+(1 − ρa,t,j )na,t,j .Proof. The committed loss function determines whether a family exceeds its tolerance. Conditional on F−
+
+> a,t
+
+, Proposition 4.1 bounds the probability that such a family passes by 
+
+qNa,j ,ρ a,t,j (na,t,j ). Taking expectations and a union bound proves equation (17). Rounds excluded by a stopping rule contribute zero event indicators. 
+
+Corollary 4.11 (Family-wise sample size) . For common N , ρ, and n, the condition qN,ρ (n) ≤
+
+α/ (M T J ) suffices. A sufficient exponential condition is 
+
+n ≥ log( M T J/α )log  1/(1 − ρ). (18) 
+
+For N = 500 , M = 8 , T = 4 , J = 5 , and ρ = α = 0 .05 , the smallest exact size is 131 , whereas equation (18) gives 158 .
+
+Acceptance of the complete repository. If acceptance requires all family audits to pass, any bad candidate must pass the audit of at least one family known before sampling to be above tolerance. This observation replaces the sum over families by their largest conditional bound. Let Accept a,t denote the indicator that the repository is accepted. 
+
+Theorem 4.12 (Joint repository acceptance) . Suppose acceptance requires Aa,t,j = 1 for every family, possibly together with passing public and saved development tests. Under 
+
+17 Assumption 4.2, we have 
+
+Pr  ∃ a ∈ { 1, . . . , M }, t ∈ { 1, . . . , T } : Accept a,t = 1 , Q a,t = 0 
+
+≤ E
+
+h MX
+
+> a=1
+> T
+
+X
+
+> t=1
+
+max  
+
+> 1≤j≤J
+
+qNa,j ,ρ a,t,j (na,t,j )
+
+i
+
+. (19) 
+
+Proof. Condition on F−
+
+> a,t
+
+. For a bad candidate, let j∗ be the lowest-indexed family whose risk exceeds its tolerance. This choice depends on the fixed candidate and population, before the new samples are drawn. Repository acceptance implies that family j∗ passes, with conditional probability at most qNa,j ∗ ,ρ a,t,j ∗ (na,t,j ∗ ), which is bounded by the displayed maximum. For a candidate within tolerance in every family, the false-acceptance event is empty. Taking expectations and a union bound over trajectories and rounds proves the result. With common parameters, joint acceptance requires qN,ρ (n) ≤ α/ (M T ), so the preceding setting needs 108 cases per family. The number of families still determines the execution cost of Jn cases per round. The distinction between this event for the whole repository and simultaneous family conclusions accounts for the different sample sizes. 
+
+Corollary 4.13 (Comparison with known tests) . In the unrestricted casewise class, a known fixed test set needs N − ⌊ ρN ⌋ cases to exclude every accepted candidate above tolerance. For one fixed candidate and one family, a uniform audit after commitment requires qN,ρ (n) ≤ α.The exponential count log(1 /α )/ log(1 /(1 − ρ)) suffices whenever it is feasible, and the finite-population endpoint always suffices. At N = 500 and ρ = α = 0 .05 , the smallest exact audit size is 54 , compared with 475 known tests. 
+
+Theorems 4.10 and 4.12 extend the single-candidate comparison to a prescribed horizon and allow arbitrary stopping within that horizon. 
+
+An unbounded sequence of candidates. A summable allocation of error probabilities controls acceptance even when the total number of development rounds is not fixed in advance. Each allocation applies to the current candidate’s new audit. 
+
+Theorem 4.14 (Error allocation over an unbounded horizon) . Suppose Assumption 4.2 holds in every audited round. For a ∈ { 1, . . . , M } and t ≥ 1, choose a nonnegative allocation 
+
+εa,t before sampling, with PMa=1 
+
+P∞ 
+
+> t=1
+
+εa,t ≤ α almost surely. Choose sample sizes satisfying 
+
+max 1≤j≤J qNa,j ,ρ a,t,j (na,t,j ) ≤ εa,t . If repository acceptance requires every family audit to pass, then for arbitrary adaptive candidate selection and stopping we have 
+
+Pr  ∃ a ∈ { 1, . . . , M }, t ≥ 1 : Accept a,t = 1 , Q a,t = 0  ≤ α. (20) 
+
+Proof. The proof of Theorem 4.12 bounds the conditional false-acceptance probability in each reached round by εa,t . The indicator of any false acceptance is at most the sum of the round indicators. Taking expectations and applying monotone convergence to the nonnegative infinite sum bounds the probability by E[PMa=1 
+
+P∞ 
+
+> t=1
+
+εa,t ] ≤ α.18 For M trajectories, εa,t = α/ (M t (t + 1)) has total mass α. With M and the tolerances fixed, the exponential sufficient sample count grows logarithmically as t increases until the exact finite-population endpoint is smaller. The candidate may change arbitrarily between rounds. Allocating error to individual triples ( a, t, j ) instead gives simultaneous family conclusions through Theorem 4.10. 
+
+Sequential testing within one candidate. For a fixed snapshot, a sequential test can inspect the audit one case at a time. Let Ir indicate that the first r draws of a uniformly random ordering of U contain no failures, and define Wr = Ir/q N,ρ (r) for 0 ≤ r ≤ N − Kρ. Under the null K(f ) ≥ Kρ, the process ( Wr) is a nonnegative supermartingale starting at one. Given 
+
+r < N − Kρ failure-free draws, the next draw passes with probability ( N − K(f ) − r)/(N − r), which is at most ( N − Kρ − r)/(N − r) = qN,ρ (r + 1) /q N,ρ (r). Ville’s inequality bounds by ε
+
+the probability of ever reaching Wr ≥ 1/ε , for ε ∈ (0 , 1) (Ville, 1939; Ramdas et al., 2023). At the endpoint, N − Kρ + 1 passing draws establish that the candidate is within tolerance directly. A new candidate starts its own process using the allocation in Theorem 4.14. 
+
+Evidence across different candidates. A product of audit factors from different imple-mentations addresses a different hypothesis. For one family and audits with qN,ρ (nt) > 0, let 
+
+At be the audit indicator for candidate ft, and define 
+
+ηt = At
+
+qN,ρ (nt), Zt =
+
+> t
+
+Y
+
+> s=1
+
+ηs, Z0 = 1 . (21) 
+
+Theorem 4.15 (E-process for a sequence of bad candidates) . Let H0 be the hypothesis that every selected candidate satisfies R(ft) > ρ almost surely. Under H0 and post-commit sampling, (Zt) is a nonnegative supermartingale, and we have 
+
+Pr 
+
+> H0
+
+ ∃ t ≥ 1 : Zt ≥ 1/α  ≤ α. (22) 
+
+Proof. Under H0, Proposition 4.1 gives E[ηt | pre-audit history] ≤ 1. Multiplication by the nonnegative preceding product establishes the supermartingale property, and Ville’s inequality gives equation (22) (Ville, 1939). Rejecting H0 supplies evidence against the assertion that every candidate is bad, although that evidence may come from a candidate earlier in the sequence. For example, consider the conservative factors ηt = At(1 − ρ)−nt with ρ = 0 .05 and threshold 800. Earlier correct candidates can supply 130 failure-free draws, giving 0 .95 −130 ≈ 786 .92. If the next candidate fails 26 of 500 cases and is audited once, a passing draw occurs with probability 474 /500 = 0 .948 and raises the product to 0 .95 −131 ≈ 828 .34. The threshold is crossed while the current candidate is bad, because the earlier candidates already falsified the sequence hypothesis. Similarly, evidence that each family was satisfactory at some time need not identify one implementation satisfactory in every family. Theorem 4.14 assigns evidence to the candidate being accepted and avoids this transfer across implementations. 19 Test selection Sufficient size condition New cases per round Known fixed tests n ≥ N − ⌊ ρN ⌋ 0 after setup Hidden fixed tests HT Q(n) ≤ α 0 after setup Uniform generation T Q (m) ≤ α m    
+
+> Fresh audit T Q (n)≤αn
+
+Table 1: Sufficient acceptance conditions over a common horizon. The uniform-generation row assumes the sampling rule in Proposition 4.8. Case counts refer to new samples and exclude repeated execution of regression tests. 
+
+Comparison of acceptance conditions. Table 1 lists sufficient conditions for an error target α over T rounds and one family. Write Q(n) = qN,ρ (n) and HT = PTt=1 
+
+Qt−1 
+
+> s=1
+
+Ls. The known-test condition is sharp for the unrestricted candidate class, and Theorem 4.6 supplies a constructive lower bound for repeated feedback from a hidden test set. Uniform generation and fresh auditing have the same sampling guarantee because both draw cases after the candidate is fixed. For targeted generation, the selection distribution determines the relation to population risk. For repeated testing on a hidden set, the feedback history determines the sufficient bound. These are properties of the sampling and information rules, which GTDD specifies separately from the model that generates development tests. 
+
+# 5 Exact Numerical Analysis 
+
+We evaluate the finite-population formulas to compare the sample sizes needed for acceptance and the probabilities produced by repeated feedback. Exact ratios of binomial coefficients give both the false-acceptance bounds and the acceptance probabilities of candidates within tolerance. Values are calculated with integer arithmetic and rounded for display. 
+
+# 5.1 Setup 
+
+The calculations use populations of size N = 500 with tolerance ρ = 0 .05 and error target 
+
+α = 0 .05. The smallest failure count above tolerance is Kρ = 26. For repeated decisions, we consider M = 8 trajectories with T = 4 rounds and J = 5 families, giving 32 opportunities to accept a repository or 160 individual family conclusions. The probing construction uses r = 3 disjoint regions of size m = 15 and at most k = 6 reported cases per round. The sequence runs through all four prescribed rounds, including the terminal candidate, as assumed in Theorem 4.6. When each region contains at most 6 sampled cases, that candidate fails at least 3(15 − 6) = 27 population cases and passes the hidden test set. For acceptance within tolerance, we use the same family population and vary the candidate’s total number of failures. 
+
+# 5.2 Probability Calculation 
+
+The audit sample size is the smallest integer n for which q500 ,0.05 (n) meets the applicable error allocation. The three allocations are 0 .05 for one candidate and family, 0 .05 /32 for joint 20 Guarantee target Exact n Exponential n q500 ,0.05 (n)One candidate 54 59 0.0472088 Repository over 32 rounds 108 126 0.00148353 160 family conclusions 131 158 0.000291773 
+
+Table 2: Smallest exact audit sizes and exponential sufficient sizes. The repository row covers 8 trajectories of 4 rounds; the family row additionally covers 5 separate family conclusions per round. repository acceptance, and 0 .05 /160 for simultaneous family conclusions. We compare each exact count with the sufficient count obtained from the exponential bound. For the probing construction, let ch be the coefficient of xh in  P ki=0 
+
+ mi
+
+xir. Counting how the sampled cases are distributed across the regions gives 
+
+psuccess = 1
+
+ Nn
+
+
+
+> rk
+
+X
+
+> h=0
+
+ch
+
+N − rm n − h
+
+
+
+1rm − h ≥ Kρ
+
+, (23) where impossible binomial terms are zero. The indicator requires the terminal candidate’s risk to exceed the tolerance. Appendix D gives the counting argument. For a candidate with a specified failure count, its acceptance probability follows directly from equation (10). 
+
+# 5.3 Results 
+
+The exact calculations quantify the effect of the acceptance target and the feedback available before the candidate is fixed. They also describe the probability that a zero-failure audit accepts a candidate whose population risk is already within tolerance. 
+
+Required sample size. Table 2 gives the smallest exact audit size for each target. Simul-taneous family conclusions require 131 cases because q500 ,0.05 (131) ≈ 0.000291773 ≤ 0.05 /160, and the next smaller size gives approximately 0 .000313825. Joint repository acceptance reduces the multiplicity factor from 160 to 32 and requires 108 cases per family. For one candidate and one family, 54 cases suffice. The exact calculation improves on the exponential sufficient size in all three comparisons. 
+
+Adaptation through repeated feedback. Table 3 reports the lower bound and exact success probability of the three-region construction. The construction remains effective for sample sizes above the value n∗ obtained from the particular probe-size choice in equation (15). At n = 131, its success probability is approximately 0 .8082, while the same number of fresh audit cases gives an acceptance probability at most approximately 0 .000292 for a bad family. The first probability includes adaptation through three rounds of feedback, whereas the second concerns a candidate fixed before sampling. At n = 200, the exact success probability remains 0 .2195 even though the union lower bound is zero. 21 Hidden test-set size n Union lower bound Exact success 54 0.9989 0.9989 100 0.9504 0.9511 104 0.9385 0.9395 108 0.9245 0.9260 131 0.7963 0.8082 158 0.5199 0.5876 200 0.0000 0.2195 
+
+Table 3: Success of the three-region probe construction with N = 500, m = 15, and k = 6. The probabilities describe the explicit casewise adversary after all four prescribed rounds.                                   
+
+> Failures Risk Pass at n= 54 Pass at n= 108 Pass at n= 131 00.000 1.000000 1.000000 1.000000 10.002 0.892000 0.784000 0.738000 50.010 0.563334 0.294558 0.217358 10 0.020 0.315393 0.085553 0.046396 25 0.050 0.053264 0.001920 0.000403 26 0.052 0.047209 0.001484 0.000292
+
+Table 4: Exact probabilities that one family’s zero-failure audit passes. The count 26 is the first above tolerance. 
+
+Acceptance within tolerance. Table 4 gives the probability that a candidate passes a zero-failure audit as its population failure count changes. A candidate with 5 failures among 500 cases has risk 0 .01 and passes a 131-case audit with probability approximately 0 .2174, and at the tolerance boundary of 25 failures that probability is approximately 0 .000403. The rule therefore combines strong false-acceptance control with a low acceptance probability for candidates near the tolerance boundary. An audit that permits failures moves this tradeoff at the cost of a larger sample: for joint repository acceptance at 0 .05 /32, the zero-failure rule needs 108 cases per family and accepts a candidate with 5 failures with probability approximately 0 .295, whereas the rule that permits 4 failures needs 221 cases by Proposition 4.2 and accepts the same candidate with probability approximately 0 .984. 
+
+# 6 Empirical Case Study 
+
+We evaluate how development tests change successive implementations of a stateful API. A paired design compares five policies from the same initial implementation, four added conditions refine that comparison, and every candidate is measured on a common private evaluation set. The experiment tests the development role of GTDD by comparing fixed tests with tests regenerated during repair, and it evaluates the acceptance rule afterwards on the recorded candidates. Four choices, each stated where it applies, distinguish this implementation from the protocol of Section 3: the coding model answers single requests without tool access and so cannot edit protected files, candidates run inside the evaluator’s 22 process under a wall-clock limit, reduction preserves any disagreement with the reference rather than the designated one, and no acceptance rule acts during the four rounds. 
+
+# 6.1 Experimental Setup 
+
+The task is a single-client, in-memory key-value store modeled on a subset of Redis. Its stateful behavior allows counterexamples to expose interactions among commands and makes repeated implementation changes measurable on the same collection of traces. 
+
+Task and evaluation inputs. The interface has 61 commands in eight families: keys, strings, lists, hashes, sets, sorted sets, expiry under a logical clock, and transactions with optimistic watches. A 2 ,072-word specification fixes every reply and error code, including the order in which checks apply, and a 620-line reference implementation computes expected replies. We selected the task because initial implementations fail on a substantial fraction of traces while counterexample-based repair remains possible. Each evaluation trace applies 10 to 40 operations to a fresh service, each generated trace contains at most 40 operations, and a reduced trace is no longer than its original. The evaluation set consists of 2 ,000 traces drawn once from a fixed random generator and used for every condition and round without being reported to either model. Each candidate is imported into the evaluator’s process, which applies a limit of 0 .5 seconds of wall-clock time per trace. A reply is correct when it equals the reference reply as a JSON value, so a boolean never matches an integer. The harness that ran the trajectories, including the selection of counterexamples, compared replies with Python equality, under which a boolean matches an integer. Scoring every saved candidate again, each in a separate process under the same limit, reproduced every recorded count under that comparison exactly, and the JSON comparison changes the count of one candidate, the final module of one Dynamic blind trajectory, by 7 of the 2 ,000 traces. Every count reported below uses the JSON comparison. The changed module is the last of its trajectory, so every candidate that received feedback has the same count under both comparisons, and the counterexamples it received were selected under Python equality. The records of the five conditions consist of every candidate module, every generator the testing model wrote, the counterexamples reported in each round, and each candidate’s failure count on the evaluation set after each round, together with the outcome of every evaluation trace from this second scoring. 
+
+Model and paired design. Both coding and testing use gpt-4.1-mini, snapshot 2025-04-14, through single requests without tool access. Temperature, nucleus sampling, and the seed are left at the API defaults, and a request that fails is retried up to three times. A coding request receives the specification, the current module, and the feedback, and returns a complete module that is committed before execution. Each of 30 blocks begins with a module generated from the specification alone. All five conditions share that block’s initial module and then perform three repair rounds, giving four coding rounds in total. Every condition receives the public example’s outcome, and all trajectories run for the prescribed four rounds without an acceptance gate. 23 Statistical analysis. The outcome is the evaluation failure rate after each round. The primary comparison is the within-block difference after round four between Dynamic in-formed and Static LLM, and the remaining contrasts are secondary and exploratory, without adjustment for multiplicity. Percentile bootstrap intervals resample blocks 10 ,000 times. The 
+
+p-values come from a seeded Monte Carlo sign-flip test over blocks with 100 ,000 sign assign-ments, under the null that within-block differences are symmetric about zero. Appendix E adds the median, the 10% trimmed mean, and the exact sign test of every contrast, whose null concerns only the direction of the differences. 
+
+# 6.2 Test Generation 
+
+Each policy specifies when tests are generated, what information the testing model re-ceives, and how many traces are sampled. The coding schedule and maximum number of counterexamples returned in a round are the same across conditions. 
+
+Baselines. Public only supplies the outcome of the public example and no additional feedback. Static property uses 400 traces drawn before development from the evaluation generator with a different seed, so its tests share the evaluation distribution. These inputs remain fixed throughout the four coding rounds. 
+
+LLM-generated inputs. The testing model writes a trace generator so that sampled inputs can combine interacting rules. Every LLM tester is instructed to write a generator likely to expose violations, so every LLM condition, including the added ones below, is adversarial in the sense of Section 3, and Dynamic informed is the only one that can aim at the committed candidate itself; Static property is not adversarial. Static LLM requests one generator from the specification before round one, samples 400 traces, and fixes the valid inputs for subsequent rounds. Their mean number is 312 .9, and in 4 of the 30 blocks the generator produced no valid trace, so that condition received no development tests beyond the public example. Dynamic blind requests a new generator in every repair round from the specification and all previously reported counterexamples, then samples 200 fresh traces, while Dynamic informed also supplies the current module to the testing model. Each dynamic policy therefore requests 600 traces over the three repair rounds, compared with 400 for Static LLM. The valid traces actually supplied are fewer, 13 ,816 of 18 ,000 for Dynamic blind and 14 ,760 of 18 ,000 for Dynamic informed, against 9 ,386 of 12 ,000 for Static LLM, because a generator can fail to run or produce invalid traces. A generator request is limited to 8 ,000 output tokens, and a response cut off at that limit yields no runnable generator; a generator that runs can also raise an error or return only invalid traces. A round whose generator supplies no valid trace adds no new tests, which happened in 17 and 13 of the 90 generator requests of the two dynamic policies. The comparison evaluates these policies as specified, combining per-round regeneration and access to earlier feedback with their respective sampling budgets. 
+
+Counterexample feedback. The four conditions with development tests return at most 6 reduced counterexamples per round. They select by family coverage and then by length from 24 Condition Round 1 Round 2 Round 3 Round 4 New counterexamples in round 3 Public only 0.548 0.346 0.342 0.342 —Static property 0.548 0.396 0.309 0.298 4.93 Static LLM 0.548 0.382 0.363 0.405 3.40 Dynamic blind 0.548 0.360 0.357 0.279 5.77 Dynamic informed 0.548 0.441 0.316 0.274 5.37 
+
+Table 5: Mean evaluation failure rate after each coding round over 30 blocks, and the mean number of counterexamples newly disclosed after round three, which the last repair round received. Round one is the shared first-round module. a pool of 24 reductions, and each coding request includes every counterexample reported so far. In this experiment, reduction preserves any disagreement with the reference, and the family label comes from the command at which the original trace first diverged. This criterion permits a reduction to expose a different disagreement from the original one. The resulting feedback is evaluated through the next candidate’s failure rate on the common evaluation set. 
+
+Added conditions. After the five conditions had been analyzed, we ran four further conditions on the same blocks, first-round modules, and evaluation set, all on one day and in an order randomized within each block, to separate parts of the difference between Static LLM and the dynamic policies. Static LLM 600 writes one generator from the specification before round one, samples 600 traces from it, and uses the valid ones from the start. Staged 600 uses the same generator and the same sampled traces, releasing 200 of them in each repair round and keeping the valid ones. Regenerated without history writes a new generator from the specification alone in every repair round and samples 200 traces, and Blind rerun repeats Dynamic blind on that day. Adjacent conditions are designed to differ mainly in one respect: the number of requested traces, whether the traces arrive at once or across rounds, whether one generator or three produce them, and whether the tester sees the reported counterexamples. These comparisons were chosen after the first results and are exploratory. For these conditions the records also hold every request and response, the original trace of every reported counterexample, the outcome of the public example, and the outcome of every evaluation trace. 
+
+# 6.3 Results 
+
+Both dynamic policies produce lower final failure rates than Static LLM. Table 5 shows the changes across coding rounds, and Table 6 reports the paired differences after round four. 
+
+Primary comparison. All conditions start from a mean failure rate of 0 .548. After round four, Dynamic informed has a mean rate of 0 .274, compared with 0 .405 for Static LLM. The within-block difference is −0.131, with a 95% interval of [ −0.228 , −0.050] and p = 0 .0015. Dynamic informed is lower in 19 of the 30 blocks. Dynamic blind also finishes below Static LLM, with a mean rate of 0 .279 and a paired difference of −0.126. The size of the mean difference depends heavily on three blocks in which Static LLM, but not the dynamic policies, 25 Contrast (first minus second) Difference 95% interval p Lower and higher Dynamic informed − static LLM −0.131 [−0.228 , −0.050] 0.0015 19 , 7Dynamic informed − dynamic blind −0.005 [−0.044 , +0 .034] 0.810 12 , 15 Dynamic blind − static LLM −0.126 [−0.223 , −0.044] 0.0012 20 , 8Dynamic informed − static property −0.024 [−0.097 , +0 .043] 0.534 13 , 13 Static property − static LLM −0.107 [−0.205 , −0.018] 0.029 20 , 7Dynamic informed − public only −0.067 [−0.103 , −0.032] 0.0007 20 , 8Static LLM − public only +0 .064 [−0.017 , +0 .159] 0.195 15 , 12 Static property − public only −0.044 [−0.102 , +0 .019] 0.175 21 , 5Dynamic blind − static property −0.019 [−0.090 , +0 .046] 0.611 14 , 14 
+
+Table 6: Within-block differences of the failure rate after round four. The last column counts the blocks in which the first condition was lower and higher; the remaining blocks are ties. The first row is the primary comparison. ended with a module that failed almost every evaluation trace. In two of them the final repair broke a module that had passed most traces, once so that it could no longer be imported, and in the third the shared first-round module failed every trace and the Static LLM repairs never recovered it. The median within-block difference is −0.044 and the 10% trimmed mean is 
+
+−0.076, and the exact sign test over the 26 blocks without a tie gives p = 0 .029 (Appendix E). 
+
+Source access and the property-based baseline. The estimated difference between Dynamic informed and Dynamic blind is −0.005, with interval [ −0.044 , +0 .034] and p = 0 .810. Source access produces no detectable additional improvement under this comparison. Neither dynamic condition has a statistically detectable advantage over Static property, which draws its inputs from the generator that produced the evaluation set and is therefore a strong baseline for this task. 
+
+Failures and successive repairs. Among the valid traces generated for the current module, 37 .2% fail under Dynamic informed and 35 .7% under Dynamic blind. In round three, these policies return means of 5 .37 and 5 .77 new counterexamples, respectively, compared with 3 .40 for Static LLM. The fixed LLM inputs continue to expose failures, but they supply fewer previously unreported counterexamples as development proceeds. Static LLM’s mean failure rate rises between rounds three and four because of the two final repairs that broke their modules, and its final rate is not statistically distinguishable from Public only. Across all 150 trajectories, one reaches a failure rate of at most 0 .01, so substantial errors remain after four rounds even in the conditions with the strongest average improvement. 
+
+Added conditions. After round four, the mean failure rates are 0 .355 for Static LLM 600, 0 .311 for Staged 600, 0 .297 for Regenerated without history, and 0 .308 for Blind rerun, against 0 .405 for Static LLM with 400 requested traces (Appendix E). No adjacent difference is detectable, and neither is the difference between the two runs of Dynamic blind, +0 .029. With equal numbers of requested traces on the same day, Blind rerun ends 0 .047 below Static LLM 600, with interval [ −0.121 , +0 .037]. The rates fall over the first three steps and rise 26 slightly at the last, without any single step being detectable with 30 blocks, so this study does not attribute the advantage of the dynamic policies to regeneration, to the number of traces, or to the reported history alone. 
+
+Audits of the recorded candidates. This analysis uses the 600 candidates of the five original conditions. The trajectories ran without an acceptance gate, but each recorded candidate’s failure count on the evaluation set determines exactly the probability that a fresh audit drawn from that set would accept it (Proposition 4.2), provided that each round draws an independent sample and the audit affects only whether the trajectory stops, not the candidates that development would otherwise produce. We treat the 2 ,000 evaluation traces as one population with tolerance ρ = 0 .05. Of the 600 recorded candidates, 13 are within this tolerance, including the final candidates of 6 trajectories. Each block’s first-round module is counted once per condition, since each condition audits it independently. A zero-failure audit that bounds false acceptance by α = 0 .05 over the four rounds of one trajectory needs 83 cases. Applied to all 150 trajectories with stopping at the first acceptance, it yields 0 .074 expected false acceptances in total and 1 .01 expected acceptances of candidates within tolerance, and a trajectory ends without acceptance with mean probability 0 .993. A bound of 0 .05 over all 600 audit opportunities requires 174 cases, which lowers the expected false acceptances to 0 .00027 and the expected acceptances within tolerance to 0 .251. These values describe the audit rule applied to candidates that development actually produced; they concern the aggregate failure rate rather than individual families, and the public example is not part of the rule because the records do not include its outcome. 
+
+# 7 Discussion 
+
+The results assign complementary roles to generated tests, existing regression tests, and independent audits. Development uses concrete failures to improve the implementation, while acceptance requires a probability statement about the candidate currently under consideration. 
+
+Development feedback. The paired experiment shows that Dynamic blind and Dynamic informed end with lower mean failure rates than Static LLM, whose tests were generated once by the same model. Their generators use previous counterexamples and request more traces over the repair rounds, and the added conditions, which change mainly one of these features at each step, produce intermediate rates with no detectable step, so the result compares complete development policies. Static property draws its inputs from the generator that produced the evaluation set; its strength shows the value of inputs whose distribution matches the target, and the dynamic policies, which never see that generator, end without a detectable difference from it. GTDD accommodates both sources and saves their verified cases for subsequent regression checks. 
+
+Evidence for acceptance. Test visibility and feedback determine what an adaptive candidate can learn before acceptance. The exact known-test result describes unrestricted casewise adaptation, and the history bound accounts for the information returned by repeated 27 testing on hidden inputs. Fresh conditional sampling after commitment gives a direct bound for the current candidate, with separate allocations for repository acceptance and simultaneous family conclusions. Over an unbounded sequence, summable allocations preserve that interpretation as implementations change. Counterexample reduction makes failures easier to repair, while its mapping to original cases determines how much information the feedback reveals. 
+
+The evaluation target. A fixed population gives an explicit target on which complete evaluation has no sampling error. The audit uses fewer cases to decide whether that target is met, and its sample size controls both false acceptance and the chance of accepting a candidate within tolerance. Table 4 makes this tradeoff visible for the zero-failure rule. For structured programs, the reference implementation defines the expected responses. For language and speech applications, the declared evaluation procedure defines the loss, so the choice of scenarios and judgments is part of the target itself. This formulation connects development tests to a precise acceptance claim. 
+
+# 8 Conclusion 
+
+We formulated GTDD as test-driven development in which a separate testing agent generates new inputs after each candidate is fixed and verified failures become feedback and regression tests. The finite-population analysis characterizes how known tests and repeated feedback affect false acceptance, and establishes fresh-audit guarantees for adaptive development. In the paired experiment, Dynamic blind and Dynamic informed ended with lower mean failure rates than Static LLM, further conditions did not attribute this difference to a single feature, source access produced no detectable additional gain, and property-based tests drawn from the evaluation distribution provided a strong baseline. 
+
+# References 
+
+Dario Amodei, Chris Olah, Jacob Steinhardt, Paul Christiano, John Schulman, and Dan Man´ e. Concrete problems in AI safety. arXiv preprint arXiv:1606.06565 , 2016. 2, 4 Anthropic. Best practices for Claude Code. Claude Code documentation, https://code. claude.com/docs/en/best-practices , 2026. Accessed October 2, 2026. 2 Anish Athalye, Nicholas Carlini, and David Wagner. Obfuscated gradients give a false sense of security: Circumventing defenses to adversarial examples. In Proceedings of the 35th International Conference on Machine Learning , pp. 274–283, 2018. 5 Bowen Baker, Joost Huizinga, Leo Gao, Zehao Dou, Melody Y. Guan, Aleksander Madry, Wojciech Zaremba, Jakub Pachocki, and David Farhi. Monitoring reasoning models for misbehavior and the risks of promoting obfuscation. arXiv preprint arXiv:2503.11926 ,2025. 2, 4 Kent Beck. Test Driven Development: By Example . Addison-Wesley, 2002. 1 28 Cristian Cadar, Daniel Dunbar, and Dawson Engler. KLEE: Unassisted and automatic generation of high-coverage tests for complex systems programs. In Proceedings of the 8th USENIX Symposium on Operating Systems Design and Implementation , pp. 209–224, 2008. 3Pengyu Chang, Yixiong Fang, Silin Chen, Yuling Shi, Beijun Shen, and Xiaodong Gu. Test vs mutant: Adversarial LLM agents for robust unit test generation. arXiv preprint arXiv:2602.08146 , 2026. 4 Bei Chen, Fengji Zhang, Anh Nguyen, Daoguang Zan, Zeqi Lin, Jian-Guang Lou, and Weizhu Chen. CodeT: Code generation with generated tests. In International Conference on Learning Representations , 2023. 2, 4 Mark Chen et al. Evaluating large language models trained on code. arXiv preprint arXiv:2107.03374 , 2021. 2 Neil Chowdhury, James Aung, Chan Jun Shern, Oliver Jaffe, Dane Sherburn, Giulio Starace, Evan Mays, Rachel Dias, Marwan Aljubeh, Mia Glaese, Carlos E. Jimenez, John Yang, Ley-ton Ho, Tejal Patwardhan, Kevin Liu, and Aleksander Madry. Introducing SWE-bench Ver-ified. OpenAI, https://openai.com/index/introducing-swe-bench-verified/ , 2024. 4Koen Claessen and John Hughes. QuickCheck: A lightweight tool for random testing of Haskell programs. In Proceedings of the Fifth ACM SIGPLAN International Conference on Functional Programming , pp. 268–279, 2000. 3 Yinlin Deng, Chunqiu Steven Xia, Haoran Peng, Chenyuan Yang, and Lingming Zhang. Large language models are zero-shot fuzzers: Fuzzing deep-learning libraries via large language models. In Proceedings of the 32nd ACM SIGSOFT International Symposium on Software Testing and Analysis , pp. 423–435, 2023. 3 Cynthia Dwork, Vitaly Feldman, Moritz Hardt, Toniann Pitassi, Omer Reingold, and Aaron Roth. Generalization in adaptive data analysis and holdout reuse. In Advances in Neural Information Processing Systems 28 , pp. 2350–2358, 2015a. Full version: https: //arxiv.org/abs/1506.02629 . 2, 4, 14 Cynthia Dwork, Vitaly Feldman, Moritz Hardt, Toniann Pitassi, Omer Reingold, and Aaron Roth. The reusable holdout: Preserving validity in adaptive data analysis. Science , 349 (6248):636–638, 2015b. 4 Sarah Fakhoury, Aaditya Naik, Georgios Sakkas, Saikat Chakraborty, and Shuvendu K. Lahiri. LLM-based test-driven interactive code generation: User study and empirical evaluation. 
+
+IEEE Transactions on Software Engineering , 50(9):2254–2268, 2024. 2, 4 Patrice Godefroid, Nils Klarlund, and Koushik Sen. DART: Directed automated random testing. In Proceedings of the ACM SIGPLAN Conference on Programming Language Design and Implementation , pp. 213–223, 2005. 3 29 Peter Gr¨ unwald, Rianne de Heide, and Wouter Koolen. Safe testing. Journal of the Royal Statistical Society Series B , 86(5):1091–1128, 2024. 5 Steven R. Howard, Aaditya Ramdas, Jon McAuliffe, and Jasjeet Sekhon. Time-uniform, nonparametric, nonasymptotic confidence sequences. The Annals of Statistics , 49(2): 1055–1080, 2021. 5 Dong Huang, Jie M. Zhang, Michael Luck, Qingwen Bu, Yuhao Qing, and Heming Cui. AgentCoder: Multi-agent-based code generation with iterative testing and optimisation. 
+
+arXiv preprint arXiv:2312.13010 , 2023. 2, 4 Naman Jain, King Han, Alex Gu, Wen-Ding Li, Fanjia Yan, Tianjun Zhang, Sida Wang, Armando Solar-Lezama, Koushik Sen, and Ion Stoica. LiveCodeBench: Holistic and contamination free evaluation of large language models for code. In International Conference on Learning Representations , 2025. 4 Carlos E. Jimenez, John Yang, Alexander Wettig, Shunyu Yao, Kexin Pei, Ofir Press, and Karthik Narasimhan. SWE-bench: Can language models resolve real-world GitHub issues? In International Conference on Learning Representations , 2024. 2, 4 Michal Krawczyk. Automated mapping programs – Genera-tive TDD with ChatGPT. SAP Community, March 2023. 
+
+https://community.sap.com/t5/technology-blog-posts-by-members/ automated-mapping-programs-generative-tdd-with-chatgpt/ba-p/13550457 .2, 3, 4 Caroline Lemieux, Jeevana Priya Inala, Shuvendu K. Lahiri, and Siddhartha Sen. CodaMosa: Escaping coverage plateaus in test generation with pre-trained large language models. In 
+
+Proceedings of the 45th International Conference on Software Engineering , pp. 919–931, 2023. 3 Yunhao Liang, Chengguang Gan, Ruixuan Ying, Hanjun Wei, Zhe Cui, and Shiwen Ni. Do code language models follow tests? Paired interventions on program behavior. arXiv preprint arXiv:2607.26244v2 , 2026a. 4 Yunhao Liang, Ruixuan Ying, Shiwen Ni, and Zhe Cui. Scaling test-driven code generation from functions to classes: An empirical study. arXiv preprint arXiv:2602.03557 , 2026b. 4 Jiawei Liu, Chunqiu Steven Xia, Yuyao Wang, and Lingming Zhang. Is your code generated by ChatGPT really correct? Rigorous evaluation of large language models for code generation. In Advances in Neural Information Processing Systems 36 , 2023. 2, 4 Aleksander Madry, Aleksandar Makelov, Ludwig Schmidt, Dimitris Tsipras, and Adrian Vladu. Towards deep learning models resistant to adversarial attacks. In International Conference on Learning Representations , 2018. 4 Nicolas Menet, Michael Hersche, Andreas Krause, and Abbas Rahimi. A theoretical analysis of test-driven code generation. arXiv preprint arXiv:2602.06098 , 2026. 4 30 Aaditya Ramdas, Peter Gr¨ unwald, Vladimir Vovk, and Glenn Shafer. Game-theoretic statistics and safe anytime-valid inference. Statistical Science , 38(4):576–601, 2023. 5, 19 Tal Ridnik, Dedy Kredo, and Itamar Friedman. Code generation with AlphaCodium: From prompt engineering to flow engineering. arXiv preprint arXiv:2401.08500 , 2024. 2, 4 Daniel Russo and James Zou. Controlling bias in adaptive data analysis using information theory. In Proceedings of the 19th International Conference on Artificial Intelligence and Statistics , pp. 1232–1240, 2016. 4 Glenn Shafer. Testing by betting: A strategy for statistical and scientific communication. 
+
+Journal of the Royal Statistical Society Series A , 184(2):407–431, 2021. 5 Jingwei Shi, Xinxiang Yin, Jing Huang, Shengyu Tao, and Jinman Zhao. CodeHacker: Automated test case generation for detecting vulnerabilities in competitive programming solutions. In Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pp. 2352–2382, 2026. 4 Joar Skalse, Nikolaus Howe, Dmitrii Krasheninnikov, and David Krueger. Defining and characterizing reward gaming. In Advances in Neural Information Processing Systems 35 ,pp. 9460–9471, 2022. 2, 4 Armando Solar-Lezama. Program Synthesis by Sketching . PhD thesis, University of California, Berkeley, 2008. 3 Armando Solar-Lezama, Liviu Tancau, Rastislav Bod´ ık, Sanjit A. Seshia, and Vijay A. Saraswat. Combinatorial sketching for finite programs. In Proceedings of the 12th Inter-national Conference on Architectural Support for Programming Languages and Operating Systems , pp. 404–415, 2006. 3 Florian Tram` er, Nicholas Carlini, Wieland Brendel, and Aleksander Madry. On adaptive attacks to adversarial example defenses. In Advances in Neural Information Processing Systems 33 , pp. 1633–1645, 2020. 5 Jean Ville. ´Etude critique de la notion de collectif . Gauthier-Villars, Paris, 1939. 5, 19 Abraham Wald. Sequential tests of statistical hypotheses. The Annals of Mathematical Statistics , 16(2):117–186, 1945. 5 Andreas Zeller and Ralf Hildebrandt. Simplifying and isolating failure-inducing input. IEEE Transactions on Software Engineering , 28(2):183–200, 2002. doi: 10.1109/32.988498. 3 31 A Event Order and Information Access 
+
+The event order ensures that testing evaluates the committed implementation and that audit information cannot influence its selection. A source-informed round satisfies coding end < candidate commitment < testing start < testing end 
+
+< audit sampling < audit end < acceptance record < population evaluation end . (24) Conditions without generated testing omit its events, and fixed tests are re-executed against the same committed snapshot. Audit randomness is independent of everything available before the draw, including the candidate and development-test outputs. The private audit record stores the allocation and its randomness for verification. When a cryptographic pseudorandom generator supplies the randomness, its security is an implementation assumption distinct from the exact uniform-sampling model. Every candidate-readable file and dependency belongs to the committed manifest, while only the evaluator can access the reference implementation and audit records. Each case runs with a fresh writable layer that is discarded before the next case, and candidate output returns only through the permitted evaluation channel. Population evaluation leaves no persistent effect visible to a later candidate. A failure of these access restrictions or of the evaluator’s own execution environment stops the affected run. The aggregate acceptance bit is the only audit feedback to the coding session. An information bound for repeated testing on a hidden set counts this bit unless the other feedback determines it. Population statistics remain unavailable to the agents, including through scheduling, stopping decisions, or diagnostic messages. 
+
+# B Counterexample Selection and Reduction 
+
+Counterexample selection determines which observed failures guide the next coding round. Both rules choose at most k previously unreported development failures, using only the permitted information about those failures. 
+
+Selection rules. The standard rule first favors a semantic family not yet selected in the round, then a failure mechanism not yet selected, and finally shorter traces and canonical identifiers. The compact-failure rule first favors shorter traces, then fewer distinct operations, and then families already reported in an earlier round, with canonical identifiers breaking ties. Both rules choose deterministically among the same observed failures. 
+
+Reduction budget. A preliminary selection limits the reduction pool to 4 k original traces, each containing at most L operations, where L is the schema’s trace-length limit. Prefix search evaluates at most L prefixes. Each pass of single-operation deletion evaluates at most 
+
+L variants and shortens the trace by one operation when successful, so at most L passes are possible. The reduction cost is therefore at most L + L2 candidate executions per original trace and 4 k(L + L2) per round. Every shorter trace is validated before execution and replaces the current trace only after it has been verified to exhibit the same designated failure. The selection rule is applied again 32 to the reduced pool, and the chosen reductions are included in both the feedback and the regression tests. Private links to the original traces support analysis of which case identities the reductions reveal. 
+
+# C Elementary Properties 
+
+The following properties describe the information available to testing policies and the behavior measured by counterexample repair and regression testing. They separate the capabilities of a policy class from the performance of a particular testing model, and relate success on reported cases to the remaining population. 
+
+Information available to the tester. Let Π Bt contain testing policies that receive the contract and reported history without the current source, and let Π It contain policies that may also read the source. For a fixed candidate ft, let ∆ t(π; ft) be the expected number of valid nonduplicate failures that policy π proposes under a common budget. If every source-blind policy can be implemented by ignoring the source, then Π Bt ⊆ ΠIt holds, and we have sup π∈ΠIt ∆t(π; ft) ≥ sup π∈ΠBt ∆t(π; ft). This inclusion compares the best attainable performance within each policy class, and a fixed model and prompt need not attain either supremum. 
+
+Repair and regression. For nonempty Et, the next-round repair rate is the fraction of reported cases that the next candidate passes, 1 − | Et|−1 P 
+
+> z∈Et
+
+ℓ(ft+1 ; z), and it equals one when every reported case passes. If the candidate class can realize every binary loss pattern on U ∪ Et, passing all cases in Et imposes no restriction on the losses on U \ Et, because the class contains a candidate with zero loss on Et and any prescribed losses on the complement. If an accepted candidate must pass every case in Gt−1, it has no regression on those cases. A rejected candidate may still regress, and the requirement imposes no constraint on cases outside Gt−1.
+
+Agreement on reported cases. In the unrestricted casewise class, for any strict subset 
+
+D ⊊ U and any prescribed binary losses on D, two candidates can incur those losses on 
+
+D and have different population risks: on the nonempty complement, one has zero loss on every case and the other has unit loss on every case. This is the construction in the proof of Proposition 4.9, applied to the reported cases. 
+
+# D Proofs for Repeated Testing 
+
+The history bound and probing construction account for two different effects of feedback from a fixed hidden test set. The first counts possible candidate choices, while the second constructs choices that exploit the case identities revealed by feedback. 
+
+Proof of Theorem 4.5. Condition on ξ, which leaves S uniform over the size-n subsets. For each history τ possible before round t, the candidate fτ = ϕt(τ, ξ ) is fixed independently of 33 S. The round-t false-acceptance event is contained in the union, over these histories, of the events that fτ is bad and passes S. Proposition 4.1 bounds each probability by qN,ρ (n). A union bound over histories and rounds, followed by averaging over ξ and imposing the upper bound of one, gives the first inequality. Each history has at most Ls continuations at round s, giving |T t−1(ξ)| ≤ Qt−1 
+
+> s=1
+
+Ls. The number of raw subsets of size at most k is Pmin {k,N }
+
+> i=0
+
+ Ni
+
+ ≤ (N + 1) k, and the acceptance bit contributes at most a factor of two. Bounding each history count by the largest and using 
+
+qN,ρ (n) ≤ (1 − ρ)n gives equation (14). The sampling bound applies to each fixed candidate before conditioning on the realized feedback. 
+
+Proof of Theorem 4.6. Fix disjoint regions F1, . . . , F r of size m, which exist because rm ≤ N
+
+holds. In round s ≤ r, submit a candidate that fails exactly on Fs. All previously reported cases lie in earlier regions, so every failing sampled case in round s is new to the feedback. On the event Gs = {| S ∩ Fs| ≤ k}, the rule returns every case in S ∩ Fs.In round T , fail on the union of the probed regions after removing the reported cases. On G = Trs=1 Gs, this set is Srs=1 (Fs \ S) and is disjoint from the test set. The candidate passes with risk at least r(m − k)/N > ρ . Each region’s occupancy has a hypergeometric distribution with parameters ( N, m, n ), so a union bound gives Pr( G) ≥ 1 − r p (m). Taking the maximum with zero gives the stated bound. The candidate choices depend only on the reported cases and the known population. 
+
+Proof of Corollary 4.7. The chosen m gives mean nm/N ≤ k/ 2, and the two integer condi-tions permit direct application of Theorem 4.6. Without rounding, r(kN/ (2 n) − k) > ρN is equivalent to 1 /n > 2ρ/ (rk ) + 2 /N , which gives equation (15). If n ≥ rk/ 2 holds, then we have rm ≤ rkN/ (2 n) ≤ N . The hypergeometric tail p(m) depends on the specified values of 
+
+N , n, m, and k.
+
+Derivation of equation (23) . For region occupancies h1, . . . , h r satisfying 0 ≤ hs ≤ k for every s, the number of test sets realizing them is Qrs=1 
+
+ mhs
+
+ ·   N −rm n−Prs=1 hs
+
+. Summing the first product over occupancies with total h gives ch. The terminal candidate fails on rm − h cases, so its risk exceeds tolerance exactly when rm − h ≥ Kρ holds. Summing these counts and dividing by  Nn
+
+ gives the formula. 
+
+# E Additional Case-Study Results 
+
+This appendix reports the four added conditions of Section 6 beside the two original conditions they refine, their within-block contrasts, and, for every contrast, the mean, median, trimmed mean, and exact sign test of the 30 within-block differences. 34 Condition Round 1 Round 2 Round 3 Round 4 Valid tests Static LLM 0.548 0.382 0.363 0.405 9,386 Static LLM 600 0.548 0.377 0.358 0.355 14 ,291 Staged 600 0.548 0.352 0.346 0.311 14 ,291 Regenerated without history 0.548 0.347 0.304 0.297 15 ,381 Dynamic blind 0.548 0.360 0.357 0.279 13 ,816 Blind rerun 0.548 0.396 0.346 0.308 12 ,394 
+
+Table 7: Mean evaluation failure rate after each coding round over 30 blocks for Static LLM, the four added conditions, and Dynamic blind, with the number of valid generated traces each condition received in total. 
+
+Contrast (first minus second) Difference 95% interval p Lower and higher Staged 600 − static LLM 600 −0.044 [ −0.132 , +0 .033] 0 .326 15 , 9Regenerated without history − staged 600 −0.014 [ −0.083 , +0 .054] 0 .694 17 , 12 Blind rerun − regenerated without history +0 .012 [ −0.040 , +0 .078] 0 .794 15 , 13 Static LLM 600 − static LLM −0.050 [ −0.163 , +0 .052] 0 .378 16 , 11 Blind rerun − dynamic blind +0 .029 [ −0.027 , +0 .097] 0 .446 11 , 17 Blind rerun − static LLM 600 −0.047 [ −0.121 , +0 .037] 0 .282 17 , 12 
+
+Table 8: Within-block differences of the failure rate after round four involving the added conditions. The last column counts the blocks in which the first condition was lower and higher. 
+
+Contrast (first minus second) Mean Median Trimmed mean Sign test p
+
+Dynamic informed − static LLM −0.131 −0.044 −0.076 0.029 Dynamic informed − dynamic blind −0.005 +0 .001 −0.006 0.701 Dynamic blind − static LLM −0.126 −0.023 −0.061 0.036 Dynamic informed − static property −0.024 +0 .000 −0.009 1.000 Static property − static LLM −0.107 −0.065 −0.086 0.019 Dynamic informed − public only −0.067 −0.029 −0.061 0.036 Static LLM − public only +0 .064 −0.001 +0 .019 0.701 Static property − public only −0.044 −0.059 −0.060 0.0025 Dynamic blind − static property −0.019 +0 .000 −0.006 1.000 Staged 600 − static LLM 600 −0.044 −0.000 −0.021 0.307 Regenerated without history − staged 600 −0.014 −0.004 −0.014 0.458 Blind rerun − regenerated without history +0 .012 −0.001 −0.010 0.851 Static LLM 600 − static LLM −0.050 −0.014 −0.018 0.442 Blind rerun − dynamic blind +0 .029 +0 .004 +0 .008 0.345 Blind rerun − static LLM 600 −0.047 −0.011 −0.047 0.458 
+
+Table 9: Summaries of the 30 within-block differences after round four. The trimmed mean removes the 3 largest and 3 smallest differences, and the exact sign test drops ties. 35

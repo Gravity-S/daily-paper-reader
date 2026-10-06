@@ -1,0 +1,777 @@
+Title: ANT: A Multi-Granularity Network Traffic Dataset and Benchmark for Agents Behavior Auditing
+
+URL Source: https://arxiv.org/pdf/2610.06514v1
+
+Published Time: Tue, 06 Oct 2026 03:15:12 GMT
+
+Number of Pages: 24
+
+Markdown Content:
+# ANT: A M ULTI -G RANULARITY NETWORK TRAFFIC 
+
+# DATASET AND BENCHMARK FOR AGENTS BEHAVIOR 
+
+# AUDITING 
+
+Fan Li 1,2, Xiangyu Gao 1, Zixuan Liu 1, Tong Li 3,
+
+Chuanpu Fu 4, Ziqiang Wang 1, Ke Xu 1,2,∗
+
+> 1
+
+Tsinghua University, Beijing, China 
+
+> 2
+
+Zhongguancun Laboratory, Beijing, China 
+
+> 3
+
+Renmin University of China, Beijing, China 
+
+> 4
+
+Nanyang Technological University, Singapore 
+
+{lf23,gao-xy24,liu-zx21 }@mails.tsinghua.edu.cn tong.li@ruc.edu.cn , kevin.fu@ntu.edu.sg ziqiangwang@mail.tsinghua.edu.cn , xuke@tsinghua.edu.cn 
+
+> ∗
+
+Corresponding author: Ke Xu. 
+
+ABSTRACT 
+
+The growing adoption of large language model (LLM) agents creates a need for network administrators and security teams to audit agent behavior within organi-zational networks without inspecting private user content. Network traffic offers an observable source of evidence, but how much it reveals about agent tasks and operations remains unclear. Existing traffic datasets lack the joint task and stage annotations needed to evaluate this question. We introduce ANT ( Agent Network 
+
+Traffic), a dataset providing agent behavior information at risk, scenario, and behavior primitive granularities alongside network traffic. ANT contains 3,114 execution episodes across 20 tasks and five scenarios, comprising 276,417 bidi-rectional flows and 40,049 behavior primitive segments organized into 47 macro groups. We establish a benchmark for agent risk identification, scenario recogni-tion, and behavior primitive classification using 13 representative traffic analysis baselines. The results show that existing methods recover useful but uneven be-havioral signals. They struggle to identify risk when malicious workflows resem-ble benign tasks and to distinguish scenarios with similar traffic patterns. Primitive classification is more reliable for frequent macro groups and those with distinc-tive traffic patterns than for rare or semantically similar groups. ANT provides a common basis for developing more precise auditing and forensic analysis of agent behavior from network traffic. Our data and code are available at https: //anonymous.4open.science/r/ant-main-suite-7BC0/ .
+
+1 INTRODUCTION 
+
+LLM agents are evolving from conversational assistants into systems that can plan, invoke tools, and interact with external environments on users’ behalf, driving their adoption in everyday workflows. However, this adoption has also raised governance concerns. Microsoft reports that 58% of surveyed organizations are concerned about unsanctioned generative AI use, while 57% report an increase in security incidents associated with AI use (Microsoft, 2024; 2025). Since Agent communications are encrypted during transmission, organizations need mechanisms to identify and govern LLM agent use without relying on deep inspection of user content. Encrypted traffic analysis offers a promising way to meet this need. Rather than examining en-crypted payloads, these methods infer applications and activities from observable traffic features, such as packet sizes and timing. These signals support application identification, website finger-printing, malicious traffic detection (Canadian Institute for Cybersecurity, 2016b) etc. Zhang et al. (2025a) further show that encrypted traffic can reveal fingerprints of agent interactions. This mo-1arXiv:2610.06514v1 [cs.AI] 5 Oct 2026 Behavior primitives prelude Task init WebSearch WebFetch WebSearch Answer synthesis Model calls Tool events          
+
+> 010 20 30 40 50
+> Time (s) Model backend DNS lookups Web content downloads Other traffic
+> (a) Model calls and tool events (b) Network flows Traffic rate (KiB/s; log width) 110 100
+
+Figure 1: Execution events and network flow intervals of a question answering task tivates our central question: To what extent can an agent’s task and behavior be inferred from the network traffic generated during its execution? 
+
+Answering this question requires accounting for the distinctive structure of LLM agent traffic. Fig-ure 1 illustrates an execution of a question answering task using the Claude Code harness (Anthropic, 2026) and a DeepSeek backend (DeepSeek-AI et al., 2025). The upper timeline shows the sequence of model calls and tool events, while the lower timeline shows the network flows observed during the same period. At the semantic level, the execution can be partitioned into a sequence of behavior primitives , each of which pursues a coherent subgoal. A behavior primitive typically encompasses communication with the backend model for reasoning and planning, invocation of a selected tool, and analysis of the returned result. Correspondingly, bursts of network traffic appear near the onset of each behavior primitive. Primitives with different subgoals also produce different traffic compo-sitions and interaction patterns. For example, traffic during a WebSearch primitive is dominated by communication with the model backend because Claude Code delegates the search operation to that backend. By contrast, a WebFetch primitive introduces DNS lookups and Web content down-load flows because the agent retrieves the content of a specified URL. These differences show that network traffic carries signals associated with both an agent execution and its constituent behavior primitives. Systematically evaluating these behavioral signals requires traffic traces paired with annotations of both overall tasks and local execution stages. Existing datasets do not provide the traffic and an-notations needed to evaluate agent risk, task scenarios, and behavior primitives. Traditional traffic datasets typically label applications, websites, or fixed workloads, including browsing, chat, and file transfer (Canadian Institute for Cybersecurity, 2016b;a; Wang et al., 2017; Aceto et al., 2019; Siri-nam et al., 2018). However, they contain neither traffic generated by agent model–tool–environment loops nor descriptions of the corresponding execution stages. AgentPrint identifies agents and coarse activities (Zhang et al., 2025a), but lacks joint annotations for episode risk, task scenarios, and be-havior primitives. To close this evaluation gap, we introduce ANT, a dataset for analyzing agent behavior from user-side network traffic. ANT contains 3,114 execution episodes across 20 tasks and five scenarios, covering legitimate applications and cybersecurity misuse. Its 276,417 bidirectional flows are paired with task and runtime metadata. To expose execution semantics, we align traffic with session logs and construct 40,049 behavior primitive segments in 47 primitive macro groups. Meanwhile, we establish a benchmark for evaluating traffic analysis methods on risk identification, scenario recog-nition, and behavior primitive classification. Although all 13 baselines exceed 0.900 accuracy in risk identification, seven attain malicious class recall below 0.500, reflecting their difficulty in detecting content level misuse. The best baseline for scenario recognition reaches 0.727 accuracy, indicating that scenario semantics are partly recoverable even though similar scenarios remain difficult to dis-tinguish. For behavior primitive classification, existing baselines perform better on frequent macro groups and groups with distinctive traffic patterns, but struggle with rare and semantically similar groups. Our contributions are threefold: 1. We introduce ANT, a dataset of network traffic collected during client-side LLM agent execution, with task metadata for each episode and behavior primitive annotations aligned with traffic segments. 22. We establish a benchmark with three tasks: episode-level risk identification and scenario recognition, and segment-level behavior primitive classification. We evaluate 13 existing traffic analysis methods on this benchmark. 3. We show that existing methods can infer aspects of agent behavior from network traffic, but often miss malicious tasks that resemble benign workflows and confuse scenarios with similar traffic patterns. Behavior primitive classification remains difficult for rare or se-mantically similar groups. 
+
+2 BACKGROUND AND MOTIVATION 
+
+2.1 INFERRING AGENT BEHAVIOR FROM NETWORK TRAFFIC 
+
+LLM agents move through model calls, tool invocations, and interactions with external services (Liu et al., 2024; Zhou et al., 2024). These transitions produce changes in observable packet sizes, direc-tions, timing, and destinations, even though encryption hides payload content. Traffic analysis meth-ods already use such features to identify websites and applications and detect cyberattacks (Sirinam et al., 2018; van Ede et al., 2020; Lin et al., 2022; Wang et al., 2024; Fu et al., 2025). Recent work recovers response content and topics from token length leakage in encrypted LLM streams (Weiss et al., 2024), while NetEcho targets recovery of both user prompts and LLM responses from en-crypted streaming traffic (Zhang et al., 2025b). However, these studies either evaluate methods on conventional traffic datasets or focus on recovering conversation content. They do not jointly evaluate agent behavior identification at the risk, scenario, and behavior primitive granularities. 2.2 THE NEED FOR A MULTI -GRANULARITY AGENT TRAFFIC DATASET 
+
+Existing traffic datasets lack the combination of agent execution traces and behavior labels needed for this evaluation. Website and application corpora label sites or apps (Sirinam et al., 2018; van Ede et al., 2020), but not complete agent executions with synchronized stages. AgentPrint identifies agents and coarse activities (Zhang et al., 2025a), but lacks joint annotations for episode risk, task scenarios, and behavior primitives aligned with execution stages. We therefore collect traffic alongside execution logs from locally executed agents and align packet traces with task and stage semantics. Common splits, objectives, and metrics enable a unified bench-mark for agent risk identification, agent scenario identification, and behavior primitive identification. 
+
+3 ANT D ESIGN 
+
+To systematically investigate the mapping from observable network traffic to high-level agent se-mantics, we construct ANT. We deploy an automated collection infrastructure across geographically distributed cloud servers and collect packet-level traffic together with agent session logs, at a total collection cost of US$2,176.50. ANT contains 3,114 execution episodes collected under five agent combinations across 20 tasks in 5 scenarios, corresponding to 659 distinct task instances and 104.07 GB of traffic. To establish a multi-granularity benchmark, we annotate each episode with task and runtime metadata and construct behavior primitive segments from boundaries derived from session logs. In total, ANT comprises 276,417 bidirectional flows and 40,049 behavior primitive segments categorized into 47 primitive macro groups. Table 1 summarizes the overall dataset statistics, while Figure 2 shows the distribution of episodes across agent configurations. 3.1 DATA COLLECTION SYSTEM 
+
+Dataset construction begins with task selection and continues through a common execution and telemetry pipeline. Following prevalent agent use cases reported in Google Cloud’s The ROI of AI 2025 (Google Cloud, 2025), we define four common agent use scenarios and a high risk scenario, i.e., Computational Ar-tifact Engineering, General Knowledge Question Answering, Scientific Evidence Assessment, Interactive Application Operation and Cybersecurity Misuse .3Claude Code + DeepSeek (Overseas)  
+
+> 20.6%
+> Claude Code + DeepSeek (Domestic)
+> 20.3%
+> Qwen
+> 20.1%
+> Codex
+> 15.5%
+> Claude Code + Sonnet 12.3%
+> Claude Code + MiMo
+> 11.2%
+
+Figure 2: Episode distribution over agent configurations. Table 1: ANT volume by scenario 
+
+Scenario Episodes Bidirectional Primitive Traffic flows segments (GB) Comp. artifact eng. 516 20,471 8,689 33.41 General QA 1,014 88,814 9,359 16.55 Evidence assessment 853 42,975 5,044 8.47 Interactive app. ops. 315 69,062 7,587 14.77 Cybersecurity misuse 416 55,095 9,370 30.87 
+
+Total 3,114 276,417 40,049 104.07 
+
+We instantiate the four common scenarios with 17 benchmark-derived agent execution tasks. The misuse-oriented scenario is instantiated with three agent execution tasks derived from Meta’s Pur-pleLlama Cybersecurity Benchmarks and the OWASP Juice Shop vulnerability challenge platform. Across these scenarios, the selected execution tasks cover diverse agent behaviors, including differ-ent tool requirements, interaction patterns, external service dependencies, reasoning demands, and execution complexity. Each execution task further contains multiple task instances spanning differ-ent domains and difficulty levels. Detailed descriptions of the five scenarios and their corresponding tasks are provided in Appendix A.1. Following the definition of the task space, tasks are executed through a data collection system de-signed to simultaneously capture agent trajectories and network traffic, as illustrated in Figure 3. For each task instance, the system initializes the required workspace and runtime environment, supplies the natural-language task prompt, and launches the agent. The agent interprets the task, queries the model, invokes tools such as web search and shell commands, and incorporates the returned results into subsequent decisions until it produces a final response. Throughout this process, the system records model calls, tool invocations, tool outputs, and session states with their timestamps. Mean-while, tcpdump captures all inbound and outbound packets in PCAP format. The shared timeline links execution events to the corresponding packet-level traffic for behavior primitive segmentation. To guarantee the integrity, authenticity, and purity of the traffic data and address ethical considera-tions, we enforced rigorous environmental controls throughout the collection process. Each task in-stance ran in an independent virtual network namespace to prevent interference between concurrent tasks. Agents could access only their active workspace and necessary runtime environments, pre-venting shortcuts such as reading pre-existing answers instead of performing network retrieval. We used only public benchmark inputs, without real-user accounts, private communications, or person-ally identifiable information. Benign tasks requiring state-changing interactions ran against locally simulated services, while attack execution remained inside isolated Docker environments to protect collection servers and production systems. For Attack Code Generation, we used publicly released mutated prompts from Meta’s PurpleLlama Cybersecurity Benchmarks without additional jailbreak, prompt-obfuscation, or safety-bypass strategies, and excluded refusal-only episodes from the traffic corpus. These measures preserve model safety mechanisms and reduce interference during traffic collection. The Ethics Statement provides the full declarations. 3.2 BEHAVIOR PRIMITIVE ANNOTATION 
+
+We annotate traffic segments with behavior primitives that describe the agent’s local execution ac-tions. We sort PCAP packets by arrival timestamp and bin them using each behavior primitive’s start time from the session logs as a boundary; packets of a transport flow spanning boundaries are assigned individually to the corresponding segments. We then use DeepSeek-v4-pro (DeepSeek-AI, 2026) to derive a behavior primitive from the aligned log evidence and assign it to the correspond-ing segment (annotation prompt in Appendix B.1). These primitives capture local execution actions rather than only the episode’s overall objective. Traffic preceding the first recorded behavior primi-tive is retained as a separate segment with a synthetic prelude label. The resulting primitive sequences expose differences in how agents carry out their tasks. For example, the 4th episode of the ASQA long-answer question-answering task in the General 4Please complete the GAIA tasks below as a generic assistant. You can search, read the file, run Python, and output the final answer and evidence. According to github, when was Regression added to the oldest closed numpy.polynomial issue that has the Regression label in MM/DD/YY? 
+
+Prompt 
+
+Files Bash Web  
+
+> curl/…
+
+Model 
+
+Local Network               
+
+> Answer: 04/15/18\n\n Process:\n1. Identified that the numpy repo uses `\"06 -Regression\"` as the label name (previously called ……
+
+Agent Response 
+
+Network Pcap 
+
+tcpdump   
+
+> Read/ Write/ …… Bash Search
+> Model call
+
+Figure 3: Overview of the agent network traffic data collection system. Knowledge QA scenario, has the sequence [prelude, Task initialize, WebSearch, WebFetch, WebSearch, Answer synthesis] . It captures a progression from receiv-ing a question to retrieving supporting information and synthesizing an answer. In contrast, the 24th episode of the OWASP Juice Shop task in the Cybersecurity Misuse scenario, has the sequence [prelude, Task instruction, Web application reconnaissance, API endpoint enumeration, SQL injection, Answer synthesis] , explicitly identifying SQL injection following application reconnaissance and login-endpoint discovery. These sequences provide an ordered description of observable execution actions, while temporal alignment links each action to its associated traffic segment. To reduce wording variation, we consolidate semantically similar behavior primitives into primitive macro groups. We encode all 3,295 distinct primitive labels in the annotated corpus with Jina Embeddings v5 (Jina AI, 2026) and cluster them using spherical K-means with cosine K-means++ initialization. We select K = 47 based on cosine silhouette, seed stability, and minimum group size, assigning each primitive to exactly one group. Figure 4 visualizes the clustering of primitive labels into 47 macro groups, and Table 2 lists each scenario’s most frequent macro group and its frequency. We iteratively reviewed and refined primitive labels and group assignments with AI assistance until a spot check of 2,000 samples revealed no substantial errors. Appendix B.2 provides clustering diagnostics, all 47 canonical labels, primitive type counts, and split counts. 
+
+Scenario structure of behavior primitives. We examine scenario cohesion in primitive usage and ordering across tasks. For episode-level primitive embedding distributions μi and μj , maximum mean discrepancy is 
+
+dk(μi, μ j ) = 
+
+Z
+
+k(x, ·) dμ i(x) −
+
+Z
+
+k(x, ·) dμ j (x)
+
+> Hk
+
+, (1) where Hk is the Gaussian kernel’s reproducing kernel Hilbert space. We report cohesion gain 
+
+Gd = 1 − Dwithin /D between . Compared with cross-scenario pairs, distinct tasks within a scenario have 15.46% smaller primitive embedding MMD distances and 14.79% smaller Hellinger distances between primitive macro group proportions. Both distributional associations remain significant after Holm correction, with p = 0 .0006 and p = 0 .0050 , respectively. For semantic directed areas and primitive macro group transition residuals, these distance reductions are 6.74% and 5.70%, respectively. Their cohesion gains exceed the means under composition-preserving random reorderings by 5.77 and 5.24 percentage points, with Holm-adjusted p = 0 .0050 
+
+for both. The additional order effects also persist when role positions are fixed. Thus, observed or-dering contributes scenario structure beyond primitive composition. Appendix C provides methods and complete results. 
+
+4 BENCHMARK EVALUATION 
+
+We design this benchmark to answer our central question: To what extent can an agent’s task and behavior be inferred from the network traffic generated during its execution? We therefore define three evaluation objectives at progressively finer semantic granularities: 5N001 N002 N003 N004 N005 N006 N007 N008 N009 N010 N011 N012 N013 N014 N015 N016 N017 N018 N019 N020 N021 N022 N023 N024 N025 N026 N027 N028 N029 N030 N031 N032 N033 N034 N035 N036 N037 N038 N039 N040 N041 N042 N043 N044 N045 N046 N047 Figure 4: Primitive label clusters. Table 2: Most frequent behavior primitive macro group of each scenario. 
+
+Scenario Macro group (frequency) 
+
+CAE N011 code creation (16.39%) GKQA N037 search (33.46%) SEA N037 search (42.75%) IAO N011 code creation (12.01%) CM N038 source code retrieval (8.66%) 
+
+Risk Identification. This objective evaluates the ability of traffic analysis methods to identify whether agent activities are malicious from network traffic, thereby supporting the mitigation of agent abuse. 
+
+Scenario Recognition. This objective evaluates the ability of traffic analysis methods to recognize an agent activity scenario from an episode’s network traffic, supporting the compliance management of agent usage. 
+
+Behavior Primitive Classification. This objective evaluates whether traffic analysis methods can classify each behavior primitive segment into one of the 47 primitive macro groups using its network traffic. We compare existing encrypted traffic classification and website fingerprinting methods to assess their ability to recover agent behavior at different granularities, and use traffic scope and segment ablations to examine which components support scenario recognition. These comparisons reveal which behavioral signals current methods capture and where their limitations motivate more precise representations for agent auditing. 4.1 BASELINES AND EXPERIMENTAL SETUP 
+
+Baselines. We evaluate ANT with 13 encrypted traffic classification and website fingerprinting baselines covering convolutional networks, Transformers, state-space models, and learned traf-fic representations. The encrypted traffic classification baselines are FlowLens (Barradas et al., 2021) [code], YaTC (Zhao et al., 2023) [code], NetMamba (Wang et al., 2024) [code], TFusion (Fu et al., 2025) [code], and TrafficFormer (Zhou et al., 2025) [code], spanning compact flow statistics, packet content, and sequential representations. The website fingerprinting baselines are Deep Fin-gerprinting (DF) (Sirinam et al., 2018) [code], AWF (Rimmer et al., 2018) [code], Tik-Tok (Rahman et al., 2020) [code], Var-CNN (Bhat et al., 2019) [code], NetCLR (Bahramali et al., 2023) [code], TMWF (Jin et al., 2023) [code], ARES (Deng et al., 2025) [code], and BAPM (Guan et al., 2021) [code], spanning direction and timing features, learned trace representations, and methods for multi-tab traffic. Appendix D.1 describes each method. 
+
+Experimental setup. We randomly split episodes within each task into fixed training, validation, and test sets shared by all benchmarks. Behavior primitive segments inherit their source episode’s split, preventing segments from the same episode from entering different sets. The episode test set contains 209 episodes (189 benign and 20 malicious). Inputs use only packet headers and side-channel features such as packet direction, timing, and length. We mask identifying fields such as source and destination IP addresses to mitigate shortcut learning. Encrypted traffic classifica-tion baselines operate on flows, whereas website fingerprinting baselines operate on episodes. For episode-level evaluation, we aggregate flow predictions using the strategy with the highest validation accuracy among four candidates. Appendix D.2 provides detailed split counts, aggregation methods, and model configurations. 6Table 3: Risk identification under full traffic. Baseline FlowLens YaTC NetMamba TFusion TrafficFormer DF Accuracy ↑ 0.923 0.928 0.928 0.933 0.933 0.976 F1 ↑ 0.333 0.400 0.400 0.462 0.462 0.872 FPR ↓ 0.000 0.000 0.000 0.000 0.000 0.011 Recall ↑ 0.200 0.250 0.250 0.300 0.300 0.850 Baseline AWF TikTok VarCNN NetCLR TMWF ARES BAPM Accuracy ↑ 0.904 0.981 0.943 0.952 0.962 0.971 0.957 F1 ↑ 0.231 0.905 0.600 0.792 0.750 0.857 0.800 FPR ↓ 0.016 0.016 0.005 0.048 0.000 0.021 0.037 Recall ↑ 0.150 0.950 0.450 0.950 0.600 0.900 0.900 
+
+Runtime environment. We run the benchmark experiments on a Linux server with two Intel Xeon Gold 6348 CPUs, 1 TiB of memory, and five NVIDIA A100 GPUs with 80 GB of memory each. The main experimental environment uses Python 3.12.4 and PyTorch 2.11.0 with CUDA 12.8. This server hosts baseline training and evaluation for all three objectives; the geographically distributed cloud servers described in Section 3 are used to collect the agent traffic. 4.2 RISK IDENTIFICATION RESULTS 
+
+As shown in Table 3, all 13 baselines achieve accuracy above 90% on the test set. However, more than half of the baselines achieve recall below 50%. AWF and FlowLens reach only 15% and 20%, respectively. This gap becomes clearer across individual abusive tasks. Figure 5 presents recall for three abusive tasks and specificity for the semantically similar regular code generation task. Multiple baselines achieve high recall for web penetration but substantially lower recall for the other two abusive tasks. Specifically, YaTC, NetMamba, TFusion, and TrafficFormer yield a 0.000 detection rate for malicious code generation and sandbox evasion while achieving a detection rate near 1.000 for web penetration. In contrast, TikTok, NetCLR, ARES, and BAPM perform relatively well across all three abusive tasks. This result indicates that abusive behaviors leave identifiable signatures in network traffic. Web penetration’s higher recall stems from its direct network interactions like scanning, SQL in-jection, and XSS leave distinct traffic clues. In contrast, malicious code generation and sandbox evasion rely on code content and execution intent, which encryption obscures. Their observable traf-fic closely resembles normal coding tasks, differing primarily in repeated security bypass attempts, backend model calls, and strategy adjustments. Identifying these abusive behaviors requires analyz-ing interaction context, stage sequences, and multi-flow relationships. The detection gap between normal and abusive tasks highlights the difficulty existing models face in recovering this complex risk intent. 
+
+Takeaway. Baseline capability gaps are largest for attacks whose intent is not directly visible in traffic and whose execution resembles benign operations. 4.3 SCENARIO RECOGNITION RESULTS 
+
+Across 13 baselines evaluated on five scenarios, accuracy ranges from 0.431 to 0.727, with Net-Mamba performing best. No baseline leads recall in all five scenarios (Figure 6). Encrypted traffic classifiers generally perform better on General Knowledge Question Answering (Knowledge QA) and Interactive Application Operation, while website fingerprinting methods perform better on Com-putational Artifact Engineering and Cybersecurity Misuse. These complementary strengths show that models recover different subsets of scenario semantics. Scientific Evidence Assessment and Knowledge QA dominate mutual confusion (Figure 7): across pooled baseline predictions, 35.1% of Evidence Assessment instances are misclassified as Knowl-edge QA and 22.8% vice versa. Both share retrieval, inference, and answer generation, with similar 70.0 0.5 1.0       
+
+> Regular Code Gen. (benign)
+> FlowLens YaTC NetMamba TFusion TrafficFormer DF AWF TikTok VarCNN NetCLR TMWF ARES BAPM
+> 1.00 1.00 1.00 1.00 1.00 1.00 0.75 0.88 0.88 0.62 1.00 1.00 0.75
+> 0.0 0.5 1.0
+> Malicious Code Gen. (malicious)
+> 0.12 0.00 0.00 0.00 0.00 0.75 0.12 0.88 0.50 0.88 0.62 0.88 0.88
+> 0.0 0.5 1.0
+> Sandbox Evasion (malicious)
+> 0.17 0.00 0.00 0.00 0.00 0.83 0.00 1.00 0.33 1.00 0.67 0.83 1.00
+> 0.0 0.5 1.0
+> Web Penetration (malicious)
+> 0.33 0.83 0.83 1.00 1.00 1.00 0.33 1.00 0.50 1.00 0.50 1.00 0.83
+
+Figure 5: Risk classification by task: specificity for the benign task and recall for malicious tasks.                                                                                          
+
+> &)."(+  ",' -+$)( *##$!)*'"*   $%)% * ",                                                                    
+
+Figure 6: Scenario recognition recall by class. %' ' " "#*!  )  &&&& $$ $% +%  &(& % '&"% # %' ' " "#*!  )  &&&& $$ $% +%  &(& %(&"% #                                      
+
+Figure 7: Scenario confusion across all 13 baselines. DF AWF TikTok VarCNN NetCLR TMWF ARES BAPM                        
+
+> 0.0 0.2 0.4 0.6 0.8
+> Episode accuracy
+> Full traffic 0.675 0.431 0.641 0.603 0.675 0.679 0.498 0.517
+> Model-call only +6.2 pp +1.9 pp +3.8 pp +6.2 pp +3.8 pp +1.0 pp +9.6 pp +12.0 pp
+> Without model-call −7.2 pp +2.4 pp −4.8 pp +2.4 pp −8.1 pp −7.7 pp −10.5 pp −1.0 pp
+> Full traffic Model-call only Without model-call
+
+Figure 8: Scenario recognition accuracy under different traffic scopes. model backend traffic shares (57.44% and 58.60%, respectively). Compared with Knowledge QA, Evidence Assessment has 59.5% longer mean flow duration, 37.4% more packets, 11.5% lower mean packet length, and 27.7% higher inbound payload share. Current baselines do not reliably exploit these differences. We retrain eight website fingerprinting baselines on full traffic, model calls only, and traffic without model calls (Figure 8). Relative to full traffic evaluated on the same test episodes, model calls alone improve average accuracy by 5.56 percentage points, whereas excluding them reduces it by 4.31 points. The remaining traffic still supports accuracies of 0.392–0.627. Model calls therefore carry strong scenario signals that models capture better in isolation, while other traffic also provides useful information. To examine how behavior primitives support scenario recognition, we select representative primi-tives through frequency filtering and maximum cosine similarity between Jina embeddings and the task semantic center, using the closest available primitive when the representative is absent. Clear-ing one randomly selected representative segment per episode reduces average accuracy by 6.95 percentage points, versus 3.77 points when clearing one randomly selected nonrepresentative seg-ment (Figure 9). The larger average decrease after representative segment clearing links task aligned local behavior to scenario predictions. 
+
+Takeaway. Similar scenarios remain difficult to distinguish. Model calls carry strong scenario signals, while task aligned behavior primitive segments provide additional clues for scenario recognition. 4.4 BEHAVIOR PRIMITIVE CLASSIFICATION RESULTS 
+
+We evaluate eight website fingerprinting baselines on 2,101 test behavior primitive segments from 47 primitive macro groups. Overall accuracy is relatively consistent across the baselines, ranging 80.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 
+
+> Episode accuracy
+> DF AWF TikTok VarCNN NetCLR TMWF ARES BAPM
+> Rep. cleared Accuracy Non-rep. cleared Accuracy Original traffic Accuracy
+
+Figure 9: Scenario recognition ac-curacy after segment clearing. Search (527)  
+
+> Brwsr. fetch (204)
+> Conv. input (190) Code creat. (118)
+> Task prompt (114)
+> API insp. (103)
+> Tool testing (71)
+> Dep. install. (68)
+> Analysis (67) File explor. (60)
+> Env. setup (57) API query (55)
+> SQL injection (50)
+> File reading (42)
+> API probing (37)
+> Req. clarif. (34)
+> Dir. enum. (29)
+> Cmd. exec. (27)
+> Src. retrieval (23)
+> Info. retr. qry. (21)
+> Primitive macro group DF (Acc. 0.462) AWF (Acc. 0.355) TikTok (Acc. 0.447) VarCNN (Acc. 0.455) NetCLR (Acc. 0.425) TMWF (Acc. 0.438) ARES (Acc. 0.399) BAPM (Acc. 0.423)
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> Recall
+
+Figure 10: Recall by primitive macro group in behavior primi-tive classification. from 0.355 to 0.462. However, performance varies substantially across primitive macro groups. Within a single baseline, recall across groups can range from 0.000 to 0.900. This imbalance leads to widespread missed detections of long tail primitive macro groups. Figure 10 presents recall for the 20 groups with the most test support. The ten most frequent groups account for 1,522 of 2,101 behavior primitive segments, or 72.44%, but contribute between 91.34% and 96.09% of all correct predictions made by each model. Although we upsample rare groups to at least 200 training samples, correct predictions remain concentrated on frequent groups and groups with stable traffic patterns. Models also struggle to distinguish semantically similar primitive macro groups. For example, 37 of 204 browser fetch segments are predicted as search . Among 527 search segments, 38 are predicted as api query and 35 as browser fetch . These errors occur among related retrieval groups. The confusion shows that local traffic patterns carry useful signals, but current baselines struggle to distinguish these primitive macro groups from traffic alone. 
+
+Takeaway. Traffic carries predictive signals for primitive macro groups, but existing baselines classify frequent groups and groups with distinctive traffic patterns more reliably than rare or semantically similar groups. 
+
+5 DISCUSSION 
+
+ANT supports research on agent behavior inference, transfer learning, and privacy defenses by providing paired traffic and semantic annotations and a common benchmark. We recognize that these auditing capabilities also pose dual-use risks, as attackers could exploit them to infer private user activities. Nevertheless, we believe that systematically studying these capabilities is essential for understanding privacy exposure and developing effective defenses, while enabling responsible oversight of agent use. Our study has three main limitations. First, financial and computational constraints limit coverage of agent applications and configurations, despite including prevalent use cases and diverse tasks. Second, AI annotation and grouping can introduce opaque or inaccurate decisions. We mitigate these risks through repeated AI interaction and iterative review and a manual spot check. Third, we collect part of ANT in controlled local environments for ethical reasons. However, this may cause traffic timing to differ from that in real deployments. Nevertheless, widely used traffic datasets such as ISCXIDS2012 (Shiravi et al., 2012) and CICIDS2017 (Sharafaldin et al., 2018) also rely on controlled testbeds. Their widespread adoption suggests that controlled testbeds can still provide useful benchmarks for comparative model evaluation. 
+
+6 CONCLUSION 
+
+We construct ANT, a dataset that pairs traffic with episode metadata and behavior primitive annota-tions, covering 3,114 episodes across 20 tasks and five scenarios, with 276,417 bidirectional flows, 9104.07 GB of traffic, and 40,049 primitive segments in 47 macro groups. To our knowledge, it is the first dataset dedicated to network traffic from client-side LLM agent execution. Our benchmark eval-uates 13 methods on risk identification, scenario recognition, and behavior primitive classification. Existing methods capture distinctive traffic patterns but struggle with rare behaviors and semantic distinctions weakly reflected in traffic. ANT provides a foundation for more precise auditing and forensic analysis of agent behavior from network traffic. AI U SE STATEMENT 
+
+We used AI to assist with dataset annotation, as detailed in Section 3.2. We used AI to support code development by delegating routine tasks, such as environment setup and plotting, and use AI to support mathematical calculation, with all outputs reviewed by humans. We used AI to help identify related work and manually verified the relevance of the cited literature to our work. Finally, we used AI to polish the manuscript, specifically, we wrote the initial draft ourselves and then used AI to refine the language. The authors take responsibility for the final content of the work. ETHICS STATEMENT 
+
+Data collection. We designed the collection process to protect privacy and avoid harm to production systems. Tasks were drawn from public benchmarks and involved no real-user accounts, private communications, or personally identifiable information. State-changing benign interactions used locally simulated services, and attack execution was contained in isolated Docker environments. For attack code generation, we retained model safety mechanisms and used only publicly released mutated prompts from Meta’s PurpleLlama Cybersecurity Benchmarks, without adding jailbreak, prompt-obfuscation, or safety-bypass strategies. We excluded refusal-only episodes from the task-execution corpus. 
+
+Dataset and benchmark release. We release ANT and its benchmark to support research on agent behavior auditing and privacy protection. The released data contain no private user information. Agent execution logs are sanitized before release to reduce the risk of their reuse for malicious model distillation. These precautions address the potential misuse of execution traces alongside the research benefits of public access. We release the code we develop under the GNU General Public License version 3 (GPLv3), as specified in LICENSE . We release our contributions to the ANT data, including network traffic traces, sanitized agent execution logs, metadata, and annotations, under the Creative Commons Attribution 4.0 International license (CC BY 4.0), as specified in 
+
+LICENSE-DATA . This data license does not cover software code or materials from third parties. Source benchmark prompts and dependencies remain subject to their respective licenses. REPRODUCIBILITY STATEMENT 
+
+Section 3 describes the data collection and annotation pipeline, while Section 4 presents the bench-mark objectives, baseline methods, evaluation metrics, and runtime environment. Appendix D.2 provides detailed data split statistics, training hyperparameters, and prediction aggregation strate-gies. We release the packet-level ANT dataset, data collection and benchmark suites at https://an onymous.4open.science/r/ant- main- suite- 7BC0/ . These resources support independent evaluation of the reported baselines and further research on agent behavior auditing from network traffic. 
+
+REFERENCES 
+
+Giuseppe Aceto, Domenico Ciuonzo, Antonio Montieri, Valerio Persico, and Antonio Pescap` e. MIRAGE: Mobile-app traffic capture and ground-truth creation. In 2019 4th International Con-ference on Computing, Communications and Security (ICCCS) , pp. 1–8, 2019. doi: 10.1109/CC CS.2019.8888137. Anthropic. Claude Code: Overview. Claude Code Documentation, 2026. URL https://code .claude.com/docs . Accessed September 16, 2026. 10 Akari Asai et al. OpenScholar: Synthesizing scientific literature with retrieval-augmented language models, 2024. URL https://arxiv.org/abs/2411.14199 .S¨ oren Auer et al. SciQA: A scientific question answering benchmark for scholarly knowledge, 2023. Alireza Bahramali, Ardavan Bozorgi, and Amir Houmansadr. Realistic website fingerprinting by augmenting network trace. In ACM SIGSAC Conference on Computer and Communications Se-curity , 2023. URL https://arxiv.org/abs/2309.10147 .Diogo Barradas, Nuno Santos, Lu´ ıs Rodrigues, Salvatore Signorello, Fernando M. V. Ramos, and Andr´ e Madeira. FlowLens: Enabling efficient flow classification for ML-based network security applications. In Proceedings of the 28th Network and Distributed System Security Symposium ,2021. doi: 10.14722/ndss.2021.24067. URL https://www.ndss-symposium.org/n dss-paper/flowlens-enabling-efficient-flow-classification-for-m l-based-network-security-applications/ .Sanjit Bhat, David Lu, Albert Kwon, and Srinivas Devadas. Var-CNN: A data-efficient website fingerprinting attack based on deep learning. Proceedings on Privacy Enhancing Technologies ,2019(4):292–310, 2019. doi: 10.2478/popets-2019-0070. Manish Bhatt et al. Purple Llama CyberSecEval: A secure coding benchmark for language models, 2023. URL https://arxiv.org/abs/2312.04724 .Manish Bhatt et al. CyberSecEval 2: A wide-ranging cybersecurity evaluation suite for large lan-guage models, 2024. URL https://arxiv.org/abs/2404.13161 .Canadian Institute for Cybersecurity. Tor-nonTor dataset (ISCXTor2016). University of New Brunswick, 2016a. URL https://www.unb.ca/cic/datasets/tor.html . Dataset documentation; accessed September 16, 2026. Canadian Institute for Cybersecurity. VPN-nonVPN dataset (ISCXVPN2016). University of New Brunswick, 2016b. URL https://www.unb.ca/cic/datasets/vpn.html . Dataset documentation; accessed September 14, 2026. Ilya Chevyrev and Andrey Kormilitzin. A primer on the signature method in machine learning, 2016. URL https://arxiv.org/abs/1603.03788v1 .Pradeep Dasigi, Kyle Lo, Iz Beltagy, Arman Cohan, Noah A. Smith, and Matt Gardner. A dataset of information-seeking questions and answers anchored in research papers. In Proceedings of the 2021 Conference of the North American Chapter of the Association for Computational Linguis-tics , pp. 4599–4610, 2021. doi: 10.18653/v1/2021.naacl-main.365. DeepSeek-AI. DeepSeek-V4-Pro general availability release. DeepSeek API documentation, 2026. URL https://api-docs.deepseek.com/news/news260813/ . Released August 13, 2026; accessed September 19, 2026. DeepSeek-AI, Aixin Liu, et al. DeepSeek-V3 technical report, 2025. URL https://arxiv.or g/abs/2412.19437 .Xinhao Deng, Xiyuan Zhao, Qilei Yin, Zhuotao Liu, Qi Li, Mingwei Xu, Ke Xu, and Jianping Wu. Towards robust multi-tab website fingerprinting, 2025. URL https://arxiv.org/abs/25 01.12622 .Chuanpu Fu, Qi Li, Elisa Bertino, and Ke Xu. Training with only 1.0 per mille samples: Malicious traffic detection via cross-modality feature fusion. In Proceedings of the 2025 ACM SIGSAC Conference on Computer and Communications Security , pp. 3930–3944, 2025. doi: 10.1145/37 19027.3765143. URL https://github.com/fuchuanpu/TFusion .GAIA Benchmark Team. GAIA 2023 dataset. Hugging Face dataset repository, 2023. URL 
+
+h t t p s : / / h u g g i n g f a c e . c o / d a t a s e t s / g a i a - b e n c h m a r k / G A I A / t r e e / 6 8 2 d d 7 2 3 e e 1 e 1 6 9 7 e 0 0 3 6 0 e d c c f 2 3 6 6 d c 8 4 1 8 d d 9 / 2 0 23 . Revision 682dd723ee1e1697e00360edccf2366dc8418dd9; accessed September 19, 2026. 11 Google Cloud. The roi of ai 2025, 2025. URL https://cloud.google.com/resources /content/roi-of-ai-2025 .Arthur Gretton, Karsten M. Borgwardt, Malte J. Rasch, Bernhard Sch¨ olkopf, and Alexander Smola. A kernel two-sample test. Journal of Machine Learning Research , 13(25):723–773, 2012. URL 
+
+https://www.jmlr.org/papers/v13/gretton12a.html .Zhong Guan, Gang Xiong, Gaopeng Gou, Zhen Li, Mingxin Cui, and Chang Liu. BAPM: Block attention profiling model for multi-tab website fingerprinting attacks on tor. In Annual Computer Security Applications Conference , pp. 248–259, 2021. doi: 10.1145/3485832.3485891. Xueyu Hu, Ziyu Zhao, Shuang Wei, Ziwei Chai, Qianli Ma, Guoyin Wang, Xuwu Wang, Jing Su, Jingjing Xu, Ming Zhu, Yao Cheng, Jianbo Yuan, Jiwei Li, Kun Kuang, Yang Yang, Hongxia Yang, and Fei Wu. InfiAgent-DABench: Evaluating agents on data analysis tasks. In Proceed-ings of the 41st International Conference on Machine Learning , volume 235 of Proceedings of Machine Learning Research , pp. 19544–19572, 2024. URL https://proceedings.mlr. press/v235/hu24s.html .Carlos E. Jimenez, John Yang, Alexander Wettig, Shunyu Yao, Kexin Pei, Ofir Press, and Karthik Narasimhan. SWE-bench: Can language models resolve real-world GitHub issues? In Interna-tional Conference on Learning Representations , 2024. URL https://openreview.net/f orum?id=VTF8yNQM66 .Qiao Jin, Bhuwan Dhingra, Zhengping Liu, William W. Cohen, and Xinghua Lu. PubMedQA: A dataset for biomedical research question answering. In Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing , pp. 2567–2577, 2019. doi: 10.18653/v1/D1 9-1259. Zhaoxin Jin, Tianbo Lu, Shuang Luo, and Jiaze Shang. Transformer-based model for multi-tab website fingerprinting attack. In Proceedings of the 2023 ACM SIGSAC Conference on Computer and Communications Security , pp. 1050–1064. Association for Computing Machinery, 2023. doi: 10.1145/3576915.3623107. Jina AI. Jina embeddings v5, 2026. URL https://jina.ai/embeddings/ .Satyapriya Krishna, Kalpesh Krishna, Anhad Mohananey, Steven Schwarcz, Adam Stambler, Shyam Upadhyay, and Manaal Faruqui. Fact, fetch, and reason: A unified evaluation of retrieval-augmented generation. In Proceedings of the 2025 Conference of the Nations of the Americas Chapter of the Association for Computational Linguistics: Human Language Tech-nologies , pp. 4745–4759, 2025. doi: 10.18653/v1/2025.naacl- long.243. URL https: //aclanthology.org/2025.naacl-long.243/ .Tom Kwiatkowski et al. Natural questions: A benchmark for question answering research. Trans-actions of the Association for Computational Linguistics , 7:453–466, 2019. doi: 10.1162/tacl a 00276. Yuhang Lai, Chengxi Li, Yiming Wang, Tianyi Zhang, Ruiqi Zhong, Luke Zettlemoyer, Wen-tau Yih, Daniel Fried, Sida Wang, and Tao Yu. DS-1000: A natural and reliable benchmark for data science code generation. In International Conference on Machine Learning , 2023. URL 
+
+https://proceedings.mlr.press/v202/lai23a.html .Xinjie Lin, Gang Xiong, Gaopeng Gou, Zhen Li, Junzheng Shi, and Jing Yu. ET-BERT: A con-textualized datagram representation with pre-training transformers for encrypted traffic classi-fication. In Proceedings of the ACM Web Conference 2022 , pp. 633–642. ACM, 2022. doi: 10.1145/3485447.3512217. Xiao Liu, Hao Yu, Hanchen Zhang, Yifan Xu, Xuanyu Lei, Hanyu Lai, Yu Gu, Hangliang Ding, Kaiwen Men, Kejuan Yang, Shudan Zhang, Xiang Deng, Aohan Zeng, Zhengxiao Du, Chenhui Zhang, Sheng Shen, Tianjun Zhang, Yu Su, Huan Sun, Minlie Huang, Yuxiao Dong, and Jie Tang. AgentBench: Evaluating LLMs as agents. In The Twelfth International Conference on Learning Representations , 2024. URL https://openreview.net/forum?id=zAdUB0aCTQ .12 Gr´ egoire Mialon, Cl´ ementine Fourrier, Craig Swift, Thomas Wolf, Yann LeCun, and Thomas Scialom. GAIA: A benchmark for general AI assistants. In The Twelfth International Confer-ence on Learning Representations , 2024. URL https://openreview.net/forum?id= fibxvahvs3 .Microsoft. New microsoft whitepaper shares how to prepare your data for secure AI adoption. Microsoft Security Blog, 2024. URL https://www.microsoft.com/en-us/securi ty/blog/2024/07/30/new-microsoft-whitepaper-shares-how-to-prepa re-your-data-for-secure-ai-adoption/ . Accessed September 15, 2026. Microsoft. Microsoft unveils microsoft security copilot agents and new protections for AI. Microsoft Security Blog, 2025. URL https://www.microsoft.com/en-us/security/blog/ 2025/03/24/microsoft-unveils-microsoft-security-copilot-agents-a nd-new-protections-for-ai/ . Accessed September 15, 2026. Kimia Nadjahi, Alain Durmus, L´ ena¨ ıc Chizat, Soheil Kolouri, Shahin Shahrampour, and Umut S¸ ims ¸ekli. Statistical and topological properties of sliced probability divergences, 2020. URL 
+
+https://arxiv.org/abs/2003.05783 .OWASP Foundation. OWASP juice shop, 2026. URL https://owasp.org/www-project -juice-shop/ .Mohammad Saidur Rahman, Payap Sirinam, Nate Mathews, Kantha Girish Gangadhara, and Matthew Wright. Tik-Tok: The utility of packet timing in website fingerprinting attacks. Proceed-ings on Privacy Enhancing Technologies , 2020(3):5–24, 2020. doi: 10.2478/popets-2020-0043. Vera Rimmer, Davy Preuveneers, Marc Juarez, Tom Van Goethem, and Wouter Joosen. Automated website fingerprinting through deep learning. In Network and Distributed System Security Sym-posium , 2018. doi: 10.14722/ndss.2018.23105. sayan1101. gaia filtered text only. Hugging Face dataset repository, 2023. URL https: //huggingface.co/datasets/sayan1101/gaia_filtered_text_o nly/tree/8b387ca6207e63345b380f5741b3c91103d2ac85 . Revision 8b387ca6207e63345b380f5741b3c91103d2ac85; 127 validation and 230 test records; accessed September 19, 2026. Iman Sharafaldin, Arash Habibi Lashkari, and Ali A. Ghorbani. Toward generating a new intrusion detection dataset and intrusion traffic characterization. In Proceedings of the 4th International Conference on Information Systems Security and Privacy (ICISSP) , pp. 108–116. SciTePress, 2018. doi: 10.5220/0006639801080116. URL https://www.scitepress.org/Paper s/2018/66398/66398.pdf .Ali Shiravi, Hadi Shiravi, Mahbod Tavallaee, and Ali A. Ghorbani. Toward developing a systematic approach to generate benchmark datasets for intrusion detection. Computers & Security , 31(3): 357–374, 2012. doi: 10.1016/j.cose.2011.12.012. URL https://www.unb.ca/cic/dat asets/ids.html .Payap Sirinam, Mohsen Imani, Marc Juarez, and Matthew Wright. Deep fingerprinting: Under-mining website fingerprinting defenses with deep learning. In Proceedings of the 2018 ACM SIGSAC Conference on Computer and Communications Security , pp. 1928–1943. ACM, 2018. doi: 10.1145/3243734.3243768. Ivan Stelmakh, Yi Luan, Bhuwan Dhingra, and Ming-Wei Chang. Asking and answering ambiguous questions. In Proceedings of the 2022 Conference on Empirical Methods in Natural Language Processing , pp. 9864–9886, 2022. doi: 10.18653/v1/2022.emnlp-main.669. SWE-bench Team. SWE-bench Lite dataset. Hugging Face dataset repository, 2023. URL 
+
+https://huggingface.co/datasets/princeton- nlp/SWE- bench_L ite/tree/6ec7bb89b9342f664a54a6e0a6ea6501d3437cc2 . Revision 6ec7bb89b9342f664a54a6e0a6ea6501d3437cc2; accessed September 19, 2026. 13 SWE-bench Team. SWE-bench Verified dataset. Hugging Face dataset repository, 2024. URL 
+
+https://huggingface.co/datasets/princeton- nlp/SWE- bench_Ver ified/tree/c104f840cc67f8b6eec6f759ebc8b2693d585d4a . Revision c104f840cc67f8b6eec6f759ebc8b2693d585d4a; accessed September 19, 2026. Thijs van Ede, Riccardo Bortolameotti, Andrea Continella, Jingjing Ren, Daniel J. Dubois, Martina Lindorfer, David Choffnes, Maarten van Steen, and Andreas Peter. FlowPrint: Semi-supervised mobile-app fingerprinting on encrypted network traffic. In Network and Distributed System Secu-rity Symposium , 2020. doi: 10.14722/ndss.2020.24412. URL https://www.ndss-sympo sium.org/ndss-paper/flowprint-semi-supervised-mobile-app-fingerp rinting-on-encrypted-network-traffic/ .David Wadden, Shanchuan Lin, Kyle Lo, Lucy Lu Wang, Madeleine van Zuylen, Arman Cohan, and Hannaneh Hajishirzi. Fact or fiction: Verifying scientific claims. In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing , pp. 7534–7550, 2020. doi: 10.18653/v1/2020.emnlp-main.609. Tongze Wang, Xiaohui Xie, Wenduo Wang, Chuyi Wang, Youjian Zhao, and Yong Cui. NetMamba: Efficient network traffic classification via pre-training unidirectional mamba. In 2024 IEEE 32nd International Conference on Network Protocols (ICNP) , pp. 1–11, 2024. doi: 10.1109/ICNP61 940.2024.10858569. Wei Wang, Ming Zhu, Jinlin Wang, Xuewen Zeng, and Zhongzhen Yang. End-to-end encrypted traffic classification with one-dimensional convolution neural networks. In 2017 IEEE Inter-national Conference on Intelligence and Security Informatics (ISI) , pp. 43–48, 2017. doi: 10.1109/ISI.2017.8004872. Roy Weiss, Daniel Ayzenshteyn, Guy Amit, and Yisroel Mirsky. What was your prompt? a remote keylogging attack on AI assistants. In 33rd USENIX Security Symposium (USENIX Security 24) ,pp. 3367–3384. USENIX Association, 2024. URL https://www.usenix.org/confere nce/usenixsecurity24/presentation/weiss .Zhilin Yang, Peng Qi, Saizheng Zhang, Yoshua Bengio, William W. Cohen, Ruslan Salakhutdinov, and Christopher D. Manning. HotpotQA: A dataset for diverse, explainable multi-hop question answering. In Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing , pp. 2369–2380, 2018. doi: 10.18653/v1/D18-1259. Xiaoxue Zang, Abhinav Rastogi, Srinivas Sunkara, Raghav Gupta, Jianguo Zhang, and Jindong Chen. MultiWOZ 2.2: A dialogue dataset with additional annotation corrections and state track-ing baselines. In Proceedings of the 2nd Workshop on Natural Language Processing for Conver-sational AI , pp. 109–117, 2020. doi: 10.18653/v1/2020.nlp4convai-1.13. Yixiang Zhang, Xinhao Deng, Zhongyi Gu, Yihao Chen, Ke Xu, Qi Li, and Jianping Wu. Ex-posing LLM user privacy via traffic fingerprint analysis: A study of privacy risks in LLM agent interactions, 2025a. URL https://arxiv.org/abs/2510.07176 .Zheng Zhang, Guanlong Wu, Sen Deng, Shuai Wang, and Yinqian Zhang. NetEcho: From real-world streaming side-channels to full LLM conversation recovery, 2025b. URL https://ar xiv.org/abs/2510.25472 .Ruijie Zhao, Mingwei Zhan, Xianwen Deng, Yanhao Wang, Yijun Wang, Guan Gui, and Zhi Xue. Yet another traffic classifier: A masked autoencoder based traffic transformer with multi-level flow representation. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 37, pp. 5420–5427, 2023. doi: 10.1609/aaai.v37i4.25674. Guangmeng Zhou, Xiongwen Guo, Zhuotao Liu, Tong Li, Qi Li, and Ke Xu. TrafficFormer: An efficient pre-trained model for traffic data. In IEEE Symposium on Security and Privacy , pp. 1844–1860, 2025. doi: 10.1109/SP61157.2025.00102. Shuyan Zhou, Frank F. Xu, Hao Zhu, Xuhui Zhou, Robert Lo, Abishek Sridhar, Xianyi Cheng, Tianyue Ou, Yonatan Bisk, Daniel Fried, Uri Alon, and Graham Neubig. WebArena: A realistic web environment for building autonomous agents. In The Twelfth International Conference on Learning Representations , 2024. URL https://openreview.net/forum?id=oKn9c6 ytLx .14 A TASK COMPOSITION AND COLLECTION CONFIGURATION 
+
+A.1 SCENARIO AND TASK COMPOSITION 
+
+Table 4: The 20 tasks in ANT, organized into the five scenarios used for scenario recognition. References identify the source paper and versioned dataset or repository where available. 
+
+Scenario Task Computational Artifact Engineering: agents inspect, modify, generate, or validate code and data artifacts. 
+
+SWE-bench Lite bug fixing: the agent checks out a real repository, reads an issue, edits code, runs tests, and produces a patch (Jimenez et al., 2024; SWE-bench Team, 2023). 
+
+SWE-bench Verified code review: we convert human-validated SWE-bench issue and patch pairs into review tasks in which the agent inspects the patch, optionally runs tests, and returns review comments (Jimenez et al., 2024; SWE-bench Team, 2024). 
+
+DS-1000 data science completion: the agent fills the missing code at an [insert] 
+
+placeholder in a data-science program (Lai et al., 2023). 
+
+DA-Dev data analysis: the agent performs an end-to-end Python data analysis workflow, including reading data, processing it, modeling, and reporting results (Hu et al., 2024). 
+
+General Knowledge Question Answering: agents answer general knowledge questions through factual retrieval, multi-step reasoning, and answer synthesis. 
+
+GAIA general assistant: the agent solves cross-step reasoning problems using search, local files, Python, and answer synthesis. We use the official 2023 GAIA release at the recorded repository revision (Mialon et al., 2024; GAIA Benchmark Team, 2023). 
+
+Natural Questions web QA: the agent searches the web, opens relevant pages, and extracts answers to factual questions (Kwiatkowski et al., 2019). 
+
+GAIA filtered text-only web QA: the agent answers GAIA questions that have no attached file. The source is sayan1101/gaia filtered text only , revision 
+
+8b387ca , with 127 validation and 230 test records (Mialon et al., 2024; sayan1101, 2023). 
+
+FRAMES multi-step factual reasoning: the agent performs chained web searches to combine facts across steps and derive the answer (Krishna et al., 2025). 
+
+HotpotQA multi-hop QA: the agent retrieves evidence from multiple sources and combines it to answer multi-hop questions (Yang et al., 2018). 
+
+ASQA long-answer QA: the agent resolves ambiguous questions through multi-branch search and writes a cited long-form answer (Stelmakh et al., 2022). 
+
+Scientific Evidence Assessment: agents retrieve, verify, and synthesize scientific evidence to answer scholarly questions or assess claims. 
+
+QASPER paper QA: the agent searches for a target paper, reads its abstract or full text, and answers paper-specific questions (Dasigi et al., 2021). 
+
+SciFact scientific fact checking: the agent searches for evidence papers, extracts supporting or refuting evidence, and verifies a scientific claim (Wadden et al., 2020). 
+
+PubMedQA biomedical QA: the agent searches biomedical literature and decides whether the answer is yes, no, or maybe (Jin et al., 2019). 
+
+ScholarQA literature synthesis: the agent searches across multiple papers and synthesizes evidence into a literature-style answer (Asai et al., 2024). 
+
+ORKG SciQA scholarly KG QA: the agent answers academic questions through search-backed retrieval and synthesis (Auer et al., 2023). 
+
+Interactive Application Operation: agents fulfill operational requests through stateful interactions with applications and service APIs. 
+
+WebArena web navigation: the agent uses a browser to complete tasks such as repository operations, forum posting, and shopping in web environments (Zhou et al., 2024). 
+
+MultiWOZ office assistant: we adapt MultiWOZ 2.2 dialogue goals for attractions and train booking to a local assistant environment with contact, calendar, and email APIs (Zang et al., 2020). 
+
+Cybersecurity Misuse: agents use code generation and execution capabilities to produce offensive behavior, bypass restrictions, or exploit vulnerabilities. 
+
+MITRE ATT&CK code generation: the agent writes code intended to implement attack techniques from the MITRE ATT&CK framework (Bhatt et al., 2023; 2024). 
+
+Interpreter abuse: the agent attempts to execute Python in a restricted sandbox and bypass filters or sandbox boundaries (Bhatt et al., 2024). 
+
+OWASP Juice Shop penetration testing: the agent uses a browser and HTTP tools against an isolated vulnerable web application to complete web-security challenges (OWASP Foundation, 2026). 
+
+15 A.2 AGENT CONFIGURATIONS 
+
+Table 5 specifies the agent software and backend model for each of the five configurations used in ANT. Table 5: Agent software versions and backend models used for data collection. 
+
+Configuration Agent software Version Backend model 
+
+cc dpsk Claude Code 2.1.212 DeepSeek-V4-Flash 
+
+cc mimo Claude Code 2.1.212 MiMo-V2-Pro 
+
+cc sonnet Claude Code 2.1.212 Claude Sonnet 4.6 
+
+codex Codex CLI 0.135.0 GPT-5.4 (medium reasoning) 
+
+qwen Qwen Code 0.17.1 Qwen3.6-Plus 
+
+A.3 COLLECTION SERVER ENVIRONMENTS 
+
+We collect traffic on two Alibaba Cloud servers. Table 6 summarizes their hardware and operating systems. Table 6: Hardware and software environments of the data collection servers. 
+
+Component Domestic server Overseas server Processor Intel Xeon 6982P-C Intel Xeon 6982P-C CPU allocation / Memory 8 vCPUs / 32 GB 8 vCPUs / 16 GiB Operating system Ubuntu 22.04 Alibaba Cloud Linux 4.0.3 (OpenAnolis Edition) Kernel 5.15.0-177-generic 6.6.102-5.3.3.alnx4.x86 64 
+
+16 B BEHAVIOR PRIMITIVE ANNOTATION DETAILS 
+
+B.1 SEMANTIC ANNOTATION PROMPT 
+
+The following prompt is used for semantic annotation with DeepSeek-v4-pro. 
+
+You are annotating grouped agent-session logs for a research dataset. Your job is semantic labeling. The script has already grouped message fragments, merged assistant chunks, and attached tool results to the originating message. Do not derive labels by keyword matching. Read the message content, tool calls, and tool results, then summarize the message's high-level intent in English. Intent granularity examples: - API endpoint probing or documentation discovery - registering/logging in a test account - extracting current user id, basket id, token, or cookie state - re-querying an API after new evidence - checking challenge/status output - browser page visit or browser network capture - checking response content, file content, or command output - answer synthesis, report writing, or final result formatting Label each message independently while using surrounding task context. For very short operational messages, summarize what that message accomplishes in the task flow. If the evidence is ambiguous, say so briefly instead of inventing details. Return exactly one annotation per input message. Each annotation must contain `message_index `, `message_id `, `role `, `intent `,
+
+`attack_primitive `, `primitive_zh `, and `evidence `. Use attack primitives as retrospective labels of observed behavior. For non-security tasks under this forced field name, use neutral workflow primitives such as paper_search, data_analysis, code_debugging, answer_synthesis, or browser_navigation. Keep `intent `, `attack_primitive `, `primitive_zh `, and 
+
+`evidence ` concise: one short phrase or sentence each. Do not include raw long responses, code blocks, or URLs unless essential. Output must be valid JSON with this top-level shape: {"annotations":[{...}, ...]} Do not include markdown, comments, or extra prose. 
+
+17 B.2 PRIMITIVE MACRO GROUPS 
+
+Table 7 lists the canonical labels and split counts for the 47 macro groups. Counts include all macro-group-annotated segments, including 11 empty segments and 8 nonempty segments without usable TCP packets, but exclude synthetic prelude segments. No training oversampling is applied to these counts. Table 7: Primitive macro groups and split counts, including empty segments and segments with-out usable TCP packets, excluding synthetic prelude segments. Group IDs refer to the released primitive-to-group mapping. 
+
+Group Canonical label Primitive types Train Validation Test N001 analysis 90 1308 152 67 N002 api discovery 73 531 34 19 N003 api inspection 91 1408 130 103 N004 api probing 91 671 21 37 N005 api query 95 1685 73 55 N006 application reconnaissance 86 451 26 8N007 authentication token acquisition 86 300 2 3N008 browser fetch 71 3042 225 204 N009 bypass attempt 71 170 3 2N010 challenge info query 61 279 27 20 N011 code creation 107 2930 156 118 N012 command execution 37 759 45 27 N013 configuration manipulation 62 104 3 4N014 conversation input 107 2400 173 191 N015 credential attempt 140 419 3 10 N016 data decoding 17 76 12 2N017 data extraction 62 257 27 16 N018 dependency check 33 203 22 4N019 dependency installation 42 724 45 68 N020 directory listing enumeration 76 354 16 29 N021 environment setup 63 1123 106 57 N022 error diagnosis 44 71 11 13 N023 exploit attempt 66 444 1 5N024 file download 32 114 7 3N025 file exploration 109 668 24 60 N026 file reading 56 603 53 42 N027 http header probe 14 28 2 1N028 information retrieval query 82 703 33 21 N029 mock server alternative start 46 71 10 0N030 network check 45 176 59 6N031 payload crafting 142 253 20 8N032 planning 69 193 16 4N033 repository checkout 76 309 54 12 N034 requirement clarification 47 333 9 34 N035 sandbox probing 66 160 2 8N036 script writing 33 259 15 1N037 search 104 6169 578 527 N038 source code retrieval 58 1094 10 23 N039 sql injection 70 403 43 50 N040 status check 98 229 16 6N041 task prompt 96 2011 144 114 N042 tool testing 110 1173 87 71 N043 user booking request 28 50 7 4N044 verification 113 307 14 8N045 version control diff check 47 151 6 15 N046 workflow instructions 50 139 6 20 N047 xss testing 33 113 1 2Total 3295 35418 2529 2102 
+
+18 Figure 11 shows the clustering diagnostics. At K = 47 , the cosine silhouette is approximately 0.157 and seed stability is approximately 0.51 ARI; the smallest macro group contains 14 primitive types. 20 25 30 35 40 45 50 55 60 Number of groups (K) 0.11 0.12 0.13 0.14 0.15 0.16 Cosine silhouette       
+
+> Selected K=47
+> (a) K selection and stability
+> Cosine silhouette Contains group < 10 Seed stability (ARI)
+> 20 40 60 80 100 120 140 Primitive count 0.1
+> 0.0 0.1 0.2 0.3 0.4 Mean cosine silhouette
+> N006 application reconnaissance N013 configuration manipulation N014 conversation input N015 credential attempt N018 dependency check N024 file download N031 payload crafting N039 sql injection N044 verification N047 xss testing
+> (b) New-group quality
+> 0.46 0.47 0.48 0.49 0.50 0.51 0.52 0.53 0.54 Seed stability (ARI)
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> Negative-silhouette fraction
+
+Primitive-Label Reclustering Diagnostics 
+
+Figure 11: Primitive clustering diagnostics. Left: cosine silhouette and seed stability across candi-date K, with crosses marking partitions containing groups of fewer than 10 primitive types. Right: macro group size, mean cosine silhouette, and the fraction of primitive types with negative silhouette at K = 47 . Group IDs match Table 7. 
+
+C SCENARIO COHESION OF PRIMITIVE DISTRIBUTIONS AND SEQUENCES 
+
+We analyze scenario-related primitive structure from two complementary perspectives, i.e., distri-butional cohesion and sequence organization beyond composition. For an episode i of length ni,let zit ∈ { 1, . . . , K } denote the primitive macro group at position t, and let xit ∈ R1024 denote its unit-normalized primitive embedding. We use the current grouping with K = 47 and fixed Jina embeddings of the original primitive labels. Comparisons first average episode distances within each pair of distinct tasks, then give equal weight to scenarios and settings. Let Ea,t contain the episodes of task t under setting a, and let Ts contain the tasks in scenario s. Define 
+
+¯da(t, u ) = 1
+
+|E a,t | |E a,u |
+
+X
+
+i∈E a,t 
+
+X
+
+j∈E a,u 
+
+d(i, j ), t̸ = u. (2) For M eligible settings and S = 5 scenarios, aggregate distances are 
+
+Dwithin = 1
+
+M S 
+
+X
+
+a
+
+X
+
+s
+
+P
+
+{t,u }⊂T s
+
+¯da(t, u )
+
+ |T s|
+
+2
+
+ , (3) 
+
+Dbetween = 1
+
+M  S
+
+2
+
+ X
+
+a
+
+X
+
+s<r 
+
+P
+
+t∈T s
+
+P
+
+u∈T r
+
+¯da(t, u )
+
+|T s| |T r | . (4) The within-scenario sum uses unordered pairs of distinct tasks. We report Gd = 1 −
+
+Dwithin /D between after aggregating distances across settings. Positive gains quantify how much closer different tasks are within the same scenario. All reported estimates use this aggregate com-parison. C.1 PRIMITIVE DISTRIBUTION COHESION 
+
+Distribution geometry. We compare primitive distributions in both continuous semantic space and discrete category space. The empirical measure μi = n−1
+
+i
+
+Pni
+
+t=1 δxit assigns probability mass to each primitive embedding according to its occurrence count. We use the MMD framework of 19 Gretton et al. (2012) to compare these measures with Equation 1. The kernel is 
+
+k(x, y ) = 13
+
+X
+
+> c∈{ 1/2,1,2}
+
+exp 
+
+
+
+− ∥x − y∥22
+
+2c2σ2
+
+
+
+. (5) This characteristic kernel distinguishes probability distributions through their kernel means. Its bandwidth is chosen independently of scenario labels. We sample 200,000 pairs of primitive vectors from the annotated corpus and use the median nonzero squared distance, σ2 = 0 .9569 . This corpus-level bandwidth is fixed for the analysis cohort, which contains 2,564 distinct primitive labels, a subset of the 3,295 distinct primitive labels in the full annotated corpus (Section 3.2). Expanding the squared norm gives 
+
+d2
+
+> k
+
+(μi, μ j ) = 1
+
+n2
+
+> ini
+
+X
+
+> r,t =1
+
+k(xir , x it ) + 1
+
+n2
+
+> jnj
+
+X
+
+> r,t =1
+
+k(xjr , x jt )
+
+− 2
+
+ninjniX
+
+> r=1
+> nj
+
+X
+
+> t=1
+
+k(xir , x jt ). (6) We retain diagonal terms and take the nonnegative square root to obtain the exact distance between the empirical measures. MMD yields a cohesion gain of 15.46%, indicating that different tasks within a scenario have more similar primitive embedding distributions. We examine the same distributional relationship through optimal transport. Sliced-Wasserstein dis-tance averages one-dimensional transport costs over random projections (Nadjahi et al., 2020). Draw 
+
+L unit directions θℓ uniformly from the sphere and hold them fixed. Let F −1 
+
+> i,θ ℓ
+
+denote the quantile function of θ⊤ 
+
+> ℓ
+
+x under μi. Then 
+
+SW 22,L (μi, μ j ) = 1
+
+L
+
+> L
+
+X
+
+> ℓ=1
+
+Z 10
+
+F −1 
+
+> i,θ ℓ
+
+(u) − F −1 
+
+> j,θ ℓ
+
+(u) 2
+
+du. (7) Each integral is evaluated exactly over the union of empirical quantile breakpoints. The finite direc-tion average approximates the spherical integral. With 512 directions, the cohesion gain is 11.26%. Increasing the direction budget to 1,024 gives 11.17%, and using 256 gives 11.62%. The direction sets share a fixed prefix, and the resulting gains differ by 0.447 percentage points across budgets. This transport comparison corroborates the semantic distributional cohesion observed with MMD. To connect continuous semantics with the primitive macro group representation, let pi(z) = niz /n i
+
+be the proportion of group z in episode i. We use Hellinger distance, 
+
+H2(pi, p j ) = 12
+
+> K
+
+X
+
+> z=1
+
+ppi(z) −
+
+q
+
+pj (z)
+
+2
+
+= 1 −
+
+> K
+
+X
+
+> z=1
+
+q
+
+pi(z)pj (z). (8) The square-root transformation maps the probability simplex to the positive orthant of a unit sphere. Hellinger distance is the corresponding scaled chord distance and directly accommodates zero fre-quencies. Using H in the cohesion statistic gives a 14.79% gain. The MMD and Hellinger associa-tions both pass the corrected scenario-label tests in Table 8. Together with the transport result, they show that scenario cohesion is expressed in both primitive semantics and category proportions. For all four primary representations, we assess scenario association by randomly reassigning sce-nario labels to tasks 9,999 times. Each reassignment preserves the original five scenario task counts and assigns the same label to each task across settings. The permutation p value compares the ob-served gain with those obtained from these alternative task groupings, using one plus the exceedance count divided by one plus the permutation count. We estimate execution variability by resampling episodes within each setting and task 1,999 times. Each resample updates all pairwise distances through shared episode weights. Its 2.5th and 97.5th gain percentiles define the 95% interval for the observed task inventory. The four scenario-association tests and the two additional-order tests in Section C.2 are adjusted together using the Holm procedure. Table 8 reports the aggregate estimates, intervals, and adjusted p values. 20 Table 8: Aggregate scenario cohesion across distinct tasks. Intervals summarize execution variabil-ity within the observed task inventory. The adjusted pH values account for the six primary tests. Distances use the scale of each representation, and gains report relative cohesion.                      
+
+> Representation Dwithin Dbetween Gd[95% CI] (%) pH
+> Primitive embedding MMD 0.431680 0.510646 15.46 [14.32, 16.64] 0.0006 Primitive macro group Hellinger 0.698573 0.819826 14.79 [13.98, 15.59] 0.0050 Primitive embedding area 0.147906 0.158600 6.74 [5.85, 7.68] 0.0182 Primitive macro group residual 0.389167 0.412703 5.70 [5.09, 6.36] 0.0182
+
+Scenario information in composition. The distance comparisons establish aggregate cohesion. An entropy decomposition then quantifies the composition information associated with scenario. Sample setting B, scenario Y , task T , and episode E with the balanced weights, followed by a uniformly selected primitive occurrence within the episode. Denote its primitive macro group by Z.The nesting of episodes within tasks and tasks within scenarios gives 
+
+I(Z; E | B) = I(Z; Y | B) + I(Z; T | Y, B ) + I(Z; E | T, B ). (9) To derive the identity, insert and subtract H(Z | Y, B ) and H(Z | T, B ) between H(Z | B)
+
+and H(Z | E, B ). The three differences are nonnegative conditional mutual information terms. The left-hand side is the weighted Jensen–Shannon variation of the empirical episode composition distributions, measured in bits. The scenario component is 0.7703 bits, accounting for 34.86% of total empirical composition vari-ation. Table 9 gives the complete additive decomposition. This quantifies the scenario-associated component of primitive usage alongside the distance reductions above. C.2 PRIMITIVE SEQUENCE STRUCTURE 
+
+Composition-conditioned order representations. We next ask whether primitive organization carries scenario structure beyond its composition. The continuous and discrete representations admit complementary order statistics with exact expectations under random permutation. For primitive embeddings, we use a second-level path signature (Chevyrev & Kormilitzin, 2016). Draw a fixed 
+
+R ∈ R32 ×1024 with independent N (0 , 1/32) entries, and construct a piecewise linear cumulative path from the origin using increments vit = (1 , Rx it )/n i. The first coordinate records normalized sequence progress. Its first two signature levels satisfy 
+
+S(1)  
+
+> i
+
+= X
+
+> t
+
+vit , S(2)  
+
+> i
+
+= X
+
+> r<t
+
+vir ⊗ vit + 12
+
+X
+
+> t
+
+vit ⊗ vit . (10) Expanding S(1)  
+
+> i
+
+⊗ S(1)  
+
+> i
+
+yields 
+
+Sym( S(2)  
+
+> i
+
+) = 12 S(1)  
+
+> i
+
+⊗ S(1)  
+
+> i
+
+, Ai = 12
+
+ S(2)  
+
+> i
+
+− (S(2)  
+
+> i
+
+)⊤. (11) Fixing composition fixes the endpoint and therefore the symmetric part. The antisymmetric compo-nent retains directional ordering information, 
+
+Ai = 12
+
+X
+
+> r<t
+
+(vir ⊗ vit − vit ⊗ vir ), Eπ [Aπi | { vit }ni
+
+> t=1
+
+] = 0 . (12) Under a uniform permutation π, either member of an indexed pair of increments occurs first with probability 1/2, so the antisymmetric contributions cancel in expectation. Progress and semantic coordinates capture early or late semantic content, while pairs of semantic coordinates capture their relative ordering. We compare these second-level order summaries using ∥Ai − Aj ∥F .For primitive macro groups, we apply the same composition-conditioned principle to adjacent tran-sitions. Let 
+
+Ji(a, b ) = 1
+
+ni − 1
+
+> ni−1
+
+X
+
+> t=1
+
+1{zit = a, z i,t +1 = b}. (13) 21 Table 9: Aggregate decomposition of empirical primitive macro group composition. Components are averaged across settings before dividing by the average total.           
+
+> Component Information in bits Share of total in percent Scenario 0.7703 34.86 Task within scenario 0.5045 22.84 Episode within task 0.9346 42.30 Total 2.2094 100.00
+
+Given fixed group counts, uniform permutation places group a at the first position of a pair with probability nia /n i. The conditional probability of group b at its second position is (nib − 1{a =
+
+b})/(ni − 1) . Subtracting this exact expectation gives 
+
+Ci(a, b ) = Ji(a, b ) − nia (nib − 1{a = b})
+
+ni(ni − 1) , Eπ [Cπi | { nia }] = 0 . (14) We compare episodes using ∥Ci − Cj ∥F . The residual’s symmetric component summarizes ad-jacency preferences, and its antisymmetric component summarizes directional preferences. Their orthogonality gives 
+
+C+ 
+
+> i
+
+= Ci + C⊤
+
+> i
+
+2 , C− 
+
+> i
+
+= Ci − C⊤
+
+> i
+
+2 , ∥Ci∥2 
+
+> F
+
+= ∥C+ 
+
+> i
+
+∥2 
+
+> F
+
++ ∥C− 
+
+> i
+
+∥2 
+
+> F
+
+. (15) Thus directed area describes semantic ordering, and transition residuals describe the organization of primitive macro groups. Their aggregate gains are 6.74% and 5.70%, respectively, with Holm-adjusted p = 0 .0182 for both scenario-association tests. 
+
+Evidence from order randomization. We evaluate the additional contribution of observed order by comparing these gains with a reference distribution that preserves every episode’s primitive mul-tiset and length. In each of 999 trials, we independently permute positions within each episode and recompute the sequence representations, distances, and aggregate gain. This preserves composition-dependent variability in the randomized comparison. Define the additional gain and its permutation 
+
+p value as 
+
+∆Gd = Gobs  
+
+> d
+
+− 1
+
+P
+
+> P
+
+X
+
+> b=1
+
+G(b) 
+
+> d
+
+, bp = 1 + PPb=1 1{G(b) 
+
+> d
+
+≥ Gobs  
+
+> d
+
+}
+
+P + 1 , P = 999 . (16) Directed area exceeds its randomized reference by 5.77 percentage points, and transition resid-uals exceed theirs by 5.24 percentage points. Both additional-order tests have Holm-adjusted 
+
+p = 0 .0050 . We then preserve every role position and permute only within the same role. These two role-preserving checks use a separate Holm adjustment. The additional gains remain positive and significant under this role-preserving comparison, as reported in Table 10. The results associate scenario with both semantic ordering and primitive macro group transitions beyond composition and role arrangement. 
+
+D EXPERIMENT DETAILS 
+
+D.1 BASELINE DESCRIPTIONS 
+
+We evaluate five encrypted traffic classification baselines and eight website fingerprinting baselines. D.1.1 ENCRYPTED TRAFFIC CLASSIFICATION 
+
+• FlowLens (Barradas et al., 2021): Computes compact, application-dependent flow mark-ers from packet-size and inter-packet-time distributions for line-rate classification on pro-grammable switches. • YaTC (Zhao et al., 2023): Formats raw packet bytes as a hierarchical flow matrix and applies packet-level and flow-level attention with masked-autoencoder pretraining. 22 Table 10: Aggregate additional sequence cohesion. Observed and reference-mean gains are percent-ages, and ∆G is in percentage points. Unrestricted-order tests use the six-test Holm adjustment. Role-preserving checks use a separate two-test adjustment.                          
+
+> Representation Reference order Observed Reference mean ∆GpH
+> Directed area Unrestricted 6.74 0.97 5.77 0.0050 Transition residual Unrestricted 5.70 0.46 5.24 0.0050 Directed area Role-preserving 6.74 3.26 3.48 0.0020 Transition residual Role-preserving 5.70 1.42 4.28 0.0020
+
+• NetMamba (Wang et al., 2024): Applies a Mamba state-space model to capture long-range sequential traffic dependencies in linear time. • TFusion (Fu et al., 2025): Fuses per-packet sequential features with per-flow and per-host statistical features before training lightweight downstream classifiers. • TrafficFormer (Zhou et al., 2025): Represents traffic as packet or burst tokens and uses a Transformer encoder to learn contextual relationships. D.1.2 WEBSITE FINGERPRINTING 
+
+• Deep Fingerprinting (DF) (Sirinam et al., 2018): A deep CNN that classifies packet-direction sequences by capturing local and hierarchical patterns. • AWF (Rimmer et al., 2018): An early deep-learning baseline extracting discriminative representations directly from packet-level traffic sequences. • Tik-Tok (Rahman et al., 2020): Leverages inter-packet timing patterns alongside packet ordering and direction to capture temporal characteristics. • Var-CNN (Bhat et al., 2019): Uses parallel convolutional branches to model complemen-tary views such as direction and timing for improved data efficiency. • NetCLR (Bahramali et al., 2023): Employs contrastive learning and trace augmentation to learn representations that are robust to network variations. • TMWF (Jin et al., 2023): Treats multi-tab recognition as ordered-set prediction and uses single-tab queries to extract website features from different trace positions. • ARES (Deng et al., 2025): Formulates multi-tab fingerprinting as multi-label classifica-tion, extracts local patterns from multi-level traffic aggregation features, and models their correlations with improved self-attention. • BAPM (Guan et al., 2021): Uses block-level attention to profile mixed traces for multi-tab website fingerprinting. D.2 EXPERIMENT CONFIGURATION 
+
+Data splits. All benchmarks share fixed episode splits randomly assigned within each task, and behavior primitive segments inherit their source episode’s split. The episode test set contains 209 episodes: 189 benign and 20 malicious, with scenario counts of 35, 72, 60, 22, and 20 in the order listed in Section 3.1. The corrected primitive split counts are 35,400 training, 2,529 validation, and 2,101 test segments before oversampling; the reported primitive evaluation covers 2,101 test segments. Table 11 summarizes the configurations used for risk, scenario, and primitive identification. Risk and scenario identification use two and five classes, respectively, with predictions evaluated at the episode level. Primitive identification uses 47 macro groups and is evaluated at the behavior primi-tive segment level. Table 11: Main experiment configurations. R, S, and P denote risk, scenario, and primitive iden-tification. LR and WD denote learning rate and weight decay. DIR denotes packet directions, DT denotes signed relative timestamps, and DT2 denotes separate direction and interarrival-time chan-nels. Lengths refer to model inputs. RF denotes random forest; n and d denote its number of trees and maximum depth. 23 Baseline Task Input / length Batch LR Optimizer Epochs Additional settings FlowLens R, S 4 flow statistics – – RF – n = 100 , unrestricted depth YaTC R, S 40 × 40 bytes 256 2.00 × 10 −3 AdamW 200 WD=0.05; warmup=20 epochs NetMamba R 40 × 40 bytes 128 1.335 × 10 −3 AdamW 40 WD=0.05; warmup=20 epochs NetMamba S 40 × 40 bytes 3072 1.068 × 10 −2 AdamW 40 WD=0.05; warmup=20 epochs TFusion R Segment length 200 200 2.259 × 10 −5 Adam 15 WD= 3.293 × 10 −5; RF: n = 200 , d = 10                                                                                                                   
+
+> TFusion SSegment length 100 ––RF –Frozen encoder; n= 20 ,d= 50
+> TrafficFormer R256 tokens 32 2.033 ×10 −5AdamW 4Dropout=0.455; warmup=5.18% TrafficFormer S320 tokens 96 4.543 ×10 −5AdamW 4Dropout=0.5; warmup=10% DF R, S, P DIR / 5,000 128 2×10 −3Adamax 30 WD=0 AWF R, S, P DIR / 3,000 256 8×10 −4RMSprop 30 WD=0 TikTok R, S, P DT / 5,000 128 2×10 −3Adamax 30 WD=0 VarCNN R, S, P DT2 / 5,000 50 10 −3Adam 30 WD=0 NetCLR R, S, P DIR / 5,000 256 3×10 −4Adam 30 WD=0 TMWF R, S, P DIR / 30,720 80 5×10 −4Adam 30 WD=0 ARES RMTAF / 8×8000 128 5×10 −4AdamW 40 WD=0.01; 20 ms bins ARES S, P MTAF / 8×8000 512 2×10 −3AdamW 30 WD=0.01; 20 ms bins BAPM R, S, P DIR / 8,500 128 5×10 −4Adam 30 WD=0
+
+For YaTC and NetMamba, LR is the base absolute learning rate before warmup and decay. TFusion’s risk batch size and epoch count apply to encoder training. TrafficFormer uses AdamW for risk identification; its four epochs indicate the training budget. Dashes denote inapplicable settings. Numerical hyperparameters are rounded where necessary. 
+
+The eight WF baselines use packet sequences, truncated or zero-padded to the lengths in Table 11. ARES converts the first 10,000 packets into eight-channel temporal features using 20 ms bins. TMWF uses a model input length of 30,720, although its risk inputs retain only the first 10,000 packets before padding. We train the WF models with cross-entropy loss and fixed learning rates. All checkpoints are selected by validation accuracy. For primitive identification, training classes containing fewer than 200 segments are oversampled to 200 by random sampling with replacement within each class; validation and test sets retain their original distributions. FlowLens operates on packet count, total bytes, median interarrival time, and flow duration. YaTC and NetMamba are fine-tuned from pretrained checkpoints, with weight decay 0.05, layer-wise learning-rate decay 0.75, and label smoothing 0.1. TFusion’s risk encoder is trained contrastively on benign flows, followed by a random forest with balanced class weights and a minimum leaf size of five. For scenario identification, TFusion freezes an encoder previously trained on benign ANT flows and trains only the five-class random forest. TrafficFormer uses task-specific sequence lengths, learning rates, and dropout rates, as listed in the table. For episode-level evaluation of encrypted traffic classification baselines, we select the aggrega-tion strategy with the highest validation-set accuracy among mean soft , majority vote ,
+
+confidence weighted mean , and max confidence . For scenario identification, flow-level class probabilities are averaged within each episode before taking the argmax. Risk identification uses the same aggregation for FlowLens and YaTC, and majority voting for NetMamba, TFusion, and TrafficFormer. 24
