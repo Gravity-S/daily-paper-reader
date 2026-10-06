@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-10-04</span>
+      <span class="dpr-home-dashboard-kicker">2026-10-06</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 6 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 14 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>6</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>2</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-10-04 22:09:34 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-10-06 00:41:59 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,7 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今天无精读、速读6篇，列出的3篇同分6.0，主题集中在状态、组织与自演化Agent。最值得看的是有状态Agent的执行信息需求，以及组织级Agent和自演化Agent的内生失准评测。普通读者可先读这三篇摘要，重点关注Agent状态管理、组织协作与安全对齐。</p>
+<p>AI代理安全日报：今日共处理14篇，精读2篇、速读12篇，重点聚焦“可隐藏代理”的随机监督对齐与Web Agent评估审计。最值得看两篇8.0分精读：随机监督能否对齐会隐藏的AI代理，以及WebArena-Lite上对Web Agent结果与轨迹的人类审查。普通读者建议先读这两篇精读，再扫速读中虚假记忆、模因特洛伊木马与平均场博弈安全这三个方向。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -78,12 +78,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">0 篇</strong>
+    <strong class="dpr-home-dashboard-count">2 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="When Does Randomized Oversight Align AI Agents That Can Conceal?">When Does Randomized Oversight Align AI Agents That Can Conceal?</span></li><li><span class="dpr-home-dashboard-paper-title" title="Auditing Web Agent Evaluation on WebArena-Lite: Human Review of Outcomes and Trajectories">Auditing Web Agent Evaluation on WebArena-Lite: Human Review of Outcomes and Trajectories</span></li></ul>
   </div>
-
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>2</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -91,12 +91,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">6 篇</strong>
+    <strong class="dpr-home-dashboard-count">12 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Dude, Where&#x27;s My State? Execution Information Requirements for Stateful Agents">Dude, Where&#x27;s My State? Execution Information Requirements for Stateful Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="Org-Agent: Beyond Personal Assistants Towards Organizational Agents">Org-Agent: Beyond Personal Assistants Towards Organizational Agents</span></li><li><span class="dpr-home-dashboard-paper-title" title="SEABench: Benchmarking Endogenous Misalignment In Self-Evolving Agents">SEABench: Benchmarking Endogenous Misalignment In Self-Evolving Agents</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Beyond the Shadows of Plato&#x27;s Cave: Evaluating False Memory in Autonomous Agents via Counterfactual Reasoning">Beyond the Shadows of Plato&#x27;s Cave: Evaluating False Memory in Autonomous Agents via Counterfactual Reasoning</span></li><li><span class="dpr-home-dashboard-paper-title" title="Memetic Trojans: Social Contagions as Carriers of Adversarial Payloads in Agent Networks">Memetic Trojans: Social Contagions as Carriers of Adversarial Payloads in Agent Networks</span></li><li><span class="dpr-home-dashboard-paper-title" title="Mean field games as a tool for AI safety: a worked example from the July 2026 Hugging Face incident">Mean field games as a tool for AI safety: a worked example from the July 2026 Hugging Face incident</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>5</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">agent-audit <strong>7</strong></span><span class="dpr-home-dashboard-tag">agent-safety <strong>5</strong></span></div>
 </section>
 </div>
 

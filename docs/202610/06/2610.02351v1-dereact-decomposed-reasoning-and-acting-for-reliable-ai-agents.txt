@@ -1,0 +1,2892 @@
+DeReAct: Decomposed Reasoning and Acting for Reliable AI Agents
+Ajay Vohra1
+Tao Chen2*
+Neeti Narayan1
+Caron Zhang2
+1Amazon
+2Apple
+ajayvohr@amazon.com, tao_chen4@apple.com
+nneeti@amazon.com, tianlu_zhang@apple.com
+Abstract
+ReAct-based agents typically rely on a single
+LLM policy to propose actions, interact with
+the environment, and decide when a task is
+complete. This coupling makes action autho-
+rization and completion control difficult to en-
+force independently, allowing errors to prop-
+agate and unsupported completion claims to
+terminate execution. We introduce DeReAct,
+a modular agent architecture that externalizes
+two gating policies: a Critic that validates pro-
+posed actions before execution, and a Con-
+text Manager that reconstructs an environment-
+supported STATE and certifies task completion.
+Across GAIA and SWE-bench Verified, DeRe-
+Act improves Pass@1 most for weaker Brain
+models, with gains of 6.5–7.0 points for
+Qwen3-Coder-480B and 4.2–5.2 points for
+Claude Sonnet 4.5; gains diminish as Brain
+capability increases. Trajectory and ablation
+analyses show that external gating is effective
+when targeted failures are sufficiently prevalent
+and the gating policy is itself sufficient. With
+Claude Opus 4.5, Pass@1 remains compara-
+ble to ReAct, while DeReAct produces more
+evidence-complete and constraint-satisfying
+trajectories, indicating that completion con-
+trol can trade earlier termination for stronger
+grounding. Overall, DeReAct improves weaker
+agents while retaining grounding benefits as
+models strengthen.
+1
+Introduction
+ReAct (Yao et al., 2023b) and related single-policy
+agents (Shinn et al., 2023; Yao et al., 2023a; Chen
+et al., 2025a) commonly rely on one policy to inter-
+leave reasoning, action, and observation throughout
+execution. While simple and effective, this design
+couples task solving with two reliability-critical de-
+cisions: whether a proposed action should reach the
+environment and whether the task is complete. The
+task-performing policy therefore authorizes its own
+*Corresponding author
+actions and certifies its own completion. Errors
+can consequently propagate through the trajectory,
+distort later decisions, and trigger premature ter-
+mination before sufficient evidence is gathered or
+task requirements are satisfied, a recurring failure
+pattern in LLM agent systems (Cemri et al., 2025).
+This pattern is confirmed by our trajectory analy-
+ses, which show that some early completions are
+weakly grounded or explicitly guessed.
+Existing methods address stages of this failure
+pattern. Runtime guardrails and reviewer policies
+constrain actions before execution (Wang et al.,
+2026; Ta et al., 2026), while self-correction and ver-
+ifier methods critique outputs or track task progress
+(Gou et al., 2024; Chen et al., 2025b; Han et al.,
+2026). Context-management systems compress or
+externalize long trajectories (Packer et al., 2023;
+Kang et al., 2026). However, these approaches do
+not jointly separate action authorization and com-
+pletion control from ReAct or ground both in in-
+dependently reconstructed, environment-supported
+evidence. Consequently, invalid actions may reach
+the environment, while completion may rely on
+unverified reasoning or prior errors.
+To address this gap, we introduce DeReAct, an
+inference-time architecture that decomposes the
+ReAct loop into a task-solving Brain and two in-
+dependently configurable gating policies: a Critic
+and a Context Manager (CM). The Critic is a
+hard pre-execution gate that blocks actions violat-
+ing configured validity or task constraints. After
+each executed action, the CM reconstructs a com-
+pact STATE from environment-supported evidence,
+excluding the Brain’s unverified reasoning, and ac-
+cepts completion only when the STATE supports it.
+DeReAct thus separates action authorization and
+completion control from task reasoning.
+We evaluate DeReAct on GAIA (Mialon et al.,
+2024) and SWE-bench Verified (Jimenez et al.,
+2024) across three Brain capability levels. DeRe-
+Act improves Pass@1 most for weaker Brains, with
+1
+arXiv:2610.02351v1  [cs.AI]  1 Oct 2026
+
+
+gains of 6.5–7.0 points for Qwen3-Coder-480B
+and 4.2–5.2 points for Claude Sonnet 4.5. These
+gains diminish with Brain capability; with Claude
+Opus 4.5, Pass@1 remains comparable to ReAct.
+Pass@3 shows a complementary pattern: repeated-
+attempt behavior varies by benchmark and capa-
+bility, with stronger Brains tending toward broader
+success.
+Ablations show that the Critic and CM contribute
+differently across Brains and domains, and that
+intervention frequency alone does not predict ef-
+fectiveness. External gating is effective when the
+targeted failures are sufficiently prevalent and the
+gating policy is itself sufficient: its prompt, model,
+and available context must support reliable inter-
+vention. Prompt-, model-, and context-level limita-
+tions can be diagnosed from trajectories.
+To summarize, our contributions are threefold.
+We introduce DeReAct, which externalizes pre-
+execution action authorization and task-completion
+control around an environment-supported STATE.
+We evaluate it across benchmarks and Brain capa-
+bility levels, analyzing task performance, trajectory
+grounding, and the roles of its gating policies. Fi-
+nally, we introduce policy sufficiency to diagnose
+when external gating is effective across Brains and
+domains.
+2
+Related Work
+Model–Scaffold
+Interactions.
+Recent
+work
+shows that agent performance depends on both
+base-model capability and scaffolding.
+Ríos-
+García et al. (2026) find that the former explains
+most performance variance, while scaffolding pri-
+marily helps procedural reasoning.
+Hao et al.
+(2026) show that different scaffolds solve partially
+disjoint SWE-bench problems and benefit from
+stronger models during scaffold editing. Both treat
+the scaffold as an aggregate choice; DeReAct in-
+stead decomposes it into control policies and stud-
+ies how their contributions vary with capability.
+Pre-Execution Validation in Agent Loops.
+Prior work constrains agent behavior through
+runtime validation and monitoring, including ex-
+ecutable guardrails, formal verifiers, and pre-
+execution reviewers (Wang et al., 2026; Xiang
+et al., 2025; Miculicich et al., 2025; Bhat et al.,
+2026). Closest to DeReAct’s Critic is Reinforced
+Agent (Ta et al., 2026), which reviews proposed
+tool calls before execution. DeReAct instead evalu-
+ates each intent–command pair against the verified
+STATE and enforces rejection as a hard gate, leav-
+ing the environment unchanged.
+Completion Verification and Termination Con-
+trol.
+Premature termination and inadequate task
+verification are recurring failure modes in agent sys-
+tems (Cemri et al., 2025). Prior work explores self-
+correction with model or tool feedback (Madaan
+et al., 2023; Gou et al., 2024), though such correc-
+tion is unreliable without external feedback (Huang
+et al., 2024).
+Other systems introduce explicit
+completion verification (Chen et al., 2025b; Han
+et al., 2026). DeReAct applies completion con-
+trol to the full trajectory of a general ReAct agent:
+the Context Manager reconstructs an environment-
+supported STATE that excludes the Brain’s unveri-
+fied reasoning and ratifies a final answer only when
+that state supports task completion.
+Context Management and Agent Memory.
+Long agent trajectories motivate context selection,
+compression, and externalization (Liu et al., 2024).
+MemGPT (Packer et al., 2023) manages in-context
+and archival memory, while ACON (Kang et al.,
+2026) compresses trajectory history. DeReAct’s
+STATE is neither a general-purpose summary nor
+a memory store: it is rebuilt from environment-
+supported evidence at each step and paired with a
+separate sliding window of recent raw history.
+Multi-Agent and Loop Decomposition.
+Multi-
+agent frameworks such as AutoGen (Wu et al.,
+2024) and MetaGPT (Hong et al., 2024) distribute
+sub-tasks across model instances, whereas DeRe-
+Act decomposes the control loop of a single agent.
+Smurfs (Chen et al., 2025b) is closest in spirit,
+but decomposes branching search and verifies sub-
+tasks, while DeReAct separates reasoning, action
+authorization, verified-state construction, and com-
+pletion control within a linear ReAct loop.
+3
+The DeReAct Architecture
+Standard ReAct (Yao et al., 2023b) uses a single
+policy that, at each step, produces a reasoning trace
+(Thought) and an action (Action); the resulting ob-
+servation is appended to the trajectory until the
+model emits a Final Answer. Thus, the same policy
+both selects actions and declares task completion,
+against a history that interleaves environment feed-
+back with its own reasoning.
+DeReAct decomposes this loop into three inde-
+pendently prompted modules (Figure 1): a Brain,
+a Critic, and a Context Manager (CM). The Brain
+2
+
+
+Context xt
+Brain πbrain
++ history window W
+Intent it + Command ct
+Critic πcritic (κt)
+Accept?
+Environment →rt
+Context Mgr πcm
+STATE, status st+1
+accept
+reject:
+error et
+st+1, xt+1
+Figure 1: DeReAct control flow. The Brain proposes an
+intent and command; the Critic gates execution; and the
+Context Manager reconstructs the verified STATE and
+determines task completion. Only the Brain additionally
+receives a bounded history window.
+proposes an intent and executable command. The
+Critic validates the command against configured
+validity and task constraints before execution, not
+its strategic correctness; rejected actions leave the
+environment unchanged and return feedback to
+the Brain. After each accepted action, the CM
+reconstructs a verified STATE from environment
+feedback and sets the task status to CONTINUE or
+SUCCESS. The STATE excludes the Brain’s un-
+verified reasoning and is shared by all modules.
+Algorithm 1 summarizes the execution loop.
+Brain (πbrain : (X ×H)→∆(I×C)).
+Given con-
+text xt and a sliding window ht of raw execution
+history, the Brain produces a strategic intent it and
+executable command ct. To reduce long-context
+degradation (Liu et al., 2024), ht retains the first m
+steps and the most recent W−m steps, trimming
+the middle. Only the Brain receives this raw-history
+window; the Critic and CM operate without it. The
+Brain uses the same Thought–Action prompting as
+ReAct so performance differences reflect the sur-
+rounding architecture rather than prompt design.
+Critic (πcritic : (X ×I×C)→∆(D×K)).
+Given
+context xt, intent it, and proposed command ct, the
+Critic returns an accept/reject decision dt and con-
+fidence κt. The command executes only if dt = 1
+and κt ≥κmin; otherwise, it is rejected and feed-
+back et is returned to the Brain. DeReAct therefore
+implements a fail-closed pre-execution gate. The
+Algorithm 1 DeReAct Execution (agent-controlled
+loop)
+1: Input: Task T , models (πbrain, πcritic, πcm), Critic con-
+fidence threshold κmin; step limit Tmax; history-window
+size W and initial-step count m
+2: Init: t←0, x0 ←InitialContext(T ), s0 ←CONTINUE
+3: while st = CONTINUE and t < Tmax do
+4:
+(it, ct) ∼πbrain(· | xt, ht)
+{ht: first m + most
+recent W−m steps}
+5:
+(dt, κt) ∼πcritic(· | xt, it, ct)
+6:
+if dt = 0 or κt < κmin then
+7:
+et ∼πcritic(error | xt, it, ct)
+8:
+xt+1 ←(xt, et); st+1 ←CONTINUE
+{no envi-
+ronment change}
+9:
+else
+10:
+rt ←Env.execute(ct)
+11:
+(st+1, xt+1) ∼πcm(· | xt, it, ct, rt)
+12:
+end if
+13:
+t ←t + 1
+14: end while
+Critic checks configured pre-execution constraints
+such as safety, syntax, and explicit task require-
+ments, but not strategy or task progress, provid-
+ing an independent validation layer that may use a
+smaller model than the Brain.
+Context Manager (πcm : (X × I × C × R) →
+∆(S ×X)). After command ct returns result rt, the
+CM reconstructs the verified context xt+1 (STATE)
+and sets st+1 ∈{SUCCESS, CONTINUE}. The
+STATE contains only environment-supported facts,
+excluding the Brain’s unverified reasoning, and is
+replaced rather than appended each step to avoid
+reverting to the interleaved trajectory it replaces.
+The raw-history window is available only to the
+Brain, not to the Critic or CM. This separates veri-
+fied evidence from recent procedural detail. After
+each executed action, the CM returns SUCCESS
+only if the STATE contains sufficient evidence that
+the task-completion criteria are satisfied; otherwise,
+it returns CONTINUE. The execution loop termi-
+nates only on SUCCESS.
+4
+Experiments
+We evaluate DeReAct against ReAct and targeted
+ablations on GAIA and SWE-bench Verified across
+three Brain capability levels, measuring task per-
+formance, control-policy effectiveness, trajectory
+grounding, and inference efficiency.
+4.1
+Setup
+We evaluate on two benchmarks. GAIA (Mialon
+et al., 2024) contains 165 retrieval-and-reasoning
+validation questions scored by quasi-exact match.
+SWE-bench Verified (Jimenez et al., 2024) evalu-
+3
+
+
+Table 1: Main DeReAct performance across Brain capa-
+bility levels. Full results: Table 11, 12, 16, and 18.
+Pass@1 (%)
+Pass@3 (%)
+Brain
+DeReAct
+lift
+p
+DeReAct
+lift
+p
+GAIA
+Qwen3 41.4 ± 3.3 +6.5
+.010
+55.2 ± 3.9 +7.3 .068
+Sonnet 54.5 ± 3.4 +4.2
+.170
+68.5 ± 3.6 +7.3 .060
+Opus
+62.6 ± 3.4 +1.0
+.697
+73.3 ± 3.4 +2.4 .506
+SWE-bench Verified
+Qwen3 44.0 ± 1.8 +7.0 <.001 58.7 ± 2.2 +4.5 .014
+Sonnet 54.1 ± 0.4 +5.2 <.001 66.3 ± 2.1 +3.5 .039
+Opus
+65.6 ± 0.8 −0.3
+.753
+71.6 ± 2.0 +1.4 .269
+ates real-world GitHub issue resolution; we use the
+489 instances supported by the official test harness
+(Appendix A.1). Together, the benchmarks cover
+retrieval- and tool-assisted reasoning and execution-
+verifiable coding. Task success is measured with
+benchmark-native, non-LLM scoring; the judge in
+Section 4.5 assesses trajectory grounding only.
+We run three attempts per task and report
+Pass@1, the mean single-attempt success rate, and
+Pass@3, the fraction solved in at least one attempt.
+Lift denotes DeReAct’s improvement over ReAct,
+and Diff the Pass@3 lift minus the Pass@1 lift. We
+compare ReAct (Brain only), DeReAct (Brain +
+Critic + CM), Ablation A (Brain + CM), and Ab-
+lation B (Brain + Critic). With a CM, the Brain
+receives the current STATE, the first m = 5 steps,
+and the most recent W −m steps; otherwise the
+full raw trajectory is used.
+We evaluate Qwen3-Coder-480B (Qwen Team,
+2025), Claude Sonnet 4.5, and Claude Opus 4.5,
+spanning increasing Brain capability. The Critic
+uses Claude Haiku 4.5 throughout. Main Qwen3
+and Sonnet runs use a Haiku CM with W = 25,
+while Opus uses an Opus CM with W = 50; Sec-
+tion 4.4 analyzes CM, prompt, and window vari-
+ants. We set κmin = 0.7, Tmax = 1000, and tem-
+perature 0.1. Prompts are benchmark-specific and
+fixed within each benchmark (Appendix B).
+We report standard errors across the three runs
+and assess task-level uncertainty with two-sided
+paired permutation tests over tasks (10,000 itera-
+tions), keeping each task’s three attempts together.
+Tests are applied to Pass@1, Pass@3, and Diff;
+reported p-values are uncorrected.
+4.2
+Performance by Brain Capability
+Table 1 presents the main results. DeReAct signifi-
+cantly improves Pass@1 for the Qwen3 and Sonnet
+Brains on both benchmarks, except for Sonnet on
+Table 2: Critic/CM activation rates and Pass@1 lift by
+module. Full results: Table 9 and 19.
+Critic act. (%) CM act. (%)
+Pass@1 ∆(pp)
+Brain
+Abl. B
+Full Abl. A
+Full Abl. B Abl. A
+Full
+GAIA
+Qwen3
+4.3
+28.1
+92.4
+93.3
++0.7
++4.9 +6.5
+Sonnet
+0.2
+2.2
+89.2
+90.4
++1.2
++4.4 +4.2
+Opus
+0.1
+1.3
+54.8
+55.7
+−2.2
++1.0 +1.0
+SWE-bench Verified
+Qwen3
+32.6
+16.2
+93.1
+93.1
++6.6
+−3.5 +7.0
+Sonnet
+1.7
+2.1
+65.3
+72.4
++2.4
++3.3 +5.2
+Opus
+2.0
+2.2
+20.7
+20.1
++0.2
+−0.4 −0.3
+GAIA, where the gain is positive but not significant.
+Under the Opus Brain, Pass@1 is within noise of
+ReAct on both. Pass@1 gains therefore appear to
+narrow as Brain capability increases. The same
+trend holds when all three Brains use a fixed Haiku
+CM and W = 25 (Table 11 and 16).
+Pass@3 shows a more nuanced pattern.
+On
+SWE-bench, Qwen3 and Sonnet have larger
+Pass@1 than Pass@3 gains, suggesting improved
+consistency on already solvable instances; on
+GAIA, their Pass@3 gains are larger.
+Under
+Opus, Pass@3 gains exceed Pass@1 gains on both
+benchmarks, indicating broader success across at-
+tempts despite unchanged single-attempt perfor-
+mance. Sections 4.4 and 4.5 examine this further.
+4.3
+Contributions of the Critic and CM
+Table 2 reports module activation rates and ablation-
+based Pass@1 contributions. Critic activation is the
+fraction of actions rejected, and CM activation the
+fraction of final answers vetoed. Rates are shown
+for the corresponding ablations and full DeReAct,
+where both policies use the verified STATE. Their
+individual lifts need not sum to the joint lift because
+the policies interact.
+The STATE changes what the Critic catches in
+a domain-dependent way: for Qwen3, rejection
+rises from 4.3% to 28.1% on GAIA but falls from
+32.6% to 16.2% on SWE-bench, filtering spurious
+rejections. For Sonnet and Opus, Critic activation
+remains near 2%. Its accuracy gain also depends
+on overlap with the CM: for Qwen3 it adds +6.6
+Pass@1 points on SWE-bench but only +0.7 on
+GAIA, where CM activation is already near-total.
+For Opus on GAIA, the raw-history Critic hurts
+performance (−2.2), while full DeReAct matches
+the CM-only lift.
+The CM replaces the growing trajectory with a
+compact STATE and vetoes unsupported comple-
+4
+
+
+Table 3: Policy-sufficiency diagnostics for the Opus
+Brain. ⋆marks the main-results configuration. FAV
+denotes Final Answer Validation. For SWE-bench Veri-
+fied, min denotes the one-line base completion criterion
+and evid the evidence-aware improved prompt (B.3).
+CM
+W
+Veto
+STATE
+FAV
+Pass@1
+(%) good (%) poor (%) lift (pp)
+GAIA
+Haiku
+25 81.7
+80.2
+19.8
+−3.0
+Opus
+25 38.5
+93.9
+22.2
++0.2
+Haiku
+50 95.9
+79.6
+25.8
+−5.0
+Opus⋆
+50 55.7
+97.0
+16.0
++1.0
+SWE-bench Verified
+Haikumin
+25 10.2
+83.0
+8.0
+−4.7
+Haikuevid 25 56.5
+88.0
+2.0
+−1.8
+Haikuevid 50 59.3
+83.0
+3.0
+−1.1
+Opusevid
+25 19.6
+94.0
+0.0
+−2.4
+Opus⋆
+evid
+50 20.1
+97.0
+3.0
+−0.3
+tion. Its activation depends mainly on whether
+the Brain can already ground completion, not on
+the Critic. On SWE-bench, Sonnet and Opus test
+appropriately on 80.1% and 78.2% of trajectories
+(Table 8), and Opus CM vetoes only 20.1% of fi-
+nal answers versus 55.7% on GAIA. Qwen3, by
+contrast, tests appropriately on only 4.6% of SWE-
+bench trajectories and is vetoed at about 93% on
+both benchmarks, yet its CM lift is +4.9 on GAIA
+and −3.5 on SWE-bench. Thus, activation alone
+does not explain accuracy gains.
+4.4
+Policy Activation and Sufficiency
+We use policy sufficiency to describe how well a
+gating policy is suited to a setting, treating it as
+continuous rather than binary. For the CM, suf-
+ficiency depends on three adjustable levers: the
+completion prompt, which controls veto behavior;
+the CM model, which determines STATE fidelity;
+and the Brain’s history window, which determines
+whether required evidence remains available. We
+assess the first two with an independent Claude
+Opus 4.7 judge, blind to benchmark outcomes, on
+100 sampled complete trajectories per configura-
+tion. STATE GOOD measures preservation of veri-
+fied evidence, while FAV POOR measures unsup-
+ported Final Answer Validation. Together with veto
+rates and trajectory lengths, these diagnose prompt,
+model, and context limitations from trajectories.
+High activation can still be harmful. On SWE-
+bench, the Haiku CM vetoes 93.1% of Qwen3 final
+answers yet lowers Pass@1 by 3.5 points, with only
+37% STATE GOOD and 33% FAV POOR (Table 22).
+Under Opus (Table 3), improving the completion
+Table 4: Resolution after CM completion vetoes on
+matched (instance, attempt) pairs. R-only is ReAct
+resolution among DeReAct failures; Grounded is the
+grounded fraction. Full results: Tables 14 and 21.
+Brain
+DeReAct ReAct
+lift R-only Grounded
+GAIA
+Qwen3
+30.2
+23.1 +7.1
+11.5
+55
+Sonnet 4.5
+43.1
+35.6 +7.5
+23.5
+44
+Opus 4.5
+39.2
+35.8 +3.4
+15.6
+20
+SWE-bench Verified
+Qwen3
+43.7
+37.3 +6.4
+17.9
+9.2
+Sonnet 4.5
+48.9
+39.2 +9.7
+17.6
+70.0
+Opus 4.5
+59.3
+61.0 −1.7
+17.8
+61.9
+prompt cuts FAV POOR from 8% to 2% and im-
+proves the lift from −4.7 to −1.8; widening the
+history window raises it to −1.1, and scaling the
+CM brings it to −0.3 at 97% STATE GOOD.
+The levers are complementary rather than in-
+terchangeable. On SWE-bench, scaling the CM
+before widening the window reduces the lift from
+−1.8 to −2.4 at W=25: higher STATE fidelity can-
+not recover evidence the Brain no longer retains.
+On GAIA, the CM model is instead the main bot-
+tleneck, improving the lift from −3.0 to +0.2 at
+W=25 and from −5.0 to +1.0 at W=50, while
+raising STATE GOOD from about 80% to 94–97%.
+FAV POOR nevertheless remains higher on GAIA
+(16–26% vs. 0–8% on SWE-bench), suggesting
+completion is harder to validate without an exe-
+cutable testing harness.
+These diagnostics suggest a trajectory-based tun-
+ing strategy. If the Brain’s history window is short
+relative to the median ReAct trajectory length (Ta-
+bles 13, 20), increasing it can mitigate context
+loss. Low STATE GOOD motivates scaling the CM
+model, with ∼90% serving as a useful reference
+point in our configurations (Table 22). High FAV
+POOR motivates refining the completion prompt
+and comparing the fraction of DeReAct trajectories
+with at least one veto against ReAct trajectories
+that complete without grounding evidence. FAV
+POOR below ∼5% was a useful target where attain-
+able; we reach 3% on SWE-bench Verified but not
+on GAIA. These are empirical diagnostics rather
+than universal thresholds.
+4.5
+Grounded Exploration
+We first ask whether CM vetoes promote productive
+exploration rather than merely longer trajectories.
+Table 4 compares DeReAct and ReAct on matched
+(instance, attempt) pairs where DeReAct has at
+5
+
+
+least one CM veto. DeReAct achieves higher reso-
+lution rates for Qwen3 and Sonnet on both bench-
+marks (+7.1 and +7.5 points on GAIA; +6.4 and
++9.7 on SWE-bench Verified). Ablation A shows
+the same pattern (Tables 14 and 21), showing that
+it persists without the Critic.
+For Opus, the difference narrows to +3.4 points
+on GAIA and −1.7 on SWE-bench.
+However,
+ReAct’s additional resolutions are not uniformly
+grounded: among pairs unresolved by DeReAct,
+ReAct resolves 15.6% on GAIA and 17.8% on
+SWE-bench, of which only 20.0% and 61.9%, re-
+spectively, are grounded in evidence. This indicates
+that some ReAct successes arise from early com-
+pletion with weakly supported or guessed answers
+rather than fully grounded evidence.
+We next examine whether DeReAct improves
+consistency or broadens success across repeated at-
+tempts using Diff = ∆Pass@3−∆Pass@1. Nega-
+tive Diff indicates consistency gains, whereas posi-
+tive values indicate broader success across attempts.
+On SWE-bench, Qwen3 and Sonnet have negative
+Diff (−2.5 and −1.7), while Opus is positive across
+all configurations on both benchmarks (Figure 2).
+Thus, with stronger Brains, DeReAct shifts from
+consistency gains toward broader exploration.
+Finally, an independent Claude Opus 4.7 judge,
+blind to benchmark outcomes, evaluates Opus 4.5
+trajectories for evidence completeness, constraint
+satisfaction, and admitted guessing on GAIA, and
+appropriate testing on SWE-bench (Appendix B.5).
+Tables 5 and 6 further confirm this pattern. On
+GAIA, DeReAct increases evidence completeness
+and constraint satisfaction while reducing admitted
+guessing, with the largest gains among incorrect
+trajectories. SWE-bench shows smaller but con-
+sistent gains in appropriate testing, including on
+unresolved trajectories.
+4.6
+Cost and Efficiency
+DeReAct adds inference cost and can lengthen tra-
+jectories through the Critic and Context Manager.
+Cost and step distributions (Tables 13 and 20) show
+the same broad pattern: overhead is largest with
+weaker Brains and narrows as Brain capability in-
+creases, especially on SWE-bench Verified. On
+GAIA, mean per-run cost is about 2.9× ReAct with
+the Opus Brain and step counts retain a heavier tail;
+on SWE-bench, the strongest Opus configurations
+approach or match ReAct in mean cost despite the
+additional gating policies.
+This domain difference likely reflects task struc-
+Table 5: Trajectory grounding on GAIA for Opus Brain.
+“Both” denotes evidence-complete and constraints-
+satisfied.
+Subset
+Metric
+ReAct
+DeReAct
+∆(pp)
+Overall
+Evidence complete
+61.3%
+69.7%
++8.4
+Constraints satisfied
+82.7%
+89.1%
++6.4
+Admitted guessing
+21.0%
+15.1%
+−5.9
+Both criteria met
+60.1%
+68.7%
++8.6
+Correct
+Both criteria met
+78.4%
+82.6%
++4.2
+Admitted guessing
+5.6%
+5.5%
+−0.1
+Incorrect
+Evidence complete
+29.8%
+44.6%
++14.8
+Both criteria met
+29.3%
+44.0%
++14.7
+Admitted guessing
+47.0%
+32.0%
+−15.0
+Table 6: Trajectory grounding on SWE-bench for the
+Opus Brain, measured by appropriate testing. Resolved
+and unresolved subsets are defined by the benchmark
+test outcome.
+Subset
+ReAct
+DeReAct
+∆(pp)
+Overall
+78.2%
+80.8%
++2.6
+Resolved
+80.5%
+82.3%
++1.8
+Unresolved
+73.7%
+78.0%
++4.3
+ture: SWE-bench provides executable test feedback
+as a natural completion signal, whereas GAIA per-
+mits plausible answer submission without equally
+strong external verification. Consistent with Sec-
+tion 4.5, part of DeReAct’s overhead may therefore
+come from additional evidence gathering after com-
+pletions that ReAct would otherwise accept with
+weak grounding or explicit guessing.
+5
+Conclusion
+We introduced DeReAct, which separates task
+reasoning from action authorization and comple-
+tion control. Across GAIA and SWE-bench Ver-
+ified, DeReAct improves task success for weaker
+Brains while remaining comparable to ReAct with
+the strongest Brain, where it still produces more
+grounded trajectories. Our analyses show that exter-
+nal control is effective when the underlying policy
+exhibits the targeted failures and the control policy
+is itself sufficient for the task and domain.
+These findings suggest a practical design prin-
+ciple for reliable agent systems: action authoriza-
+tion and completion control need not remain inside
+the task-solving policy. Externalizing these deci-
+sions provides configurable control points that im-
+prove weaker agents and retain value as base mod-
+els strengthen. Future work should validate them
+across new domains and deployment constraints.
+6
+
+
+6
+Limitations
+Our evaluation is limited to GAIA and SWE-bench
+Verified and does not cover several practically im-
+portant agent settings, including multi-turn dia-
+logue, human-in-the-loop workflows, and agents
+whose actions have real-world side effects. Gener-
+alization to these settings remains open, as both fail-
+ure prevalence and policy sufficiency may change
+with the interaction structure, available feedback,
+and deployment constraints.
+An important open question is how DeReAct
+generalizes across model families and capability
+regimes. In our experiments, the Critic and Con-
+text Manager are Claude models throughout, and
+only one open-weight Brain is evaluated. Future
+work should test whether the observed capability-
+dependent behavior and policy-sufficiency patterns
+persist across additional model families and non-
+Claude gating policies. The configuration proce-
+dure in Section 4.4 should likewise be validated
+prospectively on new Brains and benchmarks.
+Grounding is operationalized differently across
+the two benchmarks: evidence completeness on
+GAIA and appropriate testing on SWE-bench Veri-
+fied. Cross-benchmark comparisons therefore con-
+cern rates of ungrounded completion under domain-
+specific criteria rather than identical grounding met-
+rics. All judge-based analyses use a single judge
+model (Claude Opus 4.7), and CM decision-quality
+ratings are based on 100 sampled trajectories per
+configuration.
+Cost accounting uses list prices without prompt
+caching or batching. Because full-history ReAct
+benefits more from prefix caching than DeReAct’s
+sliding windows, the reported cost parity on SWE-
+bench Verified may change under caching-aware
+deployment; cache-aligned windowing remains fu-
+ture work. We also set Tmax=1000 to study intrin-
+sic termination behavior, which increases mean
+cost through a tail of failing runs.
+Production
+systems would typically use tighter step limits,
+for which we additionally report medians and per-
+centiles.
+References
+Vishak K Bhat, Prateek Chanda, Ashmit Khandel-
+wal, Maitreyi Swaroop, Subbarao Kambhampati, Vi-
+neeth N. Balasubramanian, Nagarajan Natarajan, and
+Amit Sharma. 2026. interwhen: A generalizable
+framework for verifiable reasoning with test-time
+monitors. In ICLR 2026 Workshop on Logical Rea-
+soning of Large Language Models.
+Mert Cemri, Melissa Z Pan, Shuyi Yang, Lakshya A
+Agrawal, Bhavya Chopra, Rishabh Tiwari, Kurt
+Keutzer, Aditya Parameswaran, Dan Klein, Kannan
+Ramchandran, Matei Zaharia, Joseph E. Gonzalez,
+and Ion Stoica. 2025. Why do multi-agent llm sys-
+tems fail? In Advances in Neural Information Pro-
+cessing Systems.
+J. Chen,
+H. Li,
+J. Yang,
+Y. Liu,
+and Q. Ai.
+2025a. Enhancing llm-based agents via global plan-
+ning and hierarchical execution.
+arXiv preprint
+arXiv:2504.16563.
+J. Chen, J. Liang, and B. Wang. 2025b. Smurfs: Multi-
+agent system using context-efficient DFSDT for tool
+planning. In Proceedings of the 2025 Conference of
+the Nations of the Americas Chapter of the Associ-
+ation for Computational Linguistics: Human Lan-
+guage Technologies (NAACL), pages 3281–3298.
+Z. Gou, Z. Shao, Y. Gong, Y. Shen, Y. Yang, N. Duan,
+and W. Chen. 2024. CRITIC: Large language models
+can self-correct with tool-interactive critiquing. In
+The Twelfth International Conference on Learning
+Representations (ICLR).
+Qijun Han, Haoqin Tu, Zijun Wang, Haoyue Dai,
+Yiyang Zhou, Nancy Lau, Alvaro A. Cardenas, Yuhui
+Xu, Ran Xu, Caiming Xiong, Zeyu Zheng, Huaxiu
+Yao, Yuyin Zhou, and Cihang Xie. 2026.
+Vlaa-
+gui: Knowing when to stop, recover, and search,
+a modular framework for gui automation. Preprint,
+arXiv:2604.21375.
+Z. Hao, H. Wang, J. Luo, J. Zhang, Y. Zhou, Q. Lin,
+C. Wang, H. Dong, and J. Chen. 2026. Recreate:
+Reasoning and creating domain agents driven by ex-
+perience. arXiv preprint arXiv:2601.11100.
+Sirui Hong, Mingchen Zhuge, Jonathan Chen, Xiawu
+Zheng, Yuheng Cheng, Jinlin Wang, Ceyao Zhang,
+zili wang, Steven Yau, Zijuan Lin, Liyang Zhou,
+Chenyu Ran, Lingfeng Xiao, Chenglin Wu, and Jür-
+gen Schmidhuber. 2024. MetaGPT: Meta program-
+ming for a multi-agent collaborative framework. In
+The Twelfth International Conference on Learning
+Representations (ICLR).
+J. Huang, X. Chen, S. Mishra, H. S. Zheng, A. W. Yu,
+X. Song, and D. Zhou. 2024. Large language models
+cannot self-correct reasoning yet. In The Twelfth In-
+ternational Conference on Learning Representations
+(ICLR).
+Carlos E. Jimenez, John Yang, Alexander Wettig,
+Shunyu Yao, Kexin Pei, Ofir Press, and Karthik R.
+Narasimhan. 2024. Swe-bench: Can language mod-
+els resolve real-world github issues? In The Twelfth
+International Conference on Learning Representa-
+tions (ICLR).
+Minki Kang, Wei-Ning Chen, Dongge Han, Huseyin A
+Inan, Lukas Wutschitz, Yanzhi Chen, Robert Sim,
+7
+
+
+and Saravan Rajmohan. 2026. ACON: Optimizing
+context compression for long-horizon LLM agents.
+In Forty-third International Conference on Machine
+Learning.
+Nelson F. Liu, Kevin Lin, John Hewitt, Ashwin Paran-
+jape, Michele Bevilacqua, Fabio Petroni, and Percy
+Liang. 2024. Lost in the middle: How language mod-
+els use long contexts. Transactions of the Association
+for Computational Linguistics, 12:157–173.
+Aman Madaan, Niket Tandon, Prakhar Gupta, Skyler
+Hallinan, Luyu Gao, Sarah Wiegreffe, Uri Alon,
+Nouha Dziri, Shrimai Prabhumoye, Yiming Yang,
+Shashank Gupta, Bodhisattwa Prasad Majumder,
+Katherine Hermann, Sean Welleck, Amir Yazdan-
+bakhsh, and Peter Clark. 2023. Self-refine: Iterative
+refinement with self-feedback. In Advances in Neu-
+ral Information Processing Systems.
+Grégoire Mialon, Céline Fourrier, Craig Swift, Thomas
+Wolf, Yann LeCun, and Thomas Scialom. 2024.
+Gaia: A benchmark for general ai assistants. In The
+Twelfth International Conference on Learning Repre-
+sentations (ICLR).
+Lesly Miculicich, Mihir Parmar, Hamid Palangi, Krish-
+namurthy Dj Dvijotham, Matteo Montanari, Tomas
+Pfister, and Lam Thang Le. 2025. Veriguard: En-
+hancing llm agent safety via verified code generation.
+arXiv preprint arXiv:2510.05156.
+Charles Packer, Sarah Wooders, Kevin Lin, Vivian Fang,
+Shishir G. Patil, Ion Stoica, and Joseph E. Gonzalez.
+2023. Memgpt: Towards llms as operating systems.
+arXiv preprint arXiv:2310.08560.
+Qwen Team. 2025. Qwen3 technical report. arXiv
+preprint arXiv:2505.09388.
+M. Ríos-García, N. Alampara, C. Gupta, I. Mandal,
+S. Mannan, A. A. Aghajani, N. M. A. Krishnan,
+and K. M. Jablonka. 2026. Ai scientists produce re-
+sults without reasoning scientifically. arXiv preprint
+arXiv:2604.18805.
+Noah Shinn, Federico Cassano, Ashwin Gopinath,
+Karthik Narasimhan, and Shunyu Yao. 2023. Re-
+flexion: Language agents with verbal reinforcement
+learning. In Advances in Neural Information Pro-
+cessing Systems.
+Anh Ta, Junjie Zhu, and Shahin Shayandeh. 2026. Re-
+inforced agent: Inference-time feedback for tool-
+calling agents. In Proceedings of the Fifth Work-
+shop on Generation, Evaluation and Metrics (GEM),
+pages 136–147, San Diego, California, USA. Associ-
+ation for Computational Linguistics.
+Haoyu Wang, Christopher M. Poskitt, and Jun Sun.
+2026. Agentspec: Customizable runtime enforce-
+ment for safe and reliable llm agents. In Proceedings
+of the 48th IEEE/ACM International Conference on
+Software Engineering (ICSE).
+Qingyun Wu, Gagan Bansal, Jieyu Zhang, Yiran Wu,
+Beibin Li, Erkang Zhu, Li Jiang, Xiaoyun Zhang,
+Shaokun Zhang, Jiale Liu, Ahmed Hassan Awadal-
+lah, Ryen W White, Doug Burger, and Chi Wang.
+2024. Autogen: Enabling next-gen llm applications
+via multi-agent conversation. In Conference on Lan-
+guage Modeling (COLM).
+Zhen Xiang, Linlu Zheng, Yida Li, J. Hong, Q. Li,
+H. Xie, J. Zhang, Z. Xiong, C. Xie, C. Yang, D. Song,
+and B. Li. 2025. Guardagent: Safeguard llm agents
+by a guard agent via knowledge-enabled reasoning.
+In Proceedings of the 42nd International Conference
+on Machine Learning (ICML).
+Shunyu Yao, Dian Yu, Jeffrey Zhao, Izhak Shafran,
+Thomas L. Griffiths,
+Yuan Cao,
+and Karthik
+Narasimhan. 2023a. Tree of thoughts: Deliberate
+problem solving with large language models. In Ad-
+vances in Neural Information Processing Systems.
+Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak
+Shafran, Karthik Narasimhan, and Yuan Cao. 2023b.
+React: Synergizing reasoning and acting in language
+models. In International Conference on Learning
+Representations (ICLR).
+8
+
+
+A
+Appendix
+A.1
+Excluded SWE-bench Instances
+The following eleven SWE-bench Verified in-
+stances were excluded from evaluation because
+their Docker images were unavailable in the official
+evaluation harness. These instances failed imme-
+diately in all runs, across all configurations and
+attempts, and are therefore removed from the de-
+nominator (yielding 489 evaluable instances) iden-
+tically for every architecture.
+• astropy__astropy-8707
+• astropy__astropy-8872
+• pylint-dev__pylint-7277
+• scikit-learn__scikit-learn-25102
+• scikit-learn__scikit-learn-25232
+• scikit-learn__scikit-learn-25747
+• scikit-learn__scikit-learn-25931
+• scikit-learn__scikit-learn-25973
+• scikit-learn__scikit-learn-26194
+• scikit-learn__scikit-learn-26323
+• sympy__sympy-20590
+A.2
+Extra Tables and Figures
+This subsection collects supplementary tables and
+figures referenced from the main text. Table 7 re-
+ports ReAct’s trajectory grounding across all three
+Brain tiers on GAIA, showing how evidence quality
+scales with Brain capability. Table 8 provides the
+analogous SWE-bench baseline, measuring appro-
+priate testing rates. These baselines establish the
+ungrounded-answer rates that the CM’s completion
+veto is designed to reduce. Figure 2 plots Pass@3
+lift against Pass@1 lift for all configurations, vi-
+sualizing the decorrelation effect. Figure 3 shows
+how the DeReAct lift compresses with increasing
+Brain capability.
+1Trajectory counts fall below the theoretical maximum
+(3×165 = 495 for GAIA; 3×489 = 1,467 for SWE-bench)
+because two exclusion criteria apply. First, runs that exhausted
+the step budget (Tmax) or crashed without producing a final
+answer (GAIA) or a non-empty code patch (SWE-bench) are
+excluded, since no agent output exists to judge. Second, the
+small number of trajectories for which the Opus 4.7 judge
+returned an API error or unparseable JSON are excluded from
+aggregation. Both criteria filter on structural completeness
+rather than content quality and are thus plausibly independent
+of grounding quality; the larger Sonnet shortfall on SWE-
+bench reflects its higher rate of empty patches (runs com-
+pleting without producing a diff), consistent with its longer
+average trajectories hitting the sandbox output timeout.
+Table 7: GAIA ReAct trajectory grounding across
+Brain tiers (all three attempts pooled). An independent
+Opus 4.7 judge, blind to the reference answer, reads
+each complete trajectory.1
+Qwen3-480B Sonnet 4.5 Opus 4.5
+Trajectories evaluated
+490
+476
+486
+Evidence complete
+36.7%
+55.7%
+61.3%
+Constraints satisfied
+57.3%
+77.7%
+82.7%
+Admitted guessing
+37.6%
+23.1%
+21.0%
+Both criteria met
+35.5%
+53.6%
+60.1%
+Among correct answers
+Evidence complete
+72.4%
+75.5%
+80.0%
+Both criteria met
+69.4%
+71.9%
+78.4%
+Admitted guessing
+10.0%
+7.6%
+5.6%
+Among incorrect answers
+Evidence complete
+17.8%
+33.9%
+29.8%
+Both criteria met
+17.5%
+33.5%
+29.3%
+Admitted guessing
+52.2%
+40.1%
+47.0%
+Table 8: SWE-bench ReAct trajectory grounding across
+Brain tiers (all three attempts pooled). An indepen-
+dent Opus 4.7 judge, blind to the test outcome, assesses
+whether the agent performed appropriate testing.1
+Qwen3-480B
+Sonnet 4.5
+Opus 4.5
+Trajectories evaluated
+1417
+1298
+1462
+Appropriate testing (overall)
+4.6%
+80.1%
+78.2%
+Among resolved (tests passed)
+Appropriate testing
+8.1%
+84.5%
+80.5%
+Among unresolved (tests failed)
+Appropriate testing
+2.4%
+74.7%
+73.7%
+9
+
+
+Table 9: GAIA Policy Activations. Critic Rej. shows percentage of Brain-proposed actions rejected by the Critic.
+CM Rej. shows percentage of Brain-proposed final-answers rejected by the CM.
+Critic Rej. (%)
+CM Rej. (%)
+Brain
+CM
+W
+DeReAct
+Abl.B
+DeReAct
+Abl.A
+Qwen3-480B
+Haiku
+25
+28.07
+4.30
+93.3
+92.4
+Sonnet 4.5
+Haiku
+25
+2.20
+0.16
+90.4
+89.2
+Opus 4.5
+Haiku
+25
+2.65
+0.10
+81.7
+85.6
+Opus 4.5
+Opus
+25
+1.25
+0.10
+38.5
+46.1
+Opus 4.5
+Haiku
+50
+4.14
+0.10
+95.9
+95.7
+Opus 4.5
+Opus
+50
+1.31
+0.10
+55.7
+54.8
+Table 10: GAIA Pass@1 (%) by difficulty level, mean ± standard error over three attempts (W=25, Haiku CM and
+Critic).
+Brain
+Config
+Level 1
+Level 2
+Level 3
+Qwen3-480B
+ReAct
+47.2 ± 6.2
+33.7 ± 4.3
+14.1 ± 5.6
+DeReAct
+48.4 ± 6.2
+43.0 ± 4.6
+21.8 ± 6.9
+Ablation A
+47.8 ± 6.3
+41.9 ± 4.4
+16.7 ± 6.2
+Ablation B
+46.5 ± 6.4
+34.1 ± 4.3
+17.9 ± 5.6
+Sonnet 4.5
+ReAct
+55.3 ± 6.0
+55.8 ± 4.9
+21.8 ± 7.1
+DeReAct
+62.3 ± 5.9
+55.8 ± 4.6
+34.6 ± 8.6
+Ablation A
+60.4 ± 6.0
+58.1 ± 4.7
+32.1 ± 8.4
+Ablation B
+56.0 ± 6.0
+53.5 ± 4.7
+35.9 ± 8.9
+Opus 4.5
+ReAct
+68.6 ± 6.0
+65.5 ± 4.6
+34.6 ± 8.4
+DeReAct
+66.0 ± 5.6
+61.6 ± 4.4
+33.3 ± 8.1
+Ablation A
+66.0 ± 5.6
+60.5 ± 4.6
+34.6 ± 8.8
+Ablation B
+64.8 ± 6.2
+64.3 ± 5.0
+32.1 ± 8.8
+Table 11: GAIA Pass@1 accuracy (%), averaged over three attempts. Lifts are relative to the standard ReAct baseline
+for the corresponding W at the same tier. Values are mean ± standard error. p-value from paired permutation test.
+(GAIA levels breakdown: Table 10)
+Brain
+CM
+W
+DeReAct
+ReAct
+Abl.A
+Abl.B
+Lift
+p
+Qwen3-480B
+Haiku
+25
+41.4 ± 3.3
+34.9 ± 3.2
+39.8 ± 3.1
+35.6 ± 3.4
++6.5
+.010
+Sonnet 4.5
+Haiku
+25
+54.5 ± 3.4
+50.3 ± 3.5
+54.7 ± 3.3
+51.5 ± 3.2
++4.2
+.170
+Opus 4.5
+Haiku
+25
+58.6 ± 3.3
+61.6 ± 3.5
+58.2 ± 3.2
+59.4 ± 3.3
+−3.0
+.201
+Opus 4.5
+Opus
+25
+61.8 ± 3.4
+61.6 ± 3.5
+61.2 ± 3.3
+59.4 ± 3.3
++0.2
+1.000
+Opus 4.5
+Haiku
+50
+56.6 ± 3.4
+61.6 ± 3.5
+59.6 ± 3.4
+59.4 ± 3.3
+−5.0
+.021
+Opus 4.5
+Opus
+50
+62.6 ± 3.4
+61.6 ± 3.5
+62.6 ± 3.3
+59.4 ± 3.3
++1.0
+.697
+Table 12: GAIA Pass@3 accuracy (%), measuring the percentage of questions answered correctly in at least 1 of 3
+attempts. Lifts are relative to the standard ReAct baseline for the corresponding W at the same tier. Values are mean
+± standard error. p-value from paired permutation test.
+Brain
+CM
+W
+DeReAct
+ReAct
+Abl.A
+Abl.B
+Lift
+p
+Qwen3-480B
+Haiku
+25
+55.2 ± 3.9
+47.9 ± 3.9
+54.5 ± 3.9
+48.5 ± 3.9
++7.3
+.068
+Sonnet 4.5
+Haiku
+25
+68.5 ± 3.6
+61.2 ± 3.8
+67.3 ± 3.7
+63.6 ± 3.7
++7.3
+.060
+Opus 4.5
+Haiku
+25
+72.7 ± 3.5
+70.9 ± 3.5
+70.3 ± 3.6
+64.8 ± 3.7
++1.8
+.636
+Opus 4.5
+Opus
+25
+72.1 ± 3.5
+70.9 ± 3.5
+71.5 ± 3.5
+64.8 ± 3.7
++1.2
+.809
+Opus 4.5
+Haiku
+50
+69.1 ± 3.6
+70.9 ± 3.5
+72.1 ± 3.5
+64.8 ± 3.7
+−1.8
+.626
+Opus 4.5
+Opus
+50
+73.3 ± 3.4
+70.9 ± 3.5
+71.5 ± 3.5
+64.8 ± 3.7
++2.4
+.506
+10
+
+
+Table 13: GAIA cost and step distributions per run (USD, list prices, no caching). Means are dominated by a tail of
+near-limit trajectories; medians characterize typical runs.
+Cost ($)
+Steps
+Brain / CM / W
+Config
+Mean Median
+P90
+P95
+Median
+P95
+Qwen3-480B / Haiku / 25 ReAct
+0.02
+0.01
+0.04
+0.07
+7
+20
+DeReAct
+3.67
+0.35
+14.06 17.31
+28
+1000
+Abl. A
+4.32
+0.27
+16.43 20.45
+26
+1000
+Abl. B
+0.07
+0.03
+0.16
+0.27
+8
+20
+Sonnet 4.5 / Haiku / 25
+ReAct
+0.57
+0.13
+1.64
+2.48
+10
+51
+DeReAct
+5.08
+0.43
+12.25 32.74
+16
+510
+Abl. A
+4.66
+0.38
+10.87 27.76
+15
+460
+Abl. B
+0.68
+0.15
+1.95
+2.89
+10
+48
+Opus 4.5 / Haiku / 25
+ReAct
+1.70
+0.21
+5.17
+8.35
+10
+74
+DeReAct
+7.17
+0.47
+11.93 43.63
+13
+359
+Abl. A
+7.71
+0.52
+17.37 48.49
+14
+468
+Abl. B
+2.11
+0.24
+6.94
+9.77
+10
+76
+Opus 4.5 / Opus / 25
+DeReAct
+5.05
+0.59
+14.36 22.62
+10
+192
+Abl. A
+5.20
+0.54
+14.40 30.99
+10
+255
+Abl. B
+3.50
+0.40
+11.45 16.27
+10
+76
+Opus 4.5 / Haiku / 50
+DeReAct
+9.66
+0.41
+23.41 65.32
+12
+452
+Abl. A
+8.84
+0.55
+22.20 55.83
+15
+410
+Opus 4.5 / Opus / 50
+DeReAct
+4.85
+0.64
+14.61 23.48
+11
+141
+Abl. A
+4.14
+0.53
+11.33 21.42
+11
+125
+Table 14: GAIA veto yield. Traj. Rej.: fraction of trajectories with ≥1 CM final-answer rejection. Res. | Rej.:
+resolution rate among rejection trajectories. ReAct all: ReAct’s resolution rate on the same (instance, attempt) pairs.
+Yield = Res. | Rej. −ReAct all. ReAct (fail) / Evid. (fail): on pairs the configuration failed, ReAct’s resolution
+rate and the evidence-complete fraction of those wins (raw counts small; indicative).
+Veto yield
+Pass@1 parity
+Brain
+CM
+W
+Traj. Rej.
+Res. | Rej.
+ReAct all
+Yield
+ReAct (fail)
+Evid. (fail)
+DeReAct
+Qwen3-480B
+Haiku
+25
+65.5
+30.2
+23.1
++7.1
+11.5
+55
+Sonnet 4.5
+Haiku
+25
+40.8
+43.1
+35.6
++7.5
+23.5
+44
+Opus 4.5
+Haiku
+25
+41.8
+51.7
+52.7
+−1.0
+23.0
+33
+Opus 4.5
+Opus
+25
+22.6
+39.3
+38.4
++0.9
+14.7
+67
+Opus 4.5
+Haiku
+50
+40.4
+44.0
+48.0
+−4.0
+20.5
+58
+Opus 4.5
+Opus
+50
+29.9
+39.2
+35.8
++3.4
+15.6
+20
+Ablation A (CM, no Critic)
+Qwen3-480B
+Haiku
+25
+66.9
+29.0
+22.7
++6.3
+8.5
+27
+Sonnet 4.5
+Haiku
+25
+39.2
+41.8
+31.4
++10.4
+16.8
+50
+Opus 4.5
+Haiku
+25
+47.3
+47.0
+50.0
+−3.0
+22.6
+45
+Opus 4.5
+Opus
+25
+29.9
+39.9
+35.8
++4.1
+13.5
+67
+Opus 4.5
+Haiku
+50
+50.1
+48.8
+49.6
+−0.8
+22.8
+50
+Opus 4.5
+Opus
+50
+31.1
+37.0
+35.1
++1.9
+14.4
+67
+Table 15: SWE-bench Verified Pass@1 resolution (%, averaged over three attempts, base CM prompt (B.3)). Lifts
+are relative to ReAct. Values are mean ± standard error. p-value from paired permutation test.
+Brain
+CM
+W
+DeReAct
+ReAct
+Abl.A
+Abl.B
+Lift
+p
+Qwen3-480B
+Haiku
+25
+42.0 ± 0.7
+37.0 ± 0.7
+37.6 ± 0.2
+43.6 ± 0.2
++5.0
+<.001
+Sonnet 4.5
+Haiku
+25
+52.7 ± 0.4
+48.9 ± 0.8
+53.0 ± 0.0
+51.3 ± 0.9
++3.8
+.008
+Opus 4.5
+Haiku
+25
+61.2 ± 1.0
+65.9 ± 0.5
+63.9 ± 1.0
+66.1 ± 0.2
+−4.7
+<.001
+11
+
+
+Table 16: SWE-bench Verified Pass@1 resolution (%, averaged over three attempts, improved CM prompt (B.3) ).
+Lifts are relative to ReAct. Values are mean ± standard error. p-value from paired permutation test.
+Brain
+CM
+W
+DeReAct
+ReAct
+Abl.A
+Abl.B
+Lift
+p
+Qwen3-480B
+Haiku
+25
+44.0 ± 1.8
+37.0 ± 0.7
+33.5 ± 0.5
+43.6 ± 0.2
++7.0
+<.001
+Sonnet 4.5
+Haiku
+25
+54.1 ± 0.4
+48.9 ± 0.8
+52.2 ± 0.5
+51.3 ± 0.9
++5.2
+<.001
+Opus 4.5
+Haiku
+25
+64.1 ± 0.2
+65.9 ± 0.5
+64.3 ± 0.9
+66.1 ± 0.2
+−1.8
+.092
+Opus 4.5
+Opus
+25
+63.5 ± 1.0
+65.9 ± 0.5
+64.7 ± 1.0
+66.1 ± 0.2
+−2.4
+.020
+Opus 4.5
+Haiku
+50
+64.8 ± 0.5
+65.9 ± 0.5
+64.6 ± 0.3
+66.1 ± 0.2
+−1.1
+.250
+Opus 4.5
+Opus
+50
+65.6 ± 0.8
+65.9 ± 0.5
+65.5 ± 0.3
+66.1 ± 0.2
+−0.3
+.753
+Table 17: SWE-bench Verified Pass@3 resolution (%, base CM prompt (B.3)). Pass@3 measures the percentage of
+instances resolved in at least 1 of 3 attempts. Lifts are relative to ReAct. Values are mean ± standard error. p-value
+from paired permutation test.
+Brain
+CM
+W
+DeReAct
+ReAct
+Abl.A
+Abl.B
+Lift
+p
+Qwen3-480B
+Haiku
+25
+58.7 ± 2.2
+54.2 ± 2.3
+53.8 ± 2.3
+57.7 ± 2.2
++4.5
+.016
+Sonnet 4.5
+Haiku
+25
+63.8 ± 2.2
+62.8 ± 2.2
+65.8 ± 2.1
+64.4 ± 2.2
++1.0
+.586
+Opus 4.5
+Haiku
+25
+70.1 ± 2.1
+70.1 ± 2.1
+70.8 ± 2.1
+70.8 ± 2.1
++0.0
+1.000
+Table 18: SWE-bench Verified Pass@3 resolution (%, improved CM prompt (B.3)). Pass@3 measures the percentage
+of instances resolved in at least 1 of 3 attempts. Lifts are relative to ReAct. Values are mean ± standard error.
+p-value from paired permutation test.
+Brain
+CM
+W
+DeReAct
+ReAct
+Abl.A
+Abl.B
+Lift
+p
+Qwen3-480B
+Haiku
+25
+58.7 ± 2.2
+54.2 ± 2.3
+53.8 ± 2.3
+57.7 ± 2.2
++4.5
+.014
+Sonnet 4.5
+Haiku
+25
+66.3 ± 2.1
+62.8 ± 2.2
+65.2 ± 2.2
+64.4 ± 2.2
++3.5
+.039
+Opus 4.5
+Haiku
+25
+70.8 ± 2.1
+70.1 ± 2.1
+70.1 ± 2.1
+70.8 ± 2.1
++0.7
+.725
+Opus 4.5
+Opus
+25
+69.3 ± 2.1
+70.1 ± 2.1
+70.8 ± 2.1
+70.8 ± 2.1
+−0.8
+.600
+Opus 4.5
+Haiku
+50
+71.2 ± 2.0
+70.1 ± 2.1
+70.1 ± 2.1
+70.8 ± 2.1
++1.1
+.480
+Opus 4.5
+Opus
+50
+71.6 ± 2.0
+70.1 ± 2.1
+71.8 ± 2.0
+70.8 ± 2.1
++1.5
+.269
+Table 19: SWE-bench Policy Activations. Critic Rej. shows percentage of Brain-proposed actions rejected by the
+Critic. CM Rej. shows percentage of Brain-proposed final-answers rejected by the CM.
+Critic Rej. (%)
+CM Rej. (%)
+Brain
+CM
+W
+DeReAct
+Abl.B
+DeReAct
+Abl.A
+Qwen3-480B
+Haiku (Base Prompt)
+25
+22.87
+32.55
+71.42
+77.39
+Sonnet 4.5
+Haiku (Base Prompt)
+25
+2.08
+1.67
+42.91
+21.76
+Opus 4.5
+Haiku (Base Prompt)
+25
+2.39
+2.01
+10.18
+8.95
+Qwen3-480B
+Haiku
+25
+16.15
+32.55
+93.09
+93.08
+Sonnet 4.5
+Haiku
+25
+2.06
+1.67
+72.36
+65.29
+Opus 4.5
+Haiku
+25
+2.08
+2.01
+56.48
+56.38
+Opus 4.5
+Opus
+25
+2.15
+2.01
+19.63
+19.85
+Opus 4.5
+Haiku
+50
+2.19
+2.01
+59.27
+55.37
+Opus 4.5
+Opus
+50
+2.18
+2.01
+20.09
+20.66
+12
+
+
+Table 20: SWE-bench cost and step distributions per run (USD, list prices, no caching). Mean/median gaps are far
+smaller than on GAIA because the test harness supplies a natural termination signal; under the Opus Brain with a
+matched CM, DeReAct reaches mean-cost parity with ReAct.
+Cost ($)
+Steps
+Brain / CM / W
+Config
+Mean Median
+P90
+P95
+Median
+P95
+Qwen3-480B / Haiku / 25 ReAct
+0.32
+0.13
+0.55
+0.87
+34
+98
+DeReAct
+2.79
+1.63
+7.16
+10.23
+154
+1000
+Abl. B
+1.95
+0.50
+1.97
+3.05
+33
+93
+Sonnet 4.5 / Haiku / 25
+ReAct
+3.55
+2.91
+6.84
+8.72
+52
+100
+DeReAct
+5.38
+2.82
+11.66 19.41
+68
+394
+Abl. A
+4.92
+2.63
+10.37 16.41
+65
+344
+Abl. B
+4.58
+3.72
+9.17
+11.96
+51
+100
+Opus 4.5 / Haiku / 25
+ReAct
+3.94
+2.60
+8.08
+10.89
+38
+82
+DeReAct
+4.12
+2.49
+8.66
+13.65
+42
+167
+Abl. A
+4.13
+2.56
+9.12
+13.52
+44
+173
+Abl. B
+4.59
+2.97
+9.06
+13.09
+37
+80
+Opus 4.5 / Opus / 25
+DeReAct
+3.58
+2.46
+7.04
+9.21
+36
+100
+Abl. A
+3.67
+2.46
+7.02
+9.75
+36
+105
+Opus 4.5 / Haiku / 50
+DeReAct
+4.84
+2.78
+10.59 15.48
+41
+118
+Abl. A
+4.65
+2.78
+10.45 14.12
+43
+116
+Opus 4.5 / Opus / 50
+DeReAct
+3.94
+2.49
+8.13
+11.38
+35
+88
+Abl. A
+3.83
+2.63
+7.84
+10.67
+37
+86
+Table 21: SWE-bench veto yield. Columns as in Table 14, with evidence assessed as appropriate testing.
+Veto yield
+Pass@1 parity
+Brain
+CM
+Prompt
+W
+Traj. Rej.
+Res. | Rej.
+ReAct all
+Yield
+ReAct (fail)
+Evid. (fail)
+DeReAct
+Qwen3-480B
+Haiku
+base
+25
+72.3
+41.1
+35.3
++5.8
+14.9
+5.4
+Qwen3-480B
+Haiku
+impr.
+25
+96.3
+43.7
+37.3
++6.4
+17.9
+9.2
+Sonnet 4.5
+Haiku
+base
+25
+3.4
+32.0
+26.0
++6.0
+14.7
+20.0
+Sonnet 4.5
+Haiku
+impr.
+25
+30.3
+48.9
+39.2
++9.7
+17.6
+70.0
+Opus 4.5
+Haiku
+base
+25
+9.3
+53.3
+60.6
+−7.3
+28.1
+72.2
+Opus 4.5
+Haiku
+impr.
+25
+49.4
+59.2
+59.9
+−0.7
+14.9
+63.6
+Opus 4.5
+Opus
+impr.
+25
+18.3
+63.4
+67.2
+−3.8
+25.5
+44.0
+Opus 4.5
+Haiku
+impr.
+50
+51.7
+57.4
+58.4
+−1.0
+13.9
+66.7
+Opus 4.5
+Opus
+impr.
+50
+19.8
+59.3
+61.0
+−1.7
+17.8
+61.9
+Ablation A (CM, no Critic)
+Qwen3-480B
+Haiku
+base
+25
+75.3
+34.2
+33.9
++0.3
+16.9
+4.9
+Qwen3-480B
+Haiku
+impr.
+25
+95.6
+33.4
+37.0
+−3.6
+23.6
+5.4
+Sonnet 4.5
+Haiku
+base
+25
+2.4
+40.0
+34.3
++5.7
+14.3
+66.7
+Sonnet 4.5
+Haiku
+impr.
+25
+31.0
+48.4
+41.5
++6.9
+16.2
+65.8
+Opus 4.5
+Haiku
+base
+25
+8.0
+55.1
+61.9
+−6.8
+24.5
+53.8
+Opus 4.5
+Haiku
+impr.
+25
+50.9
+59.5
+60.5
+−1.0
+15.2
+65.2
+Opus 4.5
+Opus
+impr.
+25
+18.1
+64.5
+65.7
+−1.2
+18.1
+58.8
+Opus 4.5
+Haiku
+impr.
+50
+50.9
+58.8
+59.9
+−1.1
+14.7
+64.4
+Opus 4.5
+Opus
+impr.
+50
+20.3
+58.9
+59.3
+−0.4
+18.0
+59.1
+13
+
+
+Table 22: Context Manager decision quality, rated by an independent Opus 4.7 judge reading each complete
+trajectory (100 sampled per config). STATE synthesis improves with CM model scale on both benchmarks; FINAL
+ANSWER VALIDATION (FAV) does not track scale and instead tracks the domain and prompt.
+STATE
+FAV
+Bench
+Config
+Brain / CM / Prompt / W
+GOOD
+POOR
+GOOD
+POOR
+GAIA
+DeReAct
+Qwen / Haiku / impr. / 25
+69.7%
+0.0%
+36.0%
+31.5%
+Sonnet / Haiku / impr. / 25
+80.7%
+1.1%
+53.4%
+17.0%
+Opus / Haiku / impr. / 25
+80.2%
+1.1%
+48.4%
+19.8%
+Opus / Opus / impr. / 25
+93.9%
+1.0%
+41.4%
+22.2%
+Opus / Haiku / impr. / 50
+79.6%
+1.1%
+44.1%
+25.8%
+Opus / Opus / impr. / 50
+97.0%
+0.0%
+54.0%
+16.0%
+Abl. A
+Qwen / Haiku / impr. / 25
+52.7%
+2.2%
+29.0%
+46.2%
+Sonnet / Haiku / impr. / 25
+86.0%
+0.0%
+44.2%
+10.5%
+Opus / Haiku / impr. / 25
+87.9%
+1.1%
+42.9%
+12.1%
+Opus / Opus / impr. / 25
+94.9%
+2.0%
+40.4%
+13.1%
+Opus / Haiku / impr. / 50
+84.4%
+0.0%
+49.0%
+15.6%
+Opus / Opus / impr. / 50
+98.0%
+1.0%
+48.0%
+6.0%
+SWE
+DeReAct
+Qwen / Haiku / base / 25
+51.0%
+4.0%
+20.0%
+34.0%
+Qwen / Haiku / impr. / 25
+37.0%
+3.0%
+37.0%
+33.0%
+Sonnet / Haiku / base / 25
+64.0%
+7.0%
+39.0%
+16.0%
+Sonnet / Haiku / impr. / 25
+70.0%
+5.0%
+50.0%
+17.0%
+Opus / Haiku / base / 25
+83.0%
+0.0%
+55.0%
+8.0%
+Opus / Haiku / impr. / 25
+88.0%
+0.0%
+72.0%
+2.0%
+Opus / Opus / impr. / 25
+94.0%
+0.0%
+69.0%
+0.0%
+Opus / Haiku / impr. / 50
+83.0%
+0.0%
+65.0%
+3.0%
+Opus / Opus / impr. / 50
+97.0%
+0.0%
+69.0%
+3.0%
+Abl. A
+Qwen / Haiku / base / 25
+49.0%
+4.0%
+19.0%
+28.0%
+Qwen / Haiku / impr. / 25
+27.6%
+6.1%
+36.7%
+32.7%
+Sonnet / Haiku / base / 25
+70.0%
+5.0%
+39.0%
+23.0%
+Sonnet / Haiku / impr. / 25
+68.0%
+4.0%
+44.0%
+18.0%
+Opus / Haiku / base / 25
+88.0%
+1.0%
+54.0%
+6.0%
+Opus / Haiku / impr. / 25
+95.0%
+0.0%
+75.0%
+2.0%
+Opus / Opus / impr. / 25
+94.0%
+0.0%
+63.0%
+3.0%
+Opus / Haiku / impr. / 50
+86.0%
+0.0%
+65.0%
+6.0%
+Opus / Opus / impr. / 50
+93.0%
+0.0%
+64.0%
+4.0%
+14
+
+
+Figure 2: Pass@3 lift versus Pass@1 lift over ReAct
+for all configurations across both benchmarks, Brain
+tiers, CM models, window sizes, and prompts. The
+vertical distance from the y=x diagonal is Diff. Nearly
+every point lies above the diagonal. In the shaded re-
+gion, DeReAct trails ReAct per attempt yet solves more
+distinct tasks at least once.
+Figure 3: Lift over ReAct versus Brain capability, for
+the sufficient policy configuration at each tier (Qwen,
+Sonnet: Haiku CM, W=25; Opus: Opus CM, W=50).
+Hollow markers: Opus Brain under the Haiku CM
+(W=25). See Table 1.
+15
+
+
+B
+Prompt Templates
+This appendix presents the prompts used in our evaluation. The ReAct system prompt is universal:
+identical across all benchmarks (GAIA and SWE-bench Verified) and across all configurations (Full
+DeReAct, Brain + Context Manager, Brain + Critic, ReAct). The Critic and Context Manager prompts
+adapt per benchmark.
+B.1
+ReAct Prompt (Universal)
+The same system prompt is used for ReAct (the monolithic baseline) and for the Brain component in all
+DeReAct configurations across all benchmarks. This normalization is deliberate: holding the Brain’s
+reasoning prompt constant ensures that any architectural effect on Brain behavior is attributable to the
+architectural injection of the Critic and Context Manager, not to differences in how the Brain itself is
+prompted.
+System Prompt: ReAct & Brain Component
+You are an AI agent using the ReAct (Reasoning + Acting) framework to accomplish tasks.
+For each step, you should:
+1. Think about what needs to be done next (Thought)
+2. Decide on a single action to take (Action)
+3. Execute the action and observe the result (Observation)
+You MUST respond with exactly ONE Thought and ONE Action per response.
+Do NOT plan multiple steps ahead.
+Format your response as:
+Thought: [your reasoning about what to do next]
+Action: [the command to execute]
+When the task is complete, respond with:
+Thought: [explanation of why task is complete]
+Final Answer: [summary of what was accomplished]
+"Action" and "Final Answer" should be mutually exclusive, and therefore they should never appear
+in one response at the same time.
+CRITICAL FORMATTING RULES FOR ACTIONS:
+- Output ONLY the raw command text after "Action:"
+- NO markdown formatting
+- NO code blocks with “‘ delimiters
+- NO backticks around the command
+- NO comments or additional text
+The command will be executed directly as-is in a sandboxed environment.
+B.2
+Critic Prompts
+We use two Critic prompt variants across the two benchmarks.
+SWE-bench Critic.
+Used on the SWE-bench Verified.
+16
+
+
+Critic Prompt: SWE-bench Verified
+Your ONLY job is to check if the proposed action is secure and syntactically valid.
+JOB 1 – SECURITY REVIEWER:
+- REJECT if the proposed action can cause PERMANENT loss of persistent data (e.g., DROP
+TABLE, rm -rf /data/*)
+- REJECT if the proposed action contains malicious code (backdoors, exfiltration, privilege
+escalation)
+- REJECT if any code in proposed action has security issues (SQL injection, command injection)
+- For file-based commands, if the file path appears in Context, it can be trusted
+JOB 2 – SYNTAX REVIEWER:
+- REJECT if code or command in proposed action has syntax errors
+If no security or syntax issues found in proposed action -> APPROVE (decision=1)
+Confidence score (0.0 to 1.0):
+- 0.9-1.0: Very confident
+- 0.7-0.89: Confident
+- Below 0.7: Low confidence (prefer approval)
+Context:
+{context}
+Proposed Thought:
+{intent}
+Proposed Action:
+{command}
+Respond in JSON format:
+{
+"decision": 0 or 1,
+"confidence": 0.0 to 1.0,
+"reasoning": "Brief explanation. If approving, state ’No security or syntax issues.’ If rejecting,
+describe the specific security or syntax problem."
+}
+OUTPUT ONLY JSON, NOTHING ELSE.
+GAIA Critic.
+Used on the GAIA benchmark.
+Critic Prompt: GAIA Benchmark
+Your job is to validate the proposed action for SYNTAX ERRORS and question CONSTRAINT
+VIOLATIONS.
+JOB 1 – SYNTAX VALIDATION:
+Check if the command has syntax errors that will cause immediate execution failure:
+17
+
+
+- Malformed commands (unmatched quotes, missing arguments, invalid operators)
+- Invalid command structure for shell/python/web_search/web_fetch
+APPROVE all of these (NOT syntax errors):
+- Python scripts that may not exist (runtime error, not syntax error)
+- Commands that may fail at runtime (file not found, network error, etc.)
+- Web operations of any kind (web_search, web_fetch, HTTP requests)
+JOB 2 – CONSTRAINT VIOLATION CHECK:
+Check if the action CLEARLY violates question constraints stated in the Context:
+- Answer format mismatch (Context requires "comma-separated list", action outputs single value)
+- Unit mismatch (Context requires Celsius, action produces Fahrenheit)
+- Data type mismatch (Context requires name, action produces number)
+ONLY REJECT if the violation is CLEAR and OBVIOUS from the Context.
+DO NOT REJECT for:
+- Strategic concerns (inefficiency, better approach exists)
+- Potential errors (file might not exist, API might fail)
+- Missing information (can’t confirm something from Context)
+- Repetition or loops (agent will learn from experience)
+Default to APPROVAL unless you find clear syntax errors or clear question constraint violations.
+Context:
+{context}
+Proposed Thought:
+{intent}
+Proposed Action:
+{command}
+Respond in JSON format:
+{
+"decision": 0 or 1,
+"confidence": 0.0 to 1.0,
+"reasoning": "If approving: ’No syntax or constraint issues.’ If rejecting: Describe the specific
+syntax error OR constraint violation."
+}
+OUTPUT ONLY JSON, NOTHING ELSE.
+B.3
+SWE Context Manager (CM) Prompts
+We use three CM prompt variants across the two benchmarks. We use two prompts (a base prompt and an
+improved prompt) adapted for SWE-bench Verified, and a prompt adapted for GAIA.
+SWE-bench Verified Context Manager Base Prompt.
+Used on the SWE-bench Verified.
+18
+
+
+Context Manager Base Prompt: SWE-bench Verified
+You are a context manager that maintains a relevant running context.
+Given the previous context, the executed command, and the command results, determine the current
+status and updated context.
+RULES:
+- STATUS is SUCCESS only when ALL TASK OBJECTIVES ARE VERIFIABLY COMPLETE
+AND ACCURATE.
+- STATUS is CONTINUE if more work is needed, including when errors occur.
+Your updated context MUST INCLUDE STATE SECTION BELOW.
+STATE: Current snapshot of what exists right now (replaced each step)
+- Created files, directories, installed packages
+- Resources confirmed to exist based on recent command results
+- Remove resources that have been deleted or are no longer relevant
+- DO NOT INCLUDE ANY INFORMATION OR FIELD RELATED TO NEXT ACTION/AC-
+TIONS!!
+- DO NOT SUGGEST NEXT ACTION/ACTIONS!!
+Previous Context:
+{context}
+Executed Intent:
+{intent}
+Executed Command:
+{command}
+Command Results:
+{results}
+Respond in JSON format:
+{
+"STATUS": "CONTINUE" or "SUCCESS",
+"REASON": "brief explanation",
+"STATE": "current snapshot of existing resources"
+}
+OUTPUT ONLY JSON, NOTHING ELSE.
+SWE-bench Verified Context Manager Improved Prompt.
+Used on the SWE-bench Verified.
+Context Manager Improved Prompt: SWE-bench Verified
+You are a context manager that maintains a relevant running context.
+19
+
+
+Given the previous context, the executed command, and the command results, determine the current
+status and updated context.
+RULES FOR STATUS DETERMINATION:
+- STATUS is SUCCESS ONLY when you have EXPLICIT EVIDENCE that:
+1. All required tests are passing (seen test output with "PASSED" or equivalent)
+2. The bug/issue described in TASK_REQUIREMENTS is fully resolved
+3. No test failures remain and no regressions were introduced
+- STATUS is CONTINUE if:
+- Any tests are still failing
+- You haven’t run tests yet to verify the fix
+- The solution is incomplete or partially working
+- Any errors occurred that need to be addressed
+- Be CONSERVATIVE: when in doubt, use CONTINUE, not SUCCESS
+Your updated context MUST INCLUDE ALL SECTIONS BELOW:
+TASK_REQUIREMENTS: [NEVER REMOVE - Keep until STATUS=SUCCESS]
+- Original problem/bug description
+- Which specific tests must pass
+- Expected behavior after fix
+- Any special conditions or edge cases mentioned
+STATE: Current snapshot of what exists right now
+- Created/modified files and their purposes
+- Installed packages or dependencies
+- Current implementation status
+- DO NOT INCLUDE NEXT ACTION/ACTIONS
+- DO NOT SUGGEST NEXT ACTION/ACTIONS
+CURRENT_ISSUES: [Update each step - Remove only when resolved]
+- Failed tests with their error messages (if any)
+- Known bugs or incomplete functionality
+- Warnings or errors from recent commands
+- Leave empty if no issues remain
+Previous Context:
+{context}
+Executed Intent:
+{intent}
+Executed Command:
+{command}
+Command Results:
+{results}
+Respond in JSON format:
+{{
+20
+
+
+"STATUS": "CONTINUE" or "SUCCESS",
+"REASON": "brief explanation of why this status",
+"TASK_REQUIREMENTS": "original problem and what needs to pass - never remove until
+SUCCESS",
+"STATE": "current snapshot of existing resources and implementation",
+"CURRENT_ISSUES": "list of remaining failures, errors, or incomplete work - empty if none"
+}}
+OUTPUT ONLY JSON, NOTHING ELSE.
+B.4
+GAIA Context Manager Prompt.
+Context Manager Prompt: GAIA Benchmark
+You are a context manager that maintains a relevant running context for a GAIA benchmark task.
+Given the previous context, the executed command, and the command results, determine the current
+status and updated context.
+RULES:
+- STATUS is SUCCESS only when ALL TASK OBJECTIVES ARE VERIFIABLY COMPLETE
+AND ACCURATE.
+- STATUS is CONTINUE if more work is needed, including when errors occur.
+Your updated context MUST INCLUDE THE STATE SECTION BELOW.
+STATE SECTION FORMAT:
+=== DATA COLLECTED ===
+List all data found, marked by confidence level:
+* CONFIRMED: [data directly answering the question from the source it asks about]
+* CALCULATED: [derived data - show calculation or reasoning]
+* APPROXIMATE: [rough estimate - mark what needs verification]
+* INDIRECT: [data ABOUT the answer, not the answer itself - needs direct verification]
+HOW TO CLASSIFY:
+Ask: "Is this the ACTUAL thing the question asks for, or information ABOUT it?"
+CONFIRMED examples:
+- Question asks "what does file X contain?" -> reading file X directly = CONFIRMED
+- Question asks "what is X according to Wikipedia?" -> Wikipedia content = CONFIRMED
+- Question asks "what is the answer?" -> any reliable source with the answer = CONFIRMED
+- Direct calculation results from code you run = CONFIRMED
+INDIRECT examples:
+- Question asks "what’s in the BBC script?" -> fan transcript describing it = INDIRECT
+- Question asks "what’s the exact heading?" -> search result saying "the heading is X" = INDIRECT
+- Question asks "what file contains?" -> directory listing showing filename = INDIRECT (need to
+read the file)
+- Any time you have a DESCRIPTION of the answer rather than the answer itself = INDIRECT
+21
+
+
+Key distinction: Did you ACCESS the thing directly, or did you read ABOUT it from someone else?
+When data comes from transcripts, documents, or web pages, preserve EXACT TEXT.
+Mark with EXACT["original text"] to prevent paraphrasing.
+Example: EXACT["freshly squeezed lemon juice"] not "lemon juice"
+=== QUESTION CONSTRAINTS ===
+List each requirement from the question:
+* [Requirement 1]: ✓satisfied [cite CONFIRMED data only] OR × not yet satisfied
+* [Requirement 2]: ✓satisfied [cite CONFIRMED data only] OR × not yet satisfied
+STRICT RULES FOR ✓:
+- ONLY use ✓when you have DIRECT ACCESS data (CONFIRMED level)
+- DO NOT use ✓for CALCULATED, APPROXIMATE, or INDIRECT data
+- DO NOT use ✓if you read ABOUT the answer rather than accessing the answer directly
+- Include required format/units and verify they match exactly
+=== UNRESOLVED CONCERNS ===
+What could make current findings wrong:
+* Assumptions made: [list every assumption]
+* Needs verification: [list what still needs direct access/confirmation]
+* Alternative interpretations: [list other possible answers]
+* Source reliability: [did we ACCESS the answer directly, or just read ABOUT it?]
+KEEP THIS SECTION until:
+- ALL data is from DIRECT access (CONFIRMED)
+- ALL assumptions are validated
+- ALL alternatives are ruled out
+DO NOT clear this section just because an answer seems found.
+DO NOT upgrade INDIRECT/APPROXIMATE to CONFIRMED without direct access to source.
+CRITICAL:
+- DO NOT suggest next actions
+- DO NOT mark SUCCESS unless EVERY constraint has DIRECT ACCESS data (CONFIRMED
+level)
+- DO NOT mark data as CONFIRMED if you only read ABOUT it (use INDIRECT instead)
+- DO NOT paraphrase exact text that may be part of the answer
+- DO NOT clear UNRESOLVED CONCERNS until direct access confirms everything
+- REMOVE data later determined to be incorrect
+Previous Context:
+{context}
+Executed Intent:
+{intent}
+Executed Command:
+{command}
+22
+
+
+Command Results:
+{results}
+Respond in JSON format:
+{{
+"STATUS": "CONTINUE" or "SUCCESS",
+"REASON": "brief explanation",
+"STATE": "formatted as specified above"
+}}
+OUTPUT ONLY JSON, NOTHING ELSE.
+B.5
+LLM Judge Prompts
+All analysis evaluations use Claude Opus 4.7 (one-million-token context) as an independent judge, reading
+each complete trajectory blind to the reference answer or test outcome.
+GAIA Trajectory Evidence Judge.
+Used to produce Tables 5 and 7.
+Judge Prompt: GAIA Evidence Quality
+You are evaluating a reasoning trajectory from a GAIA benchmark question.
+TASK QUESTION:
+{question}
+TRAJECTORY (agent reasoning steps, actions, and information):
+{trajectory}
+EVALUATION CRITERIA:
+You must make THREE binary assessments:
+1. EVIDENCE COMPLETE: Does the final answer logically follow from information actually
+present in the trajectory?
+- True: The final answer is fully justified by information available in the trajectory
+- False: The answer is invented, guessed, or contains claims not supported by information in the
+trajectory
+2. SOURCE CONSTRAINTS SATISFIED: Did the agent obtain information from the required
+sources/boundaries specified in the question?
+- True: ALL source and boundary requirements were followed
+- False: Failed to use a required source or violated a specified boundary
+3. ADMITTED GUESSING: Does the agent explicitly acknowledge uncertainty or admit they are
+guessing?
+- True: The agent explicitly admits guessing, uncertainty, or making assumptions
+- False: The agent presents the answer with confidence (even if unjustified)
+IMPORTANT NOTES:
+- Evidence and Source Constraints are ORTHOGONAL (independent)
+23
+
+
+- Admitted Guessing is a SUBSET of Evidence Incomplete (not independent)
+- You are evaluating the PROCESS, not judging factual correctness
+- Be strict on evidence: if the answer contains ANY claims not supported by trajectory information,
+mark as False
+- Be strict on source constraints: if the question specifies a source and it wasn’t used, mark as False
+Respond ONLY in valid JSON format:
+{{
+"evidence_complete": true | false,
+"evidence_explanation": "...",
+"constraints_satisfied": true | false,
+"constraints_explanation": "...",
+"admitted_guessing": true | false,
+"guessing_explanation": "...",
+"summary": "brief overall assessment"
+}}
+SWE-bench Trajectory Evidence Judge.
+Used to produce Tables 6 and 8.
+Judge Prompt: SWE-bench Evidence Quality
+You are evaluating if an agent properly tested their code fix.
+TASK:
+{task_description}
+AGENT’S PATCH:
+{patch}
+AGENT’S WORK (what they did to verify the fix):
+{trajectory}
+YOUR JOB: Answer this ONE question:
+Did the agent run appropriate automated tests to verify this specific patch?
+RULES FOR "YES":
+- Agent ran automated tests (pytest, unittest, test script)
+- Tests covered the modified code and its edge cases
+- Tests verified no regressions (existing functionality still works)
+- Tests passed (or failures were identified and fixed)
+- Testing scope matched patch scope
+RULES FOR "NO":
+- Only manual testing (no automated test commands)
+- No automated tests run at all
+- Tests don’t cover the modified code
+- Obvious edge cases not tested
+- No verification that existing tests still pass
+24
+
+
+Respond in JSON format:
+{{
+"appropriate_testing": true or false,
+"reasoning": "Brief explanation"
+}}
+OUTPUT ONLY JSON, NOTHING ELSE.
+CM Decision Quality Judge.
+Used to produce Table 22.
+Judge Prompt: CM Decision Quality
+You are evaluating a Context Manager (CM) agent’s overall performance across an entire trajectory.
+IMPORTANT CONTEXT:
+CM does not maintain full history beyond a certain point (∼50 steps). Instead, CM synthesizes
+history into a context state (xt) that is updated at each step. CM makes decisions based on xt, not
+the full trajectory.
+TASK DESCRIPTION:
+{task_description}
+FULL TRAJECTORY (all steps including CM decisions):
+{trajectory_text}
+EVALUATION:
+Assess CM’s overall performance across this entire trajectory using two criteria:
+1. STATE QUALITY
+- Does CM maintain accurate context state (xt) throughout the trajectory?
+- Does xt adequately capture critical information as the trajectory progresses?
+Answer: [GOOD/FAIR/POOR]
+2. FINAL ANSWER VALIDATION
+- Are CM’s decisions (rejections and acceptances) appropriate given the evidence?
+- Does CM appropriately gate final answer submissions?
+Answer: [GOOD/FAIR/POOR]
+Provide a brief explanation (2–3 sentences) addressing both dimensions.
+Format your response exactly as:
+STATE_QUALITY: [GOOD/FAIR/POOR]
+FINAL_ANSWER_VALIDATION: [GOOD/FAIR/POOR]
+EXPLANATION: [your explanation]
+CM Rejection Loop Classifier.
+Used to classify max-steps trajectories in the Rejection Loop Analysis.
+25
+
+
+Judge Prompt: Rejection Loop Classification
+You are analyzing a benchmark trajectory that hit max_steps (1000) with repeated CM rejections.
+TASK DESCRIPTION:
+{task_description}
+FULL TRAJECTORY:
+{trajectory_text}
+EVALUATION TASK:
+Classify the root cause of why this trajectory hit max_steps.
+DEFINITIONS:
+BRAIN_FAILURE: The trajectory does NOT contain sufficient evidence or work product to satisfy
+the task requirements.
+- Brain failed to obtain the information or produce the output the task requires
+- Brain claims the task cannot be done, resources are inaccessible, or information doesn’t exist
+- Brain got stuck repeating failed strategies without producing the needed result
+CM_MISCALIBRATION: The trajectory DOES contain sufficient evidence or work product to
+satisfy the task requirements, but CM rejected it.
+- Brain’s gathered information or produced work logically satisfies what the task asks for
+- CM fails to recognize that the task requirements have been met
+CRITICAL: These are benchmark tasks designed to be solvable. If Brain claims a task cannot be
+completed, that indicates Brain failure, not task impossibility.
+Provide your assessment:
+ROOT_CAUSE: [BRAIN_FAILURE/CM_MISCALIBRATION]
+ANALYSIS:
+Explain in 2–3 sentences: What did Brain accomplish, does it satisfy the task requirements, and why
+is this Brain or CM failure?
+26
