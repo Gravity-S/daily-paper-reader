@@ -1,0 +1,299 @@
+Title: Efficient Auditing of Adversarial AI Agent Behavior from Agent Traces
+
+URL Source: https://arxiv.org/pdf/2610.07256v1
+
+Published Time: Wed, 07 Oct 2026 00:16:46 GMT
+
+Number of Pages: 7
+
+Markdown Content:
+# Efficient Auditing of Adversarial AI Agent Behavior from Agent Traces 
+
+Eugene Zhang 
+
+Purdue University zhan4713@purdue.edu 
+
+Cheng-Yun King Yang 
+
+Purdue University yang2316@purdue.edu 
+
+Dongyan Xu 
+
+Purdue University dxu@purdue.edu 
+
+Abstract —AI agents powered by large language models (LLMs) can perform complex tasks but may harm the systems they operate in, intentionally or not. Existing agent monitoring approaches rely on rule-based guardrails or LLM-based trace auditing. However, rule-based guardrails can be bypassed through obfuscation and may miss harmful actions beyond their predefined rules, whereas applying an LLM to audit every action is costly. We present a two-stage LLM agent monitoring framework. The first stage uses single-event and trace-sequence rules to select pending actions for inspection; the second uses an LLM audit agent to examine each selected action in the context of the inspected agent’s preceding trace before the action’s execution. We jointly refine the gate rules and audit prompts using training data, allowing the framework to adapt to complex agent behaviors rather than relying solely on predefined rules. On the public benchmark OpenAgentSafety, our framework reduces the average number of LLM audits from 8.15 to 2.33 per run and token usage from 47.8k to 14.6k, with a detection rate of 72.8% compared with 81.5% when every action is audited. In two simulated multi-agent case studies, the framework flags all attack runs in the replayed traces while reducing audit token usage by more than 80%. 
+
+Index Terms —Agentic AI, LLM agent security, LLM auditing, multi-agent systems, runtime monitoring 
+
+## 1. Introduction 
+
+AI agents powered by large language models (LLMs) increasingly perform tasks through tool calls, external data sources, and multi-agent workflows [1]–[3]. Unlike systems that only generate text, these agents can execute commands, modify files, and delegate operations to other agents. Such skills enable complex tasks but may introduce unintended cybersecurity risks [4], [5]. In July 2026, OpenAI models undergoing a cybersecurity evaluation escaped their sand-box and compromised HuggingFace’s production infrastruc-ture [6], [7]. Such risks motivate continuous monitoring of agents’ actions and execution traces to identify suspicious behavior and intervene before dangerous execution. Existing agent monitoring approaches face a tradeoff between detection coverage and cost. Rule-based guardrails are inexpensive, but can be bypassed through obfuscation and may miss harmful actions beyond their predefined pat-terns [8]. LLM-based auditors can examine an action in the context of the agent’s preceding behavior, but auditing every action is costly [9], [10]. Tool use and multi-agent inter-actions also generate large volumes of telemetry, making repeated analysis of these traces expensive. The challenge is to select actions that warrant semantic inspection without overlooking harmful behavior. To balance detection coverage and audit cost, we present a two-stage LLM agent monitoring framework that uses LLM-refined gate rules to select actions for inspection by an LLM auditor, rather than auditing every action. In the first stage, the gate uses single-event and trace-sequence rules to select pending actions for inspection, capturing both individual risky operations and patterns spanning multiple events, such as sensitive data access followed by an out-bound transfer. In the second stage, an LLM audit agent examines the agent’s preceding trace to assess whether the selected pending action is harmful, allowing the framework to block the action and terminate agents that meet the flagging criterion. We use an optimizer LLM to jointly refine the gate rules and audit instructions, reducing reliance on manually crafted rules. Our contributions are threefold:  
+
+> •
+
+We introduce a two-stage LLM agent monitoring framework that can detect malicious agent behavior and terminate flagged agents at runtime.  
+
+> •
+
+The proposed framework is more token-efficient than auditing every agent action. On the public benchmark OpenAgentSafety [4], it reduces mean token usage per run by 69%.  
+
+> •
+
+In two simulated multi-agent systems, we demon-strate that the framework flags all evaluated attack runs while reducing audit token usage by more than 80% compared with auditing every action. 
+
+## 2. Background and motivating example 
+
+2.1. Background 
+
+Research on runtime security for LLM agents has de-veloped along two complementary directions. Trace-based auditing captures structured evidence about an agent’s exe-cution and checks it against predefined properties, whereas LLM-based monitoring interprets behavior semantically. 
+
+Trace-based agent auditing. Trace-based approaches offer explicit and reproducible checks but can only detect arXiv:2610.07256v1 [cs.CR] 5 Oct 2026 (a) No monitor 
+
+> Phishing alert
+> "trusted relay:
+> allow-list, release"
+> Triage agent
+> "vendor relay; benign"
+> Threat-intel agent
+> allow-lists sender
+> SOAR agent
+> releases mail
+> IR assistant
+> "resolved"
+> Defenses off
+> phish delivered;
+> attacker allow-listed;
+> analysts told all
+> is resolved
+
+(b) With the monitor  
+
+> Phishing alert
+> "trusted relay:
+> allow-list, release"
+> Triage agent
+> "vendor relay; benign"
+> Threat-intel agent
+> edit blocked; isolated
+> SOAR agent
+> mail release held
+> IR assistant
+> "injection blocked"
+> Logging env.
+> isolated, append-only
+> Agent traces
+> three surfaces
+> Gate
+> allow-list edit after
+> alert content
+> LLM audit agent
+> edit traced to the
+> email body: malicious
+> report
+> Human
+> admin
+> reviews, responds
+> block edit · isolate agent
+> Caught at the allow-list edit,
+> before any mail is released
+> IOC list intact; only the threat-intel
+> agent is isolated. The gate selects the
+> step; provenance explains it.
+
+Figure 1. Motivating example. (a) The attack succeeds without monitoring. (b) The attack is detected and blocked before completion with monitoring. 
+
+anomaly covered by predefined rules. A2E instruments agent harnesses and produces standardized execution traces for systematic evaluation [1]. AgentArmor reconstructs run-time traces as program-dependence graphs and checks secu-rity properties with a type system [11], while TraceAegis de-tects deviations using hierarchical and behavioral constraints over provenance [12]. Together, these systems demonstrate that structured traces provide useful evidence for detecting policy violations and reconstructing agent behavior. 
+
+LLM-based monitoring. LLM-based approaches can recognize broader forms of suspicious behavior but in-troduce additional cost, latency, and false-alarm risk. AutoMonitor-Bench shows that LLM monitors face a practi-cal tradeoff between missed incidents and false alarms [9]. Invoking such a monitor on every trace event also causes cost and latency to grow with telemetry volume. This makes continuous semantic inspection difficult in deployments where many agents generate events concurrently. AgentSen-tinel [13] combines rule-based checks with an LLM auditor that uses task context and system traces to assess sensitive tool calls. It reduces auditing overhead via cached security decisions and audit budgets. Our framework refines trace-based gate rules and audit prompts on development failures. The complementary strengths of trace-based auditing and LLM-based monitoring motivate us to explore inte-grating these approaches. Our goal is to determine whether integrating the two approaches can provide accurate agent monitoring while reducing the token cost of LLM audits. AGENTIC ENV. 
+
+> sandboxed; may be compromised
+
+LOGGING ENV. 
+
+> isolated from all agents
+
+Edge agent Main agent Secret agent 
+
+> pending action
+
+Tools 
+
+> shell · file · browser · MCP emit events; cannot read logs
+> OPERATIONAL COGNITIVE CONTEXTUAL
+> three-surface trace · append-only
+
+Deterministic gate 
+
+> event + sequence rules
+
+LLM audit agent 
+
+> provenance → verdict
+> trust boundary
+> events
+> block · isolate
+
+Human admin 
+
+> reviews; responds
+> incident report responds
+
+Figure 2. The proposed agent monitoring architecture. Agents emit events across a trust boundary into an isolated logging environment, where a deterministic gate selects pending actions for a synchronous LLM audit that can block them. 
+
+2.2. Motivating example 
+
+We simulate a realistic multi-agent security-operations pipeline, shown in Fig. 1, to illustrate the importance of monitoring AI agent traces. The system includes a triage agent, a threat-intelligence agent, a security orchestration, automation, and response (SOAR) agent, and an incident-response assistant. An attacker attempts to compromise the system by sending a phishing email with embedded instruc-tions claiming to originate from a “trusted relay,” aiming to trick the triage agent into prompting downstream agents to allow-list the sender and release the quarantined mail. Without monitoring, agents trust their predecessors’ out-puts, causing the phishing sender to be allow-listed, the quarantined mail to be released, and the campaign to be incorrectly reported as resolved, as shown in Fig. 1(a). With monitoring, the gate selects the allow-list edit for inspection, and the LLM auditor traces it to the injected instructions, blocks the edit, and isolates the threat-intelligence agent before any mail is released, as shown in Fig. 1(b). This example also illustrates the motivation for selective auditing: the clearest sign of harm emerges at the threat-intelligence agent’s allow-list edit, whereas most of the triage agent’s work involves routine processing of benign alerts. Auditing every action provides broad coverage but also incurs token costs for this routine processing. This motivates a framework that selects potentially risky actions for LLM inspection, making agent trace monitoring more token-efficient. 3. Threat model 
+
+We assume that attackers cannot tamper with the agent traces used by the monitoring framework. They may in-fluence an agent’s inputs, reasoning, and actions, but they cannot delete or modify recorded events or falsify their provenance. Trace tampering is therefore outside the scope of this work. In our simulated multi-agent systems, we consider two attacker settings. In the white-box setting, an internal attacker operates within the monitored environment, where its prompts, intermediate reasoning, and actions can be logged. In the black-box setting, an external attacker operates outside this environment: its interactions with the system can be logged, but its internal prompts and reasoning are unavailable to the monitor. 
+
+## 4. LLM Agent Monitoring Framework 
+
+As shown in Fig. 2, the framework first logs each agent’s trace in an isolated environment. It then uses LLM-refined gate rules to select pending actions for inspection. Finally, an LLM auditor evaluates the selected actions. If an agent is flagged, the framework blocks its pending action, terminates the agent, and generates an incident report. The following subsections detail each step. 
+
+4.1. Agent Trace Logging 
+
+We adopt the three-surface agent telemetry schema of AgentTrace [2] to log agent traces in our framework. The 
+
+operational surface records the methods an agent executes and their outcomes. The cognitive surface records the agent’s reasoning, plans, and reflections. The contextual surface records data exchanged between the agent and external resources. We logged all events covered by these three surfaces individually and in chronological order. To prevent malicious agents from tampering logged traces, all logs are stored append-only in an isolated logging environment that agents cannot access. The agentic environ-ment can emit trace events across the logging boundary, but agents cannot read or modify previously recorded events. A malicious agent can attempt to leave a clean-looking trace, but cannot alter the trace after events are recorded. 
+
+4.2. Behavior-Guided LLM Audit Triggering 
+
+Auditing every trace event with an LLM would provide broad coverage but is impractical in real-world deployments. A single agent using multiple MCP tools may generate dozens of records within seconds, while hundreds of benign agents may operate concurrently. Auditing every record would therefore increase both cost and detection latency. We instead place an inexpensive, deterministic gate before the LLM audit. The gate examines the agent’s pending action and preceding trace to determine whether further inspection is warranted, invoking the LLM audit only for selected actions and thereby reducing overall token usage. We define two categories of gate rules. A single-event rule checks whether the pending action meets specified matching conditions, such as its action type (shell com-mand, file edit, message, or browser interaction) or regular-expression patterns in its arguments. A sequence rule fires when both the pending action and earlier records in the same trace match specified conditions. Sequence rules capture risks not evident from a single record, such as a colleague’s request followed by a destructive operation or sensitive data entering an agent’s context followed by data egress. Instead of hand-writing the gate rules from a fixed security policy, we make both the gate rules and the audit instructions adaptive: they are generated and refined by an optimizer LLM from observed failures on development data. The framework starts from a minimal seed: a single rule that audits every action capable of changing state or sending information out, and a generic audit prompt that describes the three trace surfaces and asks whether the latest action has a harmful consequence. An optimizer LLM then refines the gate rules and the audit prompt together. In each round, it uses the current configuration, rule firing statistics, and examples of missed harmful runs and falsely flagged benign runs to propose revised rules and an audit prompt. A revision is accepted only if it improves the objective 
+
+J = TPR − FPR − λ · CC0
+
+, (1) where TPR is the true-positive rate (the fraction of harmful runs flagged), FPR is the false-positive rate (the fraction of benign runs flagged), C is the average audit cost in tokens per run, C0 is the corresponding cost of the seed config-uration, and λ sets the weight of the token-cost penalty, balancing detection performance against audit cost. The op-timizer is instructed to describe only general behaviors and structures in the rules, without file names or specific values copied from failure cases. This discourages memorization of case-specific answers and encourages generalization to unseen tasks. Optimization uses only development data and the test split is reserved for final evaluation. 
+
+4.3. LLM Audit and Response 
+
+At runtime, when an agent’s pending action triggers a gate rule, an LLM audit agent examines the action’s provenance before execution. The audit agent receives the agent’s most recent K records across all three surfaces, together with the task specification and descriptions of the gate rules that fired. The task specification remains in the audit context to keep the task’s constraints visible throughout long runs. Agent-generated content (commands, file contents, messages, and reasoning) and messages from other agents are retained in full to preserve potentially harmful content. Ordinary tool output, such as fetched web pages and command logs, is truncated to limit context size. The audit agent returns a verdict ( BENIGN , SUSPICIOUS ,or MALICIOUS ) and an explanation citing the supporting records. Verdicts are aggregated per agent. Once an agent is flagged, the framework blocks its pending action, terminates the agent, and retains the explanation and cited records as an incident report. 
+
+## 5. Experimental Setup 
+
+This section describes the evaluation datasets, experi-mental configuration, and metrics used to assess detection accuracy and audit cost. 
+
+5.1. Dataset 
+
+We evaluate the framework on a public benchmark and assess practicality using two simulated multi-agent systems. 
+
+Public benchmark. OpenAgentSafety [4] contains 356 workplace tasks built on TheAgentCompany. Agents interact with the environment through tools, including a shell, a file system, a browser for accessing GitLab and ownCloud, and a chat interface for communicating with LLM-simulated colleagues, some of whom pressure the agent to take unsafe actions. Harm can arise from either malicious requests or careless execution of benign tasks. We replay the trajectories released by the benchmark authors for Claude-3.7, GPT-4o, DeepSeek-V3, and DeepSeek-R1, preserving the agent behavior recorded in the published experiments. We exclude the released o3-mini trajectories because they lack the judge labels required to construct our ground truth. The benchmark provides two labels for each run: one from a rule-based checker that inspects the final environment state (unsafe or safe), and another from a GPT-4.1 judge that assesses the trajectory (not reached, safe, attempted, or com-pleted). We restrict our evaluation to the high-confidence subset on which the two labels agree:  
+
+> •
+
+A run is unsafe if the rule-based checker reports an unsafe outcome and the LLM judge reports a completed unsafe action.  
+
+> •
+
+A run is safe if both labels report safe. We exclude runs in which an unsafe action was either attempted but not completed, or was never reached. The resulting dataset contains 303 runs across 145 tasks. We perform a stratified 50/50 split in tasks, producing 154 development runs (81 unsafe) and 149 test runs (81 unsafe). Rules and audit prompts are tuned only on development tasks, and test tasks are unseen until final evaluation. 
+
+Simulated multi-agent systems. We collect traces from two simulated multi-agent scenarios involving vault-key disclo-sure and datastore destruction, as illustrated in Fig. 3. These simulations complement our public-benchmark evaluation, which is limited to replaying released traces, by providing traces from multi-agent systems we run directly. 
+
+Scenario 1 (external agent). An external attacker, imple-mented as a separate agent outside the instrumented bound-ary, sends messages to the edge agent’s public interface and attempts to induce the system to disclose a vault key. Of the attacker’s behavior, only its messages can be logged; its reasoning and operations remain invisible to the monitor. The attack succeeds when the key appears in attacker-visible output. We check for disclosure using a canary substring and decoders for common obfuscations. 
+
+Scenario 2 (internal agent). A compromised internal edge agent attempts to induce the executor to run a destruc-tive command on a data store while presenting the action as routine maintenance. The attack succeeds when the store is destroyed. Although the internal agent’s reasoning can be logged, a compromised agent may deliberately record misleading reasoning to conceal its intent. 
+
+5.2. Experimental Configuration 
+
+LLMs and audit implementation. We use Claude Son-net 5.5 as both auditor and optimizer in all experiments. We observed that Anthropic safety guardrails sometimes rejected audit requests, predominantly those involving mali-cious traces. Hence, we adopt a fail-closed policy, flagging runs with rejected requests without bypassing provider safe-guards. Section 7 reports results excluding provider refusals. For the case studies, we run the two simulated multi-agent systems shown in Fig. 3 with Claude Haiku 4.5 as the model for each agent and collect their traces with AgentTrace [2]. 
+
+Benchmark tuning and comparison. Starting from the seed configuration (Section 4.2), we tune the gate and audit prompt for five rounds on a fixed subset of 80 development runs (40 unsafe, 40 safe), with λ = 0 .1 in Eq. (1). We reserve the remaining 74 development runs (41 unsafe, 33 safe) for validation, then freeze the best configuration and evaluate it on 149 test runs across 72 tasks unseen during tuning. On the test set, we compare three configurations: LLM auditing of every agent action, gated LLM auditing with the untuned gate rules, and gated LLM auditing with the tuned gate rules and audit prompt. 
+
+5.3. Evaluation Metrics 
+
+Accuracy. The LLM auditor (Sec. 4.3) labels audited ac-tions as BENIGN , SUSPICIOUS , or MALICIOUS . A trace is “detected” if the auditor returns at least one MALICIOUS 
+
+verdict or three SUSPICIOUS verdicts for that trace. For each dataset, we report true- and false-positive rates as the fraction of unsafe and safe traces detected, respectively. 
+
+Cost. We measure audit cost by the number of LLM audits and the total number of tokens consumed per run, based on usage reported by the API. We further break down token usage into input, cache-read, and output tokens. 
+
+## 6. Results 
+
+We evaluate the three LLM audit configurations defined in Section 5.2 on OpenAgentSafety [4] and in two simulated multi-agent scenarios to answer the following research ques-tions:  
+
+> •
+
+RQ1: How does the proposed method for triggering LLM audits affect detection accuracy and token usage in agent monitoring? SCENARIO 1 - EXTERNAL INCIDENT  
+
+> Failure: attacker obtains the key
+> [ External Attacker ] [ Edge Agent ] [ Main Agent ] poison
+> [ Secret Agent ]
+> (attested gate)
+> request
+> KEY DISCLOSED Three-surface trace
+> (bound to each agent)
+> [ Log Processing Agent ]
+> briefs
+> Human Admin
+> responds
+> SCENARIO 2 - INTERNAL INCIDENT
+> Failure: dangerous command runs
+> [ Edge Agent ]
+> (compromised @ round K)
+> [ Main Agent ]
+> (executor)
+> command
+> /srv/data DESTROYED Three-surface trace
+> (bound to each agent)
+> [ Log Processing Agent ]
+> briefs
+> Human Admin
+> responds
+
+Figure 3. An external attacker seeks key disclosure (Scenario 1), and a compromised internal agent seeks datastore destruction (Scenario 2). TABLE 1. LLM A UDIT RESULT ON OPEN AGENT SAFETY .Configuration TPR (%) FPR (%) Audits Tokens LLM audit 81.5 11.8 8.15 47.8k Gated LLM audit (untuned) 37.0 13.2 6.64 34.0k Gated LLM audit (tuned) 72.8 5.9 2.33 14.6k  
+
+> •
+
+RQ2: How does jointly tuning the gate rules and audit prompt using an LLM affect detection accuracy and audit cost across optimization rounds?  
+
+> •
+
+RQ3: Can the proposed framework detect harmful actions by rogue agents in the simulated multi-agent scenarios before those actions are executed? 
+
+6.1. Audit Accuracy and Token Efficiency (RQ1) 
+
+Table 1 compares detection performance and audit cost on the test split of OpenAgentSafety [4]. Auditing every action achieves the highest TPR but also consumes the most tokens. Untuned gated auditing has a substantially lower TPR, while the tuned configuration achieves 72.8% TPR compared with 81.5% for full auditing, with a lower FPR (5.9% versus 11.8%). The tuned gate also reduces mean audit calls per run by approximately 71% and token usage by 69% compared with full auditing. Table 2 breaks down token usage by type. Compared with full auditing, our framework reduces mean usage across all token categories by limiting LLM inspection to actions that trigger the gate. Our evalua-tion uses a relatively balanced test set (81 unsafe and 68 safe runs). The reductions in false alarms and token consumption are particularly valuable for large-scale runtime monitoring in deployments dominated by benign traces, provided that the reduction in TPR is acceptable. We analyzed the ten unsafe runs detected only by the full LLM audit. There are two sources of missed detections. In five runs, the gate skipped the action that triggered detection: a dependency upgrade and a Python API call outside its keyword list, a final report not covered by any rule, and two browser clicks. The benchmark records clicks using element numbers rather than button or link text, so the gate 
+
+TABLE 2. M EAN TOKENS PER RUN ON THE TEST SPLIT .Configuration Input Cache read Output Total LLM audit 24.8k 21.1k 1.87k 47.8k Gated LLM audit (untuned) 26.3k 6.4k 1.21k 34.0k Gated LLM audit (tuned) 7.7k 6.1k 0.72k 14.6k TABLE 3. T UNING TRAJECTORY OF THE GATED LLM AUDIT .Training round TPR (%) FPR (%) Audits Tokens J
+
+0 (untuned) 47.5 5.0 6.69 34.3k 0.325 1 57.5 5.0 5.05 32.6k 0.430 2 70.0 7.5 4.85 33.7k 0.527 3 87.5 7.5 3.81 26.8k 0.722 4 92.5 7.5 2.94 19.2k 0.794 5 (tuned) 95.0 7.5 2.52 15.7k 0.829 Validation (untuned) 31.7 12.1 4.38 17.7k –Validation (tuned) 78.0 24.2 2.28 13.2k –
+
+cannot tell what the agent clicked. In the remaining five runs, the relevant actions were audited, but the monitor returned milder verdicts or accumulated too few suspicious verdicts to flag the run. 
+
+6.2. Gate and Audit Prompt Tuning (RQ2) 
+
+Table 3 reports the tuning trajectory and the untuned and tuned configurations’ performance on the validation split. On the training split, tuning increases TPR from 47.5% to 95.0% while reducing mean audits per run by 62% and token usage by 54%. FPR increases only slightly, from 5.0% to 7.5%. The largest single-round gain occurs between rounds 2 and 3, when TPR increases by 17.5 percentage points while both audits and token usage decrease. Token usage increases slightly in round 2 despite fewer audits, showing that the objective balances detection performance and cost rather than optimizing either metric alone. All five revisions were accepted because each increased J over the previous configuration. On the validation split, tuning increases TPR from 31.7% to 78.0% and reduces mean audits and token usage TABLE 4. LLM AUDIT ON SIMULATED MULTI -AGENT SYSTEMS WITH AND WITHOUT THE GATE .Scenario Configuration TPR FPR Audits Tokens Tokens/audit S1 LLM audit 10/10 0/10 14.8 72.2k 4.9k Gated LLM audit 10/10 0/10 2.4 13.1k 5.5k S2 LLM audit 10/10 0/10 6.5 27.3k 4.2k Gated LLM audit 10/10 0/10 0.5 3.8k 7.6k 
+
+by 48% and 25%, respectively. However, FPR also increases from 12.1% to 24.2%. The final configuration achieves a TPR of 72.8% and an FPR of 5.9% on the test split, showing that the detection improvement over the untuned configura-tion extends to entirely unseen tasks. In contrast, 32 of the validation set’s 51 tasks also appear in the training split, with runs generated by different agent models. The validation split also includes benign runs that repeatedly elicit SUSPI - 
+
+> CIOUS
+
+verdicts, resulting in its higher FPR. Overall, joint tuning improves detection while reducing audit frequency and token usage, but its effect on false positives varies across data splits. These results demonstrate the benefits of joint optimization while highlighting the importance of evaluation on entirely unseen tasks. 
+
+6.3. Multi-Agent Case Studies (RQ3) 
+
+Table 4 compares detection performance and audit cost with and without the gate in the two simulated multi-agent systems illustrated in Fig. 3. For each scenario, we evaluate ten attack runs and ten benign runs. Both configurations detect all attacks at the execution boundary of the harmful action—the secret request in Scenario 1 and the destructive command in Scenario 2—while producing no false positives on the benign runs. The gated audit achieves the same detection results while reducing mean token usage by 82% in Scenario 1 and 86% in Scenario 2 relative to full auditing. Most of these savings come from avoiding unnecessary LLM audits on benign traces: the gate triggers once in Scenario 1 and does not trigger in Scenario 2. Overall, these results show that selective audit triggering can detect the harmful actions in both simulated systems while reducing token usage by more than 80%. 
+
+## 7. Discussion 
+
+This section discusses experimental design choices that affect our results and identifies directions for future work. 
+
+LLM Provider refusals. In our experiments, the provider’s safety guardrail rejected 15 of the 347 requests made by the tuned gated audit (4.3%) and 16 of the 1,215 requests made by the full LLM audit (1.3%). For the gated audit, refusals occurred in 14 unsafe runs and one safe run. For the full audit, they occurred in 14 unsafe runs and two safe runs. Our examination suggests that these refusals were triggered by harmful content in the trace rather than by the audit instructions. In one case, the provider refused the audit because the task requested that screenshots be                      
+
+> TABLE 5. S ENSITIVITY OF TEST -SPLIT TPR AND FPR ON
+> OPEN AGENT SAFETY TO ALTERNATIVE FLAGGING RULES .Configuration Flagging rule TPR (%) FPR (%) LLM audit Reported rule 81.5 11.8 Ignore refusals ≥64.2 ≥8.8 No suspicion accumulation 61.7 7.4 Gated LLM audit Reported rule 72.8 5.9 Ignore refusals ≥55.6 ≥4.4 No suspicion accumulation 63.0 4.4
+
+taken “silently” every few seconds. Replacing the audit instructions with a neutral review prompt did not prevent the refusal, whereas removing the word “silently” did. Thus, a safety-trained audit model may be unable to assess traces containing harmful content. In our evaluation in Table 1, refusals are treated as detections. Consequently, 14 of the 59 detections made by the tuned gated audit depend solely on a refusal. If refusals were ignored, its TPR would decrease to at least 55.6%, as shown in Table 5. This value is a lower bound because auditing stops after a refusal, leaving subsequent verdicts unobserved. We therefore report refusals separately and recommend handling them with a fail-closed policy in deployment. 
+
+Robustness of the flagging rule. Under the flagging rule defined in Section 5.3, an agent trace is flagged if any action receives a MALICIOUS verdict or if three distinct actions receive SUSPICIOUS verdicts. On the test split, the suspicion-accumulation criterion contributes eight detections and one false positive for the tuned gated audit. As shown in Table 5, removing this criterion would reduce the TPRs of the full and tuned gated audits to 61.7% and 63.0%, respectively, while lowering their FPRs to 7.4% and 4.4%, respectively. On the validation split, however, it contributes two detections and five false positives, indicating that its effectiveness depends on the task distribution. These results show that the definition of the flagging rule directly affects the tradeoff between detection and false alarms. Developing and calibrating flagging rules that generalize across task distributions is therefore an important direction for future work. 
+
+Extending the simulated attack scenarios. The simulated multi-agent systems provide an initial end-to-end demon-stration that the framework can detect harmful actions while substantially reducing token usage. Future work can broaden this evaluation by including benign runs with legitimate sensitive operations, increasing the number and diversity of scenarios, and controlling the trace-generation models to enable more direct comparisons. It can also evaluate stronger monitor-aware attackers that avoid explicit cues in their cover stories, such as refusals. Together, these extensions would provide a more comprehensive evaluation of the framework’s robustness and generalizability across realistic multi-agent deployments. They would also show whether the observed token savings persist under more challenging conditions. 8. Conclusion 
+
+This paper presents a two-stage LLM agent monitoring framework that combines rule-based action selection with semantic LLM auditing, preventing adversarial agent behav-ior from execution. Evaluations on a public benchmark and simulated multi-agent systems demonstrate that the frame-work can balance detection effectiveness with substantially lower auditing cost, providing a practical foundation for scalable AI agent monitoring. 
+
+## LLM usage statement 
+
+Methodological: the benchmark and case-study agents, adversary personas, semantic audit agent, and optimizer that refines the gate rules and audit prompt use LLMs (Sections 4–6). Preparation: LLMs were used for editorial purposes in this manuscript, and all outputs were inspected by the authors to ensure accuracy and originality. An LLM-based coding environment also assisted in implementing the experimental harness. All design, claims, interpretation, and reported results were verified by the authors. 
+
+## References 
+
+[1] H. Wang, M. Zhang, C. Yu, Y. Shang, X. Xie, X. Hu, G. Wang, and N. Zou, “ A2E: An end-to-end agent auditing engine,” 2026, arXiv:2608.07346. [2] A. AlSayyad, K. Y. Huang, and R. Pal, “AgentTrace: A struc-tured logging framework for agent system observability,” 2026, arXiv:2602.10133. [3] Y. Wang, J. Zhang, Z. Wu, T. Cai, Z. Liu, Z. Sun, M. Dong, M. Zheng, Y. Duan, X. Yin, and Y. Zhu, “From agent traces to trust: A survey of evidence tracing and execution provenance in LLM agents,” 2026, arXiv:2606.04990. [4] S. Vijayvargiya, A. B. Soni, X. Zhou, Z. Z. Wang, N. Dziri, G. Neu-big, and M. Sap, “OpenAgentSafety: A comprehensive framework for evaluating real-world AI agent safety,” in International Conference on Learning Representations (ICLR) , 2026. [5] R. Liang, L. Yin, J. Chen, Y. Feng, C. Wu, X. Zhang, H. Gu, Z. Zhang, and Y. Liu, “Don’t trust your upstream: Exploiting LLM multi-agent systems via topology-guided adversarial propagation,” 2026, arXiv:2512.04129. [6] Cloud Security Alliance, “Hugging Face incident initial post-mortem,” Expedited Strategy Briefing, Jul. 2026, published July 27, 2026. Accessed: Oct. 2, 2026. [Online]. Available: https: //cloudsecurityalliance.org/artifacts/hugging-face-ciso-post-mortem [7] Hugging Face, “Security incident disclosure—july 2026,” Online, Jul. 2026, published July 16, 2026. Accessed: Oct. 2, 2026. [Online]. Available: https://huggingface.co/blog/security-incident-july-2026 [8] Invariant Labs, “Invariant guardrails: A rule-based guardrailing layer for LLM and MCP agents,” Online, 2025. [Online]. Available: https://github.com/invariantlabs-ai/invariant [9] S. Yang, J. Hu, T. Li, H. Yan, W. Wang, and D. Wang, “AutoMonitor-Bench: Evaluating the reliability of LLM-based misbehavior moni-tors,” 2026, arXiv:2601.05752. [10] A. Stein, D. Brown, H. Hassani, M. Naik, and E. Wong, “Detecting safety violations across many agent traces,” 2026, arXiv:2604.11806. [11] P. Wang, Y. Liu, Y. Lu, Y. Cai, H. Chen, Q. Yang, J. Zhang, J. Hong, and Y. Wu, “AgentArmor: Enforcing program analysis on agent runtime trace to defend against prompt injection,” 2025. [12] J. Liu, B. Ruan, X. Yang, Z. Lin, Y. Liu, Y. Wang, T. Wei, and Z. Liang, “TraceAegis: Securing LLM-based agents via hierarchical and behavioral anomaly detection,” 2025. [13] H. Hu, P. Chen, Y. Zhao, and Y. Chen, “AgentSentinel: An end-to-end and real-time security defense framework for computer-use agents,” 2025, arXiv:2509.07764. [14] F. F. Xu, Y. Song, B. Li, Y. Tang, K. Jain, M. Bao, Z. Wang, X. Zhou, Z. Guo, M. Cao et al. , “Theagentcompany: benchmarking llm agents on consequential real world tasks,” Advances in Neural Information Processing Systems , vol. 38, 2026. [15] R. Arike, R. M. Moreno, R. Subramani, S. Biswas, and F. R. Ward, “How does information access affect LLM monitors’ ability to detect sabotage?” 2026, arXiv:2601.21112. [16] “Reliable weak-to-strong monitoring of LLM agents,” 2025, arXiv:2508.19461. [17] “Hodoscope: Unsupervised monitoring for AI misbehaviors,” 2026, arXiv:2604.11072. [18] S. Akhtar, S. Khan, and S. Parkinson, “LLM-based event log analysis techniques: A survey,” 2025, arXiv:2502.00677. [19] “Krone: Scalable LLM-augmented log anomaly detection via hi-erarchical abstraction,” In Proceedings of the IEEE International Conference on Data Engineering (ICDE), 2026, arXiv:2602.07303. [20] “LLM-enhanced log anomaly detection: A comprehensive benchmark of large language models for automated system diagnostics,” 2026, arXiv:2604.12218. [21] C. Song, Z. Ma et al. , “Audit-LLM: Multi-agent collaboration for log-based insider threat detection,” 2024, arXiv:2408.08902. [22] A. Habibzadeh, F. Feyzi, and R. E. Atani, “Large language mod-els for security operations centers: A comprehensive survey,” 2025, arXiv:2509.10858. [23] Z. Chen, M. Kang, and B. Li, “ShieldAgent: Shielding agents via verifiable safety policy reasoning,” 2025, arXiv:2503.22738. [24] W. Luo, S. Dai, X. Liu, S. Banerjee, H. Sun, M. Chen, and C. Xiao, “AGrail: A lifelong agent guardrail with effective and adaptive safety detection,” in Proceedings of the Annual Meeting of the Association for Computational Linguistics (ACL) , 2025, arXiv:2502.11448. [25] “Progent: Programmable privilege control for LLM agents,” 2025, arXiv:2504.11703. [26] “AgentSpec: Customizable runtime enforcement for safe and reliable LLM agents,” In Proceedings of the IEEE/ACM International Con-ference on Software Engineering (ICSE), 2026. [27] Y. Wu, M. Velazco, A. Zhao, M. R. M. Luj´ an, S. Movva, Y. K. Roy, Q. Nguyen, R. Rodriguez, Q. Wu, M. Albada, J. Kiseleva, and A. Mudgerikar, “ExCyTIn-Bench: Evaluating LLM agents on cyber threat investigation,” 2026, arXiv:2507.14201. [28] A. Chona, I. Kozlov, and A. Kumar, “Cyber defense benchmark: Agentic threat hunting evaluation for LLMs in SecOps,” 2026, arXiv:2604.19533.
