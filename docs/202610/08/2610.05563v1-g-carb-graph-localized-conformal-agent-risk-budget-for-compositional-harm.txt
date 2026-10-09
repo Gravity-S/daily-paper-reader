@@ -1,0 +1,543 @@
+Title: G-CARB: Graph-Localized Conformal Agent Risk Budget for Compositional Harm
+
+URL Source: https://arxiv.org/pdf/2610.05563v1
+
+Published Time: Tue, 06 Oct 2026 02:02:05 GMT
+
+Number of Pages: 21
+
+Markdown Content:
+# G-CARB: Graph-Localized Conformal Agent Risk Budget for Compositional Harm 
+
+Zijun Yu *
+
+Department of Mathematics and Statistics McGill University Montréal, QC, Canada 
+
+zijun.yu@mail.mcgill.ca 
+
+Yu Gu *
+
+Department of Mathematics and Statistics McGill University Montréal, QC, Canada 
+
+yu.gu4@mail.mcgill.ca 
+
+Vahid Partovi Nia 
+
+Department of Mathematics and Industrial Engineering Polytechnique de Montréal Montréal, QC, Canada 
+
+vahid.partovinia@polymtl.ca 
+
+Masoud Asgharian 
+
+Department of Mathematics and Statistics McGill University Montréal, QC, Canada 
+
+masoud.asgharian2@mcgill.ca 
+
+## Abstract 
+
+Small language model (SLM) agents need safety controls that track consequences across tool calls with little monitoring overhead. A private read, for example, becomes a leak when a later action sends that data outside the system. We in-troduce CARB (Conformal Agent Risk Budget), which calibrates when to stop an agent using a ledger of harm incurred before stopping. Under exchangeable episodes, standard conformal risk control bounds this declared loss in expecta-tion over calibration and a future episode. G-CARB selects scorer evidence along observable dependencies from private sources to outgoing actions. The ledger still covers the entire executed history, and computing the gate score requires no additional language-model inference. On AgentDojo replay with two 14B back-bones, G-CARB roughly halves scorer-input records at intermediate risk budgets while improving autonomous task completion relative to full-prefix scoring; ran-dom context of the same size achieves similar gains. Controlled examples show how retaining the relevant dependency can further avoid stopping benign work. 
+
+## 1 Introduction 
+
+An agent reads a private certificate, copies a field into a note, and later emails that note outside the organization. Together, these actions leak the private field. Preventing the leak requires connecting the proposed send to the earlier read. Tool-using language models routinely act across such multi-step trajectories [Yao et al., 2023, Schick et al., 2023, Zhou et al., 2024, Deng et al., 2023]. Prompt-injection studies, agent-safety benchmarks, and workflow audits expose the risks of these linked actions [Greshake et al., 2023, Debenedetti et al., 2024, Zhan et al., 2024, Andriushchenko et al., 2025, Wu et al., 2026]. For small language model (SLM) agents, the safeguard should also be inexpensive. We use an external gate: the agent proposes a tool call, a lightweight scorer evaluates the available evidence, and a calibrated threshold determines whether execution continues. The gate tracks dependencies without invoking another language model at every decision.          
+
+> *Equal contribution. 40th Conference on Neural Information Processing Systems (NeurIPS 2026). Workshop: SLMs for Agentic Systems, Paris, France, 2026. arXiv:2610.05563v1 [stat.ML] 4 Oct 2026 History and proposed send
+> 1Read certificate
+> 2Read email
+> 3Write calendar
+> 4Write note
+> 5Send email
+> Illustrated local labels: 0 at every step, despite the joint leak.
+> G-CARB 1 Private source 4 Carrier 5 External sink At the send decision: current-action = send only; full-prefix = all five records. The ledger covers every executed action, whatever the scorer context.
+
+Figure 1: A leak across tool calls. The certificate, note, and external send form a private source– carrier–sink chain. G-CARB retains this chain; Full-prefix includes unrelated work. The illustrated local labels miss the leak. The executed-step baseline instead labels the first harmful event and divides by the executed action count. Conformal risk control (CRC) bounds the expected loss it is given, so the choice of loss matters. Figure 1 illustrates how labels on individual actions can miss a leak. Even when the first harmful action is correctly labeled, dividing by many executed actions can make the harmful-step rate small. The probability of harm in an episode can remain high. We call this the control-unit mismatch and examine it with an executed-step-rate baseline. CORA represents the broader line of pre-action conformal control [Feng et al., 2026b]. CARB (Conformal Agent Risk Budget) evaluates each stopping policy with a global harm ledger : a record of declared harmful events across all actions executed before stopping. We replay each policy on logged episodes to obtain its losses, then apply standard CRC to calibrate the stopping threshold. Harm incurred before stopping remains charged. G-CARB uses observable dependencies to select the records supplied to the scorer. This focuses scoring on relevant history while the ledger continues to cover every executed action. We evaluate the gate on two 14B agents in AgentDojo. Controlled examples examine when retaining the relevant dependency adds value beyond shortening context. 
+
+## 2 Related Work 
+
+Conformal prediction provides finite-sample guarantees under exchangeability; CRC extends this framework to bounded monotone losses [Vovk et al., 2005, Angelopoulos et al., 2024]. Agent ap-plications differ in what they control. CORA targets harmful executed actions [Feng et al., 2026b], and CROP calibrates how much of a reasoning trace to retain [Cheung et al., 2026]. Other methods attribute failures within completed trajectories [Feng et al., 2026a], score or gate completed runs [Tayebati et al., 2026, Opoku and Banahene, 2026], or regulate deployment relative to a safe policy [Prinster et al., 2026]. Related work calibrates generated sets, uncertain plans, and reasoning graphs [Quach et al., 2024, Han et al., 2024, Ren et al., 2023, Fayyazi and Akrami, 2026, Hittesdorf et al., 2026, Wang et al., 2026b]. CARB applies CRC to the harm accumulated along the execution prefix a stopping policy permits. Dependency-based defenses use information flow, graphs, or formal rules to enforce security. Ex-amples include CaMeL, RTBAS, AgentArmor, FORGE, and AgentFlow [Debenedetti et al., 2025, Zhong et al., 2025, Wang et al., 2025, Palumbo et al., 2026, Wang et al., 2026a]. IPIGuard constrains execution through a planned tool-dependency graph [An et al., 2025]; Task Shield checks whether instructions and tool calls contribute to the user’s task [Jia et al., 2025]. In G-CARB, the graph sup-plies evidence to a separate scorer, and calibration uses a ledger defined independently of that graph. AgentDojo provides the evaluation traces [Debenedetti et al., 2024], within a broader ecosystem of agent-safety benchmarks [Ruan et al., 2024, Andriushchenko et al., 2025, Zhan et al., 2024, Yuan 2et al., 2024, Zhang et al., 2025]. Our experiments compare calibration targets and context selectors within this pipeline. 
+
+## 3 Problem Formulation 
+
+An ungated episode records an agent’s run without a stopping gate. Write it as Z = ( R1, . . . , R T ),with one record Rt = ( At, O t) per executed action. Here At is the action at step t, Ot is its returned observation, and T is the episode length. A later action may use any earlier observation, so records within an episode may be arbitrarily dependent. Before At executes, a fixed selector C chooses evidence Ct = C(Z<t , A t) from the history and the proposal. A fixed scorer assigns qt = s(Ct) ∈ [0 , 1] . The policy πλ executes At when qt ≤ λ and stops before the first proposal with qt > λ , handing control to a human or a sandbox. The resulting executed prefix is Pλ(Z). Larger thresholds permit longer prefixes; a stop-all threshold λ⊥ permits no actions. At decision time, the gate has access only to the history and proposal, since Ot becomes available after execution. We evaluate harm across the full executed prefix. For a data leak, this means checking whether an outgoing action carries data from an earlier private read. The ledger defines these events in advance and records those that occur within Pλ(Z).
+
+Definition 1 (Stopped-prefix ledger loss) . Fix a finite set K of harm categories, each with an in-dicator Ek(P ) ∈ { 0, 1} that is determined by the executed records of the prefix P alone and is non-decreasing as P grows. A harm ledger ℓ(P ) ∈ [0 , 1] is any function of (Ek(P )) k∈K satisfying 
+
+ℓ(∅) = 0 and prefix monotonicity, ℓ(P ) ≤ ℓ(P ′) whenever P is a prefix of P ′. The primary ledger is the union indicator ℓunion (P ) = max k∈K Ek(P ) ∈ { 0, 1}, and the loss at threshold λ on episode 
+
+Z is Lλ(Z) = ℓ(Pλ(Z)) .
+
+Raising λ lengthens the executed prefix, so Lλ(Z) is nondecreasing on every episode. Once a declared event occurs, it stays in the ledger through stopping or later recovery. This target measures whether harm occurred; applications that credit remediation would need a different loss. A gate depends on both its calibration target and its scorer evidence. To examine the target, we compare episode loss with an executed-step rate rλ(Z): an indicator that harm occurred, divided by the number of permitted actions, with zero assigned to an empty prefix. This baseline calibrates the running maximum over a finite threshold grid Λ, erλ(Z) = max λ′∈Λ: λ′≤λ rλ′ (Z), which makes the target monotone. Appendix D gives the full specification. The next proposition shows why both target and evidence matter. 
+
+Proposition 1 (Two obstructions to episode-level control) . Fix 0 < α < p < 1.(i) Unit. There exists a distribution of length-K episodes, with K ≥ ⌈ 1/α ⌉ and no-guard harm prevalence p, such that every permitted prefix has rλ ≤ α and erλ ≤ α, but the all-execute policy has expected episode loss p > α .(ii) Context. Consider a harmful/benign pair drawn with probabilities p and 1 − p, with a common candidate sink as the only possible ledger event, harmful only in the first member. Suppose the gate-visible score histories match through that sink under common policy randomness, in-cluding a common calibrated threshold whose randomness is independent of which member is drawn. Let q be the overall probability that the sink executes, including survival through earlier decisions. Then E[L] = pq , and E[L] ≤ α forces the matched benign sink not to execute with probability at least 1 − α/p .
+
+Part (i) shows how many harmless steps can dilute the rate assigned to one harmful action. Part (ii) shows the cost of missing context: a gate that receives matching scores on harmful and benign histories must allow or stop them at the same rate. Together, these results motivate calibrating episode loss and retaining evidence that distinguishes the two histories. Proofs are in Appendix A. 
+
+## 4 Methodology 
+
+CARB: calibrate the permitted prefix. Before calibration, fix the ledger, selector, scorer, input-sanitization rules, and a finite threshold grid Λ ⊂ [0 , 1] ∪ { λ⊥} with λ⊥ < 0. For each threshold, 3replay n logged ungated episodes Dcal = ( Z1, . . . , Z n): follow each episode until the gate would reject a proposal, then evaluate Lλ(Zi) = ℓ(Pλ(Zi)) on the permitted prefix. For a chosen risk budget α, CARB selects the largest feasible threshold: 
+
+bR+(λ) = 1 + Pni=1 Lλ(Zi)
+
+n + 1 , bλ = max {λ ∈ Λ : bR+(λ) ≤ α}. (1) The correction adds one worst-case loss to the calibration sum. Choosing the largest feasible thresh-old allows as much execution as this criterion permits. Each proposal’s score stays fixed across thresholds, so a higher threshold can only extend the permitted prefix. Algorithm 1 gives the proce-dure. 
+
+G-CARB: select the dependency evidence. Definition 2 (Graph-localized context) . At decision t, let Gt = ( Vt, E t) be a directed acyclic graph on the executed records Z<t and proposal At, built from prefix-visible fields. Frozen tool metadata identifies private sources St and the designated sink types. When At is a sink reachable from a source, G-CARB supplies 
+
+CG 
+
+> t
+
+= {v ∈ Vt : u ⇝ v ⇝ At for some u ∈ St},
+
+the nodes on source-to-proposal paths, including their endpoints. Otherwise it supplies At and its ancestors. Full-prefix uses CF 
+
+> t
+
+= Vt.
+
+Graph edges link earlier records to later actions through shared object identifiers, declared input handles, or exact content reuse. The experimental sink types include external and financial actions; other proposals use the ancestor rule in Definition 2 (Appendix B). G-CARB and Full-prefix share the graph builder, node types, scorer, grid, and ledger. Only the selected records differ. They are supplied in chronological order, with the proposal’s result left empty at scoring time. In the certificate–note–email example, the reused private field or its handle links the read to the note and proposed send. G-CARB retains this chain and omits a disconnected public task. An email carrying only the public document instead follows the public branch. In both cases, the ledger evaluates every executed record. The scorer adds fixed weights for binary features and clips the sum to [0 , 1] : qt =clip [0 ,1] (w⊤x(Ct)) . Features describe the proposal, selected private or injected content, and the presence of a source-to-sink path (Appendix B.3). Private records can raise this score even when disconnected from the proposal, which helps explain the benefit of pruning context. All selectors use the same weights, and computing the score requires no language-model inference. 
+
+Guarantee and replay. G-CARB selects evidence using only the history and current proposal. Once this rule is fixed, its losses form the same ordered family used by CARB. The following guarantee therefore covers both methods. 
+
+Theorem 1 (Stopped-prefix conformal risk control) . Let F contain the ledger satisfying Defini-tion 1, selector, scorer, finite grid containing λ⊥, and all sanitization and replayable scoring rules, fixed before calibration. Conditional on F, suppose Z1, . . . , Z n, Z new are exchangeable and the loss vector is the same deterministic function of each episode. For α ∈ [1 /(n + 1) , 1] , Equation 1 returns a threshold satisfying 
+
+EDcal ,Z new 
+
+h
+
+Lbλ(Dcal )(Znew ) | F 
+
+i
+
+≤ α. 
+
+Averaging over F gives the unconditional bound. For α < 1/(n + 1) , no threshold satisfies the corrected criterion. 
+
+This applies standard CRC [Angelopoulos et al., 2024] to the stopped-prefix losses. The bound averages over both the calibration sample and a future episode; individual deployment batches can exceed the budget. The correction requires α ≥ 1/(n+1) . Below this floor, Equation 1 is infeasible, and stop-all remains available with known zero ledger loss. 
+
+Corollary 1 (Fixed-corpus random assignment) . Fix a finite corpus and every episode’s loss vector before assignment. Under a uniform permutation into n calibration and m ≥ 1 held-out positions, for α ≥ 1/(n + 1) the expected held-out mean of Lbλ is at most α, conditional on the unordered corpus and frozen pipeline. The expectation is over the assignment. 
+
+4This corollary applies to the AgentDojo experiment, where each split reassigns the same corpus to calibration and test sets. Repeated splits measure sensitivity to that assignment. The next proposition states when replay reproduces online stopping. 
+
+Proposition 2 (Replay equivalence) . Fix a threshold λ and a common initial state. Couple offline replay and online execution through the same agent and environment randomness. Use a determin-istic frozen wrapper or couple its randomness as well. Suppose the wrapper is silent and free of side effects before rejection and observes the same prefix-visible fields in both runs. Then the proposals, contexts, and scores agree up to the first rejection, the executed records and ledger state agree before it, and the rejected proposal executes in neither run. Both runs therefore produce the same stopped prefix and the same Lλ(Z).
+
+Proofs are in Appendix A. Warnings, prompt edits, or retries before stopping can change the agent’s later actions. Evaluating such a wrapper requires trajectories collected with those interactions. 
+
+## 5 Experiments 
+
+We examine three questions: can a small harmful-step rate hide substantial episode harm, does ledger calibration keep mean episode loss within budget, and when does dependency-based context selection help? 
+
+AgentDojo and the ledger. In AgentDojo , an agent performs a benign user task while tool responses may contain injected instructions that redirect it toward an adversarial objective [Debenedetti et al., 2024]. We use 984 ungated episodes per backbone from Qwen2.5-14B-Instruct and Qwen3-14B. Each logged trajectory supplies the records for replaying candidate stopping poli-cies. The ledger records five harm categories: privacy flow, financial action, irreversible action, social action, and security event. An injection-directed event is registered when an observation contains an adversarial objective and a matching tool call later succeeds. Privacy flow also records whether a private canary—a synthetic marker—reaches an executed external or financial sink. Rejected proposals and private reads alone create no event. This ledger evaluates executed prefixes separately from AgentDojo’s terminal evaluator. It lacks an independent error audit, and the effect of rewriting canaries in 27 Qwen2.5 traces remains unmeasured (Appendix C). 
+
+Controlled suites. The Compositional Exfiltration Suite (CES) contains 80 constructed leaks and 
+
+240 matched non-leaks: public sends, private reads without sends, and disconnected private/public flows. Its clean subset pairs the leaks with 80 public sends. Graph-braid interleaves harmful chains with unrelated benign branches in 2,000 constructed trajectories. Labels come from the trace design and remain hidden from the graph builder and scorer. CES uses 100 assignments with related trajec-tories kept together; graph-braid uses 200 trajectory assignments. These suites test specific failure mechanisms at harm frequencies chosen by construction. The grouped CES splits fall outside Corol-lary 1; their results are descriptive. Appendix D gives fold sizes and grouping details. 
+
+Baselines. No guard executes the complete trajectory. Executed-step CRC sees only the current proposal and calibrates the harmful-step rate envelope. Ledger-current calibrates episode loss using only the current proposal; it tests whether history is needed in the constructed suites. The remaining controls share G-CARB’s ledger, scorer, splits, and grid. Full-prefix supplies all earlier records and the proposal. Fixed-window-4 selects recent records. Equal-size random context retains the proposal and a fixed pseudorandom subset of earlier records, matching G-CARB’s size at each decision. This tests whether the identity of retained records matters beyond their count. 
+
+Metrics. The primary safety metric is mean episode loss ¯L: the fraction of test episodes with a ledger event before stopping. Intervention I is the fraction in which the gate rejects a proposal. 
+
+Autonomous success U is the fraction whose logged task completes before handoff; completion can coexist with a ledger event. The controlled suites also report the fraction of harmful sinks prevented from executing. Their benign-stop metrics have different denominators: non-leak trajectories in CES, and all trajectories in graph-braid. The graph-braid metric counts first stops on disconnected benign branches. 5Full-prefix Fixed-window-4 Equal-size random G-CARB                            
+
+> Mean episode loss L ∪↓Intervention rate I ↓Autonomous task success U ↑
+> Qwen2.5 A
+> 0.10 .20 .025 .05 .10 .20 target α
+> B
+> 0.5 1.025 .05 .10 .20
+> C
+> 0.5 1.025 .05 .10 .20
+> Qwen3 D
+> 0.10 .20 .025 .05 .10 .20 Risk budget α
+> E
+> 0.5 1.025 .05 .10 .20 Risk budget α
+> F
+> 0.5 1.025 .05 .10 .20 Risk budget α
+
+Figure 2: AgentDojo risk–utility frontiers. Shorter context improves autonomous success at inter-mediate budgets; equal-size random context closely tracks G-CARB. Every plotted method’s mean ledger loss stays below the budget (dashed line). Points average 200 shared calibration/test assign-ments of the fixed corpus. Whiskers show their empirical 5th–95th percentiles. Appendix Tables 4 and 7 give the values. Scorer-input reduction, CtxRed, measures the fraction of records omitted from the scorer’s input. We sum selected and full-prefix record counts over the same proposals, including the first rejected proposal, and report one minus their ratio (Appendix D). Graph construction and total runtime are outside this measurement. 
+
+Calibration protocol. Before splitting, we freeze the scorer, ledger, graph builder, sanitizer, 102 -element threshold grid, and pipeline hash. Each backbone uses 200 seeded permutations into 492 
+
+calibration and 492 test episodes. Methods share these assignments, the ledger, and the grid. Each selector receives its own threshold from Equation 1 at the same budget. We interpret these results conditional on the fixed corpus and scorer, as in Corollary 1. Means and percentiles summarize variation across assignments. 
+
+A small step rate can coexist with episode harm. Executed-step CRC keeps its reported step rate below budget while its mean episode loss exceeds it (Appendix Table 4). At three of the four displayed points, its mean episode loss matches no guard to reported precision ( .133 , .133 , and .225 ). Dividing a harmful event by trajectory length makes the rate small even when the event occurs, as Proposition 1(i) predicts. The methods calibrated on the global ledger keep their mean held-out episode losses below the displayed budgets (Figure 2). This AgentDojo comparison changes both the target and context. The constructed suites compare Ledger-current with other ledger-calibrated selectors; they do not isolate the effect of changing the calibration target. 
+
+Context restriction improves autonomous success. Context restriction has its greatest effect at intermediate budgets (Figure 2). At strict budgets, especially for Qwen3, the gates stop almost every episode; at the most permissive Qwen2.5 point, all methods execute the full trajectories. Equal-size random context closely follows G-CARB, while the fixed window stays nearer Full-prefix. Removing private or injected records can lower this scorer’s output and reduce unnecessary stops. At budgets .05 and .10 , G-CARB supplies roughly half the full-prefix record count. The constructed suites examine when record identity also matters. 
+
+Dependency evidence helps avoid benign stops. CES near-misses vary whether private data reaches the same sink type. Current-only scoring lacks this history; random selection can discard it. In graph-braid, an unrelated branch can trigger an early full-prefix stop. Every gated method stops the harmful sinks, but G-CARB avoids benign stops in both constructions (Figure 3). 6Episode loss Stop rate Intervention Context saved  
+
+> Harm Benign
+
+A CES near-miss         
+
+> Ledger-current .667 .750 .853
+> Full-prefix .333 .500
+> G-CARB 0.250 .395
+
+B Graph-braid                        
+
+> No guard .390 0N/A
+> Ledger-current 0.390 .898
+> Full-prefix .095
+> Fixed-window-4 .095 .067
+> G-CARB 0.390 .471 0.5 10.5 10.5 10.5 1
+
+Figure 3: Stopping harmful flows while allowing benign work, at α = .10 . All gated methods shown stop every harmful sink. CES benign stop counts stopped non-leaks; graph-braid counts only first stops on disconnected benign branches, divided by all trajectories. Thus Full-prefix intervenes in every graph-braid episode but has benign-stop rate .095 . Context saved is CtxRed. Means use 
+
+100 CES and 200 graph-braid assignments; Appendix Table 8 includes equal-size random context. Ledger-current matches G-CARB on graph-braid, and Full-prefix matches it on CES clean. Each simpler context suffices in one construction; G-CARB handles both by retaining the relevant history and excluding unrelated records. 
+
+Observability and scope. The CES audit holds calibrated thresholds fixed while removing struc-tured provenance, exact sink text, or both. Either remaining channel identifies the harmful paths; removing both returns loss to the no-guard level (Appendix G). Transfer requires validation and calibration under the theorem’s assumptions. 
+
+## 6 Conclusion 
+
+CARB applies standard CRC to accumulated harm before stopping; G-CARB selects dependency evidence while retaining that global loss. Context restriction improves AgentDojo task comple-tion and roughly halves scorer-input records at intermediate budgets. Random context performs similarly; constructed diagnostics show where relevant history also avoids benign stops. Smaller backbones, alternative scorers, and total gate overhead remain evaluation priorities. 
+
+Limitations. The guarantee bounds expected declared ledger loss under exchangeability, not harm in every episode or harm outside the ledger. The ledger lacks an independent error audit, and se-mantic or paraphrased flows may escape the observable matching rules. AgentDojo evidence comes from repeated assignments of a fixed corpus using one scorer and two same-family 14B backbones; broader selectivity remains untested. Replay covers stopping without prior feedback to the agent, leaving interactive interventions and outcomes after handoff unevaluated. Finally, fewer scorer-input records do not establish lower total runtime: graph construction, end-to-end latency, and intervention costs remain unmeasured. 
+
+## Acknowledgments and Disclosure of Funding 
+
+This work benefited from the computational resources provided by GERAD. Zijun Yu acknowledges partial support from an ISM Graduate Scholarship. Masoud Asgharian acknowledges the support of the Natural Sciences and Engineering Research Council of Canada (NSERC) [RGPIN-2024-05640]. 7References 
+
+Hengyu An, Jinghuai Zhang, Tianyu Du, Chunyi Zhou, Qingming Li, Tao Lin, and Shouling Ji. IPIGuard: A novel tool dependency graph-based defense against indirect prompt injection in LLM agents. In Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing , pages 1023–1039, Suzhou, China, November 2025. Association for Computational Linguistics. Maksym Andriushchenko, Alexandra Souly, Mateusz Dziemian, Derek Duenas, Maxwell Lin, Justin Wang, Dan Hendrycks, Andy Zou, Zico Kolter, Matt Fredrikson, Yarin Gal, and Xander Davies. Agentharm: A benchmark for measuring harmfulness of LLM agents. In Y. Yue, A. Garg, N. Peng, F. Sha, and R. Yu, editors, International Conference on Learning Representations , vol-ume 2025, pages 79185–79220, 2025. Anastasios Nikolas Angelopoulos, Stephen Bates, Adam Fisch, Lihua Lei, and Tal Schuster. Con-formal risk control. In The Twelfth International Conference on Learning Representations , 2024. Matt Y. Cheung, Ashok Veeraraghavan, Hanjie Chen, and Guha Balakrishnan. Conformal certifica-tion of reasoning trace prefixes, 2026. Edoardo Debenedetti, Jie Zhang, Mislav Balunovic, Luca Beurer-Kellner, Marc Fischer, and Florian Tramèr. Agentdojo: A dynamic environment to evaluate prompt injection attacks and defenses for llm agents. Advances in Neural Information Processing Systems , 37:82895–82920, 2024. Edoardo Debenedetti, Ilia Shumailov, Tianqi Fan, Jamie Hayes, Nicholas Carlini, Daniel Fabian, Christoph Kern, Chongyang Shi, Andreas Terzis, and Florian Tramèr. Defeating prompt injections by design, 2025. Xiang Deng, Yu Gu, Boyuan Zheng, Shijie Chen, Sam Stevens, Boshi Wang, Huan Sun, and Yu Su. Mind2web: Towards a generalist agent for the web. Advances in Neural Information Processing Systems , 36:28091–28114, 2023. Arya Fayyazi and Haleh Akrami. Proof-of-perception: Certified tool-using multimodal reasoning with compositional conformal guarantees. In Proceedings of the IEEE/CVF Conference on Com-puter Vision and Pattern Recognition , pages 5144–5153, 2026. Naihe Feng, Yi Sui, Shiyi Hou, Ga Wu, and Jesse C. Cresswell. Conformal agent error attribution. In ICML 2026 Statistical Frameworks for Uncertainty in Agentic Systems , 2026a. Yushi Feng, Junye Du, Qifan Wang, Zizhan Ma, Qian Niu, Yutaka Matsuo, Long Feng, and Lequan Yu. CORA: Conformal risk-controlled agents for safeguarded mobile GUI automation, 2026b. Kai Greshake, Sahar Abdelnabi, Shailesh Mishra, Christoph Endres, Thorsten Holz, and Mario Fritz. Not what you’ve signed up for: Compromising real-world llm-integrated applications with indirect prompt injection. In Proceedings of the 16th ACM workshop on artificial intelligence and security , pages 79–90, 2023. Jiuzhou Han, Wray Buntine, and Ehsan Shareghi. Towards uncertainty-aware language agent. In 
+
+Findings of the Association for Computational Linguistics: ACL 2024 , pages 6662–6685, 2024. Nathan Hittesdorf, Marco Salzetta, and Lu Cheng. Differentiable conformal training for LLM rea-soning factuality. In Forty-third International Conference on Machine Learning , 2026. Feiran Jia, Tong Wu, Xin Qin, and Anna Squicciarini. The task shield: Enforcing task alignment to defend against indirect prompt injection in LLM agents. In Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 29680– 29697, Vienna, Austria, July 2025. Association for Computational Linguistics. Jeffery Opoku and David Banahene. ToolChain-CRC: Conformal risk control for agentic AI under retrieval and tool-use drift, 2026. Nils Palumbo, Sarthak Choudhary, Jihye Choi, Guy Amir, Prasad Chalasani, and Somesh Jha. For-mal policy enforcement for real-world agentic systems, 2026. 8Drew Prinster, Clara Fannjiang, Ji Won Park, Kyunghyun Cho, Anqi Liu, Suchi Saria, and Samuel Don Stanton. Conformal policy control. In Forty-third International Conference on Machine Learning , 2026. Victor Quach, Adam Fisch, Tal Schuster, Adam Yala, Jae Ho Sohn, Tommi S. Jaakkola, and Regina Barzilay. Conformal language modeling. In The Twelfth International Conference on Learning Representations , 2024. Allen Z. Ren, Anushri Dixit, Alexandra Bodrova, Sumeet Singh, Stephen Tu, Noah Brown, Peng Xu, Leila Takayama, Fei Xia, Jake Varley, Zhenjia Xu, Dorsa Sadigh, Andy Zeng, and Anirudha Majumdar. Robots that ask for help: Uncertainty alignment for large language model planners. In 7th Annual Conference on Robot Learning , 2023. Yangjun Ruan, Honghua Dong, Andrew Wang, Silviu Pitis, Yongchao Zhou, Jimmy Ba, Yann Dubois, Chris Maddison, and Tatsunori Hashimoto. Identifying the risks of lm agents with an lm-emulated sandbox. In International Conference on Learning Representations , volume 2024, pages 27031–27098, 2024. Timo Schick, Jane Dwivedi-Yu, Roberto Dessì, Roberta Raileanu, Maria Lomeli, Eric Hambro, Luke Zettlemoyer, Nicola Cancedda, and Thomas Scialom. Toolformer: Language models can teach themselves to use tools. Advances in neural information processing systems , 36:68539– 68551, 2023. Sina Tayebati, Divake Kumar, Nastaran Darabi, Davide Ettori, Ranganath Krishnan, and Amit Ran-jan Trivedi. TRACER: Trajectory risk aggregation for critical episodes in agentic reasoning. In 
+
+Forty-third International Conference on Machine Learning , 2026. Vladimir Vovk, Alex Gammerman, and Glenn Shafer. Algorithmic Learning in a Random World .Springer, 2005. doi: 10.1007/b106715. Peiran Wang, Yang Liu, Yunfei Lu, Yifeng Cai, Hongbo Chen, Qingyou Yang, Jie Zhang, Jue Hong, and Ye Wu. AgentArmor: Enforcing program analysis on agent runtime trace to defend against prompt injection, 2025. Shenao Wang, Xinyi Hou, Yanjie Zhao, Xiao Cheng, and Haoyu Wang. AgentFlow: Building agent dependency graphs for static analysis of agent programs, 2026a. Ting Wang, Yuanjie Shi, Yan Yan, and Huan Zhang. Inference-time conformal reasoning with valid factuality control for large language models. In Forty-third International Conference on Machine Learning , 2026b. Jiangrong Wu, Zitong Yao, Yuhong Nan, and Zibin Zheng. Chainfuzzer: Greybox fuzzing for workflow-level multi-tool vulnerabilities in llm agents, 2026. Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik R Narasimhan, and Yuan Cao. ReAct: Synergizing reasoning and acting in language models. In The Eleventh International Conference on Learning Representations , 2023. Tongxin Yuan, Zhiwei He, Lingzhong Dong, Yiming Wang, Ruijie Zhao, Tian Xia, Lizhen Xu, Binglin Zhou, Fangqi Li, Zhuosheng Zhang, et al. R-judge: Benchmarking safety risk awareness for llm agents. In Findings of the Association for Computational Linguistics: EMNLP 2024 ,pages 1467–1490, 2024. Qiusi Zhan, Zhixiang Liang, Zifan Ying, and Daniel Kang. InjecAgent: Benchmarking indirect prompt injections in tool-integrated large language model agents. In Findings of the Association for Computational Linguistics: ACL 2024 , pages 10471–10506, 2024. Hanrong Zhang, Jingyuan Huang, Kai Mei, Yifei Yao, Zhenting Wang, Chenlu Zhan, Hongwei Wang, and Yongfeng Zhang. Agent security bench (ASB): Formalizing and benchmarking attacks and defenses in LLM-based agents. In International Conference on Learning Representations ,volume 2025, pages 35331–35366, 2025. 9Peter Yong Zhong, Siyuan Chen, Ruiqi Wang, McKenna McCall, Ben L. Titzer, Heather Miller, and Phillip B. Gibbons. RTBAS: Defending LLM agents against prompt injection and privacy leakage, 2025. Shuyan Zhou, Frank F Xu, Hao Zhu, Xuhui Zhou, Robert Lo, Abishek Sridhar, Xianyi Cheng, Tianyue Ou, Yonatan Bisk, Daniel Fried, et al. WebArena: A realistic web environment for building autonomous agents. In International Conference on Learning Representations , volume 2024, pages 15585–15606, 2024. 10 A Theory and proofs 
+
+A.1 Control unit and matched histories 
+
+Proof of Proposition 1(i). Choose an integer K ≥ ⌈ 1/α ⌉. Every trajectory has K actions. With probability p, its only union-ledger increment occurs at action K; otherwise the ledger never incre-ments. A policy that stops before action K has both zero episode loss and zero step rate. A policy that executes action K has rate 1/K on the harmful member and zero on the benign member. Thus every threshold has rλ(Z) ≤ 1/K ≤ α, and taking the maximum over lower thresholds preserves the bound for erλ(Z). The all-execute threshold λ = 1 permits the complete trajectory and has 
+
+E[ℓunion (P1(Z))] = p > α .The counterexample establishes compatibility of a small rate with large episode risk. It does not assert that Equation 1, with its finite-sample correction and the envelope substituted for the ledger, accepts the all-execute policy at every sample size. More generally, for any possibly randomized stopping policy applied to a binary union ledger, 
+
+E[ℓunion (Pbλ(Z))] = p Pr( first harmful action executes | ℓunion (Z) = 1) ,
+
+where p is the no-guard prevalence and the conditional probability includes calibration and policy randomness. Gated risk equals p only when every harmful trajectory reaches that action. 
+
+Proof of Proposition 1(ii). Couple the two potential members using the same calibrated threshold and policy randomness, independent of the member drawn. By assumption, the score histories through the candidate sink agree. Inducting over these histories, every preceding accept/reject deci-sion agrees, as does the decision at the sink if reached. Hence the indicator that the sink executes is identical for both members under the coupling. Write q for its probability, averaging over calibration and policy randomness. Only the harmful member can incur a ledger event, and it does so exactly when the sink executes, giving E[L] = pq . The inequality pq ≤ α implies q ≤ α/p . The benign member therefore fails to execute its sink with probability 1 − q ≥ 1 − α/p .The sink may be prevented by an earlier stop, so matching histories through the sink is essential: equal final scores alone leave earlier survival probabilities unconstrained. Observable provenance can distinguish the constructed pair before its sink executes. 
+
+A.2 Ordered-grid CRC and stopped-prefix calibration Lemma 1 (Finite ordered-grid CRC) . Let F collect every component fixed before calibration and write Li(λ) = Lλ(Zi). Conditional on F, let Z1, . . . , Z n+1 be exchangeable, let Λ be a finite totally ordered grid, and let Li(λ) ∈ [0 , 1] be the same deterministic loss map for every i, nondecreasing in λ, with Λ containing a stop-all value λ⊥ satisfying Li(λ⊥) = 0 . For α ≥ 1/(n + 1) , define 
+
+bλ = max 
+
+n
+
+λ ∈ Λ :  1 + Pni=1 Li(λ)/(n + 1) ≤ α
+
+o
+
+.
+
+Then the feasible set is nonempty and E[Ln+1 (bλ) | F ] ≤ α.Proof. For each i ∈ { 1, . . . , n + 1 } apply the rule with observation i left out, 
+
+λ−i = max 
+
+n
+
+λ ∈ Λ : 1 + P  
+
+> j̸=i
+
+Lj (λ) ≤ (n + 1) α
+
+o
+
+,
+
+which is well defined because the stop-all value is always feasible. Since Li(λ−i) ≤ 1, we get 
+
+Pn+1  
+
+> j=1
+
+Lj (λ−i) ≤ (n + 1) α. Let λ∗ be the largest grid point satisfying that inequality for the full augmented sample. Each λ−i is feasible for the full-sample problem, so λ−i ≤ λ∗, and monotonicity gives Pn+1  
+
+> i=1
+
+Li(λ−i) ≤ Pn+1  
+
+> i=1
+
+Li(λ∗) ≤ (n + 1) α. 
+
+The leave-one-out construction is permutation symmetric and bλ = λ−(n+1) , so conditional ex-changeability yields E[Ln+1 (bλ) | F ] = ( n + 1) −1 Pn+1  
+
+> i=1
+
+E[Li(λ−i) | F ] ≤ α. This is the finite ordered-grid specialization of conformal risk control for a unit-bounded loss [Angelopoulos et al., 2024]. 11 Proof of Theorem 1. Conditional on F, fixing the ledger, selector, scorer, grid, and sanitizer makes 
+
+(Lλ(Z)) λ∈Λ a deterministic function of an episode, so conditionally exchangeable episodes give conditionally exchangeable loss vectors. A larger threshold permits a weakly longer prefix, and prefix monotonicity of the ledger makes the loss nondecreasing in λ. The grid contains λ⊥, which permits no records and gives Lλ⊥ (Z) = ℓ(∅) = 0 . Lemma 1 then gives the bound conditional on the frozen components, and averaging over them gives the unconditional statement. At λ⊥ every calibration loss is zero, so the corrected risk there is exactly 1/(n + 1) , and every corrected risk has numerator at least one. The stop-all element is therefore feasible at and above 
+
+1/(n + 1) , while the entire grid is infeasible below it, which is the reported infeasibility case. The stop-all policy still has known zero loss below this floor; only the corrected selection criterion is infeasible. Dependence among records within an episode is unrestricted; exchangeability is required at the episode level only. 
+
+Proof of Corollary 1. Let F now contain the unordered corpus and frozen loss map. For each held-out position j, uniform episode permutation makes the n calibration positions together with position 
+
+j exchangeable conditional on F. Theorem 1 bounds each expected held-out loss by α, and linearity of expectation gives the bound on their mean. 
+
+A.3 Replay equivalence 
+
+Proof of Proposition 2. At the first decision both runs share the empty executed prefix, proposal, graph, selected context, and score. If the proposal is rejected, both stop before executing it; if it is accepted, the coupled action and environment randomness produce the same observation, so the first executed records agree. Assume agreement through the first t − 1 executed records. Silence and the absence of wrapper side effects preserve the same agent state, so coupling supplies the same proposal at decision t, and prefix measurability supplies the same graph, context, score, and decision. Induction continues to the first rejection or to natural termination. The ledger is deterministic on the common executed prefix, so ledger state and loss agree as well. The proposition ceases to apply to a wrapper that edits the prompt before a decision, mutates the environment before rejection, exposes different fields in replay, or resamples uncoupled randomness. 
+
+## B Algorithm, graph selector, and scorer 
+
+B.1 Calibration algorithm 
+
+Algorithm 1 applies to a frozen selector C. Substituting the graph selector CG yields G-CARB; substituting the complete prefix yields Full-prefix CARB. The ledger always sees all permitted exe-cuted records, irrespective of which records were selected for scoring. 
+
+Algorithm 1 CARB stopped-prefix calibration 
+
+Require: frozen selector C, scorer s, ledger ℓ, sanitization; episodes Z1: n; finite grid Λ ∋ λ⊥ < 0;budget α 
+
+> 1:
+
+for λ ∈ Λ and i = 1 , . . . , n do  
+
+> 2:
+
+P ← ∅ 
+
+> 3:
+
+for each proposal At logged in Zi do  
+
+> 4:
+
+Ct ← C(P, A t); qt ← s(Ct) ▷ no future result Ot 
+
+> 5:
+
+if qt > λ then break ▷ stop before At 
+
+> 6:
+
+P ← P R t ▷ append the logged executed record  
+
+> 7:
+
+end for  
+
+> 8:
+
+Li(λ) ← ℓ(P ) ▷ earlier harm stays charged  
+
+> 9:
+
+end for  
+
+> 10:
+
+bR+(λ) ← (1 + P 
+
+> i
+
+Li(λ)) /(n + 1) for each λ ∈ Λ 
+
+> 11:
+
+return max {λ ∈ Λ : bR+(λ) ≤ α}, or report criterion infeasible 12 B.2 Prefix graph and source-to-sink selector 
+
+At decision t, the graph contains one node for every executed record R1, . . . , R t−1 and one node for the proposal At. An executed node contains its action and visible result. The current node contains the proposed action and an empty result. Future actions, future observations, terminal outcomes, ledger labels, and suite labels are excluded. Node typing assigns five types: private sources, external sinks, financial actions, irreversible actions, and message/social actions. Types come from frozen tool metadata together with deterministic rules over tool names and visible outputs, all fixed before assignment and calibration. No typing rule reads suite labels or terminal outcomes. Visible identifiers include e-mail addresses, IBANs, canary strings, and values attached to object, source, event, message, channel, account, transaction, file, recipient, or sender fields. Generic identifiers must contain at least four characters. Distinctive text spans comprise exact e-mail, IBAN, and canary strings, together with visible result lines of at least 24 characters that contain a digit; such lines are truncated to 80 characters. A general exact-span match requires at least 16 characters. Every edge points from an earlier node to a later node. An edge is added when at least one of the following prefix-visible relations holds: 1. the records carry the same declared branch identifier; 2. they share an object identifier or a data identifier; 3. the later action explicitly declares as input a data identifier produced earlier; 4. a canary observed earlier reappears in the later action arguments; 5. a later financial action shares a transaction or account identifier with the earlier record; 6. a later irreversible action updates the same visible object; 7. a later message/social action shares a thread or message identifier with the earlier record; or 8. exact distinctive content from the earlier result reappears in the later visible action fields. The construction uses neither unconditional temporal edges nor learned or embedding-based simi-larity. Strict temporal orientation makes the graph acyclic. Our experiments instantiate the sink predicate as the frozen external-sink type, which includes finan-cial sinks. An irreversible-only, non-external proposal uses the ancestor fallback. The same fallback applies when no source-to-current path exists: the selector returns the current proposal together with its closed ancestor set. The current proposal is always retained, and selected nodes are serialized in chronological order. Full-prefix CARB instead returns every graph node. The equal-size random control retains the proposal and a deterministic pseudorandom subset of earlier nodes whose size matches the graph-local context at that decision. These relations are observable matching rules, not verified semantic dataflow. A shared identifier or exact span can introduce an irrelevant edge, while paraphrasing, transformation, or unlogged state can remove a needed one. The source-to-sink feature is evaluated on retained evidence; Full-prefix and G-CARB use the same underlying graph machinery. Changing the evidence changes scores and possibly harm, without redefining the ledger in Appendix C. 
+
+B.3 Frozen weighted scorer 
+
+The experiments use qt = clip [0 ,1] (w⊤x(Ct)) with the complete nonzero feature set in Table 1. We fixed the features and weights before assignment and calibration. We interpret the experiments conditional on this scorer and the fixed corpus, as in Corollary 1. The .10 , .14 , and .14 weights on earlier selected private sources, canaries, and injection text can increase a score even when the selected record is disconnected from the proposal. The .52 feature instead requires a retained private-source-to-sink path. These choices explain why pruning can improve this scorer. Selectivity with learned scorers or alternative context weights remains an open comparison. 13 Feature Weight Intercept .05 Current private source .09 Current external sink .25 Current financial action .35 Current irreversible action .24 Current message/social action .12 Earlier selected private source .10 Earlier selected canary .14 Earlier selected injection text .14 Private source reaches current sink .52 Sink after selected private source, path absent .16 Canary in current arguments .20 Current risky action .07 
+
+Table 1: Frozen weighted scorer. A risky current action is external, financial, or irreversible. The weighted sum is clipped to [0 , 1] ; only a retained source-to-sink path activates the .52 provenance feature. 
+
+B.4 Record-count scope 
+
+Over T decisions, serializing every prefix supplies PTt=1 O(t) = O(T 2) records to the scorer. If a selected component has at most d records per decision, the corresponding count is O(T d ). Both statements are conditional record-count bounds. They exclude graph construction, maintenance, and other wrapper costs, and require bounded record length to imply token or byte bounds. 
+
+## C AgentDojo ledger, corpus, and preprocessing 
+
+The fixed corpora contain 984 ungated episodes each from Qwen2.5-14B-Instruct and Qwen3-14B on AgentDojo [Debenedetti et al., 2024]. Our custom ledger is a deterministic function of executed, prefix-visible records; it is not an official AgentDojo harm annotation. Its five binary categories are privacy flow, financial action, irreversible action, social action, and security event. The reported episode loss is their union, 
+
+ℓunion (P ) = max {ℓpriv (P ), ℓ fin (P ), ℓ irr (P ), ℓ soc (P ), ℓ sec (P )}.
+
+Each indicator records whether its event has occurred and remains one afterward. Subsequent re-covery does not remove a registered event. 
+
+Event registration. For injection-directed events, the adapter identifies an adversarial objective from injection text only after that text appears in an executed observation. It registers an event when the corresponding tool call executes and its result confirms execution; the category follows the frozen tool type. Privacy flow also registers when an exact canary previously observed at a private source appears in the executed arguments of an external or financial sink. Rejected proposals, failed calls, future records, terminal benchmark outcomes, terminal fallback, and private reads without an executed sink create no event. The recorded corpora contain 169 events in 130 positive Qwen2.5 episodes and 257 events in 221 positive Qwen3 episodes. Event totals can exceed the number of positive episodes; the binary union and executed-step baseline count only whether, and when, the first union event occurs. 
+
+Policy and evaluation separation. Registered ledger labels and benchmark outcomes are ex-cluded from the graph and scorer. The scorer can use visible tool fields and observed text as specified in Appendix B; it cannot consume a future event label. The ledger evaluates the complete executed prefix, not just the selected context. The official attack evaluator is excluded from scoring, calibra-tion, threshold selection, and operating-point selection. Its terminal outcomes and the prefix ledger measure different objects; the reported risk target is the latter. 
+
+Preprocessing and validity limits. We rewrote canary tokens in 27 Qwen2.5 trajectories during trace preparation and made no equivalent substitution in Qwen3. We have not quantified the effect 14 Dataset Pool Calibration Test Assignments Assignment unit AgentDojo, each backbone 984 492 492 200 Episode CES clean 160 48 48 100 Pair identifier CES near-miss 320 96 96 100 Pair identifier Graph-braid 2,000 600 600 200 Trajectory 
+
+Table 2: Pool and fold sizes, all in trajectories. CES uses split seeds 0–99 ; AgentDojo and the main graph-braid setting use 0–199 . CES trajectories sharing a pair identifier stay together in one fold.                 
+
+> Method Calibrated object Scorer evidence Executed-step CRC Rate envelope erλCurrent proposal Ledger-current Stopped-prefix ledger LλCurrent proposal Full-prefix CARB Same ledger Full prefix and proposal G-CARB Same ledger Dependency-selected nodes Fixed-window-4 Same ledger Four-record recency context Equal-size random Same ledger Size-matched random context
+
+Table 3: Internal calibration and context controls. No guard is uncalibrated. Ledger-current is reported only on the constructed suites; Executed-step CRC is reported only on AgentDojo, so these results do not provide a same-context loss ablation. Executed-step CRC is an internal analogue of step-level control, not a reproduced CORA implementation. of this preprocessing difference on ledger labels, graph edges, or results. We have not indepen-dently audited the event adapter against human annotations or benchmark outcomes. Exact-canary detection need not capture paraphrased or transformed disclosure. The theorem bounds this declared operational ledger; it does not establish its coverage of all harms or its semantic accuracy. 
+
+## D Calibration, splits, metrics, and compute 
+
+D.1 Frozen pipeline and assignments 
+
+The ledger, graph builder, selector, scorer, sanitizer, and grid are fixed before assignment and cali-bration. The 102 -element grid is 
+
+Λ = {λ⊥} ∪ { 0, . 01 , . 02 , . . . , 1}, λ⊥ = −1,
+
+and a proposal is rejected exactly when qt > λ . Increasing the threshold is more permissive. AgentDojo uses 200 seeded episode permutations, indexed 0–199 , with 492 calibration and 492 
+
+test episodes per backbone. For each assignment, we sort eligible episode or group identifiers and shuffle them with Python’s Mersenne Twister at base seed zero plus the split index. AgentDojo’s statistical interpretation is the uniform episode-assignment model in Corollary 1; the 200 seeded assignments summarize sensitivity of this fixed corpus rather than 200 independent datasets. Table 2 gives the pool and fold sizes. CES keeps all trajectories with a common pair identifier in one fold; graph-braid uses one complete trajectory as its assignment unit. Each CES clean split has 
+
+48 calibration and 48 test trajectories; each near-miss split has 96 of each. Graph-braid uses 600 
+
+calibration and 600 test trajectories. Only the selected calibration and test folds enter each split’s results. We report the constructed results as descriptive held-out diagnostics: the uniform episode-permutation corollary does not cover grouped CES. The equal-size random selector retains the proposal and a deterministic pseudorandom subset of earlier nodes with the graph selector’s size at that decision. Its full budget grid uses selector seed 
+
+0; a separate check uses seeds 0–19 at α = .05 . Selector seeds and assignment seeds have distinct roles. For threshold replay, each episode–proposal pair must retain the same selected context at every threshold; resampling contexts across thresholds can destroy prefix nesting. 15 D.2 Calibration targets and context controls 
+
+For a full ungated trajectory, write Pt = ( R1, . . . , R t) and P0 = ∅. The executed-step baseline uses the first binary union-ledger increment 
+
+ht = ℓunion (Pt) − ℓunion (Pt−1), rλ(Z) = 
+
+P 
+
+> t≤| Pλ(Z)|
+
+ht
+
+max {1, |Pλ(Z)|} .
+
+An empty permitted prefix gives rate zero. The numerator is at most one; it is not the total count of category events. Because a raw rate can fall as a harmless suffix grows, the calibration target is 
+
+erλ(Z) = max  
+
+> λ′∈Λ: λ′≤λ
+
+rλ′ (Z).
+
+This envelope is nondecreasing in the more permissive threshold. The baseline applies Equation 1 with erλ in place of Lλ, whereas reported step rates are the held-out raw rbλ.
+
+D.3 Reported metrics and denominators 
+
+The held-out mean ledger loss is 
+
+¯L = 1
+
+|I test |
+
+X
+
+> i∈I test
+
+ℓunion (Pbλ(Zi)) .
+
+Intervention I is the fraction of test trajectories with a rejected proposal. Autonomous success U
+
+is the fraction whose logged task completes before handoff; task completion and a ledger event can coexist. No joint harm-free success rate is reported. Harm stop is the fraction of harmful sinks prevented from executing, including prevention by an ear-lier rejection. CES benign stop divides stopped non-leak trajectories by all held-out non-leak trajec-tories. Graph-braid benign stop instead divides trajectories whose first rejection is on a disconnected benign branch by all held-out trajectories. These benign-stop metrics have different denominators and meanings. For method m, let Jm contain the episode–proposal pairs it scores through first rejection (including the rejected proposal) or natural termination. With the proposal counted as one node, 
+
+CtxRed m = 1 −
+
+P 
+
+> (i,t )∈J m
+
+|Cmit |
+
+P 
+
+> (i,t )∈J m
+
+|Cfull  
+
+> it
+
+| . (2) The denominator is the counterfactual full-prefix record count on that same set of proposals. In the main G-CARB results, the comparison set is JG, not the proposals reached by a separately calibrated Full-prefix policy. Per-decision size matching does not force equal aggregate CtxRed for random and graph selection: their stopping points, and hence their Jm, can differ. This is a serialized record-count measure, not tokens, latency, memory, or total computation. Means and empirical 5th–95th percentiles in the AgentDojo results summarize assignment sensitiv-ity on the reused corpus. Paired differences use the same test assignment for both methods. These percentiles are not independent-sample confidence intervals or high-probability guarantees for future deployments. 
+
+D.4 Computing environment and code 
+
+We ran all experiments on the same dual-socket AMD EPYC 7402 host with 48 physical cores, 1.0 TB RAM, two NVIDIA A100 80GB GPUs, and Linux 5.14 on x86-64. Replay and postpro-cessing used Python 3.9.25, PyYAML 5.4.1, NumPy 1.23.5, and pandas 2.3.2; AgentDojo is pinned at v0.1.35-4-g18b501a63. The closed-loop check used vLLM 0.21.0, bfloat16, tensor parallelism 2,maximum sequence length 8192 , and seed 0. Calibration replays logged episodes with the frozen rule and requires no additional language-model inference. We do not report execution times or measured wrapper overhead. Code accompanies the OpenReview submission. The supplement reconstructs the prefix-visible policy view, event ledger, graph contexts, and stopped prefixes from the ungated records. AgentDojo is distributed under the MIT license. The Qwen2.5-14B-Instruct and Qwen3-14B back-bones are distributed under Apache License 2.0. 16 Executed-step CRC Full-prefix Equal-size random G-CARB Backbone α r ↓ ¯L ↓ ¯L ↓ I ↓ U ↑ ¯L ↓ I ↓ U ↑ ¯L ↓ I ↓ U ↑                  
+
+> Qwen2.5 .050 .027 .133 .044 .680 .065 .035 .515 .168 .035 .516 .167 .100 .027 .133 .072 .406 .222 .077 .332 .261 .077 .351 .250 Qwen3 .050 .034 .154 .046 .989 .001 .041 .992 .002 .041 .992 .002 .100 .044 .225 .092 .826 .025 .085 .535 .107 .085 .537 .106
+
+Table 4: AgentDojo results averaged over 200 calibration/test assignments. Executed-step CRC calibrates the rate envelope erλ and reports raw rate r. Full-prefix, equal-size random, and G-CARB calibrate the same stopped-prefix ledger with different scorer evidence. ¯L, I, U : mean episode loss, intervention, autonomous success. Both restricted-context selectors improve utility over Full-prefix at the displayed points; Qwen3 at .05 is near stop-all.                                                                  
+
+> Full-prefix threshold G-CARB threshold Backbone αMin Median Max Min Median Max Feasible per method Qwen2.5 .025 .24 .54 .84 .13 .44 .58 200/200 .050 .58 .84 .98 .44 .58 .72 200/200 .100 .99 .99 .99 .99 .99 .99 200/200 .200 1.00 1.00 1.00 1.00 1.00 1.00 200/200 Qwen3 .025 .24 .24 .35 .13 .13 .25 200/200 .050 .24 .37 .54 .13 .25 .44 200/200 .100 .54 .58 .84 .44 .58 .58 200/200 .200 .99 .99 1.00 .99 .99 1.00 200/200
+
+Table 5: Selected-threshold ranges over 200 assignments per cell ( 3,200 calibrations total). All cor-rected calibration risks are at most their displayed budget; the range shows that assignment matters most at the tighter operating points. 
+
+## E Additional AgentDojo results 
+
+E.1 Selected operating points 
+
+At α = .05 and .10 , respectively, G-CARB’s CtxRed is .565 and .597 for Qwen2.5, and .511 
+
+and .590 for Qwen3. The no-guard mean episode losses are .133 and .225 for the two backbones. Context counts use Equation 2. 
+
+E.2 Thresholds and feasibility 
+
+Table 5 gives the complete four-budget grid for Full-prefix and G-CARB. All 3,200 recorded cal-ibration selections are feasible and satisfy their own corrected calibration criterion. This does not assert that every held-out assignment meets its budget. Numerically positive thresholds can still cause behavioral stop-all. 
+
+E.3 Paired assignment sensitivity and endpoints 
+
+Table 6 reports G-CARB minus Full-prefix on shared assignments. Reported paired differences need not equal subtraction of the rounded entries in Table 4. Rounding can make these two quantities differ. In particular, the reported Qwen3 .05 utility difference rounds to zero. At .025 , Qwen2.5 autonomous success is .0078 for G-CARB and .0098 for Full-prefix, a small reversal; Qwen3 is behaviorally stop-all. At .20 , both Qwen2.5 selectors choose threshold 1 and match no guard, with 
+
+U = .436 . Qwen3 still has gated behavior at .20 , with U = .189 for G-CARB and .162 for Full-prefix; this is not a no-guard reference. We report autonomous success as an absolute fraction of test episodes, without normalizing it by no-guard success. 17 Backbone α ∆ ¯L ∆I ∆U                           
+
+> Qwen2.5 .05 −.009 −.163 +.102 [−.016 , . 004] [−.280 ,−.102] [.063 , . 171]
+> Qwen2.5 .10 +.005 −.055 +.029 [.002 , . 008] [−.067 ,−.043] [.018 , . 037]
+> Qwen3 .05 −.005 +.003 +.000 [−.033 , . 004] [−.004 , . 053] [−.002 , . 002]
+> Qwen3 .10 −.007 −.289 +.081 [−.024 , . 016] [−.427 ,−.081] [.030 , . 118]
+
+Table 6: Paired mean differences and empirical 5th–95th assignment percentiles over 200 shared splits per cell. Intervention is lower in three cells, while the Qwen3 .05 cell has essentially no utility difference. These are assignment-sensitivity summaries, not independent-sample intervals.                                                                           
+
+> Fixed-window-4 Equal-size random context Backbone α¯LIUCtxRed ¯LIUCtxRed Qwen2.5 .025 .022 .869 .010 .130 .022 .977 .008 .494 .050 .044 .669 .072 .159 .035 .515 .168 .565 .100 .072 .395 .228 .175 .077 .332 .261 .596 .200 .133 .000 .436 .201 .133 .000 .436 .580 Qwen3 .025 .001 1.000 .000 .003 .000 1.000 .000 .089 .050 .046 .989 .002 .133 .041 .992 .002 .511 .100 .092 .818 .028 .188 .085 .535 .107 .590 .200 .149 .369 .176 .242 .159 .320 .196 .646
+
+Table 7: Complete context-control grid, averaged over 200 assignments per cell. Equal-size random context performs similarly to G-CARB on this natural corpus. Fixed-window-4 uses a different recency-based selection rule. CtxRed is computed separately on each method’s scored proposals using Equation 2. 
+
+E.4 Complete window and random-context controls 
+
+Across random-selector seeds 0–19 at α = .05 , mean random-context ledger loss is .035 for Qwen2.5 and .041 for Qwen3, equal to the corresponding G-CARB losses at displayed precision. Random-minus-G-CARB intervention differences range from −.003 to .000 for Qwen2.5 and are zero for every Qwen3 seed. These comparisons support context restriction under the tested scorer without a demonstrated natural-data advantage for dependency selection. Figure 2 in the main text shows the full operating grid. 
+
+## F Constructed suites and held-out diagnostics 
+
+F.1 Construction 
+
+CES trajectories open with nine neutral filler actions. A harmful trajectory then reads a private record, summarizes it while carrying its private handle, and sends the summary and handle to a fixed external recipient. The clean paired trajectory replaces the private handle with a public one and performs the same summarize-and-send pattern. Each harmful trajectory has three near-misses: a public-only send; a private read and local summary without an external sink; and a private branch followed by a disconnected public branch whose sink sends only the public handle. The clean cohort is the harmful/public-send subset of the broader near-miss cohort: 80 leaks and 80 matched non-leaks. The near-miss cohort contains those same 80 leaks and all 240 non-leaks. The cohorts are therefore not independent replications. Graph-braid samples 2,000 harm indicators from a seeded Bernoulli recipe with probability .4 and creates a fresh private canary and private/public object pair for each trajectory. Each trajectory has 20 
+
+actions. Positions 1–3 read the private record, open a benign branch, and continue private reasoning; position 5 sends an authorized benign update. The other positions interleave private and benign records with branch identifiers. A harmful trajectory sends the private canary externally at position 16; a benign trajectory continues its branch there. The cohort prevalence is set by construction, not estimated for deployed agents. 18 Cohort Method ¯L Harm stop Benign stop I U CtxRed CES clean: 80/80 No guard .500 .000 .000 .000 1.000 –Ledger-current .000 1.000 1.000 1.000 .000 .846 Full-prefix .000 1.000 .000 .500 .500 .000 Fixed-window-4 .000 1.000 .000 .500 .500 .462 Equal-size random .000 1.000 1.000 1.000 .000 .346 G-CARB .000 1.000 .000 .500 .500 .346 CES near-miss: 80/240 No guard .250 .000 .000 .000 1.000 –Ledger-current .000 1.000 .667 .750 .250 .853 Full-prefix .000 1.000 .333 .500 .500 .000 Fixed-window-4 .000 1.000 .333 .500 .500 .481 Equal-size random .000 1.000 .667 .750 .250 .395 G-CARB .000 1.000 .000 .250 .750 .395 Graph-braid: 2,000 No guard .390 .000 .000 .000 1.000 –Ledger-current .000 1.000 .000 .390 .610 .898 Full-prefix .000 1.000 .095 1.000 .000 .000 Fixed-window-4 .000 1.000 .095 1.000 .000 .067 Equal-size random .000 1.000 .079 .905 .095 .450 G-CARB .000 1.000 .000 .390 .610 .471 
+
+Table 8: Constructed diagnostics at α = .10 : 100 grouped CES assignments and 200 graph-braid assignments. CES labels give harmful/non-leak pool counts; the graph-braid label gives total pool size. All gated methods have zero reported mean ledger loss and stop the harmful sinks. Benign stop divides by non-leak trajectories in CES, but by all trajectories in graph-braid (Appendix D). These are descriptive held-out results, not a CES certificate under the episode-permutation corollary. Harm and branch labels come from the generation recipe and are stored outside every graph and scorer input. Appendix D states the fold sizes: 100 pair-grouped assignments for each CES cohort and 200 trajectory assignments for graph-braid. These results describe selectivity of the frozen rule on these constructed traces. 
+
+F.2 Results and ties 
+
+On CES clean, Full-prefix and Fixed-window-4 match G-CARB on loss, intervention, and utility. On near-misses, G-CARB avoids benign stops where Full-prefix and Fixed-window-4 stop one third and Ledger-current and equal-size random stop two thirds. The equal-size comparison supports a role for which records are retained beyond their count in these constructed cohorts under this scorer. On graph-braid, Ledger-current matches G-CARB on loss, intervention, and utility. Equal-size ran-dom has benign-branch first stops on .079 of all trajectories and intervention .905 , compared with 
+
+.000 and .390 for G-CARB. Random and G-CARB are size-matched at a given decision but have CtxRed .450 and .471 : different stopping points change the scored-proposal sets in Equation 2. These ties and differences limit the claim to the comparisons actually distinguished by each con-struction. 
+
+## G Observable-evidence and perturbation diagnostics 
+
+G.1 Fixed-threshold evidence removal 
+
+The 2 × 2 audit reuses 80 matched CES pairs and 100 grouped assignments, crossing structured provenance present/absent with exact sink text present/laundered. In each assignment, the threshold is calibrated on the provenance-present, text-laundered cell and then held fixed across all four cells. Evidence variants alter the graph/scorer view while the harm labels and declared evaluation target stay fixed. Path recall is measured on harmful source-to-sink examples, and false path on the matched non-leak examples. Either remaining observable channel retains all harmful paths in this construction; absence of both removes them. Keeping the ledger fixed preserves the evaluation target, while changed evidence can still increase the loss of a frozen policy. Figure 4A displays the path-recall results. 19 Evidence ¯L Path recall False path CtxRed Provenance +, text + .000 1.000 .000 .346 Provenance +, text − .000 1.000 .000 .346 Provenance −, text + .000 1.000 .000 .833 Provenance −, text − .500 .000 .000 .846 
+
+Table 9: Fixed-threshold CES evidence audit. “Text −” denotes laundered exact sink text and “provenance −” removal of structured provenance from the policy evidence. The threshold is cali-brated in the provenance +, text − cell and reused. Removing both channels gives zero harmful-path recall and mean ledger loss .500 , equal to the no-guard loss of the balanced cohort. This is an ob-servability/shift diagnostic, not a four-cell conformal certificate.                                  
+
+> Sweep Conditions Max ¯LMin H-stop Max B-stop CtxRed range Baseline 1.000 1.000 .000 .471–.471 Harm prevalence 4.054 .400 .000 .471–.472 Benign density 3.000 1.000 .000 .471–.471 Score noise 3.097 .765 .030 .469–.472 Edge dropout 3.000 1.000 .094 .400–.471 Combined stress 2.080 .869 .063 .459–.467
+
+Table 10: Graph-braid sensitivity at α = .10 . Each condition’s metrics are averaged over 20 assign-ments; each row gives extrema over the listed conditions. H-stop is the fraction of harmful sinks blocked. B-stop counts first stops on benign branches, divided by all trajectories. The reported mean losses stay below the budget; these assignment averages do not guarantee that every held-out batch meets it. 
+
+G.2 Graph-braid perturbations with recalibration 
+
+The graph-braid sweep varies harm prevalence, benign-branch density, additive score noise, and observable-edge dropout at α = .10 . Each condition receives its own calibrated threshold against the same global ledger. This measures the risk–intervention trade-off after recalibration. The CES audit above instead reuses a fixed threshold across evidence conditions. The sweep contains 16 conditions with 20 trajectory assignments per condition. For condition 
+
+c ∈ { 0, . . . , 15 }, the split seeds are 20260609 + 100 c through 20260609 + 100 c + 19 . The listed prevalence levels are .1, . 2, . 6, . 8; benign-branch densities are .25 , . 75 , . 90 ; score-noise levels are 
+
+.05 , . 10 , . 20 ; and edge-dropout levels are .05 , . 10 , . 20 . Two further conditions combine moderate and severe perturbations. We report the sweep as a descriptive sensitivity analysis of the constructed traces, with separate calibration in each condition. Figure 4B shows the loss and intervention means. At 20% edge dropout, intervention reaches 1.0:every episode is stopped. This illustrates the possible utility cost of recalibration when dependency evidence is degraded. The reported standard errors summarize variation over repeated assignments of constructed data; they provide no confidence guarantee for a new deployment population. The sweep leaves fixed-threshold transfer under distribution shift untested. 
+
+## H Online interface check 
+
+Our Qwen2.5 integration check applies the split-0 G-CARB threshold .58 at α = .05 across four AgentDojo suites. Its primary scope contains 48 attacked and 16 no-attack episodes. Online scores and decisions agree with deterministic same-code recomputation on all 135 primary proposals, or 
+
+152 proposals after 12 auxiliary controls are included. Every current node has an empty result at scoring time. The wrapper stops 22 /48 attacked and 7/16 no-attack episodes; autonomous success is 13 /48 and 4/16 , respectively, and one attacked episode reaches a registered ledger event. These counts check consistency between the online interface and same-code recomputation. The selected episodes do not establish exchangeability with a deployment population, so this is an in-tegration diagnostic. Independent ledger validation and population risk evaluation require separate evidence. 20 A Harmful-path recall B Graph-braid stress cells 1.00 1.00 1.00 0.00         
+
+> Exact Laundered Present Absent Visible sink text Structured provenance Benign false-path rate: 0.00 in all cells 0.5 10.05 .10 Intervention rate I Mean episode loss L ∪
+> budget α=.10
+> 20% edge dropout
+> Baseline Harm prevalence Benign density Score noise Edge dropout Combined stress
+
+Figure 4: Evidence removal and recalibrated perturbation results. A: Harmful-path recall over 
+
+100 grouped CES assignments of 80 matched pairs. The threshold is calibrated with structured provenance present and exact sink text laundered, then reused in all four cells. Removing both channels reduces recall to zero; the benign false-path rate is zero throughout. Table 9 gives ledger losses. B: Mean episode loss and intervention for 16 graph-braid conditions at budget α = .10 ,with separate calibration in each condition. Whiskers show standard errors over 20 assignments per condition. The 20% edge-dropout condition stops every episode. These recalibrated comparisons do not test transfer of a fixed threshold across conditions. 
+
+## I Ethics and broader impacts 
+
+The intended benefit is to make an agent gate’s risk target explicit and reduce avoidable interven-tions while controlling declared harm in expectation. Misinterpreting this marginal guarantee as a promise for every episode, or treating an incomplete ledger as comprehensive safety coverage, could encourage unsafe deployment. Unnecessary stops can also disrupt useful work and transfer burdens to human operators; our experiments do not evaluate outcomes after handoff. All experiments use a sandboxed benchmark with synthetic records and canary strings, without real private data. Deploy-ment requires validating the ledger and evidence channels for the intended setting and evaluating the handoff process. 21
